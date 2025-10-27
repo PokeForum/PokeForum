@@ -23,8 +23,10 @@ var ServerCMD = &cobra.Command{
 	Use:   "server",
 	Short: "Start the server",
 	Long:  `Start the server`,
-	Run: func(cmd *cobra.Command, args []string) {
+	// 启动服务器
+	RunE: func(cmd *cobra.Command, args []string) error {
 		RunServer()
+		return nil
 	},
 }
 

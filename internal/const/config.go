@@ -1,3 +1,3 @@
 package _const
 
-const ConfigPath = "configs.yaml"
+const ConfigPath = "config.yaml"

@@ -8,6 +8,6 @@ import (
 )
 
 func main() {
-	fmt.Printf("PokeForum Version: %s (Hash: %s)", _const.Version, _const.GitCommit)
+	fmt.Printf("PokeForum Version: %s (Hash: %s)\n", _const.Version, _const.GitCommit)
 	cmd.Execute()
 }

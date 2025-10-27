@@ -28,13 +28,9 @@ var RootCMD = &cobra.Command{
 	Use:   "PokeForum",
 	Short: "站在巨人肩膀的论坛程序",
 	Long:  "Go+Gin+PgSQL+Redis+MeiliSearch构建的高性能论坛程序",
-	Run: func(cmd *cobra.Command, args []string) {
-		// 默认运行 Server
-		cmd.SetArgs([]string{"server"})
-		if err := cmd.Execute(); err != nil {
-			fmt.Println(err)
-			return
-		}
+	// 如果没有指定子命令，默认运行 server
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return ServerCMD.RunE(cmd, args)
 	},
 }
 
@@ -52,4 +48,7 @@ func init() {
 	RootCMD.PersistentFlags().StringVar(&configs.Port, "port", port, "端口号")
 	RootCMD.PersistentFlags().StringVarP(&configs.ConfigPath, "config", "c", config, "配置文件路径")
 	RootCMD.PersistentFlags().BoolVar(&configs.Debug, "debug", false, "是否开启调试模式")
+
+	// 将 ServerCMD 添加为 RootCMD 的子命令
+	RootCMD.AddCommand(ServerCMD)
 }
