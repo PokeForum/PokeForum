@@ -42,15 +42,35 @@ func RunServer() {
 	// 创建数据目录
 	if err := utils.CreatNestedFolder(utils.DataFolder); err != nil {
 		configs.Log.Error(err.Error())
+		return
 	}
 
 	// 创建主题目录
 	if err := utils.CreatNestedFolder(utils.DataFolder + "/theme"); err != nil {
 		configs.Log.Error(err.Error())
+		return
 	}
 
 	// 初始化数据库
+	configs.DB = initializer.DB()
+	if configs.DB == nil {
+		configs.Log.Error("DB initializer failed")
+		return
+	} else {
+		// 迁移数据库
+		initializer.AutoMigrate(configs.DB)
+		configs.Log.Info("DB initializer succeeded")
+	}
+
 	// 初始化缓存
+	configs.Cache = initializer.Cache()
+	if configs.Cache == nil {
+		configs.Log.Error("Cache initializer failed")
+		return
+	} else {
+		configs.Log.Info("Cache initializer succeeded")
+
+	}
 
 	// 注册路由
 	router := initializer.Routers()

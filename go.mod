@@ -8,8 +8,10 @@ require (
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.11.0
 	github.com/go-playground/validator/v10 v10.27.0
+	github.com/gomodule/redigo v1.9.3
 	github.com/json-iterator/go v1.1.12
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
+	github.com/lib/pq v1.10.9
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.21.0
 	go.uber.org/zap v1.27.0
