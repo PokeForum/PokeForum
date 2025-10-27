@@ -19,9 +19,9 @@ func GetEnv(k, v string) string {
 }
 
 var (
-	host   = GetEnv("HOST", "localhost")
-	port   = GetEnv("PORT", "9876")
-	config = GetEnv("CONFIG", _const.ConfigPath)
+	host   = GetEnv("host", "localhost")
+	port   = GetEnv("port", "9876")
+	config = GetEnv("config", _const.ConfigPath)
 )
 
 var RootCMD = &cobra.Command{
