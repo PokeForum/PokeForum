@@ -34,3 +34,6 @@ config.yaml
 
 # Log File
 logs/*
+
+# Data File
+data/theme/*
