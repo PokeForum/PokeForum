@@ -78,8 +78,10 @@ func RunServer() {
 	router := initializer.Routers()
 
 	// 启动服务
+	sDSN := fmt.Sprintf("%s:%s", configs.Host, configs.Port)
+	fmt.Printf("Server Run: %s \n", sDSN)
 	srv := &http.Server{
-		Addr:    fmt.Sprintf("%s:%s", configs.Host, configs.Port),
+		Addr:    sDSN,
 		Handler: router,
 	}
 
