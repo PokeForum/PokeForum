@@ -11,7 +11,7 @@ db:
   # 数据库密码
   password:    "<PASSWORD>"
   # 数据库连接配置（PostgreSQL DSN）
-  config: 'sslmode=disable&TimeZone=Asia/Shanghai'
+  config: 'sslmode=disable'
 
 # Redis
 cache:
