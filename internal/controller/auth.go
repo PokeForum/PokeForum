@@ -30,6 +30,8 @@ func (ctrl *AuthController) AuthRouter(router *gin.RouterGroup) {
 	router.POST("/register", ctrl.Register)
 	// 登录路由
 	router.POST("/login", ctrl.Login)
+	// 退出登录
+	router.POST("/logout", saGin.CheckLogin(), ctrl.Logout)
 }
 
 // Register 用户注册接口
@@ -123,4 +125,28 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 		Username: user.Username,
 		Token:    token,
 	})
+}
+
+// Logout 用户退出登录接口
+// @Summary 用户退出登录
+// @Description 用户退出登录，清除认证信息
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Success 200 {object} response.Data "退出登录成功"
+// @Failure 500 {object} response.Data "服务器错误"
+// @Router /auth/logout [post]
+// @Security Bearer
+func (ctrl *AuthController) Logout(c *gin.Context) {
+	token := c.GetHeader("Authorization")
+
+	// 执行登出操作，清除 Token
+	logoutErr := saGin.LogoutByToken(token)
+	if logoutErr != nil {
+		response.ResErrorWithMsg(c, response.CodeGenericError, logoutErr.Error())
+		return
+	}
+
+	// 返回成功响应
+	response.ResSuccess(c, nil)
 }
