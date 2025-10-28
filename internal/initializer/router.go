@@ -6,6 +6,8 @@ import (
 	_ "github.com/PokeForum/PokeForum/docs"
 	"github.com/PokeForum/PokeForum/internal/configs"
 	"github.com/PokeForum/PokeForum/internal/middleware"
+	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
+	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -25,10 +27,9 @@ func Routers() *gin.Engine {
 	// 跨域配置
 	Router.Use(cors.New(middleware.CorsConfig))
 
-	// (可选项)
-	// PID 限流基于实例的 CPU 使用率，通过拒绝一定比例的流量, 将实例的 CPU 使用率稳定在设定的阈值上。
-	// 地址: https://github.com/bytedance/pid_limits
-	// Router.Use(adaptive.PlatoMiddlewareGinDefault(0.8))
+	// 设置SaToken
+	saManager := satoken.NewSaToken()
+	saGin.SetManager(saManager)
 
 	// 存活检测
 	Router.GET("/ping", func(c *gin.Context) {
