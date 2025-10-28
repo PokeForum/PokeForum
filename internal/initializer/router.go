@@ -3,10 +3,13 @@ package initializer
 import (
 	"net/http"
 
+	_ "github.com/PokeForum/PokeForum/docs"
 	"github.com/PokeForum/PokeForum/internal/configs"
 	"github.com/PokeForum/PokeForum/internal/middleware"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func Routers() *gin.Engine {
@@ -33,9 +36,9 @@ func Routers() *gin.Engine {
 	})
 
 	// 注册Swagger
-	//if config.Config.App.Mode == gin.DebugMode {
-	//	Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	//}
+	if configs.Debug == true {
+		Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	}
 
 	// 注册前端静态资源
 	//SetupWebFrontend(Router)

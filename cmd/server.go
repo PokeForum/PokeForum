@@ -1,3 +1,29 @@
+// Package cmd 提供命令行接口和服务器启动功能
+//
+// @title PokeForum API
+// @version 1.0
+// @description PokeForum 是一个基于 Gin 框架的论坛应用程序
+// @termsOfService http://swagger.io/terms/
+//
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+//
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+//
+// @host localhost:9876
+// @BasePath /api/v1
+// @schemes http https
+//
+// @securityDefinitions.basic BasicAuth
+//
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
+//
+// @x-google-backend
+// @x-google-allow unregistered_calls true
 package cmd
 
 import (
