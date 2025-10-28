@@ -1,4 +1,83 @@
 basePath: /api/v1
+definitions:
+  response.Data:
+    properties:
+      code:
+        $ref: '#/definitions/response.ResCode'
+      data: {}
+      msg: {}
+    type: object
+  response.ResCode:
+    enum:
+    - 20000
+    format: int64
+    type: integer
+    x-enum-varnames:
+    - CodeSuccess
+  schema.LoginRequest:
+    properties:
+      email:
+        description: 邮箱
+        example: test@example.com
+        type: string
+      password:
+        description: 密码
+        example: password123
+        minLength: 8
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  schema.LoginResponse:
+    properties:
+      id:
+        description: 用户ID
+        type: integer
+      token:
+        description: Token
+        type: string
+      username:
+        description: 用户名
+        type: string
+    type: object
+  schema.RegisterRequest:
+    properties:
+      email:
+        description: 邮箱
+        example: test@example.com
+        type: string
+      password:
+        description: 密码
+        example: password123
+        minLength: 8
+        type: string
+      username:
+        description: 用户名
+        example: testuser
+        maxLength: 100
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  schema.UserResponse:
+    properties:
+      email:
+        description: 用户邮箱
+        example: test@example.com
+        type: string
+      id:
+        description: 用户ID
+        example: 1
+        type: integer
+      username:
+        description: 用户名
+        example: testuser
+        type: string
+    type: object
 host: localhost:9876
 info:
   contact:
@@ -12,7 +91,77 @@ info:
   termsOfService: http://swagger.io/terms/
   title: PokeForum API
   version: "1.0"
-paths: {}
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: 用户登录获取认证信息
+      parameters:
+      - description: 登录信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 登录成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.LoginResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 用户登录
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: 创建新用户账户
+      parameters:
+      - description: 注册信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 注册成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 用户注册
+      tags:
+      - Auth
 schemes:
 - http
 - https
