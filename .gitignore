@@ -31,6 +31,8 @@ config.yaml
 # Editor/IDE
 .idea/
 .vscode/
+.windsurf/
+.cursor/
 
 # Log File
 logs/*
