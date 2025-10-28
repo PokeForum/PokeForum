@@ -57,7 +57,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 	// 注册前端静态资源
 	//SetupWebFrontend(Router)
 
-	api := Router.Group("/api")
+	api := Router.Group("/api/v1")
 
 	// 健康检查
 	//HealthyGroup := api.Group("/")

@@ -99,7 +99,7 @@ func (s *AuthService) Login(ctx context.Context, req schema.LoginRequest) (*ent.
 	combinedPassword := utils.CombinePasswordWithSalt(req.Password, u.PasswordSalt)
 
 	// 验证密码
-	if ok := utils.CheckPasswordHash(u.Password, combinedPassword); !ok {
+	if ok := utils.CheckPasswordHash(combinedPassword, u.Password); !ok {
 		return nil, errors.New("密码错误")
 	}
 
