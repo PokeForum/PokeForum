@@ -66,7 +66,7 @@ func ValidateStrongPassword(password string) error {
 	}
 
 	// 检查是否包含标点符号
-	hasPunctuation := regexp.MustCompile(`[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]`).MatchString(password)
+	hasPunctuation := regexp.MustCompile(`[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]`).MatchString(password)
 	if !hasPunctuation {
 		return fmt.Errorf("密码必须包含至少一个标点符号")
 	}

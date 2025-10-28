@@ -7,6 +7,8 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/user"
+	"github.com/PokeForum/PokeForum/internal/schema"
+	"github.com/PokeForum/PokeForum/internal/utils"
 	"github.com/gomodule/redigo/redis"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -14,9 +16,9 @@ import (
 // IAuthService 认证服务接口
 type IAuthService interface {
 	// Register 用户注册
-	Register(ctx context.Context, username, email, password string) (*ent.User, error)
+	Register(ctx context.Context, req schema.RegisterRequest) (*ent.User, error)
 	// Login 用户登录
-	Login(ctx context.Context, username, password string) (*ent.User, error)
+	Login(ctx context.Context, req schema.LoginRequest) (*ent.User, error)
 	// GetUserByID 根据ID获取用户
 	GetUserByID(ctx context.Context, id int) (*ent.User, error)
 }
@@ -37,10 +39,10 @@ func NewAuthService(db *ent.Client, cache *redis.Pool) IAuthService {
 
 // Register 用户注册
 // 验证用户名和邮箱是否已存在，然后创建新用户
-func (s *AuthService) Register(ctx context.Context, username, email, password string) (*ent.User, error) {
+func (s *AuthService) Register(ctx context.Context, req schema.RegisterRequest) (*ent.User, error) {
 	// 检查用户名是否已存在
 	existingUser, err := s.db.User.Query().
-		Where(user.UsernameEQ(username)).
+		Where(user.UsernameEQ(req.Username)).
 		First(ctx)
 	if err == nil && existingUser != nil {
 		return nil, errors.New("用户名已存在")
@@ -51,7 +53,7 @@ func (s *AuthService) Register(ctx context.Context, username, email, password st
 
 	// 检查邮箱是否已存在
 	existingEmail, err := s.db.User.Query().
-		Where(user.EmailEQ(email)).
+		Where(user.EmailEQ(req.Email)).
 		First(ctx)
 	if err == nil && existingEmail != nil {
 		return nil, errors.New("邮箱已被注册")
@@ -61,15 +63,15 @@ func (s *AuthService) Register(ctx context.Context, username, email, password st
 	}
 
 	// 密码加密
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, fmt.Errorf("密码加密失败: %w", err)
 	}
 
 	// 创建用户
 	newUser, err := s.db.User.Create().
-		SetUsername(username).
-		SetEmail(email).
+		SetUsername(req.Username).
+		SetEmail(req.Email).
 		SetPassword(string(hashedPassword)).
 		Save(ctx)
 	if err != nil {
@@ -81,10 +83,10 @@ func (s *AuthService) Register(ctx context.Context, username, email, password st
 
 // Login 用户登录
 // 根据用户名查找用户，验证密码是否正确
-func (s *AuthService) Login(ctx context.Context, username, password string) (*ent.User, error) {
-	// 根据用户名查找用户
+func (s *AuthService) Login(ctx context.Context, req schema.LoginRequest) (*ent.User, error) {
+	// 根据邮箱查找用户
 	u, err := s.db.User.Query().
-		Where(user.UsernameEQ(username)).
+		Where(user.EmailEQ(req.Email)).
 		First(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -93,8 +95,11 @@ func (s *AuthService) Login(ctx context.Context, username, password string) (*en
 		return nil, fmt.Errorf("查询用户失败: %w", err)
 	}
 
+	// 拼接密码和盐
+	combinedPassword := utils.CombinePasswordWithSalt(req.Password, u.PasswordSalt)
+
 	// 验证密码
-	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password)); err != nil {
+	if ok := utils.CheckPasswordHash(u.Password, combinedPassword); !ok {
 		return nil, errors.New("密码错误")
 	}
 

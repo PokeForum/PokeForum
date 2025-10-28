@@ -4,6 +4,7 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
+	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
 )
@@ -42,7 +43,6 @@ func (ctrl *AuthController) AuthRouter(router *gin.RouterGroup) {
 // @Router /auth/register [post]
 func (ctrl *AuthController) Register(c *gin.Context) {
 	var req schema.RegisterRequest
-	// 绑定请求体
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ResErrorWithMsg(c, response.CodeInvalidParam, err.Error())
 		return
@@ -56,7 +56,7 @@ func (ctrl *AuthController) Register(c *gin.Context) {
 	}
 
 	// 调用服务进行注册
-	user, err := authService.Register(c.Request.Context(), req.Username, req.Email, req.Password)
+	user, err := authService.Register(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -77,13 +77,12 @@ func (ctrl *AuthController) Register(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body schema.LoginRequest true "登录信息"
-// @Success 200 {object} response.Data{data=schema.UserResponse} "登录成功"
+// @Success 200 {object} response.Data{data=schema.LoginResponse} "登录成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 500 {object} response.Data "服务器错误"
 // @Router /auth/login [post]
 func (ctrl *AuthController) Login(c *gin.Context) {
 	var req schema.LoginRequest
-	// 绑定请求体
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ResErrorWithMsg(c, response.CodeInvalidParam, err.Error())
 		return
@@ -97,16 +96,25 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 	}
 
 	// 调用服务进行登录
-	user, err := authService.Login(c.Request.Context(), req.Username, req.Password)
+	user, err := authService.Login(c.Request.Context(), req)
+	if err != nil {
+		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
+		return
+	}
+
+	// 请求UA
+	ua := c.GetHeader("User-Agent")
+	// 创建状态Token
+	token, err := saGin.Login(user.ID, ua)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
 
 	// 返回成功响应
-	response.ResSuccess(c, schema.UserResponse{
+	response.ResSuccess(c, schema.LoginResponse{
 		ID:       user.ID,
 		Username: user.Username,
-		Email:    user.Email,
+		Token:    token,
 	})
 }
