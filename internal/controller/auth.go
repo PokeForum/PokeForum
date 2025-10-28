@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/PokeForum/PokeForum/internal/configs"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
+	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 	saGin "github.com/click33/sa-token-go/integrations/gin"
@@ -115,7 +116,7 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 		return
 	}
 	// 设置用户身份
-	if err = stputil.SetRoles(user.ID, []string{user.Role.String()}); err != nil {
+	if err = stputil.SetRoles(user.ID, satoken.GetUserRole(user.Role.String())); err != nil {
 		configs.Log.Warn(err.Error())
 	}
 

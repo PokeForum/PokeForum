@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	_ "github.com/PokeForum/PokeForum/docs"
+	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/configs"
 	"github.com/PokeForum/PokeForum/internal/controller"
 	"github.com/PokeForum/PokeForum/internal/middleware"
@@ -41,8 +42,11 @@ func Routers(injector *do.Injector) *gin.Engine {
 	saManager := satoken.NewSaToken()
 	saGin.SetManager(saManager)
 
-	// 注册服务到注入器
-	InjectorSrv(injector)
+	// 设置身份组
+	saGin.
+
+		// 注册服务到注入器
+		InjectorSrv(injector)
 
 	// 存活检测
 	Router.GET("/ping", func(c *gin.Context) {
@@ -62,33 +66,30 @@ func Routers(injector *do.Injector) *gin.Engine {
 	// 健康检查
 	//HealthyGroup := api.Group("/")
 	//HealthyCon := controller.NewHealthyController()
-	//HealthyCon.HealthyRouter(HealthyGroup)
-
-	//// 公开服务（应用令牌桶限速）
-	//OpenGroup := api.Group("/open")
-	//OpenGroup.Use(middleware.OpenAPIRateLimit()) // 应用令牌桶限速中间件
-	//OpenCon := controller.NewOpenController()
-	//OpenCon.OpenRouter(OpenGroup)
 
 	// 认证校验
 	AuthGroup := api.Group("/auth")
 	AuthCon := controller.NewAuthController(injector)
 	AuthCon.AuthRouter(AuthGroup)
 
-	//// 认证接口
-	//authAPI := api.Group("")
-	//authAPI.Use(middleware.JWTAuth()) // 校验请求认证
-	//{
-	//	// 认证
-	//	AuthRequiredGroup := authAPI.Group("/auth")
-	//	AuthRequiredCon := controller.NewAuthRequiredController()
-	//	AuthRequiredCon.AuthRequiredRouter(AuthRequiredGroup)
-	//
-	//	// 仪表盘
-	//	DashboardGroup := authAPI.Group("/dashboard")
-	//	DashboardCon := controller.NewDashboardController()
-	//	DashboardCon.DashboardRouter(DashboardGroup)
-	//}
+	// 论坛接口
+	{
+
+	}
+
+	// 管理员接口
+	ManageGroup := api.Group("/manage")
+	ManageGroup.Use(saGin.CheckLogin())
+	ManageGroup.Use(saGin.CheckRole(user.RoleAdmin.String()))
+	{
+
+	}
+
+	// 超级管理接口
+	SuperManageGroup := api.Group("/super/manage")
+	{
+
+	}
 
 	return Router
 }

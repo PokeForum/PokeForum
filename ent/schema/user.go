@@ -63,9 +63,9 @@ func (User) Fields() []ent.Field {
 		field.Enum("status").
 			Values("Normal", "Mute", "Blocked", "ActivationPending", "RiskControl").
 			Default("Normal"),
-		// 用户身份：User、VIP、Moderator、Admin、SuperAdmin
+		// 用户身份：User、Moderator、Admin、SuperAdmin
 		field.Enum("role").
-			Values("User", "VIP", "Moderator", "Admin", "SuperAdmin").
+			Values("User", "Moderator", "Admin", "SuperAdmin").
 			Default("User"),
 	}
 }

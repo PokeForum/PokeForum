@@ -204,7 +204,7 @@ var (
 		{Name: "post_count", Type: field.TypeInt, Default: 0},
 		{Name: "comment_count", Type: field.TypeInt, Default: 0},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"Normal", "Mute", "Blocked", "ActivationPending", "RiskControl"}, Default: "Normal"},
-		{Name: "role", Type: field.TypeEnum, Enums: []string{"User", "VIP", "Moderator", "Admin", "SuperAdmin"}, Default: "User"},
+		{Name: "role", Type: field.TypeEnum, Enums: []string{"User", "Moderator", "Admin", "SuperAdmin"}, Default: "User"},
 	}
 	// UsersTable holds the schema information for the "users" table.
 	UsersTable = &schema.Table{

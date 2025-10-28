@@ -170,7 +170,6 @@ const DefaultRole = RoleUser
 // Role values.
 const (
 	RoleUser       Role = "User"
-	RoleVIP        Role = "VIP"
 	RoleModerator  Role = "Moderator"
 	RoleAdmin      Role = "Admin"
 	RoleSuperAdmin Role = "SuperAdmin"
@@ -183,7 +182,7 @@ func (r Role) String() string {
 // RoleValidator is a validator for the "role" field enum values. It is called by the builders before save.
 func RoleValidator(r Role) error {
 	switch r {
-	case RoleUser, RoleVIP, RoleModerator, RoleAdmin, RoleSuperAdmin:
+	case RoleUser, RoleModerator, RoleAdmin, RoleSuperAdmin:
 		return nil
 	default:
 		return fmt.Errorf("user: invalid enum value for role field: %q", r)
