@@ -41,6 +41,7 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/logging"
 	"github.com/PokeForum/PokeForum/internal/utils"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/samber/do"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -58,6 +59,9 @@ var ServerCMD = &cobra.Command{
 
 // RunServer 启动服务器
 func RunServer() {
+	// 创建注入器
+	injector := do.New()
+
 	// 初始化配置文件，使用命令行标志中的配置文件路径
 	configs.VP = initializer.Viper(configs.ConfigPath)
 
@@ -101,7 +105,7 @@ func RunServer() {
 	}
 
 	// 注册路由
-	router := initializer.Routers()
+	router := initializer.Routers(injector)
 
 	// 启动服务
 	sDSN := fmt.Sprintf("%s:%s", configs.Host, configs.Port)
@@ -128,6 +132,10 @@ func RunServer() {
 	// 创建10秒超时的Context
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	// 关闭注入器，释放所有服务
+	if err := injector.Shutdown(); err != nil {
+		configs.Log.Fatal(err.Error())
+	}
 	// 10秒内优雅关闭服务（将未处理完成的请求处理完再关闭服务），超过10秒就超时退出
 	if err := srv.Shutdown(ctx); err != nil {
 		configs.Log.Fatal("Service timed out has been shut down: ", zap.Error(err))
