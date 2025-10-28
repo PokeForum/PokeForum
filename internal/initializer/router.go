@@ -42,11 +42,8 @@ func Routers(injector *do.Injector) *gin.Engine {
 	saManager := satoken.NewSaToken()
 	saGin.SetManager(saManager)
 
-	// 设置身份组
-	saGin.
-
-		// 注册服务到注入器
-		InjectorSrv(injector)
+	// 注册服务到注入器
+	InjectorSrv(injector)
 
 	// 存活检测
 	Router.GET("/ping", func(c *gin.Context) {
@@ -63,23 +60,26 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 	api := Router.Group("/api/v1")
 
-	// 健康检查
-	//HealthyGroup := api.Group("/")
-	//HealthyCon := controller.NewHealthyController()
-
 	// 认证校验
 	AuthGroup := api.Group("/auth")
 	AuthCon := controller.NewAuthController(injector)
 	AuthCon.AuthRouter(AuthGroup)
 
 	// 论坛接口
+	ForumGroup := api.Group("/forum")
+	ForumGroup.Use(saGin.CheckRole(user.RoleUser.String()))
 	{
 
+		// 版主接口
+		ModeratorGroup := ForumGroup.Group("/moderator")
+		ModeratorGroup.Use(saGin.CheckRole(user.RoleModerator.String()))
+		{
+
+		}
 	}
 
 	// 管理员接口
 	ManageGroup := api.Group("/manage")
-	ManageGroup.Use(saGin.CheckLogin())
 	ManageGroup.Use(saGin.CheckRole(user.RoleAdmin.String()))
 	{
 
@@ -87,6 +87,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 	// 超级管理接口
 	SuperManageGroup := api.Group("/super/manage")
+	SuperManageGroup.Use(saGin.CheckRole(user.RoleSuperAdmin.String()))
 	{
 
 	}
