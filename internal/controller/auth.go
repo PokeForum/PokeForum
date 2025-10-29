@@ -119,6 +119,7 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 	if err = stputil.SetRoles(user.ID, satoken.GetUserRole(user.Role.String())); err != nil {
 		configs.Log.Warn(err.Error())
 	}
+	// TODO 记录登录日志
 
 	// 返回成功响应
 	response.ResSuccess(c, schema.LoginResponse{

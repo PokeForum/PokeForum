@@ -23,9 +23,9 @@ func InjectorSrv(injector *do.Injector) {
 	do.Provide(injector, func(i *do.Injector) (service.IAuthService, error) {
 		return service.NewAuthService(configs.DB, configs.Cache, configs.Log), nil
 	})
-	// 注册 EmailService
-	do.Provide(injector, func(i *do.Injector) (service.IEmailService, error) {
-		return service.NewEmailService(configs.DB, configs.Cache, configs.Log), nil
+	// 注册 SettingsService（包含邮箱服务功能）
+	do.Provide(injector, func(i *do.Injector) (service.ISettingsService, error) {
+		return service.NewSettingsService(configs.DB, configs.Cache, configs.Log), nil
 	})
 }
 
@@ -196,45 +196,13 @@ func Routers(injector *do.Injector) *gin.Engine {
 	SuperManageGroup := api.Group("/super/manage")
 	SuperManageGroup.Use(saGin.CheckRole(user.RoleSuperAdmin.String()))
 	{
-		// 常规设置
-		{
-			/*
-				- 网站Logo
-				- 网站图标ICON
-				- ICP备案号
-				- 公安联网备案号
-				- 关闭版权显示
-			*/
-		}
-
-		// 首页设置
-		{
-			/*
-				- 幻灯片设置
-				- 友情链接
-				- 合作伙伴
-			*/
-		}
-
-		// 评论设置
-		{
-			/*
-				- 评论信息显示
-				- 检查评论
-				- 关键词黑名单
-				- 外部审查API
-			*/
-		}
+		// 设置管理（统一的设置控制器，包含所有系统设置）
+		SettingsGroup := SuperManageGroup.Group("/settings")
+		SettingsCon := controller.NewSettingsController(injector)
+		SettingsCon.SettingsRouter(SettingsGroup)
 
 		// 功能设置
 		{
-			// 邮箱服务
-			{
-				EmailGroup := SuperManageGroup.Group("/email")
-				EmailCon := controller.NewEmailController(injector)
-				EmailCon.EmailRouter(EmailGroup)
-			}
-
 			/*
 				- TODO 第三方登录
 					- QQ
@@ -245,31 +213,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 			*/
 		}
 
-		// SEO设置
-		{
-			/*
-				- 网站关键词
-				- 网站描述
-			*/
-		}
-
 		// TODO 广告设置
-
-		// 代码配置
-		{
-			/*
-				- 页头代码
-				- 页脚代码
-				- 自定义CSS
-			*/
-		}
-
-		// 安全设置
-		{
-			/*
-				- 注册控制
-			*/
-		}
 	}
 
 	return Router
