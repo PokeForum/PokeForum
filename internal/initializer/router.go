@@ -238,7 +238,6 @@ func Routers(injector *do.Injector) *gin.Engine {
 			/*
 				- TODO 第三方登录
 					- QQ
-					- 微信
 					- Telegram
 					- Github
 					- Apple

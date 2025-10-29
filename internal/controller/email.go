@@ -35,7 +35,7 @@ func (ctrl *EmailController) EmailRouter(router *gin.RouterGroup) {
 // GetSMTPConfig 获取SMTP配置接口
 // @Summary 获取SMTP配置
 // @Description 获取当前系统的SMTP邮箱服务配置
-// @Tags Email
+// @Tags SuperAdmin.Email
 // @Accept json
 // @Produce json
 // @Success 200 {object} response.Data{data=schema.EmailSMTPConfigResponse} "获取成功"
@@ -64,7 +64,7 @@ func (ctrl *EmailController) GetSMTPConfig(c *gin.Context) {
 // UpdateSMTPConfig 更新SMTP配置接口
 // @Summary 更新SMTP配置
 // @Description 更新系统的SMTP邮箱服务配置
-// @Tags Email
+// @Tags SuperAdmin.Email
 // @Accept json
 // @Produce json
 // @Param request body schema.EmailSMTPConfigRequest true "SMTP配置信息"
@@ -89,7 +89,7 @@ func (ctrl *EmailController) UpdateSMTPConfig(c *gin.Context) {
 	}
 
 	// 调用服务更新SMTP配置到数据库
-	if err := emailService.UpdateSMTPConfig(c.Request.Context(), req); err != nil {
+	if err = emailService.UpdateSMTPConfig(c.Request.Context(), req); err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
@@ -101,7 +101,7 @@ func (ctrl *EmailController) UpdateSMTPConfig(c *gin.Context) {
 // SendTestEmail 发送测试邮件接口
 // @Summary 发送测试邮件
 // @Description 使用当前SMTP配置发送一封测试邮件
-// @Tags Email
+// @Tags SuperAdmin.Email
 // @Accept json
 // @Produce json
 // @Param request body schema.EmailTestRequest true "收件人邮箱"
@@ -126,7 +126,7 @@ func (ctrl *EmailController) SendTestEmail(c *gin.Context) {
 	}
 
 	// 调用服务发送测试邮件到指定邮箱
-	if err := emailService.SendTestEmail(c.Request.Context(), req.ToEmail); err != nil {
+	if err = emailService.SendTestEmail(c.Request.Context(), req.ToEmail); err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
