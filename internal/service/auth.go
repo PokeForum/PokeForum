@@ -7,9 +7,11 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/user"
+	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/utils"
+	"github.com/click33/sa-token-go/stputil"
 	"github.com/gomodule/redigo/redis"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
@@ -102,6 +104,17 @@ func (s *AuthService) Login(ctx context.Context, req schema.LoginRequest) (*ent.
 		}
 		s.logger.Error("查询用户失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("查询用户失败: %w", err)
+	}
+
+	// 检查封禁-长期
+	if u.Status == user.StatusBlocked {
+		return nil, errors.New("账户已被锁定使用")
+	}
+
+	// 检查封禁-短期
+	if isDisabled := stputil.IsDisable(u.ID); isDisabled {
+		remainingTime, _ := stputil.GetDisableTime(u.ID) // 查询剩余时间, 单位（秒）
+		return nil, fmt.Errorf("账户已被限制使用, 解除时间: %s", time_tools.CalculateRemainingTime(remainingTime))
 	}
 
 	// 拼接密码和盐
