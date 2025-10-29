@@ -14,6 +14,120 @@ definitions:
     type: integer
     x-enum-varnames:
     - CodeSuccess
+  schema.EmailSMTPConfigRequest:
+    properties:
+      address:
+        description: 发件人邮箱地址，用于SMTP认证和邮件发送
+        example: noreply@example.com
+        type: string
+      connection_validity:
+        description: SMTP连接有效期（单位：秒），长时间无邮件发送时自动断开连接
+        example: 300
+        maximum: 3600
+        minimum: 10
+        type: integer
+      forced_ssl:
+        description: 是否强制使用SSL加密连接，true表示使用SSL，false表示不使用
+        example: false
+        type: boolean
+      host:
+        description: SMTP服务器主机名或IP地址
+        example: smtp.example.com
+        maxLength: 255
+        minLength: 1
+        type: string
+      is_enable:
+        description: 是否启用邮箱服务，true表示启用，false表示禁用
+        example: true
+        type: boolean
+      password:
+        description: SMTP密码或授权码，用于SMTP认证
+        example: password123
+        minLength: 1
+        type: string
+      port:
+        description: SMTP服务器端口号，常见端口为25、587、465等
+        example: 587
+        maximum: 65535
+        minimum: 1
+        type: integer
+      sender:
+        description: 发件人名称，显示在邮件发件人处
+        example: PokeForum
+        maxLength: 100
+        minLength: 1
+        type: string
+      username:
+        description: SMTP用户名，通常为邮箱地址或账户名
+        example: user@example.com
+        maxLength: 255
+        minLength: 1
+        type: string
+    required:
+    - address
+    - connection_validity
+    - host
+    - is_enable
+    - password
+    - port
+    - sender
+    - username
+    type: object
+  schema.EmailSMTPConfigResponse:
+    properties:
+      address:
+        description: 发件人邮箱地址
+        example: noreply@example.com
+        type: string
+      connection_validity:
+        description: SMTP连接有效期（单位：秒）
+        example: 300
+        type: integer
+      forced_ssl:
+        description: 是否强制使用SSL加密连接
+        example: false
+        type: boolean
+      host:
+        description: SMTP服务器主机名
+        example: smtp.example.com
+        type: string
+      is_enable:
+        description: 是否启用邮箱服务
+        example: true
+        type: boolean
+      port:
+        description: SMTP服务器端口号
+        example: 587
+        type: integer
+      sender:
+        description: 发件人名称
+        example: PokeForum
+        type: string
+      username:
+        description: SMTP用户名
+        example: user@example.com
+        type: string
+    type: object
+  schema.EmailTestRequest:
+    properties:
+      to_email:
+        description: 收件人邮箱地址，用于接收测试邮件
+        example: test@example.com
+        type: string
+    required:
+    - to_email
+    type: object
+  schema.EmailTestResponse:
+    properties:
+      message:
+        description: 提示信息，包含发送结果的详细说明
+        example: 测试邮件已发送
+        type: string
+      success:
+        description: 是否发送成功，true表示成功，false表示失败
+        example: true
+        type: boolean
+    type: object
   schema.LoginRequest:
     properties:
       email:
@@ -127,6 +241,27 @@ paths:
       summary: 用户登录
       tags:
       - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: 用户退出登录，清除认证信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 退出登录成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 用户退出登录
+      tags:
+      - Auth
   /auth/register:
     post:
       consumes:
@@ -162,6 +297,100 @@ paths:
       summary: 用户注册
       tags:
       - Auth
+  /super/manage/email/smtp:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前系统的SMTP邮箱服务配置
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.EmailSMTPConfigResponse'
+              type: object
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 获取SMTP配置
+      tags:
+      - SuperAdmin.Email
+    post:
+      consumes:
+      - application/json
+      description: 更新系统的SMTP邮箱服务配置
+      parameters:
+      - description: SMTP配置信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.EmailSMTPConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 更新SMTP配置
+      tags:
+      - SuperAdmin.Email
+  /super/manage/email/test:
+    post:
+      consumes:
+      - application/json
+      description: 使用当前SMTP配置发送一封测试邮件
+      parameters:
+      - description: 收件人邮箱
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.EmailTestRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 发送成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.EmailTestResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 发送测试邮件
+      tags:
+      - SuperAdmin.Email
 schemes:
 - http
 - https
@@ -170,8 +399,6 @@ securityDefinitions:
     in: header
     name: Authorization
     type: apiKey
-    x-google-allow: unregistered_calls true
-    x-google-backend: ""
   BasicAuth:
     type: basic
 swagger: "2.0"

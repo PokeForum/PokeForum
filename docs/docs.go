@@ -82,6 +82,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/logout": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "用户退出登录，清除认证信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "用户退出登录",
+                "responses": {
+                    "200": {
+                        "description": "退出登录成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/register": {
             "post": {
                 "description": "创建新用户账户",
@@ -139,6 +173,164 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/super/manage/email/smtp": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取当前系统的SMTP邮箱服务配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SuperAdmin.Email"
+                ],
+                "summary": "获取SMTP配置",
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.EmailSMTPConfigResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "更新系统的SMTP邮箱服务配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SuperAdmin.Email"
+                ],
+                "summary": "更新SMTP配置",
+                "parameters": [
+                    {
+                        "description": "SMTP配置信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.EmailSMTPConfigRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/super/manage/email/test": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "使用当前SMTP配置发送一封测试邮件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SuperAdmin.Email"
+                ],
+                "summary": "发送测试邮件",
+                "parameters": [
+                    {
+                        "description": "收件人邮箱",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.EmailTestRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "发送成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.EmailTestResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -161,6 +353,150 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "CodeSuccess"
             ]
+        },
+        "schema.EmailSMTPConfigRequest": {
+            "type": "object",
+            "required": [
+                "address",
+                "connection_validity",
+                "host",
+                "is_enable",
+                "password",
+                "port",
+                "sender",
+                "username"
+            ],
+            "properties": {
+                "address": {
+                    "description": "发件人邮箱地址，用于SMTP认证和邮件发送",
+                    "type": "string",
+                    "example": "noreply@example.com"
+                },
+                "connection_validity": {
+                    "description": "SMTP连接有效期（单位：秒），长时间无邮件发送时自动断开连接",
+                    "type": "integer",
+                    "maximum": 3600,
+                    "minimum": 10,
+                    "example": 300
+                },
+                "forced_ssl": {
+                    "description": "是否强制使用SSL加密连接，true表示使用SSL，false表示不使用",
+                    "type": "boolean",
+                    "example": false
+                },
+                "host": {
+                    "description": "SMTP服务器主机名或IP地址",
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1,
+                    "example": "smtp.example.com"
+                },
+                "is_enable": {
+                    "description": "是否启用邮箱服务，true表示启用，false表示禁用",
+                    "type": "boolean",
+                    "example": true
+                },
+                "password": {
+                    "description": "SMTP密码或授权码，用于SMTP认证",
+                    "type": "string",
+                    "minLength": 1,
+                    "example": "password123"
+                },
+                "port": {
+                    "description": "SMTP服务器端口号，常见端口为25、587、465等",
+                    "type": "integer",
+                    "maximum": 65535,
+                    "minimum": 1,
+                    "example": 587
+                },
+                "sender": {
+                    "description": "发件人名称，显示在邮件发件人处",
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "example": "PokeForum"
+                },
+                "username": {
+                    "description": "SMTP用户名，通常为邮箱地址或账户名",
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 1,
+                    "example": "user@example.com"
+                }
+            }
+        },
+        "schema.EmailSMTPConfigResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "description": "发件人邮箱地址",
+                    "type": "string",
+                    "example": "noreply@example.com"
+                },
+                "connection_validity": {
+                    "description": "SMTP连接有效期（单位：秒）",
+                    "type": "integer",
+                    "example": 300
+                },
+                "forced_ssl": {
+                    "description": "是否强制使用SSL加密连接",
+                    "type": "boolean",
+                    "example": false
+                },
+                "host": {
+                    "description": "SMTP服务器主机名",
+                    "type": "string",
+                    "example": "smtp.example.com"
+                },
+                "is_enable": {
+                    "description": "是否启用邮箱服务",
+                    "type": "boolean",
+                    "example": true
+                },
+                "port": {
+                    "description": "SMTP服务器端口号",
+                    "type": "integer",
+                    "example": 587
+                },
+                "sender": {
+                    "description": "发件人名称",
+                    "type": "string",
+                    "example": "PokeForum"
+                },
+                "username": {
+                    "description": "SMTP用户名",
+                    "type": "string",
+                    "example": "user@example.com"
+                }
+            }
+        },
+        "schema.EmailTestRequest": {
+            "type": "object",
+            "required": [
+                "to_email"
+            ],
+            "properties": {
+                "to_email": {
+                    "description": "收件人邮箱地址，用于接收测试邮件",
+                    "type": "string",
+                    "example": "test@example.com"
+                }
+            }
+        },
+        "schema.EmailTestResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "description": "提示信息，包含发送结果的详细说明",
+                    "type": "string",
+                    "example": "测试邮件已发送"
+                },
+                "success": {
+                    "description": "是否发送成功，true表示成功，false表示失败",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
         },
         "schema.LoginRequest": {
             "type": "object",
@@ -252,9 +588,7 @@ const docTemplate = `{
         "ApiKeyAuth": {
             "type": "apiKey",
             "name": "Authorization",
-            "in": "header",
-            "x-google-allow": "unregistered_calls true",
-            "x-google-backend": ""
+            "in": "header"
         },
         "BasicAuth": {
             "type": "basic"
