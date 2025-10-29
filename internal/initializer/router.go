@@ -21,11 +21,11 @@ import (
 func InjectorSrv(injector *do.Injector) {
 	// 注册 AuthService
 	do.Provide(injector, func(i *do.Injector) (service.IAuthService, error) {
-		return service.NewAuthService(configs.DB, configs.Cache), nil
+		return service.NewAuthService(configs.DB, configs.Cache, configs.Log), nil
 	})
 	// 注册 EmailService
 	do.Provide(injector, func(i *do.Injector) (service.IEmailService, error) {
-		return service.NewEmailService(configs.DB, configs.Cache), nil
+		return service.NewEmailService(configs.DB, configs.Cache, configs.Log), nil
 	})
 }
 

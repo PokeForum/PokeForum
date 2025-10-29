@@ -10,9 +10,11 @@ import (
 	"github.com/PokeForum/PokeForum/ent/settings"
 	_const "github.com/PokeForum/PokeForum/internal/const"
 	"github.com/PokeForum/PokeForum/internal/pkg/email"
+	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/gomodule/redigo/redis"
 	"github.com/wneessen/go-mail"
+	"go.uber.org/zap"
 )
 
 // IEmailService 邮箱服务接口
@@ -27,15 +29,17 @@ type IEmailService interface {
 
 // EmailService 邮箱服务实现
 type EmailService struct {
-	db    *ent.Client
-	cache *redis.Pool
+	db     *ent.Client
+	cache  *redis.Pool
+	logger *zap.Logger
 }
 
 // NewEmailService 创建邮箱服务实例
-func NewEmailService(db *ent.Client, cache *redis.Pool) IEmailService {
+func NewEmailService(db *ent.Client, cache *redis.Pool, logger *zap.Logger) IEmailService {
 	return &EmailService{
-		db:    db,
-		cache: cache,
+		db:     db,
+		cache:  cache,
+		logger: logger,
 	}
 }
 
@@ -47,6 +51,7 @@ func (s *EmailService) GetSMTPConfig(ctx context.Context) (*schema.EmailSMTPConf
 		Where(settings.ModuleEQ("Function")).
 		All(ctx)
 	if err != nil {
+		s.logger.Error("查询邮箱配置失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("查询邮箱配置失败: %w", err)
 	}
 
@@ -144,6 +149,7 @@ func (s *EmailService) UpdateSMTPConfig(ctx context.Context, req schema.EmailSMT
 			if _, err := s.db.Settings.UpdateOne(existing).
 				SetValue(value).
 				Save(ctx); err != nil {
+				s.logger.Error("更新配置邮箱配置失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 				return fmt.Errorf("更新配置 %s 失败: %w", key, err)
 			}
 		} else {
@@ -154,6 +160,7 @@ func (s *EmailService) UpdateSMTPConfig(ctx context.Context, req schema.EmailSMT
 				SetValue(value).
 				SetValueType("string").
 				Save(ctx); err != nil {
+				s.logger.Error("创建配置邮箱配置失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 				return fmt.Errorf("创建配置 %s 失败: %w", key, err)
 			}
 		}
@@ -189,6 +196,7 @@ func (s *EmailService) SendTestEmail(ctx context.Context, toEmail string) error 
 		).
 		First(ctx)
 	if err != nil {
+		s.logger.Error("获取邮箱密码失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("获取邮箱密码失败: %w", err)
 	}
 
@@ -206,12 +214,12 @@ func (s *EmailService) SendTestEmail(ctx context.Context, toEmail string) error 
 
 	// 创建邮件消息对象
 	m := mail.NewMsg()
-	if err := m.FromFormat(smtpConfig.Name, smtpConfig.Address); err != nil {
+	if err = m.FromFormat(smtpConfig.Name, smtpConfig.Address); err != nil {
 		return fmt.Errorf("设置发件人失败: %w", err)
 	}
 
 	// 设置收件人邮箱地址
-	if err := m.To(toEmail); err != nil {
+	if err = m.To(toEmail); err != nil {
 		return fmt.Errorf("设置收件人失败: %w", err)
 	}
 
@@ -251,11 +259,13 @@ func (s *EmailService) SendTestEmail(ctx context.Context, toEmail string) error 
 	// 创建SMTP客户端
 	client, err := mail.NewClient(smtpConfig.Host, opts...)
 	if err != nil {
+		s.logger.Error("创建SMTP客户端失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("创建SMTP客户端失败: %w", err)
 	}
 
 	// 连接到SMTP服务器并发送邮件
-	if err := client.DialAndSend(m); err != nil {
+	if err = client.DialAndSend(m); err != nil {
+		s.logger.Error("发送邮件失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("发送邮件失败: %w", err)
 	}
 

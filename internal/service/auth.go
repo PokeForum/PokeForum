@@ -7,9 +7,11 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/user"
+	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/utils"
 	"github.com/gomodule/redigo/redis"
+	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -25,15 +27,17 @@ type IAuthService interface {
 
 // AuthService 认证服务实现
 type AuthService struct {
-	db    *ent.Client
-	cache *redis.Pool
+	db     *ent.Client
+	cache  *redis.Pool
+	logger *zap.Logger
 }
 
 // NewAuthService 创建认证服务实例
-func NewAuthService(db *ent.Client, cache *redis.Pool) IAuthService {
+func NewAuthService(db *ent.Client, cache *redis.Pool, logger *zap.Logger) IAuthService {
 	return &AuthService{
-		db:    db,
-		cache: cache,
+		db:     db,
+		cache:  cache,
+		logger: logger,
 	}
 }
 
@@ -48,6 +52,7 @@ func (s *AuthService) Register(ctx context.Context, req schema.RegisterRequest) 
 		return nil, errors.New("用户名已存在")
 	}
 	if err != nil && !ent.IsNotFound(err) {
+		s.logger.Error("查询用户失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("查询用户失败: %w", err)
 	}
 
@@ -59,12 +64,14 @@ func (s *AuthService) Register(ctx context.Context, req schema.RegisterRequest) 
 		return nil, errors.New("邮箱已被注册")
 	}
 	if err != nil && !ent.IsNotFound(err) {
+		s.logger.Error("查询邮箱失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("查询邮箱失败: %w", err)
 	}
 
 	// 密码加密
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
+		s.logger.Error("密码加密失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("密码加密失败: %w", err)
 	}
 
@@ -75,6 +82,7 @@ func (s *AuthService) Register(ctx context.Context, req schema.RegisterRequest) 
 		SetPassword(string(hashedPassword)).
 		Save(ctx)
 	if err != nil {
+		s.logger.Error("创建用户失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("创建用户失败: %w", err)
 	}
 
@@ -92,6 +100,7 @@ func (s *AuthService) Login(ctx context.Context, req schema.LoginRequest) (*ent.
 		if ent.IsNotFound(err) {
 			return nil, errors.New("用户不存在")
 		}
+		s.logger.Error("查询用户失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("查询用户失败: %w", err)
 	}
 
@@ -113,6 +122,7 @@ func (s *AuthService) GetUserByID(ctx context.Context, id int) (*ent.User, error
 		if ent.IsNotFound(err) {
 			return nil, errors.New("用户不存在")
 		}
+		s.logger.Error("查询用户失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("查询用户失败: %w", err)
 	}
 	return u, nil

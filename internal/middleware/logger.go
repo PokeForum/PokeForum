@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/PokeForum/PokeForum/internal/configs"
+	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -26,6 +27,15 @@ func (w bodyLogWriter) WriteString(s string) (int, error) {
 
 func Logger() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		// 生成链路ID
+		traceID := tracing.GenerateTraceID()
+		
+		// 将链路ID存储到context中，方便后续使用
+		ctx.Request = ctx.Request.WithContext(tracing.WithTraceID(ctx.Request.Context(), traceID))
+		
+		// 在响应header中设置链路ID，返回给客户端
+		ctx.Header(tracing.TraceIDHeader, traceID)
+		
 		bodyLogWriter := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: ctx.Writer}
 		ctx.Writer = bodyLogWriter
 
@@ -42,7 +52,9 @@ func Logger() gin.HandlerFunc {
 		// 结束时间
 		endTime := time.Now()
 
+		// 在日志中包含链路ID，方便追踪请求
 		configs.Log.Info("请求响应",
+			zap.String("trace_id", traceID),
 			zap.Int("status", ctx.Writer.Status()),
 			zap.String("method", ctx.Request.Method),
 			zap.String("url", ctx.Request.URL.String()),
