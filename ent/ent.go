@@ -17,6 +17,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/commentaction"
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
+	"github.com/PokeForum/PokeForum/ent/settings"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userloginlog"
 )
@@ -84,6 +85,7 @@ func checkColumn(t, c string) error {
 			commentaction.Table: commentaction.ValidColumn,
 			post.Table:          post.ValidColumn,
 			postaction.Table:    postaction.ValidColumn,
+			settings.Table:      settings.ValidColumn,
 			user.Table:          user.ValidColumn,
 			userloginlog.Table:  userloginlog.ValidColumn,
 		})

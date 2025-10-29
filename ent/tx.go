@@ -22,6 +22,8 @@ type Tx struct {
 	Post *PostClient
 	// PostAction is the client for interacting with the PostAction builders.
 	PostAction *PostActionClient
+	// Settings is the client for interacting with the Settings builders.
+	Settings *SettingsClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 	// UserLoginLog is the client for interacting with the UserLoginLog builders.
@@ -162,6 +164,7 @@ func (tx *Tx) init() {
 	tx.CommentAction = NewCommentActionClient(tx.config)
 	tx.Post = NewPostClient(tx.config)
 	tx.PostAction = NewPostActionClient(tx.config)
+	tx.Settings = NewSettingsClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserLoginLog = NewUserLoginLogClient(tx.config)
 }

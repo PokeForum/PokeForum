@@ -126,7 +126,7 @@ var (
 		{Name: "is_essence", Type: field.TypeBool, Default: false},
 		{Name: "is_pinned", Type: field.TypeBool, Default: false},
 		{Name: "publish_ip", Type: field.TypeString, Nullable: true},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"Normal", "Locked", "Draft"}, Default: "Normal"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"Normal", "Locked", "Draft", "Private", "Ban"}, Default: "Normal"},
 		{Name: "user_id", Type: field.TypeInt},
 		{Name: "category_id", Type: field.TypeInt},
 	}
@@ -183,6 +183,29 @@ var (
 				Name:    "postaction_user_id_post_id_action_type",
 				Unique:  true,
 				Columns: []*schema.Column{PostActionsColumns[4], PostActionsColumns[5], PostActionsColumns[3]},
+			},
+		},
+	}
+	// SettingsColumns holds the columns for the "settings" table.
+	SettingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "module", Type: field.TypeEnum, Enums: []string{"Site", "HomePage", "Comment", "Seo", "Security", "Function"}},
+		{Name: "key", Type: field.TypeString},
+		{Name: "value", Type: field.TypeString, Nullable: true},
+		{Name: "value_type", Type: field.TypeEnum, Enums: []string{"string", "number", "boolean", "json", "text"}, Default: "string"},
+	}
+	// SettingsTable holds the schema information for the "settings" table.
+	SettingsTable = &schema.Table{
+		Name:       "settings",
+		Columns:    SettingsColumns,
+		PrimaryKey: []*schema.Column{SettingsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "settings_module_key",
+				Unique:  true,
+				Columns: []*schema.Column{SettingsColumns[3], SettingsColumns[4]},
 			},
 		},
 	}
@@ -270,6 +293,7 @@ var (
 		CommentActionsTable,
 		PostsTable,
 		PostActionsTable,
+		SettingsTable,
 		UsersTable,
 		UserLoginLogsTable,
 		UserManagedCategoriesTable,

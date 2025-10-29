@@ -21,6 +21,9 @@ type Post func(*sql.Selector)
 // PostAction is the predicate function for postaction builders.
 type PostAction func(*sql.Selector)
 
+// Settings is the predicate function for settings builders.
+type Settings func(*sql.Selector)
+
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
 

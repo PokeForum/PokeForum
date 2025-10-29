@@ -6,6 +6,7 @@ require (
 	entgo.io/ent v0.14.5
 	github.com/click33/sa-token-go/integrations/gin v0.1.2
 	github.com/click33/sa-token-go/storage/redis v0.1.2
+	github.com/click33/sa-token-go/stputil v0.1.2
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.11.0
@@ -14,11 +15,13 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/lib/pq v1.10.9
+	github.com/samber/do v1.6.0
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/viper v1.21.0
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.1
 	github.com/swaggo/swag v1.16.6
+	github.com/wneessen/go-mail v0.7.2
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.43.0
 )
@@ -34,7 +37,6 @@ require (
 	github.com/bytedance/sonic/loader v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/click33/sa-token-go/core v0.1.2 // indirect
-	github.com/click33/sa-token-go/stputil v0.1.2 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/gabriel-vasile/mimetype v1.4.10 // indirect
@@ -74,7 +76,6 @@ require (
 	github.com/quic-go/quic-go v0.55.0 // indirect
 	github.com/redis/go-redis/v9 v9.16.0 // indirect
 	github.com/sagikazarmark/locafero v0.12.0 // indirect
-	github.com/samber/do v1.6.0 // indirect
 	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect

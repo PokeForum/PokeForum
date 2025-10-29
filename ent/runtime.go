@@ -11,6 +11,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
 	"github.com/PokeForum/PokeForum/ent/schema"
+	"github.com/PokeForum/PokeForum/ent/settings"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userloginlog"
 )
@@ -222,6 +223,29 @@ func init() {
 	postactionDescID := postactionFields[0].Descriptor()
 	// postaction.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	postaction.IDValidator = postactionDescID.Validators[0].(func(int) error)
+	settingsMixin := schema.Settings{}.Mixin()
+	settingsMixinFields0 := settingsMixin[0].Fields()
+	_ = settingsMixinFields0
+	settingsFields := schema.Settings{}.Fields()
+	_ = settingsFields
+	// settingsDescCreatedAt is the schema descriptor for created_at field.
+	settingsDescCreatedAt := settingsMixinFields0[0].Descriptor()
+	// settings.DefaultCreatedAt holds the default value on creation for the created_at field.
+	settings.DefaultCreatedAt = settingsDescCreatedAt.Default.(func() time.Time)
+	// settingsDescUpdatedAt is the schema descriptor for updated_at field.
+	settingsDescUpdatedAt := settingsMixinFields0[1].Descriptor()
+	// settings.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	settings.DefaultUpdatedAt = settingsDescUpdatedAt.Default.(func() time.Time)
+	// settings.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	settings.UpdateDefaultUpdatedAt = settingsDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// settingsDescKey is the schema descriptor for key field.
+	settingsDescKey := settingsFields[2].Descriptor()
+	// settings.KeyValidator is a validator for the "key" field. It is called by the builders before save.
+	settings.KeyValidator = settingsDescKey.Validators[0].(func(string) error)
+	// settingsDescID is the schema descriptor for id field.
+	settingsDescID := settingsFields[0].Descriptor()
+	// settings.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	settings.IDValidator = settingsDescID.Validators[0].(func(int) error)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0

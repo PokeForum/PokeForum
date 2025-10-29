@@ -57,9 +57,9 @@ func (Post) Fields() []ent.Field {
 		// 发布IP
 		field.String("publish_ip").
 			Optional(),
-		// 帖子状态：Normal、Locked、Draft
+		// 帖子状态：Normal、Locked、Draft、Private、Ban
 		field.Enum("status").
-			Values("Normal", "Locked", "Draft").
+			Values("Normal", "Locked", "Draft", "Private", "Ban").
 			Default("Normal"),
 	}
 }
