@@ -50,6 +50,10 @@ func InjectorSrv(injector *do.Injector) {
 	do.Provide(injector, func(i *do.Injector) (service.IModeratorService, error) {
 		return service.NewModeratorService(configs.DB, configs.Cache, configs.Log), nil
 	})
+	// 注册 PostService
+	do.Provide(injector, func(i *do.Injector) (service.IPostService, error) {
+		return service.NewPostService(configs.DB, configs.Cache, configs.Log), nil
+	})
 }
 
 func Routers(injector *do.Injector) *gin.Engine {
@@ -158,6 +162,8 @@ func Routers(injector *do.Injector) *gin.Engine {
 				// 点赞帖子(单向, 不可取消点赞)
 				// 点踩帖子(单向, 不可取消点赞)
 				// 收藏帖子
+				PostCon := controller.NewPostController(injector)
+				PostCon.PostRouter(ForumGroup)
 			}
 
 			// 评论
