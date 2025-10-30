@@ -209,7 +209,7 @@ func (s *ModeratorService) EditPost(ctx context.Context, userID int, req schema.
 
 // MovePost 移动帖子（仅限有权限的版块）
 func (s *ModeratorService) MovePost(ctx context.Context, userID int, req schema.PostMoveRequest) error {
-	s.logger.Info("移动帖子", zap.Int("post_id", req.ID), zap.Int("target_category_id", req.TargetCategoryID), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("移动帖子", zap.Int("post_id", req.ID), zap.Int("target_category_id", req.CategoryID), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
 	// 检查帖子是否存在并获取当前版块信息
 	postData, err := s.db.Post.Query().
@@ -234,7 +234,7 @@ func (s *ModeratorService) MovePost(ctx context.Context, userID int, req schema.
 	}
 
 	// 检查版主是否有目标版块的管理权限
-	hasTargetPermission, err := s.checkModeratorPermission(ctx, userID, req.TargetCategoryID)
+	hasTargetPermission, err := s.checkModeratorPermission(ctx, userID, req.CategoryID)
 	if err != nil {
 		return err
 	}
@@ -244,7 +244,7 @@ func (s *ModeratorService) MovePost(ctx context.Context, userID int, req schema.
 
 	// 移动帖子
 	_, err = s.db.Post.UpdateOneID(req.ID).
-		SetCategoryID(req.TargetCategoryID).
+		SetCategoryID(req.CategoryID).
 		Save(ctx)
 	if err != nil {
 		s.logger.Error("移动帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))

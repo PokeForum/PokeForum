@@ -14,10 +14,10 @@ type PostEditRequest struct {
 }
 
 // PostMoveRequest 移动帖子请求体
-type PostMoveRequest struct {
-	ID               int `json:"id" binding:"required" example:"1"`                 // 帖子ID
-	TargetCategoryID int `json:"target_category_id" binding:"required" example:"2"` // 目标版块ID
-}
+//type PostMoveRequest struct {
+//	ID               int `json:"id" binding:"required" example:"1"`                 // 帖子ID
+//	TargetCategoryID int `json:"target_category_id" binding:"required" example:"2"` // 目标版块ID
+//}
 
 // PostEssenceRequest 设置帖子精华请求体
 type PostEssenceRequest struct {
@@ -45,7 +45,7 @@ type CategoryEditRequest struct {
 	ID          int    `json:"id" binding:"required" example:"1"`                   // 版块ID
 	Name        string `json:"name" binding:"required,min=1,max=50" example:"技术讨论"` // 版块名称
 	Description string `json:"description" example:"技术相关话题讨论区"`                     // 版块描述
-	Icon        string `json:"icon" example="tech"`                                 // 版块图标
+	Icon        string `json:"icon" example:"tech"`                                 // 版块图标
 }
 
 // CategoryAnnouncementRequest 版块公告请求体
@@ -77,7 +77,7 @@ type ModeratorCategoriesResponse struct {
 type ModeratorCategory struct {
 	ID          int    `json:"id" example:"1"`                            // 版块ID
 	Name        string `json:"name" example:"技术讨论"`                       // 版块名称
-	Slug        string `json:"slug" example="tech"`                       // 版块标识
+	Slug        string `json:"slug" example:"tech"`                       // 版块标识
 	Description string `json:"description" example:"技术相关话题讨论区"`           // 版块描述
 	Icon        string `json:"icon" example:"tech"`                       // 版块图标
 	Status      string `json:"status" example:"Normal"`                   // 版块状态
