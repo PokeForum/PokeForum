@@ -30,6 +30,10 @@ func InjectorSrv(injector *do.Injector) {
 	do.Provide(injector, func(i *do.Injector) (service.IUserManageService, error) {
 		return service.NewUserManageService(configs.DB, configs.Cache, configs.Log), nil
 	})
+	// 注册 CategoryManageService
+	do.Provide(injector, func(i *do.Injector) (service.ICategoryManageService, error) {
+		return service.NewCategoryManageService(configs.DB, configs.Cache, configs.Log), nil
+	})
 }
 
 func Routers(injector *do.Injector) *gin.Engine {
@@ -191,6 +195,9 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 		// 版块管理
 		{
+			CategoryManageGroup := ManageGroup.Group("/categories")
+			CategoryManageCon := controller.NewCategoryManageController(injector)
+			CategoryManageCon.CategoryManageRouter(CategoryManageGroup)
 		}
 
 		// 帖子管理

@@ -33,9 +33,9 @@ func (Category) Fields() []ent.Field {
 		// 权重排序，越小越靠前
 		field.Int("weight").
 			Default(0),
-		// 版块权限/状态：正常、登录可见、会员可见、隐藏、锁定
+		// 版块权限/状态：正常、登录可见、隐藏、锁定
 		field.Enum("status").
-			Values("Normal", "LoginRequired", "MemberOnly", "Hidden", "Locked").
+			Values("Normal", "LoginRequired", "Hidden", "Locked").
 			Default("Normal"),
 	}
 }
