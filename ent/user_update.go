@@ -14,6 +14,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/predicate"
 	"github.com/PokeForum/PokeForum/ent/user"
+	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 )
 
 // UserUpdate is the builder for updating User entities.
@@ -292,6 +293,21 @@ func (_u *UserUpdate) AddManagedCategories(v ...*Category) *UserUpdate {
 	return _u.AddManagedCategoryIDs(ids...)
 }
 
+// AddBalanceLogIDs adds the "balance_logs" edge to the UserBalanceLog entity by IDs.
+func (_u *UserUpdate) AddBalanceLogIDs(ids ...int) *UserUpdate {
+	_u.mutation.AddBalanceLogIDs(ids...)
+	return _u
+}
+
+// AddBalanceLogs adds the "balance_logs" edges to the UserBalanceLog entity.
+func (_u *UserUpdate) AddBalanceLogs(v ...*UserBalanceLog) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddBalanceLogIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdate) Mutation() *UserMutation {
 	return _u.mutation
@@ -316,6 +332,27 @@ func (_u *UserUpdate) RemoveManagedCategories(v ...*Category) *UserUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveManagedCategoryIDs(ids...)
+}
+
+// ClearBalanceLogs clears all "balance_logs" edges to the UserBalanceLog entity.
+func (_u *UserUpdate) ClearBalanceLogs() *UserUpdate {
+	_u.mutation.ClearBalanceLogs()
+	return _u
+}
+
+// RemoveBalanceLogIDs removes the "balance_logs" edge to UserBalanceLog entities by IDs.
+func (_u *UserUpdate) RemoveBalanceLogIDs(ids ...int) *UserUpdate {
+	_u.mutation.RemoveBalanceLogIDs(ids...)
+	return _u
+}
+
+// RemoveBalanceLogs removes "balance_logs" edges to UserBalanceLog entities.
+func (_u *UserUpdate) RemoveBalanceLogs(v ...*UserBalanceLog) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveBalanceLogIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -525,6 +562,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.BalanceLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.BalanceLogsTable,
+			Columns: []string{user.BalanceLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userbalancelog.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedBalanceLogsIDs(); len(nodes) > 0 && !_u.mutation.BalanceLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.BalanceLogsTable,
+			Columns: []string{user.BalanceLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userbalancelog.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.BalanceLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.BalanceLogsTable,
+			Columns: []string{user.BalanceLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userbalancelog.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -815,6 +897,21 @@ func (_u *UserUpdateOne) AddManagedCategories(v ...*Category) *UserUpdateOne {
 	return _u.AddManagedCategoryIDs(ids...)
 }
 
+// AddBalanceLogIDs adds the "balance_logs" edge to the UserBalanceLog entity by IDs.
+func (_u *UserUpdateOne) AddBalanceLogIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.AddBalanceLogIDs(ids...)
+	return _u
+}
+
+// AddBalanceLogs adds the "balance_logs" edges to the UserBalanceLog entity.
+func (_u *UserUpdateOne) AddBalanceLogs(v ...*UserBalanceLog) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddBalanceLogIDs(ids...)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (_u *UserUpdateOne) Mutation() *UserMutation {
 	return _u.mutation
@@ -839,6 +936,27 @@ func (_u *UserUpdateOne) RemoveManagedCategories(v ...*Category) *UserUpdateOne 
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveManagedCategoryIDs(ids...)
+}
+
+// ClearBalanceLogs clears all "balance_logs" edges to the UserBalanceLog entity.
+func (_u *UserUpdateOne) ClearBalanceLogs() *UserUpdateOne {
+	_u.mutation.ClearBalanceLogs()
+	return _u
+}
+
+// RemoveBalanceLogIDs removes the "balance_logs" edge to UserBalanceLog entities by IDs.
+func (_u *UserUpdateOne) RemoveBalanceLogIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.RemoveBalanceLogIDs(ids...)
+	return _u
+}
+
+// RemoveBalanceLogs removes "balance_logs" edges to UserBalanceLog entities.
+func (_u *UserUpdateOne) RemoveBalanceLogs(v ...*UserBalanceLog) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveBalanceLogIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -1078,6 +1196,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.BalanceLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.BalanceLogsTable,
+			Columns: []string{user.BalanceLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userbalancelog.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedBalanceLogsIDs(); len(nodes) > 0 && !_u.mutation.BalanceLogsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.BalanceLogsTable,
+			Columns: []string{user.BalanceLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userbalancelog.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.BalanceLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.BalanceLogsTable,
+			Columns: []string{user.BalanceLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userbalancelog.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

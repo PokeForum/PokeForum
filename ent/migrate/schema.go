@@ -235,6 +235,38 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// UserBalanceLogsColumns holds the columns for the "user_balance_logs" table.
+	UserBalanceLogsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"points", "currency"}},
+		{Name: "amount", Type: field.TypeInt},
+		{Name: "before_amount", Type: field.TypeInt},
+		{Name: "after_amount", Type: field.TypeInt},
+		{Name: "reason", Type: field.TypeString},
+		{Name: "operator_id", Type: field.TypeInt, Nullable: true},
+		{Name: "operator_name", Type: field.TypeString, Nullable: true},
+		{Name: "related_id", Type: field.TypeInt, Nullable: true},
+		{Name: "related_type", Type: field.TypeString, Nullable: true},
+		{Name: "ip_address", Type: field.TypeString, Nullable: true},
+		{Name: "user_agent", Type: field.TypeString, Nullable: true},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// UserBalanceLogsTable holds the schema information for the "user_balance_logs" table.
+	UserBalanceLogsTable = &schema.Table{
+		Name:       "user_balance_logs",
+		Columns:    UserBalanceLogsColumns,
+		PrimaryKey: []*schema.Column{UserBalanceLogsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "user_balance_logs_users_balance_logs",
+				Columns:    []*schema.Column{UserBalanceLogsColumns[14]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// UserLoginLogsColumns holds the columns for the "user_login_logs" table.
 	UserLoginLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -295,6 +327,7 @@ var (
 		PostActionsTable,
 		SettingsTable,
 		UsersTable,
+		UserBalanceLogsTable,
 		UserLoginLogsTable,
 		UserManagedCategoriesTable,
 	}
@@ -311,6 +344,7 @@ func init() {
 	PostsTable.ForeignKeys[1].RefTable = CategoriesTable
 	PostActionsTable.ForeignKeys[0].RefTable = UsersTable
 	PostActionsTable.ForeignKeys[1].RefTable = PostsTable
+	UserBalanceLogsTable.ForeignKeys[0].RefTable = UsersTable
 	UserLoginLogsTable.ForeignKeys[0].RefTable = UsersTable
 	UserManagedCategoriesTable.ForeignKeys[0].RefTable = UsersTable
 	UserManagedCategoriesTable.ForeignKeys[1].RefTable = CategoriesTable

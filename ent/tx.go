@@ -26,6 +26,8 @@ type Tx struct {
 	Settings *SettingsClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserBalanceLog is the client for interacting with the UserBalanceLog builders.
+	UserBalanceLog *UserBalanceLogClient
 	// UserLoginLog is the client for interacting with the UserLoginLog builders.
 	UserLoginLog *UserLoginLogClient
 
@@ -166,6 +168,7 @@ func (tx *Tx) init() {
 	tx.PostAction = NewPostActionClient(tx.config)
 	tx.Settings = NewSettingsClient(tx.config)
 	tx.User = NewUserClient(tx.config)
+	tx.UserBalanceLog = NewUserBalanceLogClient(tx.config)
 	tx.UserLoginLog = NewUserLoginLogClient(tx.config)
 }
 

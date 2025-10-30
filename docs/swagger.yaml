@@ -14,6 +14,85 @@ definitions:
     type: integer
     x-enum-varnames:
     - CodeSuccess
+  schema.CategoryBasicInfo:
+    properties:
+      id:
+        description: 版块ID
+        example: 1
+        type: integer
+      name:
+        description: 版块名称
+        example: 综合讨论
+        type: string
+      slug:
+        description: 版块标识
+        example: general
+        type: string
+    type: object
+  schema.CodeSettingsRequest:
+    properties:
+      customization_css:
+        description: 自定义CSS
+        example: 'body { background-color: #f0f0f0; }'
+        maxLength: 50000
+        type: string
+      footer:
+        description: 页脚代码（HTML/JavaScript）
+        example: <script>console.log('footer');</script>
+        maxLength: 10000
+        type: string
+      header:
+        description: 页头代码（HTML/JavaScript）
+        example: <script>console.log('header');</script>
+        maxLength: 10000
+        type: string
+    type: object
+  schema.CodeSettingsResponse:
+    properties:
+      customization_css:
+        description: 自定义CSS
+        example: 'body { background-color: #f0f0f0; }'
+        type: string
+      footer:
+        description: 页脚代码
+        example: <script>console.log('footer');</script>
+        type: string
+      header:
+        description: 页头代码
+        example: <script>console.log('header');</script>
+        type: string
+    type: object
+  schema.CommentSettingsRequest:
+    properties:
+      keyword_blacklist:
+        description: 关键词黑名单（逗号分隔）
+        example: 垃圾,广告,spam
+        maxLength: 5000
+        type: string
+      require_approval:
+        description: 是否需要审核评论
+        example: false
+        type: boolean
+      show_comment_info:
+        description: 是否显示评论者信息
+        example: true
+        type: boolean
+    type: object
+  schema.CommentSettingsResponse:
+    properties:
+      keyword_blacklist:
+        description: 关键词黑名单
+        example: 垃圾,广告,spam
+        type: string
+      require_approval:
+        description: 是否需要审核评论
+        example: false
+        type: boolean
+      show_comment_info:
+        description: 是否显示评论者信息
+        example: true
+        type: boolean
+    type: object
   schema.EmailSMTPConfigRequest:
     properties:
       address:
@@ -128,6 +207,53 @@ definitions:
         example: true
         type: boolean
     type: object
+  schema.HomeSettingsRequest:
+    properties:
+      links:
+        description: 友情链接列表
+        items:
+          $ref: '#/definitions/schema.LinkItem'
+        type: array
+      slides:
+        description: 幻灯片列表
+        items:
+          $ref: '#/definitions/schema.SlideItem'
+        type: array
+    type: object
+  schema.HomeSettingsResponse:
+    properties:
+      links:
+        description: 友情链接列表
+        items:
+          $ref: '#/definitions/schema.LinkItem'
+        type: array
+      slides:
+        description: 幻灯片列表
+        items:
+          $ref: '#/definitions/schema.SlideItem'
+        type: array
+    type: object
+  schema.LinkItem:
+    properties:
+      description:
+        description: 链接描述
+        example: 一个很棒的网站
+        maxLength: 200
+        type: string
+      name:
+        description: 链接名称
+        example: 示例网站
+        maxLength: 50
+        minLength: 1
+        type: string
+      url:
+        description: 链接URL
+        example: https://example.com
+        type: string
+    required:
+    - name
+    - url
+    type: object
   schema.LoginRequest:
     properties:
       email:
@@ -155,6 +281,25 @@ definitions:
         description: 用户名
         type: string
     type: object
+  schema.ModeratorCategoryRequest:
+    properties:
+      category_ids:
+        description: 版块ID列表
+        items:
+          type: integer
+        type: array
+      reason:
+        description: 操作原因
+        example: 版主任命
+        type: string
+      user_id:
+        description: 用户ID
+        example: 1
+        type: integer
+    required:
+    - category_ids
+    - user_id
+    type: object
   schema.RegisterRequest:
     properties:
       email:
@@ -177,6 +322,491 @@ definitions:
     - password
     - username
     type: object
+  schema.RoutineSettingsRequest:
+    properties:
+      icp_record:
+        description: ICP备案号
+        example: 京ICP备12345678号
+        maxLength: 100
+        type: string
+      is_close_copyright:
+        description: 是否关闭版权信息显示
+        example: false
+        type: boolean
+      public_security_network:
+        description: 公安联网备案号
+        example: 京公网安备11010802012345号
+        maxLength: 100
+        type: string
+      website_icon:
+        description: 网站Icon URL
+        example: https://example.com/icon.ico
+        type: string
+      website_logo:
+        description: 网站Logo URL
+        example: https://example.com/logo.png
+        type: string
+    type: object
+  schema.RoutineSettingsResponse:
+    properties:
+      icp_record:
+        description: ICP备案号
+        example: 京ICP备12345678号
+        type: string
+      is_close_copyright:
+        description: 是否关闭版权信息显示
+        example: false
+        type: boolean
+      public_security_network:
+        description: 公安联网备案号
+        example: 京公网安备11010802012345号
+        type: string
+      website_icon:
+        description: 网站Icon URL
+        example: https://example.com/icon.ico
+        type: string
+      website_logo:
+        description: 网站Logo URL
+        example: https://example.com/logo.png
+        type: string
+    type: object
+  schema.SafeSettingsRequest:
+    properties:
+      email_whitelist:
+        description: 邮箱白名单（逗号分隔的域名）
+        example: gmail.com,qq.com,163.com
+        maxLength: 5000
+        type: string
+      is_close_register:
+        description: 是否关闭注册
+        example: false
+        type: boolean
+      is_enable_email_whitelist:
+        description: 是否启用邮箱白名单
+        example: false
+        type: boolean
+      verify_email:
+        description: 是否需要验证邮箱
+        example: true
+        type: boolean
+    type: object
+  schema.SafeSettingsResponse:
+    properties:
+      email_whitelist:
+        description: 邮箱白名单
+        example: gmail.com,qq.com,163.com
+        type: string
+      is_close_register:
+        description: 是否关闭注册
+        example: false
+        type: boolean
+      is_enable_email_whitelist:
+        description: 是否启用邮箱白名单
+        example: false
+        type: boolean
+      verify_email:
+        description: 是否需要验证邮箱
+        example: true
+        type: boolean
+    type: object
+  schema.SeoSettingsRequest:
+    properties:
+      website_description:
+        description: 网站描述
+        example: 一个友好的在线社区论坛
+        maxLength: 1000
+        type: string
+      website_keyword:
+        description: 网站关键词
+        example: 论坛,社区,讨论
+        maxLength: 500
+        type: string
+      website_name:
+        description: 网站名称
+        example: PokeForum
+        maxLength: 100
+        minLength: 1
+        type: string
+    required:
+    - website_name
+    type: object
+  schema.SeoSettingsResponse:
+    properties:
+      website_description:
+        description: 网站描述
+        example: 一个友好的在线社区论坛
+        type: string
+      website_keyword:
+        description: 网站关键词
+        example: 论坛,社区,讨论
+        type: string
+      website_name:
+        description: 网站名称
+        example: PokeForum
+        type: string
+    type: object
+  schema.SlideItem:
+    properties:
+      description:
+        description: 描述
+        example: 这是一个友好的社区
+        maxLength: 500
+        type: string
+      image_url:
+        description: 图片URL
+        example: https://example.com/slide1.jpg
+        type: string
+      link_url:
+        description: 链接URL
+        example: https://example.com/article/1
+        type: string
+      title:
+        description: 标题
+        example: 欢迎来到PokeForum
+        maxLength: 100
+        type: string
+    required:
+    - image_url
+    type: object
+  schema.UserBalanceLogItem:
+    properties:
+      after_amount:
+        description: 变动后数量
+        example: 1100
+        type: integer
+      amount:
+        description: 变动数量
+        example: 100
+        type: integer
+      before_amount:
+        description: 变动前数量
+        example: 1000
+        type: integer
+      created_at:
+        description: 创建时间
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      id:
+        description: 记录ID
+        example: 1
+        type: integer
+      ip_address:
+        description: IP地址
+        example: 192.168.1.1
+        type: string
+      operator_id:
+        description: 操作者ID
+        example: 2
+        type: integer
+      operator_name:
+        description: 操作者用户名
+        example: admin
+        type: string
+      reason:
+        description: 变动原因
+        example: 发帖奖励
+        type: string
+      related_id:
+        description: 关联业务ID
+        example: 123
+        type: integer
+      related_type:
+        description: 关联业务类型
+        example: post
+        type: string
+      type:
+        description: 变动类型
+        example: points
+        type: string
+      user_id:
+        description: 用户ID
+        example: 1
+        type: integer
+      username:
+        description: 用户名
+        example: testuser
+        type: string
+    type: object
+  schema.UserBalanceLogResponse:
+    properties:
+      list:
+        description: 记录列表
+        items:
+          $ref: '#/definitions/schema.UserBalanceLogItem'
+        type: array
+      page:
+        description: 当前页码
+        type: integer
+      page_size:
+        description: 每页数量
+        type: integer
+      total:
+        description: 总数量
+        type: integer
+    type: object
+  schema.UserBalanceSummary:
+    properties:
+      current_currency:
+        description: 当前货币
+        example: 500
+        type: integer
+      current_points:
+        description: 当前积分
+        example: 1000
+        type: integer
+      total_currency_in:
+        description: 总货币收入
+        example: 800
+        type: integer
+      total_currency_out:
+        description: 总货币支出
+        example: 300
+        type: integer
+      total_points_in:
+        description: 总积分收入
+        example: 1500
+        type: integer
+      total_points_out:
+        description: 总积分支出
+        example: 500
+        type: integer
+      user_id:
+        description: 用户ID
+        example: 1
+        type: integer
+      username:
+        description: 用户名
+        example: testuser
+        type: string
+    type: object
+  schema.UserCreateRequest:
+    properties:
+      avatar:
+        description: 头像URL
+        example: https://example.com/avatar.jpg
+        type: string
+      email:
+        description: 邮箱
+        example: test@example.com
+        type: string
+      password:
+        description: 密码
+        example: password123
+        minLength: 8
+        type: string
+      readme:
+        description: README内容
+        example: |-
+          ## 关于我
+          这是我的README内容
+        type: string
+      role:
+        description: 用户身份
+        enum:
+        - User
+        - Moderator
+        - Admin
+        - SuperAdmin
+        example: User
+        type: string
+      signature:
+        description: 个性签名
+        example: 这是我的个性签名
+        type: string
+      username:
+        description: 用户名
+        example: testuser
+        maxLength: 100
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    - role
+    - username
+    type: object
+  schema.UserCurrencyUpdateRequest:
+    properties:
+      currency:
+        description: 货币变化量（正数为增加，负数为减少）
+        example: 50
+        type: integer
+      id:
+        description: 用户ID
+        example: 1
+        type: integer
+      reason:
+        description: 操作原因
+        example: 发帖奖励
+        type: string
+    required:
+    - currency
+    - id
+    type: object
+  schema.UserDetailResponse:
+    properties:
+      avatar:
+        description: 头像URL
+        example: https://example.com/avatar.jpg
+        type: string
+      comment_count:
+        description: 评论数
+        example: 200
+        type: integer
+      created_at:
+        description: 创建时间
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      currency:
+        description: 货币
+        example: 500
+        type: integer
+      email:
+        description: 邮箱
+        example: test@example.com
+        type: string
+      email_verified:
+        description: 邮箱是否已验证
+        example: true
+        type: boolean
+      id:
+        description: 用户ID
+        example: 1
+        type: integer
+      managed_categories:
+        description: 管理的版块列表（仅版主显示）
+        items:
+          $ref: '#/definitions/schema.CategoryBasicInfo'
+        type: array
+      points:
+        description: 积分
+        example: 1000
+        type: integer
+      post_count:
+        description: 帖子数
+        example: 50
+        type: integer
+      readme:
+        description: README内容
+        example: |-
+          ## 关于我
+          这是我的README内容
+        type: string
+      role:
+        description: 用户身份
+        example: User
+        type: string
+      signature:
+        description: 个性签名
+        example: 这是我的个性签名
+        type: string
+      status:
+        description: 用户状态
+        example: Normal
+        type: string
+      updated_at:
+        description: 更新时间
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      username:
+        description: 用户名
+        example: testuser
+        type: string
+    type: object
+  schema.UserListItem:
+    properties:
+      avatar:
+        description: 头像URL
+        example: https://example.com/avatar.jpg
+        type: string
+      comment_count:
+        description: 评论数
+        example: 200
+        type: integer
+      created_at:
+        description: 创建时间
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      currency:
+        description: 货币
+        example: 500
+        type: integer
+      email:
+        description: 邮箱
+        example: test@example.com
+        type: string
+      email_verified:
+        description: 邮箱是否已验证
+        example: true
+        type: boolean
+      id:
+        description: 用户ID
+        example: 1
+        type: integer
+      points:
+        description: 积分
+        example: 1000
+        type: integer
+      post_count:
+        description: 帖子数
+        example: 50
+        type: integer
+      role:
+        description: 用户身份
+        example: User
+        type: string
+      signature:
+        description: 个性签名
+        example: 这是我的个性签名
+        type: string
+      status:
+        description: 用户状态
+        example: Normal
+        type: string
+      updated_at:
+        description: 更新时间
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      username:
+        description: 用户名
+        example: testuser
+        type: string
+    type: object
+  schema.UserListResponse:
+    properties:
+      list:
+        description: 用户列表
+        items:
+          $ref: '#/definitions/schema.UserListItem'
+        type: array
+      page:
+        description: 当前页码
+        type: integer
+      page_size:
+        description: 每页数量
+        type: integer
+      total:
+        description: 总数量
+        type: integer
+    type: object
+  schema.UserPointsUpdateRequest:
+    properties:
+      id:
+        description: 用户ID
+        example: 1
+        type: integer
+      points:
+        description: 积分变化量（正数为增加，负数为减少）
+        example: 100
+        type: integer
+      reason:
+        description: 操作原因
+        example: 活跃奖励
+        type: string
+    required:
+    - id
+    - points
+    type: object
   schema.UserResponse:
     properties:
       email:
@@ -191,6 +821,86 @@ definitions:
         description: 用户名
         example: testuser
         type: string
+    type: object
+  schema.UserRoleUpdateRequest:
+    properties:
+      id:
+        description: 用户ID
+        example: 1
+        type: integer
+      reason:
+        description: 操作原因
+        example: 权限调整
+        type: string
+      role:
+        description: 用户身份
+        enum:
+        - User
+        - Moderator
+        - Admin
+        - SuperAdmin
+        example: User
+        type: string
+    required:
+    - id
+    - role
+    type: object
+  schema.UserStatusUpdateRequest:
+    properties:
+      id:
+        description: 用户ID
+        example: 1
+        type: integer
+      reason:
+        description: 操作原因
+        example: 违反社区规则
+        type: string
+      status:
+        description: 用户状态
+        enum:
+        - Normal
+        - Mute
+        - Blocked
+        - ActivationPending
+        - RiskControl
+        example: Normal
+        type: string
+    required:
+    - id
+    - status
+    type: object
+  schema.UserUpdateRequest:
+    properties:
+      avatar:
+        description: 头像URL
+        example: https://example.com/avatar.jpg
+        type: string
+      email:
+        description: 邮箱
+        example: test@example.com
+        type: string
+      id:
+        description: 用户ID
+        example: 1
+        type: integer
+      readme:
+        description: README内容
+        example: |-
+          ## 关于我
+          这是我的README内容
+        type: string
+      signature:
+        description: 个性签名
+        example: 这是我的个性签名
+        type: string
+      username:
+        description: 用户名
+        example: testuser
+        maxLength: 100
+        minLength: 3
+        type: string
+    required:
+    - id
     type: object
 host: localhost:9876
 info:
@@ -297,11 +1007,532 @@ paths:
       summary: 用户注册
       tags:
       - Auth
-  /super/manage/email/smtp:
+  /manage/balance/logs:
     get:
       consumes:
       - application/json
-      description: 获取当前系统的SMTP邮箱服务配置
+      description: 分页获取用户余额变动记录，支持多种筛选条件
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        required: true
+        type: integer
+      - description: 用户ID筛选
+        in: query
+        name: user_id
+        type: integer
+      - description: 变动类型筛选
+        example: '"points"'
+        in: query
+        name: type
+        type: string
+      - description: 开始日期
+        example: '"2024-01-01"'
+        in: query
+        name: start_date
+        type: string
+      - description: 结束日期
+        example: '"2024-12-31"'
+        in: query
+        name: end_date
+        type: string
+      - description: 操作者ID筛选
+        in: query
+        name: operator_id
+        type: integer
+      - description: 关联业务类型筛选
+        example: '"post"'
+        in: query
+        name: related_type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserBalanceLogResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取用户余额变动记录
+      tags:
+      - UserManage
+  /manage/balance/summary/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定用户的余额汇总统计信息
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserBalanceSummary'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取用户余额汇总信息
+      tags:
+      - UserManage
+  /manage/moderator/categories:
+    put:
+      consumes:
+      - application/json
+      description: 为指定版主设置其管理的版块列表
+      parameters:
+      - description: 版块信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.ModeratorCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 设置成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 设置版主管理版块
+      tags:
+      - UserManage
+  /manage/users:
+    get:
+      consumes:
+      - application/json
+      description: 分页获取用户列表，支持关键词搜索和状态筛选
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        required: true
+        type: integer
+      - description: 搜索关键词
+        example: '"test"'
+        in: query
+        name: keyword
+        type: string
+      - description: 用户状态
+        example: '"Normal"'
+        in: query
+        name: status
+        type: string
+      - description: 用户身份
+        example: '"User"'
+        in: query
+        name: role
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserListResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取用户列表
+      tags:
+      - UserManage
+    post:
+      consumes:
+      - application/json
+      description: 管理员创建新用户账户
+      parameters:
+      - description: 用户信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 创建成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserDetailResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 创建用户
+      tags:
+      - UserManage
+    put:
+      consumes:
+      - application/json
+      description: 更新用户的基本信息
+      parameters:
+      - description: 用户信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserDetailResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 更新用户信息
+      tags:
+      - UserManage
+  /manage/users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定用户的详细信息
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserDetailResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取用户详情
+      tags:
+      - UserManage
+  /manage/users/currency:
+    put:
+      consumes:
+      - application/json
+      description: 为用户增加或减少货币
+      parameters:
+      - description: 货币信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserCurrencyUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 更新用户货币
+      tags:
+      - UserManage
+  /manage/users/points:
+    put:
+      consumes:
+      - application/json
+      description: 为用户增加或减少积分
+      parameters:
+      - description: 积分信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserPointsUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 更新用户积分
+      tags:
+      - UserManage
+  /manage/users/role:
+    put:
+      consumes:
+      - application/json
+      description: 更新用户的身份权限（普通用户、版主、管理员等）
+      parameters:
+      - description: 身份信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserRoleUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 更新用户身份
+      tags:
+      - UserManage
+  /manage/users/status:
+    put:
+      consumes:
+      - application/json
+      description: 更新用户的状态（正常、禁言、封禁等）
+      parameters:
+      - description: 状态信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserStatusUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 更新用户状态
+      tags:
+      - UserManage
+  /super/manage/settings/code:
+    get:
+      consumes:
+      - application/json
+      description: 获取自定义代码配置，包括页头、页脚代码和自定义CSS
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.CodeSettingsResponse'
+              type: object
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 获取代码配置
+      tags:
+      - SuperAdmin.Settings
+    post:
+      consumes:
+      - application/json
+      description: 更新自定义代码配置
+      parameters:
+      - description: 代码配置信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.CodeSettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 更新代码配置
+      tags:
+      - SuperAdmin.Settings
+  /super/manage/settings/comment:
+    get:
+      consumes:
+      - application/json
+      description: 获取评论相关的配置，包括审核、黑名单等
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.CommentSettingsResponse'
+              type: object
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 获取评论设置
+      tags:
+      - SuperAdmin.Settings
+    post:
+      consumes:
+      - application/json
+      description: 更新评论相关的配置
+      parameters:
+      - description: 评论设置信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.CommentSettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 更新评论设置
+      tags:
+      - SuperAdmin.Settings
+  /super/manage/settings/email:
+    get:
+      consumes:
+      - application/json
+      description: 获取SMTP邮箱服务配置
       produces:
       - application/json
       responses:
@@ -320,13 +1551,13 @@ paths:
             $ref: '#/definitions/response.Data'
       security:
       - Bearer: []
-      summary: 获取SMTP配置
+      summary: 获取邮箱设置
       tags:
-      - SuperAdmin.Email
+      - SuperAdmin.Settings
     post:
       consumes:
       - application/json
-      description: 更新系统的SMTP邮箱服务配置
+      description: 更新SMTP邮箱服务配置
       parameters:
       - description: SMTP配置信息
         in: body
@@ -351,10 +1582,10 @@ paths:
             $ref: '#/definitions/response.Data'
       security:
       - Bearer: []
-      summary: 更新SMTP配置
+      summary: 更新邮箱设置
       tags:
-      - SuperAdmin.Email
-  /super/manage/email/test:
+      - SuperAdmin.Settings
+  /super/manage/settings/email/test:
     post:
       consumes:
       - application/json
@@ -390,7 +1621,235 @@ paths:
       - Bearer: []
       summary: 发送测试邮件
       tags:
-      - SuperAdmin.Email
+      - SuperAdmin.Settings
+  /super/manage/settings/home:
+    get:
+      consumes:
+      - application/json
+      description: 获取首页的配置，包括幻灯片、友情链接等
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.HomeSettingsResponse'
+              type: object
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 获取首页设置
+      tags:
+      - SuperAdmin.Settings
+    post:
+      consumes:
+      - application/json
+      description: 更新首页的配置
+      parameters:
+      - description: 首页设置信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.HomeSettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 更新首页设置
+      tags:
+      - SuperAdmin.Settings
+  /super/manage/settings/routine:
+    get:
+      consumes:
+      - application/json
+      description: 获取网站的常规配置，包括Logo、Icon、备案号等
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.RoutineSettingsResponse'
+              type: object
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 获取常规设置
+      tags:
+      - SuperAdmin.Settings
+    post:
+      consumes:
+      - application/json
+      description: 更新网站的常规配置
+      parameters:
+      - description: 常规设置信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.RoutineSettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 更新常规设置
+      tags:
+      - SuperAdmin.Settings
+  /super/manage/settings/safe:
+    get:
+      consumes:
+      - application/json
+      description: 获取安全相关配置，包括注册控制、邮箱白名单等
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.SafeSettingsResponse'
+              type: object
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 获取安全设置
+      tags:
+      - SuperAdmin.Settings
+    post:
+      consumes:
+      - application/json
+      description: 更新安全相关配置
+      parameters:
+      - description: 安全设置信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.SafeSettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 更新安全设置
+      tags:
+      - SuperAdmin.Settings
+  /super/manage/settings/seo:
+    get:
+      consumes:
+      - application/json
+      description: 获取网站SEO相关配置，包括网站名称、关键词、描述等
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.SeoSettingsResponse'
+              type: object
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 获取SEO设置
+      tags:
+      - SuperAdmin.Settings
+    post:
+      consumes:
+      - application/json
+      description: 更新网站SEO相关配置
+      parameters:
+      - description: SEO设置信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.SeoSettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 更新SEO设置
+      tags:
+      - SuperAdmin.Settings
 schemes:
 - http
 - https

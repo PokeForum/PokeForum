@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
+	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
 )
@@ -27,51 +29,51 @@ func (ctrl *SettingsController) SettingsRouter(router *gin.RouterGroup) {
 	// 常规设置
 	routineGroup := router.Group("/routine")
 	{
-		routineGroup.GET("", ctrl.GetRoutineSettings)
-		routineGroup.POST("", ctrl.UpdateRoutineSettings)
+		routineGroup.GET("", saGin.CheckRole(user.RoleSuperAdmin.String()), ctrl.GetRoutineSettings)
+		routineGroup.POST("", saGin.CheckRole(user.RoleSuperAdmin.String()), ctrl.UpdateRoutineSettings)
 	}
 
 	// 首页设置
 	homeGroup := router.Group("/home")
 	{
-		homeGroup.GET("", ctrl.GetHomeSettings)
-		homeGroup.POST("", ctrl.UpdateHomeSettings)
+		homeGroup.GET("", saGin.CheckRole(user.RoleSuperAdmin.String()), ctrl.GetHomeSettings)
+		homeGroup.POST("", saGin.CheckRole(user.RoleSuperAdmin.String()), ctrl.UpdateHomeSettings)
 	}
 
 	// 评论设置
 	commentGroup := router.Group("/comment")
 	{
-		commentGroup.GET("", ctrl.GetCommentSettings)
-		commentGroup.POST("", ctrl.UpdateCommentSettings)
+		commentGroup.GET("", saGin.CheckRole(user.RoleSuperAdmin.String()), ctrl.GetCommentSettings)
+		commentGroup.POST("", saGin.CheckRole(user.RoleSuperAdmin.String()), ctrl.UpdateCommentSettings)
 	}
 
 	// SEO设置
 	seoGroup := router.Group("/seo")
 	{
-		seoGroup.GET("", ctrl.GetSeoSettings)
-		seoGroup.POST("", ctrl.UpdateSeoSettings)
+		seoGroup.GET("", saGin.CheckRole(user.RoleSuperAdmin.String()), ctrl.GetSeoSettings)
+		seoGroup.POST("", saGin.CheckRole(user.RoleSuperAdmin.String()), ctrl.UpdateSeoSettings)
 	}
 
 	// 代码配置
 	codeGroup := router.Group("/code")
 	{
-		codeGroup.GET("", ctrl.GetCodeSettings)
-		codeGroup.POST("", ctrl.UpdateCodeSettings)
+		codeGroup.GET("", saGin.CheckRole(user.RoleSuperAdmin.String()), ctrl.GetCodeSettings)
+		codeGroup.POST("", saGin.CheckRole(user.RoleSuperAdmin.String()), ctrl.UpdateCodeSettings)
 	}
 
 	// 安全设置
 	safeGroup := router.Group("/safe")
 	{
-		safeGroup.GET("", ctrl.GetSafeSettings)
-		safeGroup.POST("", ctrl.UpdateSafeSettings)
+		safeGroup.GET("", saGin.CheckRole(user.RoleSuperAdmin.String()), ctrl.GetSafeSettings)
+		safeGroup.POST("", saGin.CheckRole(user.RoleSuperAdmin.String()), ctrl.UpdateSafeSettings)
 	}
 
 	// 邮箱设置
 	emailGroup := router.Group("/email")
 	{
-		emailGroup.GET("", ctrl.GetEmailSettings)
-		emailGroup.POST("", ctrl.UpdateEmailSettings)
-		emailGroup.POST("/test", ctrl.SendTestEmail)
+		emailGroup.GET("", saGin.CheckRole(user.RoleSuperAdmin.String()), ctrl.GetEmailSettings)
+		emailGroup.POST("", saGin.CheckRole(user.RoleSuperAdmin.String()), ctrl.UpdateEmailSettings)
+		emailGroup.POST("/test", saGin.CheckRole(user.RoleSuperAdmin.String()), ctrl.SendTestEmail)
 	}
 }
 

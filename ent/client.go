@@ -22,6 +22,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/postaction"
 	"github.com/PokeForum/PokeForum/ent/settings"
 	"github.com/PokeForum/PokeForum/ent/user"
+	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 	"github.com/PokeForum/PokeForum/ent/userloginlog"
 )
 
@@ -44,6 +45,8 @@ type Client struct {
 	Settings *SettingsClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
+	// UserBalanceLog is the client for interacting with the UserBalanceLog builders.
+	UserBalanceLog *UserBalanceLogClient
 	// UserLoginLog is the client for interacting with the UserLoginLog builders.
 	UserLoginLog *UserLoginLogClient
 }
@@ -64,6 +67,7 @@ func (c *Client) init() {
 	c.PostAction = NewPostActionClient(c.config)
 	c.Settings = NewSettingsClient(c.config)
 	c.User = NewUserClient(c.config)
+	c.UserBalanceLog = NewUserBalanceLogClient(c.config)
 	c.UserLoginLog = NewUserLoginLogClient(c.config)
 }
 
@@ -155,16 +159,17 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:           ctx,
-		config:        cfg,
-		Category:      NewCategoryClient(cfg),
-		Comment:       NewCommentClient(cfg),
-		CommentAction: NewCommentActionClient(cfg),
-		Post:          NewPostClient(cfg),
-		PostAction:    NewPostActionClient(cfg),
-		Settings:      NewSettingsClient(cfg),
-		User:          NewUserClient(cfg),
-		UserLoginLog:  NewUserLoginLogClient(cfg),
+		ctx:            ctx,
+		config:         cfg,
+		Category:       NewCategoryClient(cfg),
+		Comment:        NewCommentClient(cfg),
+		CommentAction:  NewCommentActionClient(cfg),
+		Post:           NewPostClient(cfg),
+		PostAction:     NewPostActionClient(cfg),
+		Settings:       NewSettingsClient(cfg),
+		User:           NewUserClient(cfg),
+		UserBalanceLog: NewUserBalanceLogClient(cfg),
+		UserLoginLog:   NewUserLoginLogClient(cfg),
 	}, nil
 }
 
@@ -182,16 +187,17 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:           ctx,
-		config:        cfg,
-		Category:      NewCategoryClient(cfg),
-		Comment:       NewCommentClient(cfg),
-		CommentAction: NewCommentActionClient(cfg),
-		Post:          NewPostClient(cfg),
-		PostAction:    NewPostActionClient(cfg),
-		Settings:      NewSettingsClient(cfg),
-		User:          NewUserClient(cfg),
-		UserLoginLog:  NewUserLoginLogClient(cfg),
+		ctx:            ctx,
+		config:         cfg,
+		Category:       NewCategoryClient(cfg),
+		Comment:        NewCommentClient(cfg),
+		CommentAction:  NewCommentActionClient(cfg),
+		Post:           NewPostClient(cfg),
+		PostAction:     NewPostActionClient(cfg),
+		Settings:       NewSettingsClient(cfg),
+		User:           NewUserClient(cfg),
+		UserBalanceLog: NewUserBalanceLogClient(cfg),
+		UserLoginLog:   NewUserLoginLogClient(cfg),
 	}, nil
 }
 
@@ -222,7 +228,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Category, c.Comment, c.CommentAction, c.Post, c.PostAction, c.Settings,
-		c.User, c.UserLoginLog,
+		c.User, c.UserBalanceLog, c.UserLoginLog,
 	} {
 		n.Use(hooks...)
 	}
@@ -233,7 +239,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Category, c.Comment, c.CommentAction, c.Post, c.PostAction, c.Settings,
-		c.User, c.UserLoginLog,
+		c.User, c.UserBalanceLog, c.UserLoginLog,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -256,6 +262,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Settings.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
+	case *UserBalanceLogMutation:
+		return c.UserBalanceLog.mutate(ctx, m)
 	case *UserLoginLogMutation:
 		return c.UserLoginLog.mutate(ctx, m)
 	default:
@@ -1361,6 +1369,22 @@ func (c *UserClient) QueryManagedCategories(_m *User) *CategoryQuery {
 	return query
 }
 
+// QueryBalanceLogs queries the balance_logs edge of a User.
+func (c *UserClient) QueryBalanceLogs(_m *User) *UserBalanceLogQuery {
+	query := (&UserBalanceLogClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(userbalancelog.Table, userbalancelog.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.BalanceLogsTable, user.BalanceLogsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -1383,6 +1407,155 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 		return (&UserDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown User mutation op: %q", m.Op())
+	}
+}
+
+// UserBalanceLogClient is a client for the UserBalanceLog schema.
+type UserBalanceLogClient struct {
+	config
+}
+
+// NewUserBalanceLogClient returns a client for the UserBalanceLog from the given config.
+func NewUserBalanceLogClient(c config) *UserBalanceLogClient {
+	return &UserBalanceLogClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `userbalancelog.Hooks(f(g(h())))`.
+func (c *UserBalanceLogClient) Use(hooks ...Hook) {
+	c.hooks.UserBalanceLog = append(c.hooks.UserBalanceLog, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `userbalancelog.Intercept(f(g(h())))`.
+func (c *UserBalanceLogClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserBalanceLog = append(c.inters.UserBalanceLog, interceptors...)
+}
+
+// Create returns a builder for creating a UserBalanceLog entity.
+func (c *UserBalanceLogClient) Create() *UserBalanceLogCreate {
+	mutation := newUserBalanceLogMutation(c.config, OpCreate)
+	return &UserBalanceLogCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserBalanceLog entities.
+func (c *UserBalanceLogClient) CreateBulk(builders ...*UserBalanceLogCreate) *UserBalanceLogCreateBulk {
+	return &UserBalanceLogCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UserBalanceLogClient) MapCreateBulk(slice any, setFunc func(*UserBalanceLogCreate, int)) *UserBalanceLogCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UserBalanceLogCreateBulk{err: fmt.Errorf("calling to UserBalanceLogClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UserBalanceLogCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UserBalanceLogCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserBalanceLog.
+func (c *UserBalanceLogClient) Update() *UserBalanceLogUpdate {
+	mutation := newUserBalanceLogMutation(c.config, OpUpdate)
+	return &UserBalanceLogUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserBalanceLogClient) UpdateOne(_m *UserBalanceLog) *UserBalanceLogUpdateOne {
+	mutation := newUserBalanceLogMutation(c.config, OpUpdateOne, withUserBalanceLog(_m))
+	return &UserBalanceLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserBalanceLogClient) UpdateOneID(id int) *UserBalanceLogUpdateOne {
+	mutation := newUserBalanceLogMutation(c.config, OpUpdateOne, withUserBalanceLogID(id))
+	return &UserBalanceLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserBalanceLog.
+func (c *UserBalanceLogClient) Delete() *UserBalanceLogDelete {
+	mutation := newUserBalanceLogMutation(c.config, OpDelete)
+	return &UserBalanceLogDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserBalanceLogClient) DeleteOne(_m *UserBalanceLog) *UserBalanceLogDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserBalanceLogClient) DeleteOneID(id int) *UserBalanceLogDeleteOne {
+	builder := c.Delete().Where(userbalancelog.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserBalanceLogDeleteOne{builder}
+}
+
+// Query returns a query builder for UserBalanceLog.
+func (c *UserBalanceLogClient) Query() *UserBalanceLogQuery {
+	return &UserBalanceLogQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserBalanceLog},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserBalanceLog entity by its id.
+func (c *UserBalanceLogClient) Get(ctx context.Context, id int) (*UserBalanceLog, error) {
+	return c.Query().Where(userbalancelog.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserBalanceLogClient) GetX(ctx context.Context, id int) *UserBalanceLog {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a UserBalanceLog.
+func (c *UserBalanceLogClient) QueryUser(_m *UserBalanceLog) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(userbalancelog.Table, userbalancelog.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, userbalancelog.UserTable, userbalancelog.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *UserBalanceLogClient) Hooks() []Hook {
+	return c.hooks.UserBalanceLog
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserBalanceLogClient) Interceptors() []Interceptor {
+	return c.inters.UserBalanceLog
+}
+
+func (c *UserBalanceLogClient) mutate(ctx context.Context, m *UserBalanceLogMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserBalanceLogCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserBalanceLogUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserBalanceLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserBalanceLogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UserBalanceLog mutation op: %q", m.Op())
 	}
 }
 
@@ -1539,10 +1712,10 @@ func (c *UserLoginLogClient) mutate(ctx context.Context, m *UserLoginLogMutation
 type (
 	hooks struct {
 		Category, Comment, CommentAction, Post, PostAction, Settings, User,
-		UserLoginLog []ent.Hook
+		UserBalanceLog, UserLoginLog []ent.Hook
 	}
 	inters struct {
 		Category, Comment, CommentAction, Post, PostAction, Settings, User,
-		UserLoginLog []ent.Interceptor
+		UserBalanceLog, UserLoginLog []ent.Interceptor
 	}
 )

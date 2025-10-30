@@ -174,14 +174,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/super/manage/email/smtp": {
+        "/manage/balance/logs": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "获取当前系统的SMTP邮箱服务配置",
+                "description": "分页获取用户余额变动记录，支持多种筛选条件",
                 "consumes": [
                     "application/json"
                 ],
@@ -189,9 +184,845 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SuperAdmin.Email"
+                    "UserManage"
                 ],
-                "summary": "获取SMTP配置",
+                "summary": "获取用户余额变动记录",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "用户ID筛选",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"points\"",
+                        "description": "变动类型筛选",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"2024-01-01\"",
+                        "description": "开始日期",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"2024-12-31\"",
+                        "description": "结束日期",
+                        "name": "end_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "操作者ID筛选",
+                        "name": "operator_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"post\"",
+                        "description": "关联业务类型筛选",
+                        "name": "related_type",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserBalanceLogResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/balance/summary/{id}": {
+            "get": {
+                "description": "获取指定用户的余额汇总统计信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserManage"
+                ],
+                "summary": "获取用户余额汇总信息",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserBalanceSummary"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/moderator/categories": {
+            "put": {
+                "description": "为指定版主设置其管理的版块列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserManage"
+                ],
+                "summary": "设置版主管理版块",
+                "parameters": [
+                    {
+                        "description": "版块信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.ModeratorCategoryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "设置成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/users": {
+            "get": {
+                "description": "分页获取用户列表，支持关键词搜索和状态筛选",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserManage"
+                ],
+                "summary": "获取用户列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"test\"",
+                        "description": "搜索关键词",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"Normal\"",
+                        "description": "用户状态",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"User\"",
+                        "description": "用户身份",
+                        "name": "role",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "更新用户的基本信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserManage"
+                ],
+                "summary": "更新用户信息",
+                "parameters": [
+                    {
+                        "description": "用户信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "管理员创建新用户账户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserManage"
+                ],
+                "summary": "创建用户",
+                "parameters": [
+                    {
+                        "description": "用户信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "创建成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/users/currency": {
+            "put": {
+                "description": "为用户增加或减少货币",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserManage"
+                ],
+                "summary": "更新用户货币",
+                "parameters": [
+                    {
+                        "description": "货币信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserCurrencyUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/users/points": {
+            "put": {
+                "description": "为用户增加或减少积分",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserManage"
+                ],
+                "summary": "更新用户积分",
+                "parameters": [
+                    {
+                        "description": "积分信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserPointsUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/users/role": {
+            "put": {
+                "description": "更新用户的身份权限（普通用户、版主、管理员等）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserManage"
+                ],
+                "summary": "更新用户身份",
+                "parameters": [
+                    {
+                        "description": "身份信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserRoleUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/users/status": {
+            "put": {
+                "description": "更新用户的状态（正常、禁言、封禁等）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserManage"
+                ],
+                "summary": "更新用户状态",
+                "parameters": [
+                    {
+                        "description": "状态信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserStatusUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/users/{id}": {
+            "get": {
+                "description": "获取指定用户的详细信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserManage"
+                ],
+                "summary": "获取用户详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/super/manage/settings/code": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取自定义代码配置，包括页头、页脚代码和自定义CSS",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SuperAdmin.Settings"
+                ],
+                "summary": "获取代码配置",
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.CodeSettingsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "更新自定义代码配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SuperAdmin.Settings"
+                ],
+                "summary": "更新代码配置",
+                "parameters": [
+                    {
+                        "description": "代码配置信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.CodeSettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/super/manage/settings/comment": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取评论相关的配置，包括审核、黑名单等",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SuperAdmin.Settings"
+                ],
+                "summary": "获取评论设置",
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.CommentSettingsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "更新评论相关的配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SuperAdmin.Settings"
+                ],
+                "summary": "更新评论设置",
+                "parameters": [
+                    {
+                        "description": "评论设置信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.CommentSettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/super/manage/settings/email": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取SMTP邮箱服务配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SuperAdmin.Settings"
+                ],
+                "summary": "获取邮箱设置",
                 "responses": {
                     "200": {
                         "description": "获取成功",
@@ -225,7 +1056,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "更新系统的SMTP邮箱服务配置",
+                "description": "更新SMTP邮箱服务配置",
                 "consumes": [
                     "application/json"
                 ],
@@ -233,9 +1064,9 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SuperAdmin.Email"
+                    "SuperAdmin.Settings"
                 ],
-                "summary": "更新SMTP配置",
+                "summary": "更新邮箱设置",
                 "parameters": [
                     {
                         "description": "SMTP配置信息",
@@ -269,7 +1100,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/super/manage/email/test": {
+        "/super/manage/settings/email/test": {
             "post": {
                 "security": [
                     {
@@ -284,7 +1115,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SuperAdmin.Email"
+                    "SuperAdmin.Settings"
                 ],
                 "summary": "发送测试邮件",
                 "parameters": [
@@ -331,6 +1162,386 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/super/manage/settings/home": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取首页的配置，包括幻灯片、友情链接等",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SuperAdmin.Settings"
+                ],
+                "summary": "获取首页设置",
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.HomeSettingsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "更新首页的配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SuperAdmin.Settings"
+                ],
+                "summary": "更新首页设置",
+                "parameters": [
+                    {
+                        "description": "首页设置信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.HomeSettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/super/manage/settings/routine": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取网站的常规配置，包括Logo、Icon、备案号等",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SuperAdmin.Settings"
+                ],
+                "summary": "获取常规设置",
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.RoutineSettingsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "更新网站的常规配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SuperAdmin.Settings"
+                ],
+                "summary": "更新常规设置",
+                "parameters": [
+                    {
+                        "description": "常规设置信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.RoutineSettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/super/manage/settings/safe": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取安全相关配置，包括注册控制、邮箱白名单等",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SuperAdmin.Settings"
+                ],
+                "summary": "获取安全设置",
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.SafeSettingsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "更新安全相关配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SuperAdmin.Settings"
+                ],
+                "summary": "更新安全设置",
+                "parameters": [
+                    {
+                        "description": "安全设置信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.SafeSettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/super/manage/settings/seo": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取网站SEO相关配置，包括网站名称、关键词、描述等",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SuperAdmin.Settings"
+                ],
+                "summary": "获取SEO设置",
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.SeoSettingsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "更新网站SEO相关配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SuperAdmin.Settings"
+                ],
+                "summary": "更新SEO设置",
+                "parameters": [
+                    {
+                        "description": "SEO设置信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.SeoSettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -353,6 +1564,110 @@ const docTemplate = `{
             "x-enum-varnames": [
                 "CodeSuccess"
             ]
+        },
+        "schema.CategoryBasicInfo": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "description": "版块ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "name": {
+                    "description": "版块名称",
+                    "type": "string",
+                    "example": "综合讨论"
+                },
+                "slug": {
+                    "description": "版块标识",
+                    "type": "string",
+                    "example": "general"
+                }
+            }
+        },
+        "schema.CodeSettingsRequest": {
+            "type": "object",
+            "properties": {
+                "customization_css": {
+                    "description": "自定义CSS",
+                    "type": "string",
+                    "maxLength": 50000,
+                    "example": "body { background-color: #f0f0f0; }"
+                },
+                "footer": {
+                    "description": "页脚代码（HTML/JavaScript）",
+                    "type": "string",
+                    "maxLength": 10000,
+                    "example": "\u003cscript\u003econsole.log('footer');\u003c/script\u003e"
+                },
+                "header": {
+                    "description": "页头代码（HTML/JavaScript）",
+                    "type": "string",
+                    "maxLength": 10000,
+                    "example": "\u003cscript\u003econsole.log('header');\u003c/script\u003e"
+                }
+            }
+        },
+        "schema.CodeSettingsResponse": {
+            "type": "object",
+            "properties": {
+                "customization_css": {
+                    "description": "自定义CSS",
+                    "type": "string",
+                    "example": "body { background-color: #f0f0f0; }"
+                },
+                "footer": {
+                    "description": "页脚代码",
+                    "type": "string",
+                    "example": "\u003cscript\u003econsole.log('footer');\u003c/script\u003e"
+                },
+                "header": {
+                    "description": "页头代码",
+                    "type": "string",
+                    "example": "\u003cscript\u003econsole.log('header');\u003c/script\u003e"
+                }
+            }
+        },
+        "schema.CommentSettingsRequest": {
+            "type": "object",
+            "properties": {
+                "keyword_blacklist": {
+                    "description": "关键词黑名单（逗号分隔）",
+                    "type": "string",
+                    "maxLength": 5000,
+                    "example": "垃圾,广告,spam"
+                },
+                "require_approval": {
+                    "description": "是否需要审核评论",
+                    "type": "boolean",
+                    "example": false
+                },
+                "show_comment_info": {
+                    "description": "是否显示评论者信息",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "schema.CommentSettingsResponse": {
+            "type": "object",
+            "properties": {
+                "keyword_blacklist": {
+                    "description": "关键词黑名单",
+                    "type": "string",
+                    "example": "垃圾,广告,spam"
+                },
+                "require_approval": {
+                    "description": "是否需要审核评论",
+                    "type": "boolean",
+                    "example": false
+                },
+                "show_comment_info": {
+                    "description": "是否显示评论者信息",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
         },
         "schema.EmailSMTPConfigRequest": {
             "type": "object",
@@ -498,6 +1813,71 @@ const docTemplate = `{
                 }
             }
         },
+        "schema.HomeSettingsRequest": {
+            "type": "object",
+            "properties": {
+                "links": {
+                    "description": "友情链接列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.LinkItem"
+                    }
+                },
+                "slides": {
+                    "description": "幻灯片列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.SlideItem"
+                    }
+                }
+            }
+        },
+        "schema.HomeSettingsResponse": {
+            "type": "object",
+            "properties": {
+                "links": {
+                    "description": "友情链接列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.LinkItem"
+                    }
+                },
+                "slides": {
+                    "description": "幻灯片列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.SlideItem"
+                    }
+                }
+            }
+        },
+        "schema.LinkItem": {
+            "type": "object",
+            "required": [
+                "name",
+                "url"
+            ],
+            "properties": {
+                "description": {
+                    "description": "链接描述",
+                    "type": "string",
+                    "maxLength": 200,
+                    "example": "一个很棒的网站"
+                },
+                "name": {
+                    "description": "链接名称",
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 1,
+                    "example": "示例网站"
+                },
+                "url": {
+                    "description": "链接URL",
+                    "type": "string",
+                    "example": "https://example.com"
+                }
+            }
+        },
         "schema.LoginRequest": {
             "type": "object",
             "required": [
@@ -535,6 +1915,32 @@ const docTemplate = `{
                 }
             }
         },
+        "schema.ModeratorCategoryRequest": {
+            "type": "object",
+            "required": [
+                "category_ids",
+                "user_id"
+            ],
+            "properties": {
+                "category_ids": {
+                    "description": "版块ID列表",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "reason": {
+                    "description": "操作原因",
+                    "type": "string",
+                    "example": "版主任命"
+                },
+                "user_id": {
+                    "description": "用户ID",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
         "schema.RegisterRequest": {
             "type": "object",
             "required": [
@@ -563,6 +1969,629 @@ const docTemplate = `{
                 }
             }
         },
+        "schema.RoutineSettingsRequest": {
+            "type": "object",
+            "properties": {
+                "icp_record": {
+                    "description": "ICP备案号",
+                    "type": "string",
+                    "maxLength": 100,
+                    "example": "京ICP备12345678号"
+                },
+                "is_close_copyright": {
+                    "description": "是否关闭版权信息显示",
+                    "type": "boolean",
+                    "example": false
+                },
+                "public_security_network": {
+                    "description": "公安联网备案号",
+                    "type": "string",
+                    "maxLength": 100,
+                    "example": "京公网安备11010802012345号"
+                },
+                "website_icon": {
+                    "description": "网站Icon URL",
+                    "type": "string",
+                    "example": "https://example.com/icon.ico"
+                },
+                "website_logo": {
+                    "description": "网站Logo URL",
+                    "type": "string",
+                    "example": "https://example.com/logo.png"
+                }
+            }
+        },
+        "schema.RoutineSettingsResponse": {
+            "type": "object",
+            "properties": {
+                "icp_record": {
+                    "description": "ICP备案号",
+                    "type": "string",
+                    "example": "京ICP备12345678号"
+                },
+                "is_close_copyright": {
+                    "description": "是否关闭版权信息显示",
+                    "type": "boolean",
+                    "example": false
+                },
+                "public_security_network": {
+                    "description": "公安联网备案号",
+                    "type": "string",
+                    "example": "京公网安备11010802012345号"
+                },
+                "website_icon": {
+                    "description": "网站Icon URL",
+                    "type": "string",
+                    "example": "https://example.com/icon.ico"
+                },
+                "website_logo": {
+                    "description": "网站Logo URL",
+                    "type": "string",
+                    "example": "https://example.com/logo.png"
+                }
+            }
+        },
+        "schema.SafeSettingsRequest": {
+            "type": "object",
+            "properties": {
+                "email_whitelist": {
+                    "description": "邮箱白名单（逗号分隔的域名）",
+                    "type": "string",
+                    "maxLength": 5000,
+                    "example": "gmail.com,qq.com,163.com"
+                },
+                "is_close_register": {
+                    "description": "是否关闭注册",
+                    "type": "boolean",
+                    "example": false
+                },
+                "is_enable_email_whitelist": {
+                    "description": "是否启用邮箱白名单",
+                    "type": "boolean",
+                    "example": false
+                },
+                "verify_email": {
+                    "description": "是否需要验证邮箱",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "schema.SafeSettingsResponse": {
+            "type": "object",
+            "properties": {
+                "email_whitelist": {
+                    "description": "邮箱白名单",
+                    "type": "string",
+                    "example": "gmail.com,qq.com,163.com"
+                },
+                "is_close_register": {
+                    "description": "是否关闭注册",
+                    "type": "boolean",
+                    "example": false
+                },
+                "is_enable_email_whitelist": {
+                    "description": "是否启用邮箱白名单",
+                    "type": "boolean",
+                    "example": false
+                },
+                "verify_email": {
+                    "description": "是否需要验证邮箱",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "schema.SeoSettingsRequest": {
+            "type": "object",
+            "required": [
+                "website_name"
+            ],
+            "properties": {
+                "website_description": {
+                    "description": "网站描述",
+                    "type": "string",
+                    "maxLength": 1000,
+                    "example": "一个友好的在线社区论坛"
+                },
+                "website_keyword": {
+                    "description": "网站关键词",
+                    "type": "string",
+                    "maxLength": 500,
+                    "example": "论坛,社区,讨论"
+                },
+                "website_name": {
+                    "description": "网站名称",
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "example": "PokeForum"
+                }
+            }
+        },
+        "schema.SeoSettingsResponse": {
+            "type": "object",
+            "properties": {
+                "website_description": {
+                    "description": "网站描述",
+                    "type": "string",
+                    "example": "一个友好的在线社区论坛"
+                },
+                "website_keyword": {
+                    "description": "网站关键词",
+                    "type": "string",
+                    "example": "论坛,社区,讨论"
+                },
+                "website_name": {
+                    "description": "网站名称",
+                    "type": "string",
+                    "example": "PokeForum"
+                }
+            }
+        },
+        "schema.SlideItem": {
+            "type": "object",
+            "required": [
+                "image_url"
+            ],
+            "properties": {
+                "description": {
+                    "description": "描述",
+                    "type": "string",
+                    "maxLength": 500,
+                    "example": "这是一个友好的社区"
+                },
+                "image_url": {
+                    "description": "图片URL",
+                    "type": "string",
+                    "example": "https://example.com/slide1.jpg"
+                },
+                "link_url": {
+                    "description": "链接URL",
+                    "type": "string",
+                    "example": "https://example.com/article/1"
+                },
+                "title": {
+                    "description": "标题",
+                    "type": "string",
+                    "maxLength": 100,
+                    "example": "欢迎来到PokeForum"
+                }
+            }
+        },
+        "schema.UserBalanceLogItem": {
+            "type": "object",
+            "properties": {
+                "after_amount": {
+                    "description": "变动后数量",
+                    "type": "integer",
+                    "example": 1100
+                },
+                "amount": {
+                    "description": "变动数量",
+                    "type": "integer",
+                    "example": 100
+                },
+                "before_amount": {
+                    "description": "变动前数量",
+                    "type": "integer",
+                    "example": 1000
+                },
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "id": {
+                    "description": "记录ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "ip_address": {
+                    "description": "IP地址",
+                    "type": "string",
+                    "example": "192.168.1.1"
+                },
+                "operator_id": {
+                    "description": "操作者ID",
+                    "type": "integer",
+                    "example": 2
+                },
+                "operator_name": {
+                    "description": "操作者用户名",
+                    "type": "string",
+                    "example": "admin"
+                },
+                "reason": {
+                    "description": "变动原因",
+                    "type": "string",
+                    "example": "发帖奖励"
+                },
+                "related_id": {
+                    "description": "关联业务ID",
+                    "type": "integer",
+                    "example": 123
+                },
+                "related_type": {
+                    "description": "关联业务类型",
+                    "type": "string",
+                    "example": "post"
+                },
+                "type": {
+                    "description": "变动类型",
+                    "type": "string",
+                    "example": "points"
+                },
+                "user_id": {
+                    "description": "用户ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "username": {
+                    "description": "用户名",
+                    "type": "string",
+                    "example": "testuser"
+                }
+            }
+        },
+        "schema.UserBalanceLogResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "description": "记录列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.UserBalanceLogItem"
+                    }
+                },
+                "page": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "page_size": {
+                    "description": "每页数量",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总数量",
+                    "type": "integer"
+                }
+            }
+        },
+        "schema.UserBalanceSummary": {
+            "type": "object",
+            "properties": {
+                "current_currency": {
+                    "description": "当前货币",
+                    "type": "integer",
+                    "example": 500
+                },
+                "current_points": {
+                    "description": "当前积分",
+                    "type": "integer",
+                    "example": 1000
+                },
+                "total_currency_in": {
+                    "description": "总货币收入",
+                    "type": "integer",
+                    "example": 800
+                },
+                "total_currency_out": {
+                    "description": "总货币支出",
+                    "type": "integer",
+                    "example": 300
+                },
+                "total_points_in": {
+                    "description": "总积分收入",
+                    "type": "integer",
+                    "example": 1500
+                },
+                "total_points_out": {
+                    "description": "总积分支出",
+                    "type": "integer",
+                    "example": 500
+                },
+                "user_id": {
+                    "description": "用户ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "username": {
+                    "description": "用户名",
+                    "type": "string",
+                    "example": "testuser"
+                }
+            }
+        },
+        "schema.UserCreateRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "role",
+                "username"
+            ],
+            "properties": {
+                "avatar": {
+                    "description": "头像URL",
+                    "type": "string",
+                    "example": "https://example.com/avatar.jpg"
+                },
+                "email": {
+                    "description": "邮箱",
+                    "type": "string",
+                    "example": "test@example.com"
+                },
+                "password": {
+                    "description": "密码",
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "password123"
+                },
+                "readme": {
+                    "description": "README内容",
+                    "type": "string",
+                    "example": "## 关于我\n这是我的README内容"
+                },
+                "role": {
+                    "description": "用户身份",
+                    "type": "string",
+                    "enum": [
+                        "User",
+                        "Moderator",
+                        "Admin",
+                        "SuperAdmin"
+                    ],
+                    "example": "User"
+                },
+                "signature": {
+                    "description": "个性签名",
+                    "type": "string",
+                    "example": "这是我的个性签名"
+                },
+                "username": {
+                    "description": "用户名",
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 3,
+                    "example": "testuser"
+                }
+            }
+        },
+        "schema.UserCurrencyUpdateRequest": {
+            "type": "object",
+            "required": [
+                "currency",
+                "id"
+            ],
+            "properties": {
+                "currency": {
+                    "description": "货币变化量（正数为增加，负数为减少）",
+                    "type": "integer",
+                    "example": 50
+                },
+                "id": {
+                    "description": "用户ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "reason": {
+                    "description": "操作原因",
+                    "type": "string",
+                    "example": "发帖奖励"
+                }
+            }
+        },
+        "schema.UserDetailResponse": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "头像URL",
+                    "type": "string",
+                    "example": "https://example.com/avatar.jpg"
+                },
+                "comment_count": {
+                    "description": "评论数",
+                    "type": "integer",
+                    "example": 200
+                },
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "currency": {
+                    "description": "货币",
+                    "type": "integer",
+                    "example": 500
+                },
+                "email": {
+                    "description": "邮箱",
+                    "type": "string",
+                    "example": "test@example.com"
+                },
+                "email_verified": {
+                    "description": "邮箱是否已验证",
+                    "type": "boolean",
+                    "example": true
+                },
+                "id": {
+                    "description": "用户ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "managed_categories": {
+                    "description": "管理的版块列表（仅版主显示）",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.CategoryBasicInfo"
+                    }
+                },
+                "points": {
+                    "description": "积分",
+                    "type": "integer",
+                    "example": 1000
+                },
+                "post_count": {
+                    "description": "帖子数",
+                    "type": "integer",
+                    "example": 50
+                },
+                "readme": {
+                    "description": "README内容",
+                    "type": "string",
+                    "example": "## 关于我\n这是我的README内容"
+                },
+                "role": {
+                    "description": "用户身份",
+                    "type": "string",
+                    "example": "User"
+                },
+                "signature": {
+                    "description": "个性签名",
+                    "type": "string",
+                    "example": "这是我的个性签名"
+                },
+                "status": {
+                    "description": "用户状态",
+                    "type": "string",
+                    "example": "Normal"
+                },
+                "updated_at": {
+                    "description": "更新时间",
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "username": {
+                    "description": "用户名",
+                    "type": "string",
+                    "example": "testuser"
+                }
+            }
+        },
+        "schema.UserListItem": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "头像URL",
+                    "type": "string",
+                    "example": "https://example.com/avatar.jpg"
+                },
+                "comment_count": {
+                    "description": "评论数",
+                    "type": "integer",
+                    "example": 200
+                },
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "currency": {
+                    "description": "货币",
+                    "type": "integer",
+                    "example": 500
+                },
+                "email": {
+                    "description": "邮箱",
+                    "type": "string",
+                    "example": "test@example.com"
+                },
+                "email_verified": {
+                    "description": "邮箱是否已验证",
+                    "type": "boolean",
+                    "example": true
+                },
+                "id": {
+                    "description": "用户ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "points": {
+                    "description": "积分",
+                    "type": "integer",
+                    "example": 1000
+                },
+                "post_count": {
+                    "description": "帖子数",
+                    "type": "integer",
+                    "example": 50
+                },
+                "role": {
+                    "description": "用户身份",
+                    "type": "string",
+                    "example": "User"
+                },
+                "signature": {
+                    "description": "个性签名",
+                    "type": "string",
+                    "example": "这是我的个性签名"
+                },
+                "status": {
+                    "description": "用户状态",
+                    "type": "string",
+                    "example": "Normal"
+                },
+                "updated_at": {
+                    "description": "更新时间",
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "username": {
+                    "description": "用户名",
+                    "type": "string",
+                    "example": "testuser"
+                }
+            }
+        },
+        "schema.UserListResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "description": "用户列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.UserListItem"
+                    }
+                },
+                "page": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "page_size": {
+                    "description": "每页数量",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总数量",
+                    "type": "integer"
+                }
+            }
+        },
+        "schema.UserPointsUpdateRequest": {
+            "type": "object",
+            "required": [
+                "id",
+                "points"
+            ],
+            "properties": {
+                "id": {
+                    "description": "用户ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "points": {
+                    "description": "积分变化量（正数为增加，负数为减少）",
+                    "type": "integer",
+                    "example": 100
+                },
+                "reason": {
+                    "description": "操作原因",
+                    "type": "string",
+                    "example": "活跃奖励"
+                }
+            }
+        },
         "schema.UserResponse": {
             "type": "object",
             "properties": {
@@ -579,6 +2608,107 @@ const docTemplate = `{
                 "username": {
                     "description": "用户名",
                     "type": "string",
+                    "example": "testuser"
+                }
+            }
+        },
+        "schema.UserRoleUpdateRequest": {
+            "type": "object",
+            "required": [
+                "id",
+                "role"
+            ],
+            "properties": {
+                "id": {
+                    "description": "用户ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "reason": {
+                    "description": "操作原因",
+                    "type": "string",
+                    "example": "权限调整"
+                },
+                "role": {
+                    "description": "用户身份",
+                    "type": "string",
+                    "enum": [
+                        "User",
+                        "Moderator",
+                        "Admin",
+                        "SuperAdmin"
+                    ],
+                    "example": "User"
+                }
+            }
+        },
+        "schema.UserStatusUpdateRequest": {
+            "type": "object",
+            "required": [
+                "id",
+                "status"
+            ],
+            "properties": {
+                "id": {
+                    "description": "用户ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "reason": {
+                    "description": "操作原因",
+                    "type": "string",
+                    "example": "违反社区规则"
+                },
+                "status": {
+                    "description": "用户状态",
+                    "type": "string",
+                    "enum": [
+                        "Normal",
+                        "Mute",
+                        "Blocked",
+                        "ActivationPending",
+                        "RiskControl"
+                    ],
+                    "example": "Normal"
+                }
+            }
+        },
+        "schema.UserUpdateRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "avatar": {
+                    "description": "头像URL",
+                    "type": "string",
+                    "example": "https://example.com/avatar.jpg"
+                },
+                "email": {
+                    "description": "邮箱",
+                    "type": "string",
+                    "example": "test@example.com"
+                },
+                "id": {
+                    "description": "用户ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "readme": {
+                    "description": "README内容",
+                    "type": "string",
+                    "example": "## 关于我\n这是我的README内容"
+                },
+                "signature": {
+                    "description": "个性签名",
+                    "type": "string",
+                    "example": "这是我的个性签名"
+                },
+                "username": {
+                    "description": "用户名",
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 3,
                     "example": "testuser"
                 }
             }

@@ -76,6 +76,8 @@ func (User) Edges() []ent.Edge {
 		// 用户与版块的多对多关联，用于版主权限管理
 		// 当用户身份为Moderator时，可以通过此关联查询其管理的版块
 		edge.To("managed_categories", Category.Type),
+		// 用户与余额变动记录的一对多关联
+		edge.To("balance_logs", UserBalanceLog.Type),
 	}
 }
 

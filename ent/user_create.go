@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/user"
+	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -232,6 +233,21 @@ func (_c *UserCreate) AddManagedCategories(v ...*Category) *UserCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddManagedCategoryIDs(ids...)
+}
+
+// AddBalanceLogIDs adds the "balance_logs" edge to the UserBalanceLog entity by IDs.
+func (_c *UserCreate) AddBalanceLogIDs(ids ...int) *UserCreate {
+	_c.mutation.AddBalanceLogIDs(ids...)
+	return _c
+}
+
+// AddBalanceLogs adds the "balance_logs" edges to the UserBalanceLog entity.
+func (_c *UserCreate) AddBalanceLogs(v ...*UserBalanceLog) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddBalanceLogIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -508,6 +524,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.BalanceLogsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.BalanceLogsTable,
+			Columns: []string{user.BalanceLogsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(userbalancelog.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

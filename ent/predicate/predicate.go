@@ -27,5 +27,8 @@ type Settings func(*sql.Selector)
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
 
+// UserBalanceLog is the predicate function for userbalancelog builders.
+type UserBalanceLog func(*sql.Selector)
+
 // UserLoginLog is the predicate function for userloginlog builders.
 type UserLoginLog func(*sql.Selector)

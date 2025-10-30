@@ -19,6 +19,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/postaction"
 	"github.com/PokeForum/PokeForum/ent/settings"
 	"github.com/PokeForum/PokeForum/ent/user"
+	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 	"github.com/PokeForum/PokeForum/ent/userloginlog"
 )
 
@@ -80,14 +81,15 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			category.Table:      category.ValidColumn,
-			comment.Table:       comment.ValidColumn,
-			commentaction.Table: commentaction.ValidColumn,
-			post.Table:          post.ValidColumn,
-			postaction.Table:    postaction.ValidColumn,
-			settings.Table:      settings.ValidColumn,
-			user.Table:          user.ValidColumn,
-			userloginlog.Table:  userloginlog.ValidColumn,
+			category.Table:       category.ValidColumn,
+			comment.Table:        comment.ValidColumn,
+			commentaction.Table:  commentaction.ValidColumn,
+			post.Table:           post.ValidColumn,
+			postaction.Table:     postaction.ValidColumn,
+			settings.Table:       settings.ValidColumn,
+			user.Table:           user.ValidColumn,
+			userbalancelog.Table: userbalancelog.ValidColumn,
+			userloginlog.Table:   userloginlog.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

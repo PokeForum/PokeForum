@@ -49,6 +49,8 @@ const (
 	FieldRole = "role"
 	// EdgeManagedCategories holds the string denoting the managed_categories edge name in mutations.
 	EdgeManagedCategories = "managed_categories"
+	// EdgeBalanceLogs holds the string denoting the balance_logs edge name in mutations.
+	EdgeBalanceLogs = "balance_logs"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// ManagedCategoriesTable is the table that holds the managed_categories relation/edge. The primary key declared below.
@@ -56,6 +58,13 @@ const (
 	// ManagedCategoriesInverseTable is the table name for the Category entity.
 	// It exists in this package in order to avoid circular dependency with the "category" package.
 	ManagedCategoriesInverseTable = "categories"
+	// BalanceLogsTable is the table that holds the balance_logs relation/edge.
+	BalanceLogsTable = "user_balance_logs"
+	// BalanceLogsInverseTable is the table name for the UserBalanceLog entity.
+	// It exists in this package in order to avoid circular dependency with the "userbalancelog" package.
+	BalanceLogsInverseTable = "user_balance_logs"
+	// BalanceLogsColumn is the table column denoting the balance_logs relation/edge.
+	BalanceLogsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -290,10 +299,31 @@ func ByManagedCategories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption
 		sqlgraph.OrderByNeighborTerms(s, newManagedCategoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByBalanceLogsCount orders the results by balance_logs count.
+func ByBalanceLogsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newBalanceLogsStep(), opts...)
+	}
+}
+
+// ByBalanceLogs orders the results by balance_logs terms.
+func ByBalanceLogs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newBalanceLogsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newManagedCategoriesStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ManagedCategoriesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, ManagedCategoriesTable, ManagedCategoriesPrimaryKey...),
+	)
+}
+func newBalanceLogsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(BalanceLogsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, BalanceLogsTable, BalanceLogsColumn),
 	)
 }

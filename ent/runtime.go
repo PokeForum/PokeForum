@@ -13,6 +13,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/schema"
 	"github.com/PokeForum/PokeForum/ent/settings"
 	"github.com/PokeForum/PokeForum/ent/user"
+	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 	"github.com/PokeForum/PokeForum/ent/userloginlog"
 )
 
@@ -309,6 +310,33 @@ func init() {
 	userDescID := userFields[0].Descriptor()
 	// user.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	user.IDValidator = userDescID.Validators[0].(func(int) error)
+	userbalancelogMixin := schema.UserBalanceLog{}.Mixin()
+	userbalancelogMixinFields0 := userbalancelogMixin[0].Fields()
+	_ = userbalancelogMixinFields0
+	userbalancelogFields := schema.UserBalanceLog{}.Fields()
+	_ = userbalancelogFields
+	// userbalancelogDescCreatedAt is the schema descriptor for created_at field.
+	userbalancelogDescCreatedAt := userbalancelogMixinFields0[0].Descriptor()
+	// userbalancelog.DefaultCreatedAt holds the default value on creation for the created_at field.
+	userbalancelog.DefaultCreatedAt = userbalancelogDescCreatedAt.Default.(func() time.Time)
+	// userbalancelogDescUpdatedAt is the schema descriptor for updated_at field.
+	userbalancelogDescUpdatedAt := userbalancelogMixinFields0[1].Descriptor()
+	// userbalancelog.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	userbalancelog.DefaultUpdatedAt = userbalancelogDescUpdatedAt.Default.(func() time.Time)
+	// userbalancelog.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	userbalancelog.UpdateDefaultUpdatedAt = userbalancelogDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// userbalancelogDescUserID is the schema descriptor for user_id field.
+	userbalancelogDescUserID := userbalancelogFields[1].Descriptor()
+	// userbalancelog.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	userbalancelog.UserIDValidator = userbalancelogDescUserID.Validators[0].(func(int) error)
+	// userbalancelogDescReason is the schema descriptor for reason field.
+	userbalancelogDescReason := userbalancelogFields[6].Descriptor()
+	// userbalancelog.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
+	userbalancelog.ReasonValidator = userbalancelogDescReason.Validators[0].(func(string) error)
+	// userbalancelogDescID is the schema descriptor for id field.
+	userbalancelogDescID := userbalancelogFields[0].Descriptor()
+	// userbalancelog.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	userbalancelog.IDValidator = userbalancelogDescID.Validators[0].(func(int) error)
 	userloginlogMixin := schema.UserLoginLog{}.Mixin()
 	userloginlogMixinFields0 := userloginlogMixin[0].Fields()
 	_ = userloginlogMixinFields0

@@ -59,9 +59,11 @@ type User struct {
 type UserEdges struct {
 	// ManagedCategories holds the value of the managed_categories edge.
 	ManagedCategories []*Category `json:"managed_categories,omitempty"`
+	// BalanceLogs holds the value of the balance_logs edge.
+	BalanceLogs []*UserBalanceLog `json:"balance_logs,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // ManagedCategoriesOrErr returns the ManagedCategories value or an error if the edge
@@ -71,6 +73,15 @@ func (e UserEdges) ManagedCategoriesOrErr() ([]*Category, error) {
 		return e.ManagedCategories, nil
 	}
 	return nil, &NotLoadedError{edge: "managed_categories"}
+}
+
+// BalanceLogsOrErr returns the BalanceLogs value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) BalanceLogsOrErr() ([]*UserBalanceLog, error) {
+	if e.loadedTypes[1] {
+		return e.BalanceLogs, nil
+	}
+	return nil, &NotLoadedError{edge: "balance_logs"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -219,6 +230,11 @@ func (_m *User) Value(name string) (ent.Value, error) {
 // QueryManagedCategories queries the "managed_categories" edge of the User entity.
 func (_m *User) QueryManagedCategories() *CategoryQuery {
 	return NewUserClient(_m.config).QueryManagedCategories(_m)
+}
+
+// QueryBalanceLogs queries the "balance_logs" edge of the User entity.
+func (_m *User) QueryBalanceLogs() *UserBalanceLogQuery {
+	return NewUserClient(_m.config).QueryBalanceLogs(_m)
 }
 
 // Update returns a builder for updating this User.

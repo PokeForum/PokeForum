@@ -23,9 +23,13 @@ func InjectorSrv(injector *do.Injector) {
 	do.Provide(injector, func(i *do.Injector) (service.IAuthService, error) {
 		return service.NewAuthService(configs.DB, configs.Cache, configs.Log), nil
 	})
-	// 注册 SettingsService（包含邮箱服务功能）
+	// 注册 SettingsService
 	do.Provide(injector, func(i *do.Injector) (service.ISettingsService, error) {
 		return service.NewSettingsService(configs.DB, configs.Cache, configs.Log), nil
+	})
+	// 注册 UserManageService
+	do.Provide(injector, func(i *do.Injector) (service.IUserManageService, error) {
+		return service.NewUserManageService(configs.DB, configs.Cache, configs.Log), nil
 	})
 }
 
@@ -68,7 +72,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 	// 论坛接口
 	ForumGroup := api.Group("")
-	ForumGroup.Use(saGin.CheckRole(user.RoleUser.String()))
+	//ForumGroup.Use(middleware.CheckRole(user.RoleUser.String()))
 	{
 		// 用户
 		{
@@ -167,7 +171,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 	// 管理员接口
 	ManageGroup := api.Group("/manage")
-	ManageGroup.Use(saGin.CheckRole(user.RoleAdmin.String()))
+	//ManageGroup.Use(middleware.CheckRole(user.RoleAdmin.String()))
 	{
 		// 仪表盘
 		{
@@ -175,6 +179,8 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 		// 用户管理
 		{
+			UserManageCon := controller.NewUserManageController(injector)
+			UserManageCon.UserManageRouter(ManageGroup)
 		}
 
 		// 版块管理
@@ -194,7 +200,6 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 	// 超级管理接口
 	SuperManageGroup := api.Group("/super/manage")
-	SuperManageGroup.Use(saGin.CheckRole(user.RoleSuperAdmin.String()))
 	{
 		// 设置管理（统一的设置控制器，包含所有系统设置）
 		SettingsGroup := SuperManageGroup.Group("/settings")
