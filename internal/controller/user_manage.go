@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
+	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
 )
@@ -24,32 +26,32 @@ func NewUserManageController(injector *do.Injector) *UserManageController {
 // UserManageRouter 用户管理相关路由注册
 func (ctrl *UserManageController) UserManageRouter(router *gin.RouterGroup) {
 	// 用户列表
-	router.GET("/users", ctrl.GetUserList)
+	router.GET("/users", saGin.CheckRole(user.RoleAdmin.String()), ctrl.GetUserList)
 	// 创建用户
-	router.POST("/users", ctrl.CreateUser)
+	router.POST("/users", saGin.CheckRole(user.RoleAdmin.String()), ctrl.CreateUser)
 	// 更新用户信息
-	router.PUT("/users", ctrl.UpdateUser)
+	router.PUT("/users", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUser)
 	// 获取用户详情
-	router.GET("/users/:id", ctrl.GetUserDetail)
+	router.GET("/users/:id", saGin.CheckRole(user.RoleAdmin.String()), ctrl.GetUserDetail)
 
 	// 用户状态管理
-	router.PUT("/users/status", ctrl.UpdateUserStatus)
+	router.PUT("/users/status", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUserStatus)
 
 	// 用户身份管理
-	router.PUT("/users/role", ctrl.UpdateUserRole)
+	router.PUT("/users/role", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUserRole)
 
 	// 用户积分管理
-	router.PUT("/users/points", ctrl.UpdateUserPoints)
+	router.PUT("/users/points", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUserPoints)
 
 	// 用户货币管理
-	router.PUT("/users/currency", ctrl.UpdateUserCurrency)
+	router.PUT("/users/currency", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUserCurrency)
 
 	// 版主管理版块
-	router.PUT("/moderator/categories", ctrl.SetModeratorCategories)
+	router.PUT("/moderator/categories", saGin.CheckRole(user.RoleAdmin.String()), ctrl.SetModeratorCategories)
 
 	// 余额变动记录
-	router.GET("/balance/logs", ctrl.GetUserBalanceLog)
-	router.GET("/balance/summary/:id", ctrl.GetUserBalanceSummary)
+	router.GET("/balance/logs", saGin.CheckRole(user.RoleAdmin.String()), ctrl.GetUserBalanceLog)
+	router.GET("/balance/summary/:id", saGin.CheckRole(user.RoleAdmin.String()), ctrl.GetUserBalanceSummary)
 }
 
 // GetUserList 获取用户列表
@@ -117,7 +119,7 @@ func (ctrl *UserManageController) CreateUser(c *gin.Context) {
 	}
 
 	// 调用服务
-	user, err := userManageService.CreateUser(c.Request.Context(), req)
+	u, err := userManageService.CreateUser(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -125,21 +127,21 @@ func (ctrl *UserManageController) CreateUser(c *gin.Context) {
 
 	// 转换为响应格式
 	result := &schema.UserDetailResponse{
-		ID:            user.ID,
-		Username:      user.Username,
-		Email:         user.Email,
-		Avatar:        user.Avatar,
-		Signature:     user.Signature,
-		Readme:        user.Readme,
-		EmailVerified: user.EmailVerified,
-		Points:        user.Points,
-		Currency:      user.Currency,
-		PostCount:     user.PostCount,
-		CommentCount:  user.CommentCount,
-		Status:        user.Status.String(),
-		Role:          user.Role.String(),
-		CreatedAt:     user.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:     user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		ID:            u.ID,
+		Username:      u.Username,
+		Email:         u.Email,
+		Avatar:        u.Avatar,
+		Signature:     u.Signature,
+		Readme:        u.Readme,
+		EmailVerified: u.EmailVerified,
+		Points:        u.Points,
+		Currency:      u.Currency,
+		PostCount:     u.PostCount,
+		CommentCount:  u.CommentCount,
+		Status:        u.Status.String(),
+		Role:          u.Role.String(),
+		CreatedAt:     u.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		UpdatedAt:     u.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
 
 	response.ResSuccess(c, result)
@@ -171,7 +173,7 @@ func (ctrl *UserManageController) UpdateUser(c *gin.Context) {
 	}
 
 	// 调用服务
-	user, err := userManageService.UpdateUser(c.Request.Context(), req)
+	u, err := userManageService.UpdateUser(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -179,21 +181,21 @@ func (ctrl *UserManageController) UpdateUser(c *gin.Context) {
 
 	// 转换为响应格式
 	result := &schema.UserDetailResponse{
-		ID:            user.ID,
-		Username:      user.Username,
-		Email:         user.Email,
-		Avatar:        user.Avatar,
-		Signature:     user.Signature,
-		Readme:        user.Readme,
-		EmailVerified: user.EmailVerified,
-		Points:        user.Points,
-		Currency:      user.Currency,
-		PostCount:     user.PostCount,
-		CommentCount:  user.CommentCount,
-		Status:        user.Status.String(),
-		Role:          user.Role.String(),
-		CreatedAt:     user.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:     user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		ID:            u.ID,
+		Username:      u.Username,
+		Email:         u.Email,
+		Avatar:        u.Avatar,
+		Signature:     u.Signature,
+		Readme:        u.Readme,
+		EmailVerified: u.EmailVerified,
+		Points:        u.Points,
+		Currency:      u.Currency,
+		PostCount:     u.PostCount,
+		CommentCount:  u.CommentCount,
+		Status:        u.Status.String(),
+		Role:          u.Role.String(),
+		CreatedAt:     u.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		UpdatedAt:     u.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
 
 	response.ResSuccess(c, result)

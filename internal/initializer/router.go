@@ -72,7 +72,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 	// 论坛接口
 	ForumGroup := api.Group("")
-	//ForumGroup.Use(middleware.CheckRole(user.RoleUser.String()))
+	//ForumGroup.Use(saGin.CheckRole(user.RoleUser.String()))
 	{
 		// 用户
 		{
@@ -171,7 +171,6 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 	// 管理员接口
 	ManageGroup := api.Group("/manage")
-	//ManageGroup.Use(middleware.CheckRole(user.RoleAdmin.String()))
 	{
 		// 仪表盘
 		{
