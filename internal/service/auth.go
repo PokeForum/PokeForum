@@ -14,7 +14,6 @@ import (
 	"github.com/click33/sa-token-go/stputil"
 	"github.com/gomodule/redigo/redis"
 	"go.uber.org/zap"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // IAuthService 认证服务接口
@@ -69,9 +68,14 @@ func (s *AuthService) Register(ctx context.Context, req schema.RegisterRequest) 
 		s.logger.Error("查询邮箱失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("查询邮箱失败: %w", err)
 	}
+	// 生成密码盐
+	pwdSalt := utils.GeneratePasswordSalt()
+
+	// 密码加盐
+	req.Password = utils.CombinePasswordWithSalt(req.Password, pwdSalt)
 
 	// 密码加密
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
 		s.logger.Error("密码加密失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("密码加密失败: %w", err)
@@ -81,7 +85,8 @@ func (s *AuthService) Register(ctx context.Context, req schema.RegisterRequest) 
 	newUser, err := s.db.User.Create().
 		SetUsername(req.Username).
 		SetEmail(req.Email).
-		SetPassword(string(hashedPassword)).
+		SetPassword(hashedPassword).
+		SetPasswordSalt(pwdSalt).
 		Save(ctx)
 	if err != nil {
 		s.logger.Error("创建用户失败", tracing.WithTraceIDField(ctx), zap.Error(err))
