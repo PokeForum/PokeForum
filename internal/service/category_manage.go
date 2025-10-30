@@ -110,7 +110,7 @@ func (s *CategoryManageService) GetCategoryList(ctx context.Context, req schema.
 
 	return &schema.CategoryListResponse{
 		List:     list,
-		Total:    total,
+		Total:    int64(total),
 		Page:     req.Page,
 		PageSize: req.PageSize,
 	}, nil
@@ -133,7 +133,7 @@ func (s *CategoryManageService) CreateCategory(ctx context.Context, req schema.C
 	}
 
 	// 创建版块
-	category, err := s.db.Category.Create().
+	categories, err := s.db.Category.Create().
 		SetName(req.Name).
 		SetSlug(req.Slug).
 		SetDescription(req.Description).
@@ -146,8 +146,8 @@ func (s *CategoryManageService) CreateCategory(ctx context.Context, req schema.C
 		return nil, fmt.Errorf("创建版块失败: %w", err)
 	}
 
-	s.logger.Info("版块创建成功", zap.Int("id", category.ID), tracing.WithTraceIDField(ctx))
-	return category, nil
+	s.logger.Info("版块创建成功", zap.Int("id", categories.ID), tracing.WithTraceIDField(ctx))
+	return categories, nil
 }
 
 // UpdateCategory 更新版块信息
@@ -155,7 +155,7 @@ func (s *CategoryManageService) UpdateCategory(ctx context.Context, req schema.C
 	s.logger.Info("更新版块信息", zap.Int("id", req.ID), tracing.WithTraceIDField(ctx))
 
 	// 检查版块是否存在
-	category, err := s.db.Category.Get(ctx, req.ID)
+	existingCategory, err := s.db.Category.Get(ctx, req.ID)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, errors.New("版块不存在")
@@ -165,7 +165,7 @@ func (s *CategoryManageService) UpdateCategory(ctx context.Context, req schema.C
 	}
 
 	// 如果要更新slug，检查是否与其他版块冲突
-	if req.Slug != "" && req.Slug != category.Slug {
+	if req.Slug != "" && req.Slug != existingCategory.Slug {
 		exists, err := s.db.Category.Query().
 			Where(
 				category.And(
@@ -250,7 +250,7 @@ func (s *CategoryManageService) GetCategoryDetail(ctx context.Context, id int) (
 	s.logger.Info("获取版块详情", zap.Int("id", id), tracing.WithTraceIDField(ctx))
 
 	// 获取版块信息
-	category, err := s.db.Category.Get(ctx, id)
+	categories, err := s.db.Category.Get(ctx, id)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, errors.New("版块不存在")
@@ -264,16 +264,16 @@ func (s *CategoryManageService) GetCategoryDetail(ctx context.Context, id int) (
 
 	// 转换为响应格式
 	result := &schema.CategoryDetailResponse{
-		ID:          category.ID,
-		Name:        category.Name,
-		Slug:        category.Slug,
-		Description: category.Description,
-		Icon:        category.Icon,
-		Weight:      category.Weight,
-		Status:      category.Status.String(),
+		ID:          categories.ID,
+		Name:        categories.Name,
+		Slug:        categories.Slug,
+		Description: categories.Description,
+		Icon:        categories.Icon,
+		Weight:      categories.Weight,
+		Status:      categories.Status.String(),
 		PostCount:   postCount,
-		CreatedAt:   category.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:   category.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:   categories.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		UpdatedAt:   categories.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
 
 	return result, nil
@@ -284,7 +284,7 @@ func (s *CategoryManageService) SetCategoryModerators(ctx context.Context, req s
 	s.logger.Info("设置版块版主", zap.Int("category_id", req.CategoryID), zap.Ints("user_ids", req.UserIDs), tracing.WithTraceIDField(ctx))
 
 	// 检查版块是否存在
-	category, err := s.db.Category.Get(ctx, req.CategoryID)
+	categories, err := s.db.Category.Get(ctx, req.CategoryID)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return errors.New("版块不存在")
@@ -312,7 +312,7 @@ func (s *CategoryManageService) SetCategoryModerators(ctx context.Context, req s
 	}
 
 	// 清除现有的版主关联
-	_, err = s.db.Category.UpdateOne(category).
+	_, err = s.db.Category.UpdateOne(categories).
 		ClearModerators().
 		Save(ctx)
 	if err != nil {
@@ -322,7 +322,7 @@ func (s *CategoryManageService) SetCategoryModerators(ctx context.Context, req s
 
 	// 添加新的版主关联
 	if len(req.UserIDs) > 0 {
-		_, err = s.db.Category.UpdateOne(category).
+		_, err = s.db.Category.UpdateOne(categories).
 			AddModeratorIDs(req.UserIDs...).
 			Save(ctx)
 		if err != nil {

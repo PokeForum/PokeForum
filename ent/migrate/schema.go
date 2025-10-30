@@ -18,7 +18,7 @@ var (
 		{Name: "description", Type: field.TypeString, Nullable: true},
 		{Name: "icon", Type: field.TypeString, Nullable: true},
 		{Name: "weight", Type: field.TypeInt, Default: 0},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"Normal", "LoginRequired", "MemberOnly", "Hidden", "Locked"}, Default: "Normal"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"Normal", "LoginRequired", "Hidden", "Locked"}, Default: "Normal"},
 	}
 	// CategoriesTable holds the schema information for the "categories" table.
 	CategoriesTable = &schema.Table{

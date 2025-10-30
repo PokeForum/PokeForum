@@ -98,7 +98,6 @@ const DefaultStatus = StatusNormal
 const (
 	StatusNormal        Status = "Normal"
 	StatusLoginRequired Status = "LoginRequired"
-	StatusMemberOnly    Status = "MemberOnly"
 	StatusHidden        Status = "Hidden"
 	StatusLocked        Status = "Locked"
 )
@@ -110,7 +109,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusNormal, StatusLoginRequired, StatusMemberOnly, StatusHidden, StatusLocked:
+	case StatusNormal, StatusLoginRequired, StatusHidden, StatusLocked:
 		return nil
 	default:
 		return fmt.Errorf("category: invalid enum value for status field: %q", s)
