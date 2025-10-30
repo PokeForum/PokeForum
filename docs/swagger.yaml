@@ -1007,137 +1007,6 @@ paths:
       summary: 用户注册
       tags:
       - Auth
-  /manage/balance/logs:
-    get:
-      consumes:
-      - application/json
-      description: 分页获取用户余额变动记录，支持多种筛选条件
-      parameters:
-      - description: 页码
-        in: query
-        name: page
-        required: true
-        type: integer
-      - description: 每页数量
-        in: query
-        name: page_size
-        required: true
-        type: integer
-      - description: 用户ID筛选
-        in: query
-        name: user_id
-        type: integer
-      - description: 变动类型筛选
-        example: '"points"'
-        in: query
-        name: type
-        type: string
-      - description: 开始日期
-        example: '"2024-01-01"'
-        in: query
-        name: start_date
-        type: string
-      - description: 结束日期
-        example: '"2024-12-31"'
-        in: query
-        name: end_date
-        type: string
-      - description: 操作者ID筛选
-        in: query
-        name: operator_id
-        type: integer
-      - description: 关联业务类型筛选
-        example: '"post"'
-        in: query
-        name: related_type
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 获取成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserBalanceLogResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 获取用户余额变动记录
-      tags:
-      - UserManage
-  /manage/balance/summary/{id}:
-    get:
-      consumes:
-      - application/json
-      description: 获取指定用户的余额汇总统计信息
-      parameters:
-      - description: 用户ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 获取成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserBalanceSummary'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 获取用户余额汇总信息
-      tags:
-      - UserManage
-  /manage/moderator/categories:
-    put:
-      consumes:
-      - application/json
-      description: 为指定版主设置其管理的版块列表
-      parameters:
-      - description: 版块信息
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.ModeratorCategoryRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 设置成功
-          schema:
-            $ref: '#/definitions/response.Data'
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 设置版主管理版块
-      tags:
-      - UserManage
   /manage/users:
     get:
       consumes:
@@ -1294,6 +1163,107 @@ paths:
       summary: 获取用户详情
       tags:
       - UserManage
+  /manage/users/balance/logs:
+    get:
+      consumes:
+      - application/json
+      description: 分页获取用户余额变动记录，支持多种筛选条件
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        required: true
+        type: integer
+      - description: 用户ID筛选
+        in: query
+        name: user_id
+        type: integer
+      - description: 变动类型筛选
+        example: '"points"'
+        in: query
+        name: type
+        type: string
+      - description: 开始日期
+        example: '"2024-01-01"'
+        in: query
+        name: start_date
+        type: string
+      - description: 结束日期
+        example: '"2024-12-31"'
+        in: query
+        name: end_date
+        type: string
+      - description: 操作者ID筛选
+        in: query
+        name: operator_id
+        type: integer
+      - description: 关联业务类型筛选
+        example: '"post"'
+        in: query
+        name: related_type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserBalanceLogResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取用户余额变动记录
+      tags:
+      - UserManage
+  /manage/users/balance/summary/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定用户的余额汇总统计信息
+      parameters:
+      - description: 用户ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserBalanceSummary'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取用户余额汇总信息
+      tags:
+      - UserManage
   /manage/users/currency:
     put:
       consumes:
@@ -1322,6 +1292,36 @@ paths:
           schema:
             $ref: '#/definitions/response.Data'
       summary: 更新用户货币
+      tags:
+      - UserManage
+  /manage/users/moderator/categories:
+    put:
+      consumes:
+      - application/json
+      description: 为指定版主设置其管理的版块列表
+      parameters:
+      - description: 版块信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.ModeratorCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 设置成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 设置版主管理版块
       tags:
       - UserManage
   /manage/users/points:

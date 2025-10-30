@@ -174,211 +174,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/manage/balance/logs": {
-            "get": {
-                "description": "分页获取用户余额变动记录，支持多种筛选条件",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "UserManage"
-                ],
-                "summary": "获取用户余额变动记录",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页数量",
-                        "name": "page_size",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "用户ID筛选",
-                        "name": "user_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "example": "\"points\"",
-                        "description": "变动类型筛选",
-                        "name": "type",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "example": "\"2024-01-01\"",
-                        "description": "开始日期",
-                        "name": "start_date",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "example": "\"2024-12-31\"",
-                        "description": "结束日期",
-                        "name": "end_date",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "操作者ID筛选",
-                        "name": "operator_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "example": "\"post\"",
-                        "description": "关联业务类型筛选",
-                        "name": "related_type",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "获取成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserBalanceLogResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/manage/balance/summary/{id}": {
-            "get": {
-                "description": "获取指定用户的余额汇总统计信息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "UserManage"
-                ],
-                "summary": "获取用户余额汇总信息",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "用户ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "获取成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserBalanceSummary"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/manage/moderator/categories": {
-            "put": {
-                "description": "为指定版主设置其管理的版块列表",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "UserManage"
-                ],
-                "summary": "设置版主管理版块",
-                "parameters": [
-                    {
-                        "description": "版块信息",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.ModeratorCategoryRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "设置成功",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
         "/manage/users": {
             "get": {
                 "description": "分页获取用户列表，支持关键词搜索和状态筛选",
@@ -575,6 +370,165 @@ const docTemplate = `{
                 }
             }
         },
+        "/manage/users/balance/logs": {
+            "get": {
+                "description": "分页获取用户余额变动记录，支持多种筛选条件",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserManage"
+                ],
+                "summary": "获取用户余额变动记录",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "用户ID筛选",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"points\"",
+                        "description": "变动类型筛选",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"2024-01-01\"",
+                        "description": "开始日期",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"2024-12-31\"",
+                        "description": "结束日期",
+                        "name": "end_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "操作者ID筛选",
+                        "name": "operator_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"post\"",
+                        "description": "关联业务类型筛选",
+                        "name": "related_type",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserBalanceLogResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/users/balance/summary/{id}": {
+            "get": {
+                "description": "获取指定用户的余额汇总统计信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserManage"
+                ],
+                "summary": "获取用户余额汇总信息",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserBalanceSummary"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
         "/manage/users/currency": {
             "put": {
                 "description": "为用户增加或减少货币",
@@ -602,6 +556,52 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/users/moderator/categories": {
+            "put": {
+                "description": "为指定版主设置其管理的版块列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "UserManage"
+                ],
+                "summary": "设置版主管理版块",
+                "parameters": [
+                    {
+                        "description": "版块信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.ModeratorCategoryRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "设置成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
