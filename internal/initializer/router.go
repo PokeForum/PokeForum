@@ -162,8 +162,9 @@ func Routers(injector *do.Injector) *gin.Engine {
 				// 点赞帖子(单向, 不可取消点赞)
 				// 点踩帖子(单向, 不可取消点赞)
 				// 收藏帖子
+				PostGroup := ForumGroup.Group("/posts")
 				PostCon := controller.NewPostController(injector)
-				PostCon.PostRouter(ForumGroup)
+				PostCon.PostRouter(PostGroup)
 			}
 
 			// 评论

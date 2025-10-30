@@ -51,23 +51,23 @@ func (ctrl *PostController) getUserID(c *gin.Context) (int, error) {
 // PostRouter 帖子相关路由注册
 func (ctrl *PostController) PostRouter(router *gin.RouterGroup) {
 	// 发布新帖
-	router.POST("/posts", ctrl.CreatePost)
+	router.POST("", ctrl.CreatePost)
 	// 保存草稿
-	router.POST("/posts/draft", ctrl.SaveDraft)
+	router.POST("/draft", ctrl.SaveDraft)
 	// 编辑帖子
-	router.PUT("/posts", ctrl.UpdatePost)
+	router.PUT("", ctrl.UpdatePost)
 	// 设置帖子私有
-	router.PUT("/posts/private", ctrl.SetPostPrivate)
+	router.PUT("/private", ctrl.SetPostPrivate)
 	// 点赞帖子
-	router.POST("/posts/like", ctrl.LikePost)
+	router.POST("/like", ctrl.LikePost)
 	// 点踩帖子
-	router.POST("/posts/dislike", ctrl.DislikePost)
+	router.POST("/dislike", ctrl.DislikePost)
 	// 收藏帖子
-	router.POST("/posts/favorite", ctrl.FavoritePost)
+	router.POST("/favorite", ctrl.FavoritePost)
 	// 获取帖子列表
-	router.GET("/posts", ctrl.GetPostList)
+	router.GET("", ctrl.GetPostList)
 	// 获取帖子详情
-	router.GET("/posts/:id", ctrl.GetPostDetail)
+	router.GET("/:id", ctrl.GetPostDetail)
 }
 
 // CreatePost 发布新帖
