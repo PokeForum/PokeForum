@@ -38,6 +38,14 @@ func InjectorSrv(injector *do.Injector) {
 	do.Provide(injector, func(i *do.Injector) (service.IPostManageService, error) {
 		return service.NewPostManageService(configs.DB, configs.Cache, configs.Log), nil
 	})
+	// 注册 CommentManageService
+	do.Provide(injector, func(i *do.Injector) (service.ICommentManageService, error) {
+		return service.NewCommentManageService(configs.DB, configs.Cache, configs.Log), nil
+	})
+	// 注册 DashboardService
+	do.Provide(injector, func(i *do.Injector) (service.IDashboardService, error) {
+		return service.NewDashboardService(configs.DB, configs.Cache, configs.Log), nil
+	})
 }
 
 func Routers(injector *do.Injector) *gin.Engine {
@@ -188,6 +196,9 @@ func Routers(injector *do.Injector) *gin.Engine {
 	{
 		// 仪表盘
 		{
+			DashboardGroup := ManageGroup.Group("/dashboard")
+			DashboardCon := controller.NewDashboardController(injector)
+			DashboardCon.DashboardRouter(DashboardGroup)
 		}
 
 		// 用户管理
@@ -213,6 +224,9 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 		// 评论管理
 		{
+			CommentManageGroup := ManageGroup.Group("/comments")
+			CommentManageCon := controller.NewCommentManageController(injector)
+			CommentManageCon.CommentManageRouter(CommentManageGroup)
 		}
 
 		// TODO 举报管理
