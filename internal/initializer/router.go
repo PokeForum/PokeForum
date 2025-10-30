@@ -72,9 +72,13 @@ func Routers(injector *do.Injector) *gin.Engine {
 	AuthCon := controller.NewAuthController(injector)
 	AuthCon.AuthRouter(AuthGroup)
 
+	// 添加登录校验
+	AuthAPIGroup := api.Group("")
+	AuthAPIGroup.Use(saPlugin.AuthMiddleware())
+
 	// 论坛接口
-	ForumGroup := api.Group("")
-	ForumGroup.Use(saPlugin.AuthMiddleware())
+	ForumGroup := AuthAPIGroup.Group("")
+	ForumGroup.Use()
 	{
 		// 用户
 		{
@@ -149,7 +153,8 @@ func Routers(injector *do.Injector) *gin.Engine {
 		}
 
 		// 版主接口
-		//ModeratorGroup := ForumGroup.Group("/moderator")
+		ModeratorGroup := ForumGroup.Group("/moderator")
+		ModeratorGroup.Use()
 		{
 			// 主题帖
 			{
@@ -171,8 +176,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 	}
 
 	// 管理员接口
-	ManageGroup := api.Group("/manage")
-	ManageGroup.Use(saPlugin.AuthMiddleware())
+	ManageGroup := AuthAPIGroup.Group("/manage")
 	{
 		// 仪表盘
 		{
@@ -201,8 +205,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 	}
 
 	// 超级管理接口
-	SuperManageGroup := api.Group("/super/manage")
-	SuperManageGroup.Use(saPlugin.AuthMiddleware())
+	SuperManageGroup := AuthAPIGroup.Group("/super/manage")
 	{
 		// 设置管理（统一的设置控制器，包含所有系统设置）
 		SettingsGroup := SuperManageGroup.Group("/settings")

@@ -1,11 +1,9 @@
 package controller
 
 import (
-	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
-	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
 )
@@ -26,32 +24,32 @@ func NewUserManageController(injector *do.Injector) *UserManageController {
 // UserManageRouter 用户管理相关路由注册
 func (ctrl *UserManageController) UserManageRouter(router *gin.RouterGroup) {
 	// 用户列表
-	router.GET("", saGin.CheckRole(user.RoleAdmin.String()), ctrl.GetUserList)
+	router.GET("", ctrl.GetUserList)
 	// 创建用户
-	router.POST("", saGin.CheckRole(user.RoleAdmin.String()), ctrl.CreateUser)
+	router.POST("", ctrl.CreateUser)
 	// 更新用户信息
-	router.PUT("", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUser)
+	router.PUT("", ctrl.UpdateUser)
 	// 获取用户详情
-	router.GET("/:id", saGin.CheckRole(user.RoleAdmin.String()), ctrl.GetUserDetail)
+	router.GET("/:id", ctrl.GetUserDetail)
 
 	// 用户状态管理
-	router.PUT("/status", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUserStatus)
+	router.PUT("/status", ctrl.UpdateUserStatus)
 
 	// 用户身份管理
-	router.PUT("/role", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUserRole)
+	router.PUT("/role", ctrl.UpdateUserRole)
 
 	// 用户积分管理
-	router.PUT("/points", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUserPoints)
+	router.PUT("/points", ctrl.UpdateUserPoints)
 
 	// 用户货币管理
-	router.PUT("/currency", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUserCurrency)
+	router.PUT("/currency", ctrl.UpdateUserCurrency)
 
 	// 版主管理版块
-	router.PUT("/moderator/categories", saGin.CheckRole(user.RoleAdmin.String()), ctrl.SetModeratorCategories)
+	router.PUT("/moderator/categories", ctrl.SetModeratorCategories)
 
 	// 余额变动记录
-	router.GET("/balance/logs", saGin.CheckRole(user.RoleAdmin.String()), ctrl.GetUserBalanceLog)
-	router.GET("/balance/summary/:id", saGin.CheckRole(user.RoleAdmin.String()), ctrl.GetUserBalanceSummary)
+	router.GET("/balance/logs", ctrl.GetUserBalanceLog)
+	router.GET("/balance/summary/:id", ctrl.GetUserBalanceSummary)
 }
 
 // GetUserList 获取用户列表
