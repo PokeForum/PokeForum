@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	_ "github.com/PokeForum/PokeForum/docs"
-	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/configs"
 	"github.com/PokeForum/PokeForum/internal/controller"
 	"github.com/PokeForum/PokeForum/internal/middleware"
@@ -34,6 +33,13 @@ func InjectorSrv(injector *do.Injector) {
 }
 
 func Routers(injector *do.Injector) *gin.Engine {
+	// 设置SaToken
+	saManager := satoken.NewSaToken()
+	saGin.SetManager(saManager)
+
+	// 创建 Gin 插件
+	saPlugin := saGin.NewPlugin(saManager)
+
 	// 设置模式
 	if !configs.Debug {
 		gin.SetMode(gin.ReleaseMode)
@@ -45,10 +51,6 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 	// 跨域配置
 	Router.Use(cors.New(middleware.CorsConfig))
-
-	// 设置SaToken
-	saManager := satoken.NewSaToken()
-	saGin.SetManager(saManager)
 
 	// 注册服务到注入器
 	InjectorSrv(injector)
@@ -72,7 +74,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 	// 论坛接口
 	ForumGroup := api.Group("")
-	//ForumGroup.Use(saGin.CheckRole(user.RoleUser.String()))
+	ForumGroup.Use(saPlugin.AuthMiddleware())
 	{
 		// 用户
 		{
@@ -147,8 +149,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 		}
 
 		// 版主接口
-		ModeratorGroup := ForumGroup.Group("/moderator")
-		ModeratorGroup.Use(saGin.CheckRole(user.RoleModerator.String()))
+		//ModeratorGroup := ForumGroup.Group("/moderator")
 		{
 			// 主题帖
 			{
@@ -171,6 +172,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 	// 管理员接口
 	ManageGroup := api.Group("/manage")
+	ManageGroup.Use(saPlugin.AuthMiddleware())
 	{
 		// 仪表盘
 		{
@@ -178,8 +180,9 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 		// 用户管理
 		{
+			UserManageGroup := ManageGroup.Group("/users")
 			UserManageCon := controller.NewUserManageController(injector)
-			UserManageCon.UserManageRouter(ManageGroup)
+			UserManageCon.UserManageRouter(UserManageGroup)
 		}
 
 		// 版块管理
@@ -199,6 +202,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 	// 超级管理接口
 	SuperManageGroup := api.Group("/super/manage")
+	SuperManageGroup.Use(saPlugin.AuthMiddleware())
 	{
 		// 设置管理（统一的设置控制器，包含所有系统设置）
 		SettingsGroup := SuperManageGroup.Group("/settings")

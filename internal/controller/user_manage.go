@@ -26,25 +26,25 @@ func NewUserManageController(injector *do.Injector) *UserManageController {
 // UserManageRouter 用户管理相关路由注册
 func (ctrl *UserManageController) UserManageRouter(router *gin.RouterGroup) {
 	// 用户列表
-	router.GET("/users", saGin.CheckRole(user.RoleAdmin.String()), ctrl.GetUserList)
+	router.GET("", saGin.CheckRole(user.RoleAdmin.String()), ctrl.GetUserList)
 	// 创建用户
-	router.POST("/users", saGin.CheckRole(user.RoleAdmin.String()), ctrl.CreateUser)
+	router.POST("", saGin.CheckRole(user.RoleAdmin.String()), ctrl.CreateUser)
 	// 更新用户信息
-	router.PUT("/users", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUser)
+	router.PUT("", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUser)
 	// 获取用户详情
-	router.GET("/users/:id", saGin.CheckRole(user.RoleAdmin.String()), ctrl.GetUserDetail)
+	router.GET("/:id", saGin.CheckRole(user.RoleAdmin.String()), ctrl.GetUserDetail)
 
 	// 用户状态管理
-	router.PUT("/users/status", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUserStatus)
+	router.PUT("/status", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUserStatus)
 
 	// 用户身份管理
-	router.PUT("/users/role", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUserRole)
+	router.PUT("/role", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUserRole)
 
 	// 用户积分管理
-	router.PUT("/users/points", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUserPoints)
+	router.PUT("/points", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUserPoints)
 
 	// 用户货币管理
-	router.PUT("/users/currency", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUserCurrency)
+	router.PUT("/currency", saGin.CheckRole(user.RoleAdmin.String()), ctrl.UpdateUserCurrency)
 
 	// 版主管理版块
 	router.PUT("/moderator/categories", saGin.CheckRole(user.RoleAdmin.String()), ctrl.SetModeratorCategories)
@@ -388,7 +388,7 @@ func (ctrl *UserManageController) UpdateUserCurrency(c *gin.Context) {
 // @Success 200 {object} response.Data "设置成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /manage/moderator/categories [put]
+// @Router /manage/users/moderator/categories [put]
 func (ctrl *UserManageController) SetModeratorCategories(c *gin.Context) {
 	var req schema.ModeratorCategoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -430,7 +430,7 @@ func (ctrl *UserManageController) SetModeratorCategories(c *gin.Context) {
 // @Success 200 {object} response.Data{data=schema.UserBalanceLogResponse} "获取成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /manage/balance/logs [get]
+// @Router /manage/users/balance/logs [get]
 func (ctrl *UserManageController) GetUserBalanceLog(c *gin.Context) {
 	var req schema.UserBalanceLogRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -465,7 +465,7 @@ func (ctrl *UserManageController) GetUserBalanceLog(c *gin.Context) {
 // @Success 200 {object} response.Data{data=schema.UserBalanceSummary} "获取成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /manage/balance/summary/{id} [get]
+// @Router /manage/users/balance/summary/{id} [get]
 func (ctrl *UserManageController) GetUserBalanceSummary(c *gin.Context) {
 	var req struct {
 		ID int `uri:"id" binding:"required"`
