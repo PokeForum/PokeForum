@@ -117,6 +117,20 @@ func (_c *CategoryCreate) SetNillableStatus(v *category.Status) *CategoryCreate 
 	return _c
 }
 
+// SetAnnouncement sets the "announcement" field.
+func (_c *CategoryCreate) SetAnnouncement(v string) *CategoryCreate {
+	_c.mutation.SetAnnouncement(v)
+	return _c
+}
+
+// SetNillableAnnouncement sets the "announcement" field if the given value is not nil.
+func (_c *CategoryCreate) SetNillableAnnouncement(v *string) *CategoryCreate {
+	if v != nil {
+		_c.SetAnnouncement(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *CategoryCreate) SetID(v int) *CategoryCreate {
 	_c.mutation.SetID(v)
@@ -294,6 +308,10 @@ func (_c *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(category.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
+	}
+	if value, ok := _c.mutation.Announcement(); ok {
+		_spec.SetField(category.FieldAnnouncement, field.TypeString, value)
+		_node.Announcement = value
 	}
 	if nodes := _c.mutation.ModeratorsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

@@ -58,6 +58,7 @@ type CategoryMutation struct {
 	weight            *int
 	addweight         *int
 	status            *category.Status
+	announcement      *string
 	clearedFields     map[string]struct{}
 	moderators        map[int]struct{}
 	removedmoderators map[int]struct{}
@@ -505,6 +506,55 @@ func (m *CategoryMutation) ResetStatus() {
 	m.status = nil
 }
 
+// SetAnnouncement sets the "announcement" field.
+func (m *CategoryMutation) SetAnnouncement(s string) {
+	m.announcement = &s
+}
+
+// Announcement returns the value of the "announcement" field in the mutation.
+func (m *CategoryMutation) Announcement() (r string, exists bool) {
+	v := m.announcement
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAnnouncement returns the old "announcement" field's value of the Category entity.
+// If the Category object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CategoryMutation) OldAnnouncement(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAnnouncement is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAnnouncement requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAnnouncement: %w", err)
+	}
+	return oldValue.Announcement, nil
+}
+
+// ClearAnnouncement clears the value of the "announcement" field.
+func (m *CategoryMutation) ClearAnnouncement() {
+	m.announcement = nil
+	m.clearedFields[category.FieldAnnouncement] = struct{}{}
+}
+
+// AnnouncementCleared returns if the "announcement" field was cleared in this mutation.
+func (m *CategoryMutation) AnnouncementCleared() bool {
+	_, ok := m.clearedFields[category.FieldAnnouncement]
+	return ok
+}
+
+// ResetAnnouncement resets all changes to the "announcement" field.
+func (m *CategoryMutation) ResetAnnouncement() {
+	m.announcement = nil
+	delete(m.clearedFields, category.FieldAnnouncement)
+}
+
 // AddModeratorIDs adds the "moderators" edge to the User entity by ids.
 func (m *CategoryMutation) AddModeratorIDs(ids ...int) {
 	if m.moderators == nil {
@@ -593,7 +643,7 @@ func (m *CategoryMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CategoryMutation) Fields() []string {
-	fields := make([]string, 0, 8)
+	fields := make([]string, 0, 9)
 	if m.created_at != nil {
 		fields = append(fields, category.FieldCreatedAt)
 	}
@@ -617,6 +667,9 @@ func (m *CategoryMutation) Fields() []string {
 	}
 	if m.status != nil {
 		fields = append(fields, category.FieldStatus)
+	}
+	if m.announcement != nil {
+		fields = append(fields, category.FieldAnnouncement)
 	}
 	return fields
 }
@@ -642,6 +695,8 @@ func (m *CategoryMutation) Field(name string) (ent.Value, bool) {
 		return m.Weight()
 	case category.FieldStatus:
 		return m.Status()
+	case category.FieldAnnouncement:
+		return m.Announcement()
 	}
 	return nil, false
 }
@@ -667,6 +722,8 @@ func (m *CategoryMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldWeight(ctx)
 	case category.FieldStatus:
 		return m.OldStatus(ctx)
+	case category.FieldAnnouncement:
+		return m.OldAnnouncement(ctx)
 	}
 	return nil, fmt.Errorf("unknown Category field %s", name)
 }
@@ -732,6 +789,13 @@ func (m *CategoryMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStatus(v)
 		return nil
+	case category.FieldAnnouncement:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAnnouncement(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Category field %s", name)
 }
@@ -783,6 +847,9 @@ func (m *CategoryMutation) ClearedFields() []string {
 	if m.FieldCleared(category.FieldIcon) {
 		fields = append(fields, category.FieldIcon)
 	}
+	if m.FieldCleared(category.FieldAnnouncement) {
+		fields = append(fields, category.FieldAnnouncement)
+	}
 	return fields
 }
 
@@ -802,6 +869,9 @@ func (m *CategoryMutation) ClearField(name string) error {
 		return nil
 	case category.FieldIcon:
 		m.ClearIcon()
+		return nil
+	case category.FieldAnnouncement:
+		m.ClearAnnouncement()
 		return nil
 	}
 	return fmt.Errorf("unknown Category nullable field %s", name)
@@ -834,6 +904,9 @@ func (m *CategoryMutation) ResetField(name string) error {
 		return nil
 	case category.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case category.FieldAnnouncement:
+		m.ResetAnnouncement()
 		return nil
 	}
 	return fmt.Errorf("unknown Category field %s", name)

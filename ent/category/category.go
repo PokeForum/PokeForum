@@ -31,6 +31,8 @@ const (
 	FieldWeight = "weight"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldAnnouncement holds the string denoting the announcement field in the database.
+	FieldAnnouncement = "announcement"
 	// EdgeModerators holds the string denoting the moderators edge name in mutations.
 	EdgeModerators = "moderators"
 	// Table holds the table name of the category in the database.
@@ -53,6 +55,7 @@ var Columns = []string{
 	FieldIcon,
 	FieldWeight,
 	FieldStatus,
+	FieldAnnouncement,
 }
 
 var (
@@ -162,6 +165,11 @@ func ByWeight(opts ...sql.OrderTermOption) OrderOption {
 // ByStatus orders the results by the status field.
 func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByAnnouncement orders the results by the announcement field.
+func ByAnnouncement(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAnnouncement, opts...).ToFunc()
 }
 
 // ByModeratorsCount orders the results by moderators count.

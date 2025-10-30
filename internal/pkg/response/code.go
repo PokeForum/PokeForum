@@ -10,6 +10,7 @@ const (
 	CodeGenericError    = 50000
 	CodeServerBusy      = 50001
 	CodeTooManyRequests = 50002
+	CodeNeedLogin       = 50003
 )
 
 var codeMsgMap = map[ResCode]string{
@@ -20,6 +21,7 @@ var codeMsgMap = map[ResCode]string{
 	CodeGenericError:    "Error",
 	CodeServerBusy:      "系统繁忙，请稍候再试",
 	CodeTooManyRequests: "请求过于频繁，请稍后再试",
+	CodeNeedLogin:       "未登录",
 }
 
 func (c ResCode) Msg() string {

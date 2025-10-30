@@ -46,6 +46,10 @@ func InjectorSrv(injector *do.Injector) {
 	do.Provide(injector, func(i *do.Injector) (service.IDashboardService, error) {
 		return service.NewDashboardService(configs.DB, configs.Cache, configs.Log), nil
 	})
+	// 注册 ModeratorService
+	do.Provide(injector, func(i *do.Injector) (service.IModeratorService, error) {
+		return service.NewModeratorService(configs.DB, configs.Cache, configs.Log), nil
+	})
 }
 
 func Routers(injector *do.Injector) *gin.Engine {
@@ -170,25 +174,8 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 		// 版主接口
 		ModeratorGroup := ForumGroup.Group("/moderator")
-		ModeratorGroup.Use()
-		{
-			// 主题帖
-			{
-				// 封禁帖子
-				// 编辑帖子
-				// 移动帖子(迁移板块)
-				// 精华帖子
-				// 锁定帖子
-				// 指定帖子
-
-			}
-
-			// 版块
-			{
-				// 版块编辑
-				// 版块公告
-			}
-		}
+		ModeratorCon := controller.NewModeratorController(injector)
+		ModeratorCon.ModeratorRouter(ModeratorGroup)
 	}
 
 	// 管理员接口

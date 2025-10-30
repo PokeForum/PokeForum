@@ -138,6 +138,26 @@ func (_u *CategoryUpdate) SetNillableStatus(v *category.Status) *CategoryUpdate 
 	return _u
 }
 
+// SetAnnouncement sets the "announcement" field.
+func (_u *CategoryUpdate) SetAnnouncement(v string) *CategoryUpdate {
+	_u.mutation.SetAnnouncement(v)
+	return _u
+}
+
+// SetNillableAnnouncement sets the "announcement" field if the given value is not nil.
+func (_u *CategoryUpdate) SetNillableAnnouncement(v *string) *CategoryUpdate {
+	if v != nil {
+		_u.SetAnnouncement(*v)
+	}
+	return _u
+}
+
+// ClearAnnouncement clears the value of the "announcement" field.
+func (_u *CategoryUpdate) ClearAnnouncement() *CategoryUpdate {
+	_u.mutation.ClearAnnouncement()
+	return _u
+}
+
 // AddModeratorIDs adds the "moderators" edge to the User entity by IDs.
 func (_u *CategoryUpdate) AddModeratorIDs(ids ...int) *CategoryUpdate {
 	_u.mutation.AddModeratorIDs(ids...)
@@ -276,6 +296,12 @@ func (_u *CategoryUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(category.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Announcement(); ok {
+		_spec.SetField(category.FieldAnnouncement, field.TypeString, value)
+	}
+	if _u.mutation.AnnouncementCleared() {
+		_spec.ClearField(category.FieldAnnouncement, field.TypeString)
 	}
 	if _u.mutation.ModeratorsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -451,6 +477,26 @@ func (_u *CategoryUpdateOne) SetNillableStatus(v *category.Status) *CategoryUpda
 	return _u
 }
 
+// SetAnnouncement sets the "announcement" field.
+func (_u *CategoryUpdateOne) SetAnnouncement(v string) *CategoryUpdateOne {
+	_u.mutation.SetAnnouncement(v)
+	return _u
+}
+
+// SetNillableAnnouncement sets the "announcement" field if the given value is not nil.
+func (_u *CategoryUpdateOne) SetNillableAnnouncement(v *string) *CategoryUpdateOne {
+	if v != nil {
+		_u.SetAnnouncement(*v)
+	}
+	return _u
+}
+
+// ClearAnnouncement clears the value of the "announcement" field.
+func (_u *CategoryUpdateOne) ClearAnnouncement() *CategoryUpdateOne {
+	_u.mutation.ClearAnnouncement()
+	return _u
+}
+
 // AddModeratorIDs adds the "moderators" edge to the User entity by IDs.
 func (_u *CategoryUpdateOne) AddModeratorIDs(ids ...int) *CategoryUpdateOne {
 	_u.mutation.AddModeratorIDs(ids...)
@@ -619,6 +665,12 @@ func (_u *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err 
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(category.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.Announcement(); ok {
+		_spec.SetField(category.FieldAnnouncement, field.TypeString, value)
+	}
+	if _u.mutation.AnnouncementCleared() {
+		_spec.ClearField(category.FieldAnnouncement, field.TypeString)
 	}
 	if _u.mutation.ModeratorsCleared() {
 		edge := &sqlgraph.EdgeSpec{

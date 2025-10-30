@@ -37,6 +37,9 @@ func (Category) Fields() []ent.Field {
 		field.Enum("status").
 			Values("Normal", "LoginRequired", "Hidden", "Locked").
 			Default("Normal"),
+		// 版块公告
+		field.Text("announcement").
+			Optional(),
 	}
 }
 

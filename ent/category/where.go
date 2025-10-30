@@ -90,6 +90,11 @@ func Weight(v int) predicate.Category {
 	return predicate.Category(sql.FieldEQ(FieldWeight, v))
 }
 
+// Announcement applies equality check predicate on the "announcement" field. It's identical to AnnouncementEQ.
+func Announcement(v string) predicate.Category {
+	return predicate.Category(sql.FieldEQ(FieldAnnouncement, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Category {
 	return predicate.Category(sql.FieldEQ(FieldCreatedAt, v))
@@ -508,6 +513,81 @@ func StatusIn(vs ...Status) predicate.Category {
 // StatusNotIn applies the NotIn predicate on the "status" field.
 func StatusNotIn(vs ...Status) predicate.Category {
 	return predicate.Category(sql.FieldNotIn(FieldStatus, vs...))
+}
+
+// AnnouncementEQ applies the EQ predicate on the "announcement" field.
+func AnnouncementEQ(v string) predicate.Category {
+	return predicate.Category(sql.FieldEQ(FieldAnnouncement, v))
+}
+
+// AnnouncementNEQ applies the NEQ predicate on the "announcement" field.
+func AnnouncementNEQ(v string) predicate.Category {
+	return predicate.Category(sql.FieldNEQ(FieldAnnouncement, v))
+}
+
+// AnnouncementIn applies the In predicate on the "announcement" field.
+func AnnouncementIn(vs ...string) predicate.Category {
+	return predicate.Category(sql.FieldIn(FieldAnnouncement, vs...))
+}
+
+// AnnouncementNotIn applies the NotIn predicate on the "announcement" field.
+func AnnouncementNotIn(vs ...string) predicate.Category {
+	return predicate.Category(sql.FieldNotIn(FieldAnnouncement, vs...))
+}
+
+// AnnouncementGT applies the GT predicate on the "announcement" field.
+func AnnouncementGT(v string) predicate.Category {
+	return predicate.Category(sql.FieldGT(FieldAnnouncement, v))
+}
+
+// AnnouncementGTE applies the GTE predicate on the "announcement" field.
+func AnnouncementGTE(v string) predicate.Category {
+	return predicate.Category(sql.FieldGTE(FieldAnnouncement, v))
+}
+
+// AnnouncementLT applies the LT predicate on the "announcement" field.
+func AnnouncementLT(v string) predicate.Category {
+	return predicate.Category(sql.FieldLT(FieldAnnouncement, v))
+}
+
+// AnnouncementLTE applies the LTE predicate on the "announcement" field.
+func AnnouncementLTE(v string) predicate.Category {
+	return predicate.Category(sql.FieldLTE(FieldAnnouncement, v))
+}
+
+// AnnouncementContains applies the Contains predicate on the "announcement" field.
+func AnnouncementContains(v string) predicate.Category {
+	return predicate.Category(sql.FieldContains(FieldAnnouncement, v))
+}
+
+// AnnouncementHasPrefix applies the HasPrefix predicate on the "announcement" field.
+func AnnouncementHasPrefix(v string) predicate.Category {
+	return predicate.Category(sql.FieldHasPrefix(FieldAnnouncement, v))
+}
+
+// AnnouncementHasSuffix applies the HasSuffix predicate on the "announcement" field.
+func AnnouncementHasSuffix(v string) predicate.Category {
+	return predicate.Category(sql.FieldHasSuffix(FieldAnnouncement, v))
+}
+
+// AnnouncementIsNil applies the IsNil predicate on the "announcement" field.
+func AnnouncementIsNil() predicate.Category {
+	return predicate.Category(sql.FieldIsNull(FieldAnnouncement))
+}
+
+// AnnouncementNotNil applies the NotNil predicate on the "announcement" field.
+func AnnouncementNotNil() predicate.Category {
+	return predicate.Category(sql.FieldNotNull(FieldAnnouncement))
+}
+
+// AnnouncementEqualFold applies the EqualFold predicate on the "announcement" field.
+func AnnouncementEqualFold(v string) predicate.Category {
+	return predicate.Category(sql.FieldEqualFold(FieldAnnouncement, v))
+}
+
+// AnnouncementContainsFold applies the ContainsFold predicate on the "announcement" field.
+func AnnouncementContainsFold(v string) predicate.Category {
+	return predicate.Category(sql.FieldContainsFold(FieldAnnouncement, v))
 }
 
 // HasModerators applies the HasEdge predicate on the "moderators" edge.
