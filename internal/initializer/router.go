@@ -34,6 +34,10 @@ func InjectorSrv(injector *do.Injector) {
 	do.Provide(injector, func(i *do.Injector) (service.ICategoryManageService, error) {
 		return service.NewCategoryManageService(configs.DB, configs.Cache, configs.Log), nil
 	})
+	// 注册 PostManageService
+	do.Provide(injector, func(i *do.Injector) (service.IPostManageService, error) {
+		return service.NewPostManageService(configs.DB, configs.Cache, configs.Log), nil
+	})
 }
 
 func Routers(injector *do.Injector) *gin.Engine {
@@ -202,6 +206,9 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 		// 帖子管理
 		{
+			PostManageGroup := ManageGroup.Group("/posts")
+			PostManageCon := controller.NewPostManageController(injector)
+			PostManageCon.PostManageRouter(PostManageGroup)
 		}
 
 		// 评论管理
