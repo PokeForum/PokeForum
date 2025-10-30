@@ -29,6 +29,237 @@ definitions:
         example: general
         type: string
     type: object
+  schema.CategoryCreateRequest:
+    properties:
+      description:
+        description: 版块描述
+        example: 技术相关话题讨论区
+        maxLength: 500
+        type: string
+      icon:
+        description: 版块图标
+        example: https://example.com/icon.png
+        type: string
+      name:
+        description: 版块名称
+        example: 技术讨论
+        maxLength: 50
+        minLength: 2
+        type: string
+      slug:
+        description: 版块英文标识
+        example: tech
+        maxLength: 50
+        minLength: 2
+        type: string
+      status:
+        description: 版块状态
+        enum:
+        - Normal
+        - LoginRequired
+        - Hidden
+        - Locked
+        example: Normal
+        type: string
+      weight:
+        description: 权重排序
+        example: 0
+        minimum: 0
+        type: integer
+    required:
+    - name
+    - slug
+    - status
+    type: object
+  schema.CategoryDetailResponse:
+    properties:
+      created_at:
+        description: 创建时间
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      description:
+        description: 版块描述
+        example: 技术相关话题讨论区
+        type: string
+      icon:
+        description: 版块图标
+        example: https://example.com/icon.png
+        type: string
+      id:
+        description: 版块ID
+        example: 1
+        type: integer
+      name:
+        description: 版块名称
+        example: 技术讨论
+        type: string
+      post_count:
+        description: 帖子数量
+        example: 150
+        type: integer
+      slug:
+        description: 版块英文标识
+        example: tech
+        type: string
+      status:
+        description: 版块状态
+        example: Normal
+        type: string
+      updated_at:
+        description: 更新时间
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      weight:
+        description: 权重排序
+        example: 0
+        type: integer
+    type: object
+  schema.CategoryListItem:
+    properties:
+      created_at:
+        description: 创建时间
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      description:
+        description: 版块描述
+        example: 技术相关话题讨论区
+        type: string
+      icon:
+        description: 版块图标
+        example: https://example.com/icon.png
+        type: string
+      id:
+        description: 版块ID
+        example: 1
+        type: integer
+      name:
+        description: 版块名称
+        example: 技术讨论
+        type: string
+      post_count:
+        description: 帖子数量
+        example: 150
+        type: integer
+      slug:
+        description: 版块英文标识
+        example: tech
+        type: string
+      status:
+        description: 版块状态
+        example: Normal
+        type: string
+      updated_at:
+        description: 更新时间
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      weight:
+        description: 权重排序
+        example: 0
+        type: integer
+    type: object
+  schema.CategoryListResponse:
+    properties:
+      list:
+        description: 版块列表
+        items:
+          $ref: '#/definitions/schema.CategoryListItem'
+        type: array
+      page:
+        description: 当前页码
+        type: integer
+      page_size:
+        description: 每页数量
+        type: integer
+      total:
+        description: 总数量
+        type: integer
+    type: object
+  schema.CategoryModeratorRequest:
+    properties:
+      category_id:
+        description: 版块ID
+        example: 1
+        type: integer
+      reason:
+        description: 操作原因
+        example: 版主任命
+        type: string
+      user_ids:
+        description: 用户ID列表
+        items:
+          type: integer
+        type: array
+    required:
+    - category_id
+    - user_ids
+    type: object
+  schema.CategoryStatusUpdateRequest:
+    properties:
+      id:
+        description: 版块ID
+        example: 1
+        type: integer
+      reason:
+        description: 操作原因
+        example: 版块调整
+        type: string
+      status:
+        description: 版块状态
+        enum:
+        - Normal
+        - LoginRequired
+        - Hidden
+        - Locked
+        example: Normal
+        type: string
+    required:
+    - id
+    - status
+    type: object
+  schema.CategoryUpdateRequest:
+    properties:
+      description:
+        description: 版块描述
+        example: 技术相关话题讨论区
+        maxLength: 500
+        type: string
+      icon:
+        description: 版块图标
+        example: https://example.com/icon.png
+        type: string
+      id:
+        description: 版块ID
+        example: 1
+        type: integer
+      name:
+        description: 版块名称
+        example: 技术讨论
+        maxLength: 50
+        minLength: 2
+        type: string
+      slug:
+        description: 版块英文标识
+        example: tech
+        maxLength: 50
+        minLength: 2
+        type: string
+      status:
+        description: 版块状态
+        enum:
+        - Normal
+        - LoginRequired
+        - Hidden
+        - Locked
+        example: Normal
+        type: string
+      weight:
+        description: 权重排序
+        example: 0
+        minimum: 0
+        type: integer
+    required:
+    - id
+    type: object
   schema.CodeSettingsRequest:
     properties:
       customization_css:
@@ -1007,6 +1238,245 @@ paths:
       summary: 用户注册
       tags:
       - Auth
+  /manage/categories:
+    get:
+      consumes:
+      - application/json
+      description: 分页获取版块列表，支持关键词搜索和状态筛选
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        required: true
+        type: integer
+      - description: 搜索关键词
+        example: '"技术"'
+        in: query
+        name: keyword
+        type: string
+      - description: 版块状态
+        example: '"Normal"'
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.CategoryListResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取版块列表
+      tags:
+      - CategoryManage
+    post:
+      consumes:
+      - application/json
+      description: 管理员创建新版块
+      parameters:
+      - description: 版块信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.CategoryCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 创建成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.CategoryDetailResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 创建版块
+      tags:
+      - CategoryManage
+    put:
+      consumes:
+      - application/json
+      description: 更新版块的基本信息
+      parameters:
+      - description: 版块信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.CategoryUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.CategoryDetailResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 更新版块信息
+      tags:
+      - CategoryManage
+  /manage/categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 软删除版块（将状态设为隐藏）
+      parameters:
+      - description: 版块ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 删除成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 删除版块
+      tags:
+      - CategoryManage
+    get:
+      consumes:
+      - application/json
+      description: 获取指定版块的详细信息
+      parameters:
+      - description: 版块ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.CategoryDetailResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取版块详情
+      tags:
+      - CategoryManage
+  /manage/categories/moderators:
+    put:
+      consumes:
+      - application/json
+      description: 为指定版块设置版主列表
+      parameters:
+      - description: 版主信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.CategoryModeratorRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 设置成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 设置版块版主
+      tags:
+      - CategoryManage
+  /manage/categories/status:
+    put:
+      consumes:
+      - application/json
+      description: 更新版块的状态（正常、登录可见、会员可见、隐藏、锁定）
+      parameters:
+      - description: 状态信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.CategoryStatusUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 更新版块状态
+      tags:
+      - CategoryManage
   /manage/users:
     get:
       consumes:

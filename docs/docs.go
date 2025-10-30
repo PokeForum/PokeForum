@@ -174,6 +174,385 @@ const docTemplate = `{
                 }
             }
         },
+        "/manage/categories": {
+            "get": {
+                "description": "分页获取版块列表，支持关键词搜索和状态筛选",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CategoryManage"
+                ],
+                "summary": "获取版块列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"技术\"",
+                        "description": "搜索关键词",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"Normal\"",
+                        "description": "版块状态",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.CategoryListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "更新版块的基本信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CategoryManage"
+                ],
+                "summary": "更新版块信息",
+                "parameters": [
+                    {
+                        "description": "版块信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.CategoryUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.CategoryDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "管理员创建新版块",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CategoryManage"
+                ],
+                "summary": "创建版块",
+                "parameters": [
+                    {
+                        "description": "版块信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.CategoryCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "创建成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.CategoryDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/categories/moderators": {
+            "put": {
+                "description": "为指定版块设置版主列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CategoryManage"
+                ],
+                "summary": "设置版块版主",
+                "parameters": [
+                    {
+                        "description": "版主信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.CategoryModeratorRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "设置成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/categories/status": {
+            "put": {
+                "description": "更新版块的状态（正常、登录可见、会员可见、隐藏、锁定）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CategoryManage"
+                ],
+                "summary": "更新版块状态",
+                "parameters": [
+                    {
+                        "description": "状态信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.CategoryStatusUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/categories/{id}": {
+            "get": {
+                "description": "获取指定版块的详细信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CategoryManage"
+                ],
+                "summary": "获取版块详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "版块ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.CategoryDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "软删除版块（将状态设为隐藏）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "CategoryManage"
+                ],
+                "summary": "删除版块",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "版块ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "删除成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
         "/manage/users": {
             "get": {
                 "description": "分页获取用户列表，支持关键词搜索和状态筛选",
@@ -1582,6 +1961,303 @@ const docTemplate = `{
                     "description": "版块标识",
                     "type": "string",
                     "example": "general"
+                }
+            }
+        },
+        "schema.CategoryCreateRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "slug",
+                "status"
+            ],
+            "properties": {
+                "description": {
+                    "description": "版块描述",
+                    "type": "string",
+                    "maxLength": 500,
+                    "example": "技术相关话题讨论区"
+                },
+                "icon": {
+                    "description": "版块图标",
+                    "type": "string",
+                    "example": "https://example.com/icon.png"
+                },
+                "name": {
+                    "description": "版块名称",
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2,
+                    "example": "技术讨论"
+                },
+                "slug": {
+                    "description": "版块英文标识",
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2,
+                    "example": "tech"
+                },
+                "status": {
+                    "description": "版块状态",
+                    "type": "string",
+                    "enum": [
+                        "Normal",
+                        "LoginRequired",
+                        "Hidden",
+                        "Locked"
+                    ],
+                    "example": "Normal"
+                },
+                "weight": {
+                    "description": "权重排序",
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 0
+                }
+            }
+        },
+        "schema.CategoryDetailResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "description": {
+                    "description": "版块描述",
+                    "type": "string",
+                    "example": "技术相关话题讨论区"
+                },
+                "icon": {
+                    "description": "版块图标",
+                    "type": "string",
+                    "example": "https://example.com/icon.png"
+                },
+                "id": {
+                    "description": "版块ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "name": {
+                    "description": "版块名称",
+                    "type": "string",
+                    "example": "技术讨论"
+                },
+                "post_count": {
+                    "description": "帖子数量",
+                    "type": "integer",
+                    "example": 150
+                },
+                "slug": {
+                    "description": "版块英文标识",
+                    "type": "string",
+                    "example": "tech"
+                },
+                "status": {
+                    "description": "版块状态",
+                    "type": "string",
+                    "example": "Normal"
+                },
+                "updated_at": {
+                    "description": "更新时间",
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "weight": {
+                    "description": "权重排序",
+                    "type": "integer",
+                    "example": 0
+                }
+            }
+        },
+        "schema.CategoryListItem": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "description": {
+                    "description": "版块描述",
+                    "type": "string",
+                    "example": "技术相关话题讨论区"
+                },
+                "icon": {
+                    "description": "版块图标",
+                    "type": "string",
+                    "example": "https://example.com/icon.png"
+                },
+                "id": {
+                    "description": "版块ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "name": {
+                    "description": "版块名称",
+                    "type": "string",
+                    "example": "技术讨论"
+                },
+                "post_count": {
+                    "description": "帖子数量",
+                    "type": "integer",
+                    "example": 150
+                },
+                "slug": {
+                    "description": "版块英文标识",
+                    "type": "string",
+                    "example": "tech"
+                },
+                "status": {
+                    "description": "版块状态",
+                    "type": "string",
+                    "example": "Normal"
+                },
+                "updated_at": {
+                    "description": "更新时间",
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "weight": {
+                    "description": "权重排序",
+                    "type": "integer",
+                    "example": 0
+                }
+            }
+        },
+        "schema.CategoryListResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "description": "版块列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.CategoryListItem"
+                    }
+                },
+                "page": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "page_size": {
+                    "description": "每页数量",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总数量",
+                    "type": "integer"
+                }
+            }
+        },
+        "schema.CategoryModeratorRequest": {
+            "type": "object",
+            "required": [
+                "category_id",
+                "user_ids"
+            ],
+            "properties": {
+                "category_id": {
+                    "description": "版块ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "reason": {
+                    "description": "操作原因",
+                    "type": "string",
+                    "example": "版主任命"
+                },
+                "user_ids": {
+                    "description": "用户ID列表",
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "schema.CategoryStatusUpdateRequest": {
+            "type": "object",
+            "required": [
+                "id",
+                "status"
+            ],
+            "properties": {
+                "id": {
+                    "description": "版块ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "reason": {
+                    "description": "操作原因",
+                    "type": "string",
+                    "example": "版块调整"
+                },
+                "status": {
+                    "description": "版块状态",
+                    "type": "string",
+                    "enum": [
+                        "Normal",
+                        "LoginRequired",
+                        "Hidden",
+                        "Locked"
+                    ],
+                    "example": "Normal"
+                }
+            }
+        },
+        "schema.CategoryUpdateRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "description": {
+                    "description": "版块描述",
+                    "type": "string",
+                    "maxLength": 500,
+                    "example": "技术相关话题讨论区"
+                },
+                "icon": {
+                    "description": "版块图标",
+                    "type": "string",
+                    "example": "https://example.com/icon.png"
+                },
+                "id": {
+                    "description": "版块ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "name": {
+                    "description": "版块名称",
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2,
+                    "example": "技术讨论"
+                },
+                "slug": {
+                    "description": "版块英文标识",
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 2,
+                    "example": "tech"
+                },
+                "status": {
+                    "description": "版块状态",
+                    "type": "string",
+                    "enum": [
+                        "Normal",
+                        "LoginRequired",
+                        "Hidden",
+                        "Locked"
+                    ],
+                    "example": "Normal"
+                },
+                "weight": {
+                    "description": "权重排序",
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 0
                 }
             }
         },
