@@ -60,6 +60,14 @@ func InjectorSrv(injector *do.Injector) {
 		}
 		return service.NewCategoryManageService(configs.DB, cacheService, configs.Log), nil
 	})
+	// 注册 CategoryService
+	do.Provide(injector, func(i *do.Injector) (service.ICategoryService, error) {
+		cacheService, err := do.Invoke[cache.ICacheService](injector)
+		if err != nil {
+			return nil, err
+		}
+		return service.NewCategoryService(configs.DB, cacheService, configs.Log), nil
+	})
 	// 注册 PostManageService
 	do.Provide(injector, func(i *do.Injector) (service.IPostManageService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
@@ -205,6 +213,11 @@ func Routers(injector *do.Injector) *gin.Engine {
 				// TODO 财富榜
 				// TODO 活跃榜(签到榜)
 			}
+
+			// 版块
+			CategoryGroup := ForumGroup.Group("/categories")
+			CategoryCon := controller.NewCategoryController(injector)
+			CategoryCon.CategoryRouter(CategoryGroup)
 
 			// 主题帖
 			/*
