@@ -172,6 +172,47 @@
                 }
             }
         },
+        "/categories": {
+            "get": {
+                "description": "获取用户可见的版块列表，包括正常、登录可见和锁定状态的版块，隐藏版块不可见",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]版块"
+                ],
+                "summary": "获取版块列表",
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserCategoryResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
         "/forum/comments": {
             "get": {
                 "description": "分页获取指定帖子的评论列表，支持排序",
@@ -7674,6 +7715,63 @@
                     "description": "用户名",
                     "type": "string",
                     "example": "testuser"
+                }
+            }
+        },
+        "schema.UserCategoryListItem": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "description": {
+                    "description": "版块描述",
+                    "type": "string",
+                    "example": "技术相关话题讨论区"
+                },
+                "icon": {
+                    "description": "版块图标",
+                    "type": "string",
+                    "example": "https://example.com/icon.png"
+                },
+                "id": {
+                    "description": "版块ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "name": {
+                    "description": "版块名称",
+                    "type": "string",
+                    "example": "技术讨论"
+                },
+                "post_count": {
+                    "description": "帖子数量",
+                    "type": "integer",
+                    "example": 150
+                },
+                "slug": {
+                    "description": "版块英文标识",
+                    "type": "string",
+                    "example": "tech"
+                },
+                "weight": {
+                    "description": "权重排序",
+                    "type": "integer",
+                    "example": 0
+                }
+            }
+        },
+        "schema.UserCategoryResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "description": "版块列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.UserCategoryListItem"
+                    }
                 }
             }
         },

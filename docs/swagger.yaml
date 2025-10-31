@@ -1913,6 +1913,49 @@ definitions:
         example: testuser
         type: string
     type: object
+  schema.UserCategoryListItem:
+    properties:
+      created_at:
+        description: 创建时间
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      description:
+        description: 版块描述
+        example: 技术相关话题讨论区
+        type: string
+      icon:
+        description: 版块图标
+        example: https://example.com/icon.png
+        type: string
+      id:
+        description: 版块ID
+        example: 1
+        type: integer
+      name:
+        description: 版块名称
+        example: 技术讨论
+        type: string
+      post_count:
+        description: 帖子数量
+        example: 150
+        type: integer
+      slug:
+        description: 版块英文标识
+        example: tech
+        type: string
+      weight:
+        description: 权重排序
+        example: 0
+        type: integer
+    type: object
+  schema.UserCategoryResponse:
+    properties:
+      list:
+        description: 版块列表
+        items:
+          $ref: '#/definitions/schema.UserCategoryListItem'
+        type: array
+    type: object
   schema.UserCommentActionRequest:
     properties:
       id:
@@ -3196,6 +3239,30 @@ paths:
       summary: 用户注册
       tags:
       - 认证
+  /categories:
+    get:
+      consumes:
+      - application/json
+      description: 获取用户可见的版块列表，包括正常、登录可见和锁定状态的版块，隐藏版块不可见
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserCategoryResponse'
+              type: object
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取版块列表
+      tags:
+      - '[用户]版块'
   /forum/comments:
     get:
       consumes:
