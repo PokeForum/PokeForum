@@ -6300,6 +6300,11 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": true
                 },
+                "password": {
+                    "description": "SMTP密码",
+                    "type": "string",
+                    "example": "password123"
+                },
                 "port": {
                     "description": "SMTP服务器端口号",
                     "type": "integer",

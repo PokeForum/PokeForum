@@ -790,6 +790,10 @@ definitions:
         description: 是否启用邮箱服务
         example: true
         type: boolean
+      password:
+        description: SMTP密码
+        example: password123
+        type: string
       port:
         description: SMTP服务器端口号
         example: 587
