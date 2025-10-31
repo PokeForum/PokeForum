@@ -34,7 +34,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Comment"
+                    "[用户]评论"
                 ],
                 "summary": "获取评论列表",
                 "parameters": [
@@ -115,7 +115,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Comment"
+                    "[用户]评论"
                 ],
                 "summary": "更新评论",
                 "parameters": [
@@ -190,7 +190,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Comment"
+                    "[用户]评论"
                 ],
                 "summary": "创建评论",
                 "parameters": [
@@ -261,7 +261,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Comment"
+                    "[用户]评论"
                 ],
                 "summary": "点踩评论",
                 "parameters": [
@@ -332,7 +332,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Comment"
+                    "[用户]评论"
                 ],
                 "summary": "点赞评论",
                 "parameters": [
@@ -403,7 +403,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Comment"
+                    "[用户]评论"
                 ],
                 "summary": "获取评论详情",
                 "parameters": [
@@ -465,7 +465,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Post"
+                    "[用户]主题贴"
                 ],
                 "summary": "获取帖子列表",
                 "parameters": [
@@ -539,7 +539,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Post"
+                    "[用户]主题贴"
                 ],
                 "summary": "编辑帖子",
                 "parameters": [
@@ -607,7 +607,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Post"
+                    "[用户]主题贴"
                 ],
                 "summary": "发布新帖",
                 "parameters": [
@@ -671,7 +671,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Post"
+                    "[用户]主题贴"
                 ],
                 "summary": "点踩帖子",
                 "parameters": [
@@ -741,7 +741,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Post"
+                    "[用户]主题贴"
                 ],
                 "summary": "保存草稿",
                 "parameters": [
@@ -805,7 +805,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Post"
+                    "[用户]主题贴"
                 ],
                 "summary": "收藏帖子",
                 "parameters": [
@@ -869,7 +869,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Post"
+                    "[用户]主题贴"
                 ],
                 "summary": "点赞帖子",
                 "parameters": [
@@ -939,7 +939,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Post"
+                    "[用户]主题贴"
                 ],
                 "summary": "设置帖子私有",
                 "parameters": [
@@ -1009,7 +1009,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Post"
+                    "[用户]主题贴"
                 ],
                 "summary": "获取帖子详情",
                 "parameters": [
@@ -1071,7 +1071,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Moderator"
+                    "[版主]版块管理"
                 ],
                 "summary": "获取版主管理的版块列表",
                 "responses": {
@@ -1128,7 +1128,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Moderator"
+                    "[版主]版块管理"
                 ],
                 "summary": "编辑版块",
                 "parameters": [
@@ -1186,7 +1186,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Moderator"
+                    "[版主]版块管理"
                 ],
                 "summary": "创建版块公告",
                 "parameters": [
@@ -1256,7 +1256,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Moderator"
+                    "[版主]版块管理"
                 ],
                 "summary": "获取版块公告列表",
                 "parameters": [
@@ -1327,7 +1327,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Moderator"
+                    "[版主]版块管理"
                 ],
                 "summary": "编辑帖子",
                 "parameters": [
@@ -1397,7 +1397,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Moderator"
+                    "[版主]版块管理"
                 ],
                 "summary": "封禁帖子",
                 "parameters": [
@@ -1455,7 +1455,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Moderator"
+                    "[版主]版块管理"
                 ],
                 "summary": "设置帖子精华",
                 "parameters": [
@@ -1513,7 +1513,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Moderator"
+                    "[版主]版块管理"
                 ],
                 "summary": "锁定帖子",
                 "parameters": [
@@ -1571,7 +1571,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Moderator"
+                    "[版主]版块管理"
                 ],
                 "summary": "移动帖子",
                 "parameters": [
@@ -1629,7 +1629,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Moderator"
+                    "[版主]版块管理"
                 ],
                 "summary": "置顶帖子",
                 "parameters": [
@@ -1687,7 +1687,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserProfile"
+                    "[用户]个人中心"
                 ],
                 "summary": "修改头像",
                 "parameters": [
@@ -1758,7 +1758,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserProfile"
+                    "[用户]个人中心"
                 ],
                 "summary": "获取用户评论列表",
                 "parameters": [
@@ -1834,7 +1834,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserProfile"
+                    "[用户]个人中心"
                 ],
                 "summary": "修改邮箱",
                 "parameters": [
@@ -1905,7 +1905,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserProfile"
+                    "[用户]个人中心"
                 ],
                 "summary": "获取用户收藏列表",
                 "parameters": [
@@ -1981,7 +1981,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserProfile"
+                    "[用户]个人中心"
                 ],
                 "summary": "获取用户个人中心概览",
                 "parameters": [
@@ -2037,7 +2037,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserProfile"
+                    "[用户]个人中心"
                 ],
                 "summary": "修改密码",
                 "parameters": [
@@ -2108,7 +2108,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserProfile"
+                    "[用户]个人中心"
                 ],
                 "summary": "获取用户主题帖列表",
                 "parameters": [
@@ -2191,7 +2191,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserProfile"
+                    "[用户]个人中心"
                 ],
                 "summary": "修改用户名",
                 "parameters": [
@@ -2268,7 +2268,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "认证"
                 ],
                 "summary": "用户登录",
                 "parameters": [
@@ -2331,7 +2331,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "认证"
                 ],
                 "summary": "用户退出登录",
                 "responses": {
@@ -2360,7 +2360,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Auth"
+                    "认证"
                 ],
                 "summary": "用户注册",
                 "parameters": [
@@ -2418,7 +2418,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CategoryManage"
+                    "[管理员]版块管理"
                 ],
                 "summary": "获取版块列表",
                 "parameters": [
@@ -2493,7 +2493,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CategoryManage"
+                    "[管理员]版块管理"
                 ],
                 "summary": "更新版块信息",
                 "parameters": [
@@ -2549,7 +2549,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CategoryManage"
+                    "[管理员]版块管理"
                 ],
                 "summary": "创建版块",
                 "parameters": [
@@ -2607,7 +2607,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CategoryManage"
+                    "[管理员]版块管理"
                 ],
                 "summary": "设置版块版主",
                 "parameters": [
@@ -2653,7 +2653,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CategoryManage"
+                    "[管理员]版块管理"
                 ],
                 "summary": "更新版块状态",
                 "parameters": [
@@ -2699,7 +2699,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CategoryManage"
+                    "[管理员]版块管理"
                 ],
                 "summary": "获取版块详情",
                 "parameters": [
@@ -2753,7 +2753,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CategoryManage"
+                    "[管理员]版块管理"
                 ],
                 "summary": "删除版块",
                 "parameters": [
@@ -2797,7 +2797,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CommentManage"
+                    "[管理员]评论管理"
                 ],
                 "summary": "获取评论列表",
                 "parameters": [
@@ -2901,7 +2901,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CommentManage"
+                    "[管理员]评论管理"
                 ],
                 "summary": "更新评论信息",
                 "parameters": [
@@ -2957,7 +2957,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CommentManage"
+                    "[管理员]评论管理"
                 ],
                 "summary": "创建评论",
                 "parameters": [
@@ -3015,7 +3015,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CommentManage"
+                    "[管理员]评论管理"
                 ],
                 "summary": "设置评论置顶",
                 "parameters": [
@@ -3061,7 +3061,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CommentManage"
+                    "[管理员]评论管理"
                 ],
                 "summary": "设置评论精选",
                 "parameters": [
@@ -3107,7 +3107,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CommentManage"
+                    "[管理员]评论管理"
                 ],
                 "summary": "获取评论详情",
                 "parameters": [
@@ -3161,7 +3161,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "CommentManage"
+                    "[管理员]评论管理"
                 ],
                 "summary": "删除评论",
                 "parameters": [
@@ -3205,7 +3205,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Dashboard"
+                    "[管理员]仪表盘"
                 ],
                 "summary": "获取最近活动",
                 "responses": {
@@ -3252,7 +3252,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Dashboard"
+                    "[管理员]仪表盘"
                 ],
                 "summary": "获取热门版块",
                 "responses": {
@@ -3299,7 +3299,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Dashboard"
+                    "[管理员]仪表盘"
                 ],
                 "summary": "获取热门帖子",
                 "responses": {
@@ -3346,7 +3346,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Dashboard"
+                    "[管理员]仪表盘"
                 ],
                 "summary": "获取仪表盘统计数据",
                 "parameters": [
@@ -3409,7 +3409,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "PostManage"
+                    "[管理员]主题贴管理"
                 ],
                 "summary": "获取帖子列表",
                 "parameters": [
@@ -3508,7 +3508,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "PostManage"
+                    "[管理员]主题贴管理"
                 ],
                 "summary": "更新帖子信息",
                 "parameters": [
@@ -3564,7 +3564,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "PostManage"
+                    "[管理员]主题贴管理"
                 ],
                 "summary": "创建帖子",
                 "parameters": [
@@ -3622,7 +3622,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "PostManage"
+                    "[管理员]主题贴管理"
                 ],
                 "summary": "设置帖子精华",
                 "parameters": [
@@ -3668,7 +3668,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "PostManage"
+                    "[管理员]主题贴管理"
                 ],
                 "summary": "移动帖子",
                 "parameters": [
@@ -3714,7 +3714,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "PostManage"
+                    "[管理员]主题贴管理"
                 ],
                 "summary": "设置帖子置顶",
                 "parameters": [
@@ -3760,7 +3760,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "PostManage"
+                    "[管理员]主题贴管理"
                 ],
                 "summary": "更新帖子状态",
                 "parameters": [
@@ -3806,7 +3806,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "PostManage"
+                    "[管理员]主题贴管理"
                 ],
                 "summary": "获取帖子详情",
                 "parameters": [
@@ -3860,7 +3860,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "PostManage"
+                    "[管理员]主题贴管理"
                 ],
                 "summary": "删除帖子",
                 "parameters": [
@@ -3904,7 +3904,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserManage"
+                    "[管理员]用户管理"
                 ],
                 "summary": "获取用户列表",
                 "parameters": [
@@ -3986,7 +3986,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserManage"
+                    "[管理员]用户管理"
                 ],
                 "summary": "更新用户信息",
                 "parameters": [
@@ -4042,7 +4042,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserManage"
+                    "[管理员]用户管理"
                 ],
                 "summary": "创建用户",
                 "parameters": [
@@ -4100,7 +4100,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserManage"
+                    "[管理员]用户管理"
                 ],
                 "summary": "获取用户余额变动记录",
                 "parameters": [
@@ -4203,7 +4203,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserManage"
+                    "[管理员]用户管理"
                 ],
                 "summary": "获取用户余额汇总信息",
                 "parameters": [
@@ -4259,7 +4259,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserManage"
+                    "[管理员]用户管理"
                 ],
                 "summary": "更新用户货币",
                 "parameters": [
@@ -4305,7 +4305,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserManage"
+                    "[管理员]用户管理"
                 ],
                 "summary": "设置版主管理版块",
                 "parameters": [
@@ -4351,7 +4351,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserManage"
+                    "[管理员]用户管理"
                 ],
                 "summary": "更新用户积分",
                 "parameters": [
@@ -4397,7 +4397,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserManage"
+                    "[管理员]用户管理"
                 ],
                 "summary": "更新用户身份",
                 "parameters": [
@@ -4443,7 +4443,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserManage"
+                    "[管理员]用户管理"
                 ],
                 "summary": "更新用户状态",
                 "parameters": [
@@ -4489,7 +4489,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "UserManage"
+                    "[管理员]用户管理"
                 ],
                 "summary": "获取用户详情",
                 "parameters": [
@@ -4550,7 +4550,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SuperAdmin.Settings"
+                    "[超级管理员]系统设置"
                 ],
                 "summary": "获取代码配置",
                 "responses": {
@@ -4594,7 +4594,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SuperAdmin.Settings"
+                    "[超级管理员]系统设置"
                 ],
                 "summary": "更新代码配置",
                 "parameters": [
@@ -4645,7 +4645,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SuperAdmin.Settings"
+                    "[超级管理员]系统设置"
                 ],
                 "summary": "获取评论设置",
                 "responses": {
@@ -4689,7 +4689,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SuperAdmin.Settings"
+                    "[超级管理员]系统设置"
                 ],
                 "summary": "更新评论设置",
                 "parameters": [
@@ -4740,7 +4740,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SuperAdmin.Settings"
+                    "[超级管理员]系统设置"
                 ],
                 "summary": "获取邮箱设置",
                 "responses": {
@@ -4784,7 +4784,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SuperAdmin.Settings"
+                    "[超级管理员]系统设置"
                 ],
                 "summary": "更新邮箱设置",
                 "parameters": [
@@ -4835,7 +4835,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SuperAdmin.Settings"
+                    "[超级管理员]系统设置"
                 ],
                 "summary": "发送测试邮件",
                 "parameters": [
@@ -4898,7 +4898,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SuperAdmin.Settings"
+                    "[超级管理员]系统设置"
                 ],
                 "summary": "获取首页设置",
                 "responses": {
@@ -4942,7 +4942,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SuperAdmin.Settings"
+                    "[超级管理员]系统设置"
                 ],
                 "summary": "更新首页设置",
                 "parameters": [
@@ -4993,7 +4993,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SuperAdmin.Settings"
+                    "[超级管理员]系统设置"
                 ],
                 "summary": "获取常规设置",
                 "responses": {
@@ -5037,7 +5037,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SuperAdmin.Settings"
+                    "[超级管理员]系统设置"
                 ],
                 "summary": "更新常规设置",
                 "parameters": [
@@ -5088,7 +5088,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SuperAdmin.Settings"
+                    "[超级管理员]系统设置"
                 ],
                 "summary": "获取安全设置",
                 "responses": {
@@ -5132,7 +5132,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SuperAdmin.Settings"
+                    "[超级管理员]系统设置"
                 ],
                 "summary": "更新安全设置",
                 "parameters": [
@@ -5183,7 +5183,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SuperAdmin.Settings"
+                    "[超级管理员]系统设置"
                 ],
                 "summary": "获取SEO设置",
                 "responses": {
@@ -5227,7 +5227,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "SuperAdmin.Settings"
+                    "[超级管理员]系统设置"
                 ],
                 "summary": "更新SEO设置",
                 "parameters": [

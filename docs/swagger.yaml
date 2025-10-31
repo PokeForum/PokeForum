@@ -3153,7 +3153,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取评论列表
       tags:
-      - Comment
+      - '[用户]评论'
     post:
       consumes:
       - application/json
@@ -3196,7 +3196,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 创建评论
       tags:
-      - Comment
+      - '[用户]评论'
     put:
       consumes:
       - application/json
@@ -3243,7 +3243,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 更新评论
       tags:
-      - Comment
+      - '[用户]评论'
   /api/v1/forum/comments/{id}:
     get:
       consumes:
@@ -3281,7 +3281,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取评论详情
       tags:
-      - Comment
+      - '[用户]评论'
   /api/v1/forum/comments/dislike:
     post:
       consumes:
@@ -3325,7 +3325,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 点踩评论
       tags:
-      - Comment
+      - '[用户]评论'
   /api/v1/forum/comments/like:
     post:
       consumes:
@@ -3369,7 +3369,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 点赞评论
       tags:
-      - Comment
+      - '[用户]评论'
   /api/v1/forum/posts:
     get:
       consumes:
@@ -3417,7 +3417,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取帖子列表
       tags:
-      - Post
+      - '[用户]主题贴'
     post:
       consumes:
       - application/json
@@ -3455,7 +3455,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 发布新帖
       tags:
-      - Post
+      - '[用户]主题贴'
     put:
       consumes:
       - application/json
@@ -3497,7 +3497,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 编辑帖子
       tags:
-      - Post
+      - '[用户]主题贴'
   /api/v1/forum/posts/{id}:
     get:
       consumes:
@@ -3535,7 +3535,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取帖子详情
       tags:
-      - Post
+      - '[用户]主题贴'
   /api/v1/forum/posts/dislike:
     post:
       consumes:
@@ -3578,7 +3578,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 点踩帖子
       tags:
-      - Post
+      - '[用户]主题贴'
   /api/v1/forum/posts/draft:
     post:
       consumes:
@@ -3617,7 +3617,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 保存草稿
       tags:
-      - Post
+      - '[用户]主题贴'
   /api/v1/forum/posts/favorite:
     post:
       consumes:
@@ -3656,7 +3656,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 收藏帖子
       tags:
-      - Post
+      - '[用户]主题贴'
   /api/v1/forum/posts/like:
     post:
       consumes:
@@ -3699,7 +3699,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 点赞帖子
       tags:
-      - Post
+      - '[用户]主题贴'
   /api/v1/forum/posts/private:
     put:
       consumes:
@@ -3742,7 +3742,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 设置帖子私有
       tags:
-      - Post
+      - '[用户]主题贴'
   /api/v1/moderator/categories:
     get:
       consumes:
@@ -3778,7 +3778,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取版主管理的版块列表
       tags:
-      - Moderator
+      - '[版主]版块管理'
     put:
       consumes:
       - application/json
@@ -3815,7 +3815,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 编辑版块
       tags:
-      - Moderator
+      - '[版主]版块管理'
   /api/v1/moderator/categories/{category_id}/announcements:
     get:
       consumes:
@@ -3859,7 +3859,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取版块公告列表
       tags:
-      - Moderator
+      - '[版主]版块管理'
   /api/v1/moderator/categories/announcement:
     post:
       consumes:
@@ -3902,7 +3902,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 创建版块公告
       tags:
-      - Moderator
+      - '[版主]版块管理'
   /api/v1/moderator/posts:
     put:
       consumes:
@@ -3945,7 +3945,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 编辑帖子
       tags:
-      - Moderator
+      - '[版主]版块管理'
   /api/v1/moderator/posts/ban:
     post:
       consumes:
@@ -3983,7 +3983,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 封禁帖子
       tags:
-      - Moderator
+      - '[版主]版块管理'
   /api/v1/moderator/posts/essence:
     put:
       consumes:
@@ -4021,7 +4021,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 设置帖子精华
       tags:
-      - Moderator
+      - '[版主]版块管理'
   /api/v1/moderator/posts/lock:
     put:
       consumes:
@@ -4059,7 +4059,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 锁定帖子
       tags:
-      - Moderator
+      - '[版主]版块管理'
   /api/v1/moderator/posts/move:
     put:
       consumes:
@@ -4097,7 +4097,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 移动帖子
       tags:
-      - Moderator
+      - '[版主]版块管理'
   /api/v1/moderator/posts/pin:
     put:
       consumes:
@@ -4135,7 +4135,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 置顶帖子
       tags:
-      - Moderator
+      - '[版主]版块管理'
   /api/v1/profile/avatar:
     put:
       consumes:
@@ -4179,7 +4179,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 修改头像
       tags:
-      - UserProfile
+      - '[用户]个人中心'
   /api/v1/profile/comments:
     get:
       consumes:
@@ -4227,7 +4227,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取用户评论列表
       tags:
-      - UserProfile
+      - '[用户]个人中心'
   /api/v1/profile/email:
     put:
       consumes:
@@ -4271,7 +4271,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 修改邮箱
       tags:
-      - UserProfile
+      - '[用户]个人中心'
   /api/v1/profile/favorites:
     get:
       consumes:
@@ -4319,7 +4319,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取用户收藏列表
       tags:
-      - UserProfile
+      - '[用户]个人中心'
   /api/v1/profile/overview:
     get:
       consumes:
@@ -4353,7 +4353,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取用户个人中心概览
       tags:
-      - UserProfile
+      - '[用户]个人中心'
   /api/v1/profile/password:
     put:
       consumes:
@@ -4397,7 +4397,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 修改密码
       tags:
-      - UserProfile
+      - '[用户]个人中心'
   /api/v1/profile/posts:
     get:
       consumes:
@@ -4450,7 +4450,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取用户主题帖列表
       tags:
-      - UserProfile
+      - '[用户]个人中心'
   /api/v1/profile/username:
     put:
       consumes:
@@ -4498,7 +4498,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 修改用户名
       tags:
-      - UserProfile
+      - '[用户]个人中心'
   /auth/login:
     post:
       consumes:
@@ -4533,7 +4533,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 用户登录
       tags:
-      - Auth
+      - 认证
   /auth/logout:
     post:
       consumes:
@@ -4554,7 +4554,7 @@ paths:
       - Bearer: []
       summary: 用户退出登录
       tags:
-      - Auth
+      - 认证
   /auth/register:
     post:
       consumes:
@@ -4589,7 +4589,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 用户注册
       tags:
-      - Auth
+      - 认证
   /manage/categories:
     get:
       consumes:
@@ -4638,7 +4638,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取版块列表
       tags:
-      - CategoryManage
+      - '[管理员]版块管理'
     post:
       consumes:
       - application/json
@@ -4672,7 +4672,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 创建版块
       tags:
-      - CategoryManage
+      - '[管理员]版块管理'
     put:
       consumes:
       - application/json
@@ -4706,7 +4706,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 更新版块信息
       tags:
-      - CategoryManage
+      - '[管理员]版块管理'
   /manage/categories/{id}:
     delete:
       consumes:
@@ -4735,7 +4735,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 删除版块
       tags:
-      - CategoryManage
+      - '[管理员]版块管理'
     get:
       consumes:
       - application/json
@@ -4768,7 +4768,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取版块详情
       tags:
-      - CategoryManage
+      - '[管理员]版块管理'
   /manage/categories/moderators:
     put:
       consumes:
@@ -4798,7 +4798,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 设置版块版主
       tags:
-      - CategoryManage
+      - '[管理员]版块管理'
   /manage/categories/status:
     put:
       consumes:
@@ -4828,7 +4828,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 更新版块状态
       tags:
-      - CategoryManage
+      - '[管理员]版块管理'
   /manage/comments:
     get:
       consumes:
@@ -4896,7 +4896,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取评论列表
       tags:
-      - CommentManage
+      - '[管理员]评论管理'
     post:
       consumes:
       - application/json
@@ -4930,7 +4930,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 创建评论
       tags:
-      - CommentManage
+      - '[管理员]评论管理'
     put:
       consumes:
       - application/json
@@ -4964,7 +4964,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 更新评论信息
       tags:
-      - CommentManage
+      - '[管理员]评论管理'
   /manage/comments/{id}:
     delete:
       consumes:
@@ -4993,7 +4993,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 删除评论
       tags:
-      - CommentManage
+      - '[管理员]评论管理'
     get:
       consumes:
       - application/json
@@ -5026,7 +5026,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取评论详情
       tags:
-      - CommentManage
+      - '[管理员]评论管理'
   /manage/comments/pin:
     put:
       consumes:
@@ -5056,7 +5056,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 设置评论置顶
       tags:
-      - CommentManage
+      - '[管理员]评论管理'
   /manage/comments/selected:
     put:
       consumes:
@@ -5086,7 +5086,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 设置评论精选
       tags:
-      - CommentManage
+      - '[管理员]评论管理'
   /manage/dashboard/activity:
     get:
       consumes:
@@ -5114,7 +5114,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取最近活动
       tags:
-      - Dashboard
+      - '[管理员]仪表盘'
   /manage/dashboard/popular-categories:
     get:
       consumes:
@@ -5142,7 +5142,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取热门版块
       tags:
-      - Dashboard
+      - '[管理员]仪表盘'
   /manage/dashboard/popular-posts:
     get:
       consumes:
@@ -5170,7 +5170,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取热门帖子
       tags:
-      - Dashboard
+      - '[管理员]仪表盘'
   /manage/dashboard/stats:
     get:
       consumes:
@@ -5209,7 +5209,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取仪表盘统计数据
       tags:
-      - Dashboard
+      - '[管理员]仪表盘'
   /manage/posts:
     get:
       consumes:
@@ -5274,7 +5274,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取帖子列表
       tags:
-      - PostManage
+      - '[管理员]主题贴管理'
     post:
       consumes:
       - application/json
@@ -5308,7 +5308,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 创建帖子
       tags:
-      - PostManage
+      - '[管理员]主题贴管理'
     put:
       consumes:
       - application/json
@@ -5342,7 +5342,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 更新帖子信息
       tags:
-      - PostManage
+      - '[管理员]主题贴管理'
   /manage/posts/{id}:
     delete:
       consumes:
@@ -5371,7 +5371,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 删除帖子
       tags:
-      - PostManage
+      - '[管理员]主题贴管理'
     get:
       consumes:
       - application/json
@@ -5404,7 +5404,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取帖子详情
       tags:
-      - PostManage
+      - '[管理员]主题贴管理'
   /manage/posts/essence:
     put:
       consumes:
@@ -5434,7 +5434,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 设置帖子精华
       tags:
-      - PostManage
+      - '[管理员]主题贴管理'
   /manage/posts/move:
     put:
       consumes:
@@ -5464,7 +5464,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 移动帖子
       tags:
-      - PostManage
+      - '[管理员]主题贴管理'
   /manage/posts/pin:
     put:
       consumes:
@@ -5494,7 +5494,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 设置帖子置顶
       tags:
-      - PostManage
+      - '[管理员]主题贴管理'
   /manage/posts/status:
     put:
       consumes:
@@ -5524,7 +5524,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 更新帖子状态
       tags:
-      - PostManage
+      - '[管理员]主题贴管理'
   /manage/users:
     get:
       consumes:
@@ -5578,7 +5578,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取用户列表
       tags:
-      - UserManage
+      - '[管理员]用户管理'
     post:
       consumes:
       - application/json
@@ -5612,7 +5612,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 创建用户
       tags:
-      - UserManage
+      - '[管理员]用户管理'
     put:
       consumes:
       - application/json
@@ -5646,7 +5646,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 更新用户信息
       tags:
-      - UserManage
+      - '[管理员]用户管理'
   /manage/users/{id}:
     get:
       consumes:
@@ -5680,7 +5680,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取用户详情
       tags:
-      - UserManage
+      - '[管理员]用户管理'
   /manage/users/balance/logs:
     get:
       consumes:
@@ -5747,7 +5747,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取用户余额变动记录
       tags:
-      - UserManage
+      - '[管理员]用户管理'
   /manage/users/balance/summary/{id}:
     get:
       consumes:
@@ -5781,7 +5781,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 获取用户余额汇总信息
       tags:
-      - UserManage
+      - '[管理员]用户管理'
   /manage/users/currency:
     put:
       consumes:
@@ -5811,7 +5811,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 更新用户货币
       tags:
-      - UserManage
+      - '[管理员]用户管理'
   /manage/users/moderator/categories:
     put:
       consumes:
@@ -5841,7 +5841,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 设置版主管理版块
       tags:
-      - UserManage
+      - '[管理员]用户管理'
   /manage/users/points:
     put:
       consumes:
@@ -5871,7 +5871,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 更新用户积分
       tags:
-      - UserManage
+      - '[管理员]用户管理'
   /manage/users/role:
     put:
       consumes:
@@ -5901,7 +5901,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 更新用户身份
       tags:
-      - UserManage
+      - '[管理员]用户管理'
   /manage/users/status:
     put:
       consumes:
@@ -5931,7 +5931,7 @@ paths:
             $ref: '#/definitions/response.Data'
       summary: 更新用户状态
       tags:
-      - UserManage
+      - '[管理员]用户管理'
   /super/manage/settings/code:
     get:
       consumes:
@@ -5957,7 +5957,7 @@ paths:
       - Bearer: []
       summary: 获取代码配置
       tags:
-      - SuperAdmin.Settings
+      - '[超级管理员]系统设置'
     post:
       consumes:
       - application/json
@@ -5988,7 +5988,7 @@ paths:
       - Bearer: []
       summary: 更新代码配置
       tags:
-      - SuperAdmin.Settings
+      - '[超级管理员]系统设置'
   /super/manage/settings/comment:
     get:
       consumes:
@@ -6014,7 +6014,7 @@ paths:
       - Bearer: []
       summary: 获取评论设置
       tags:
-      - SuperAdmin.Settings
+      - '[超级管理员]系统设置'
     post:
       consumes:
       - application/json
@@ -6045,7 +6045,7 @@ paths:
       - Bearer: []
       summary: 更新评论设置
       tags:
-      - SuperAdmin.Settings
+      - '[超级管理员]系统设置'
   /super/manage/settings/email:
     get:
       consumes:
@@ -6071,7 +6071,7 @@ paths:
       - Bearer: []
       summary: 获取邮箱设置
       tags:
-      - SuperAdmin.Settings
+      - '[超级管理员]系统设置'
     post:
       consumes:
       - application/json
@@ -6102,7 +6102,7 @@ paths:
       - Bearer: []
       summary: 更新邮箱设置
       tags:
-      - SuperAdmin.Settings
+      - '[超级管理员]系统设置'
   /super/manage/settings/email/test:
     post:
       consumes:
@@ -6139,7 +6139,7 @@ paths:
       - Bearer: []
       summary: 发送测试邮件
       tags:
-      - SuperAdmin.Settings
+      - '[超级管理员]系统设置'
   /super/manage/settings/home:
     get:
       consumes:
@@ -6165,7 +6165,7 @@ paths:
       - Bearer: []
       summary: 获取首页设置
       tags:
-      - SuperAdmin.Settings
+      - '[超级管理员]系统设置'
     post:
       consumes:
       - application/json
@@ -6196,7 +6196,7 @@ paths:
       - Bearer: []
       summary: 更新首页设置
       tags:
-      - SuperAdmin.Settings
+      - '[超级管理员]系统设置'
   /super/manage/settings/routine:
     get:
       consumes:
@@ -6222,7 +6222,7 @@ paths:
       - Bearer: []
       summary: 获取常规设置
       tags:
-      - SuperAdmin.Settings
+      - '[超级管理员]系统设置'
     post:
       consumes:
       - application/json
@@ -6253,7 +6253,7 @@ paths:
       - Bearer: []
       summary: 更新常规设置
       tags:
-      - SuperAdmin.Settings
+      - '[超级管理员]系统设置'
   /super/manage/settings/safe:
     get:
       consumes:
@@ -6279,7 +6279,7 @@ paths:
       - Bearer: []
       summary: 获取安全设置
       tags:
-      - SuperAdmin.Settings
+      - '[超级管理员]系统设置'
     post:
       consumes:
       - application/json
@@ -6310,7 +6310,7 @@ paths:
       - Bearer: []
       summary: 更新安全设置
       tags:
-      - SuperAdmin.Settings
+      - '[超级管理员]系统设置'
   /super/manage/settings/seo:
     get:
       consumes:
@@ -6336,7 +6336,7 @@ paths:
       - Bearer: []
       summary: 获取SEO设置
       tags:
-      - SuperAdmin.Settings
+      - '[超级管理员]系统设置'
     post:
       consumes:
       - application/json
@@ -6367,7 +6367,7 @@ paths:
       - Bearer: []
       summary: 更新SEO设置
       tags:
-      - SuperAdmin.Settings
+      - '[超级管理员]系统设置'
 schemes:
 - http
 - https
