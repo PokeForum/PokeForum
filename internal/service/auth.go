@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/user"
@@ -81,6 +82,35 @@ func (s *AuthService) Register(ctx context.Context, req schema.RegisterRequest) 
 		s.logger.Error("查询邮箱失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("查询邮箱失败: %w", err)
 	}
+
+	// 检查邮箱白名单设置
+	isEnableEmailWhitelist, err := s.settings.GetSettingByKey(ctx, _const.SafeIsEnableEmailWhitelist, _const.SettingBoolFalse.String())
+	if err != nil {
+		s.logger.Error("查询邮箱白名单设置失败", tracing.WithTraceIDField(ctx), zap.Error(err))
+		return nil, fmt.Errorf("查询邮箱白名单设置失败: %w", err)
+	}
+
+	// 如果开启了邮箱白名单，则进行白名单验证
+	if isEnableEmailWhitelist == _const.SettingBoolTrue.String() {
+		// 获取邮箱白名单列表
+		emailWhitelist, err := s.settings.GetSettingByKey(ctx, _const.SafeEmailWhitelist, "")
+		if err != nil {
+			s.logger.Error("查询邮箱白名单失败", tracing.WithTraceIDField(ctx), zap.Error(err))
+			return nil, fmt.Errorf("查询邮箱白名单失败: %w", err)
+		}
+
+		// 提取邮箱域名
+		emailDomain := utils.ExtractEmailDomain(req.Email)
+		if emailDomain == "" {
+			return nil, errors.New("邮箱格式无效")
+		}
+
+		// 验证邮箱域名是否在白名单中
+		if !isEmailDomainInWhitelist(emailDomain, emailWhitelist) {
+			s.logger.Warn("邮箱域名不在白名单中", tracing.WithTraceIDField(ctx), zap.String("email", req.Email), zap.String("domain", emailDomain))
+			return nil, errors.New("邮箱域名不在允许注册的白名单中")
+		}
+	}
 	// 生成密码盐
 	pwdSalt := utils.GeneratePasswordSalt()
 
@@ -157,4 +187,32 @@ func (s *AuthService) GetUserByID(ctx context.Context, id int) (*ent.User, error
 		return nil, fmt.Errorf("查询用户失败: %w", err)
 	}
 	return u, nil
+}
+
+// isEmailDomainInWhitelist 检查邮箱域名是否在白名单中
+// emailDomain: 要检查的域名，如 "gmail.com"
+// whitelist: 白名单字符串，每行一个域名，如 "gmail.com\nqq.com"
+func isEmailDomainInWhitelist(emailDomain, whitelist string) bool {
+	if whitelist == "" {
+		return false // 白名单为空，不允许任何域名
+	}
+
+	// 将白名单按行分割
+	domains := strings.Split(whitelist, "\n")
+
+	// 遍历白名单中的每个域名
+	for _, domain := range domains {
+		// 去除前后空格
+		whitelistDomain := strings.TrimSpace(domain)
+		// 跳过空行
+		if whitelistDomain == "" {
+			continue
+		}
+		// 检查是否匹配（不区分大小写）
+		if strings.EqualFold(emailDomain, whitelistDomain) {
+			return true
+		}
+	}
+
+	return false
 }

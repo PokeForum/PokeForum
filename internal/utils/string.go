@@ -3,6 +3,7 @@ package utils
 import (
 	"crypto/rand"
 	"math/big"
+	"strings"
 )
 
 // RandomString 生成指定长度的随机字符串
@@ -34,4 +35,28 @@ func RandomString(length int) string {
 	}
 
 	return string(result)
+}
+
+// ExtractEmailDomain 从邮箱地址中提取域名
+// 例如: "user@gmail.com" -> "gmail.com"
+// 如果邮箱格式无效，返回空字符串
+func ExtractEmailDomain(email string) string {
+	// 找到最后一个@符号的位置
+	atIndex := strings.LastIndex(email, "@")
+	if atIndex == -1 || atIndex == len(email)-1 {
+		return "" // 没有找到@符号或者@符号是最后一个字符
+	}
+	
+	// 提取@符号后面的域名部分
+	domain := email[atIndex+1:]
+	
+	// 去除前后空格
+	domain = strings.TrimSpace(domain)
+	
+	// 检查域名是否包含点号
+	if !strings.Contains(domain, ".") {
+		return "" // 域名格式无效
+	}
+	
+	return domain
 }
