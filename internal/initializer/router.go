@@ -54,6 +54,14 @@ func InjectorSrv(injector *do.Injector) {
 	do.Provide(injector, func(i *do.Injector) (service.IPostService, error) {
 		return service.NewPostService(configs.DB, configs.Cache, configs.Log), nil
 	})
+	// 注册 CommentService
+	do.Provide(injector, func(i *do.Injector) (service.ICommentService, error) {
+		return service.NewCommentService(configs.DB, configs.Cache, configs.Log), nil
+	})
+	// 注册 UserProfileService
+	do.Provide(injector, func(i *do.Injector) (service.IUserProfileService, error) {
+		return service.NewUserProfileService(configs.DB, configs.Cache, configs.Log), nil
+	})
 }
 
 func Routers(injector *do.Injector) *gin.Engine {
@@ -108,15 +116,9 @@ func Routers(injector *do.Injector) *gin.Engine {
 		{
 			// 个人中心
 			{
-				// 个人信息/概览
-				// 主题贴 / TODO 已购
-				// 评论
-				// 收藏
-				// TODO 粉丝
-				// 修改密码
-				// 修改头像
-				// 修改用户名(每七日可操作一次)
-				// 修改邮箱
+				ProfileGroup := ForumGroup.Group("/profile")
+				ProfileCon := controller.NewUserProfileController(injector)
+				ProfileCon.UserProfileRouter(ProfileGroup)
 
 				/*
 					- 屏蔽用户可阅览楼主帖子
@@ -151,37 +153,33 @@ func Routers(injector *do.Injector) *gin.Engine {
 			}
 
 			// 主题帖
-			{
-				/*
-					发帖前需要验证邮箱, 可通过开关配置
-				*/
-				// 发布新帖
-				// 保存草稿
-				// 编辑帖子(每三分钟可操作一次)
-				// 私有帖子(双向, 每三日可操作一次)
-				// 点赞帖子(单向, 不可取消点赞)
-				// 点踩帖子(单向, 不可取消点赞)
-				// 收藏帖子
-				PostGroup := ForumGroup.Group("/posts")
-				PostCon := controller.NewPostController(injector)
-				PostCon.PostRouter(PostGroup)
-			}
+			/*
+				发帖前需要验证邮箱, 可通过开关配置
+			*/
+			// 发布新帖
+			// 保存草稿
+			// 编辑帖子(每三分钟可操作一次)
+			// 私有帖子(双向, 每三日可操作一次)
+			// 点赞帖子(单向, 不可取消点赞)
+			// 点踩帖子(单向, 不可取消点赞)
+			// 收藏帖子
+			PostGroup := ForumGroup.Group("/posts")
+			PostCon := controller.NewPostController(injector)
+			PostCon.PostRouter(PostGroup)
 
 			// 评论
-			{
-				/*
-					发评论前需要验证邮箱, 可通过开关配置
-				*/
-				// 发布评论
-				// 编辑评论
-				// 点赞评论(单向, 不可取消点赞)
-				// 点踩评论(单向, 不可取消点赞)
-				// 获取评论列表
-				// 获取评论详情
-				CommentGroup := ForumGroup.Group("/comments")
-				CommentCon := controller.NewCommentController(injector)
-				CommentCon.CommentRouter(CommentGroup)
-			}
+			/*
+				发评论前需要验证邮箱, 可通过开关配置
+			*/
+			// 发布评论
+			// 编辑评论
+			// 点赞评论(单向, 不可取消点赞)
+			// 点踩评论(单向, 不可取消点赞)
+			// 获取评论列表
+			// 获取评论详情
+			CommentGroup := ForumGroup.Group("/comments")
+			CommentCon := controller.NewCommentController(injector)
+			CommentCon.CommentRouter(CommentGroup)
 		}
 
 		// 版主接口
