@@ -83,7 +83,7 @@ func (ctrl *ModeratorController) ModeratorRouter(router *gin.RouterGroup) {
 // GetModeratorCategories 获取版主管理的版块列表
 // @Summary 获取版主管理的版块列表
 // @Description 获取当前版主有管理权限的所有版块列表
-// @Tags Moderator
+// @Tags [版主]版块管理
 // @Accept json
 // @Produce json
 // @Success 200 {object} response.Data{data=schema.ModeratorCategoriesResponse} "获取成功"
@@ -120,7 +120,7 @@ func (ctrl *ModeratorController) GetModeratorCategories(c *gin.Context) {
 // BanPost 封禁帖子
 // @Summary 封禁帖子
 // @Description 版主封禁指定版块内的帖子
-// @Tags Moderator
+// @Tags [版主]版块管理
 // @Accept json
 // @Produce json
 // @Param request body schema.PostBanRequest true "封禁信息"
@@ -164,7 +164,7 @@ func (ctrl *ModeratorController) BanPost(c *gin.Context) {
 // EditPost 编辑帖子
 // @Summary 编辑帖子
 // @Description 版主编辑指定版块内的帖子内容
-// @Tags Moderator
+// @Tags [版主]版块管理
 // @Accept json
 // @Produce json
 // @Param request body schema.PostEditRequest true "帖子信息"
@@ -208,7 +208,7 @@ func (ctrl *ModeratorController) EditPost(c *gin.Context) {
 // MovePost 移动帖子
 // @Summary 移动帖子
 // @Description 版主将帖子移动到自己有权限的其他版块
-// @Tags Moderator
+// @Tags [版主]版块管理
 // @Accept json
 // @Produce json
 // @Param request body schema.PostMoveRequest true "移动信息"
@@ -252,7 +252,7 @@ func (ctrl *ModeratorController) MovePost(c *gin.Context) {
 // SetPostEssence 设置帖子精华
 // @Summary 设置帖子精华
 // @Description 版主设置或取消帖子的精华状态
-// @Tags Moderator
+// @Tags [版主]版块管理
 // @Accept json
 // @Produce json
 // @Param request body schema.PostEssenceRequest true "精华信息"
@@ -296,7 +296,7 @@ func (ctrl *ModeratorController) SetPostEssence(c *gin.Context) {
 // LockPost 锁定帖子
 // @Summary 锁定帖子
 // @Description 版主锁定或解锁帖子，锁定后用户无法回复
-// @Tags Moderator
+// @Tags [版主]版块管理
 // @Accept json
 // @Produce json
 // @Param request body schema.PostLockRequest true "锁定信息"
@@ -340,7 +340,7 @@ func (ctrl *ModeratorController) LockPost(c *gin.Context) {
 // PinPost 置顶帖子
 // @Summary 置顶帖子
 // @Description 版主置顶或取消置顶帖子
-// @Tags Moderator
+// @Tags [版主]版块管理
 // @Accept json
 // @Produce json
 // @Param request body schema.PostPinRequest true "置顶信息"
@@ -384,7 +384,7 @@ func (ctrl *ModeratorController) PinPost(c *gin.Context) {
 // EditCategory 编辑版块
 // @Summary 编辑版块
 // @Description 版主编辑自己管理的版块信息
-// @Tags Moderator
+// @Tags [版主]版块管理
 // @Accept json
 // @Produce json
 // @Param request body schema.CategoryEditRequest true "版块信息"
@@ -428,7 +428,7 @@ func (ctrl *ModeratorController) EditCategory(c *gin.Context) {
 // CreateCategoryAnnouncement 创建版块公告
 // @Summary 创建版块公告
 // @Description 版主为自己管理的版块创建公告
-// @Tags Moderator
+// @Tags [版主]版块管理
 // @Accept json
 // @Produce json
 // @Param request body schema.CategoryAnnouncementRequest true "公告信息"
@@ -472,7 +472,7 @@ func (ctrl *ModeratorController) CreateCategoryAnnouncement(c *gin.Context) {
 // GetCategoryAnnouncements 获取版块公告列表
 // @Summary 获取版块公告列表
 // @Description 获取指定版块的公告列表
-// @Tags Moderator
+// @Tags [版主]版块管理
 // @Accept json
 // @Produce json
 // @Param category_id path int true "版块ID" example("1")

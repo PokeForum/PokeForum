@@ -44,7 +44,7 @@ func (ctrl *CategoryManageController) CategoryManageRouter(router *gin.RouterGro
 // GetCategoryList 获取版块列表
 // @Summary 获取版块列表
 // @Description 分页获取版块列表，支持关键词搜索和状态筛选
-// @Tags CategoryManage
+// @Tags [管理员]版块管理
 // @Accept json
 // @Produce json
 // @Param page query int true "页码" example("1")
@@ -82,7 +82,7 @@ func (ctrl *CategoryManageController) GetCategoryList(c *gin.Context) {
 // CreateCategory 创建版块
 // @Summary 创建版块
 // @Description 管理员创建新版块
-// @Tags CategoryManage
+// @Tags [管理员]版块管理
 // @Accept json
 // @Produce json
 // @Param request body schema.CategoryCreateRequest true "版块信息"
@@ -131,7 +131,7 @@ func (ctrl *CategoryManageController) CreateCategory(c *gin.Context) {
 // UpdateCategory 更新版块信息
 // @Summary 更新版块信息
 // @Description 更新版块的基本信息
-// @Tags CategoryManage
+// @Tags [管理员]版块管理
 // @Accept json
 // @Produce json
 // @Param request body schema.CategoryUpdateRequest true "版块信息"
@@ -180,7 +180,7 @@ func (ctrl *CategoryManageController) UpdateCategory(c *gin.Context) {
 // GetCategoryDetail 获取版块详情
 // @Summary 获取版块详情
 // @Description 获取指定版块的详细信息
-// @Tags CategoryManage
+// @Tags [管理员]版块管理
 // @Accept json
 // @Produce json
 // @Param id path int true "版块ID" example("1")
@@ -217,7 +217,7 @@ func (ctrl *CategoryManageController) GetCategoryDetail(c *gin.Context) {
 // DeleteCategory 删除版块
 // @Summary 删除版块
 // @Description 软删除版块（将状态设为隐藏）
-// @Tags CategoryManage
+// @Tags [管理员]版块管理
 // @Accept json
 // @Produce json
 // @Param id path int true "版块ID" example("1")
@@ -254,7 +254,7 @@ func (ctrl *CategoryManageController) DeleteCategory(c *gin.Context) {
 // UpdateCategoryStatus 更新版块状态
 // @Summary 更新版块状态
 // @Description 更新版块的状态（正常、登录可见、会员可见、隐藏、锁定）
-// @Tags CategoryManage
+// @Tags [管理员]版块管理
 // @Accept json
 // @Produce json
 // @Param request body schema.CategoryStatusUpdateRequest true "状态信息"
@@ -289,7 +289,7 @@ func (ctrl *CategoryManageController) UpdateCategoryStatus(c *gin.Context) {
 // SetCategoryModerators 设置版块版主
 // @Summary 设置版块版主
 // @Description 为指定版块设置版主列表
-// @Tags CategoryManage
+// @Tags [管理员]版块管理
 // @Accept json
 // @Produce json
 // @Param request body schema.CategoryModeratorRequest true "版主信息"

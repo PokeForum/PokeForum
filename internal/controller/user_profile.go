@@ -51,7 +51,7 @@ func (ctrl *UserProfileController) getUserID(c *gin.Context) (int, error) {
 // GetProfileOverview 获取用户个人中心概览
 // @Summary 获取用户个人中心概览
 // @Description 获取当前登录用户的个人信息和统计数据
-// @Tags UserProfile
+// @Tags [用户]个人中心
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Bearer token"
@@ -84,7 +84,7 @@ func (ctrl *UserProfileController) GetProfileOverview(c *gin.Context) {
 // GetUserPosts 获取用户主题帖列表
 // @Summary 获取用户主题帖列表
 // @Description 获取当前登录用户发布的主题帖列表，支持分页和状态筛选
-// @Tags UserProfile
+// @Tags [用户]个人中心
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Bearer token"
@@ -128,7 +128,7 @@ func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
 // GetUserComments 获取用户评论列表
 // @Summary 获取用户评论列表
 // @Description 获取当前登录用户发布的评论列表，支持分页
-// @Tags UserProfile
+// @Tags [用户]个人中心
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Bearer token"
@@ -171,7 +171,7 @@ func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
 // GetUserFavorites 获取用户收藏列表
 // @Summary 获取用户收藏列表
 // @Description 获取当前登录用户收藏的帖子列表，支持分页
-// @Tags UserProfile
+// @Tags [用户]个人中心
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Bearer token"
@@ -214,7 +214,7 @@ func (ctrl *UserProfileController) GetUserFavorites(c *gin.Context) {
 // UpdatePassword 修改密码
 // @Summary 修改密码
 // @Description 修改当前登录用户的密码
-// @Tags UserProfile
+// @Tags [用户]个人中心
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Bearer token"
@@ -256,7 +256,7 @@ func (ctrl *UserProfileController) UpdatePassword(c *gin.Context) {
 // UpdateAvatar 修改头像
 // @Summary 修改头像
 // @Description 修改当前登录用户的头像
-// @Tags UserProfile
+// @Tags [用户]个人中心
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Bearer token"
@@ -298,7 +298,7 @@ func (ctrl *UserProfileController) UpdateAvatar(c *gin.Context) {
 // UpdateUsername 修改用户名
 // @Summary 修改用户名
 // @Description 修改当前登录用户的用户名（每七日可操作一次）
-// @Tags UserProfile
+// @Tags [用户]个人中心
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Bearer token"
@@ -341,7 +341,7 @@ func (ctrl *UserProfileController) UpdateUsername(c *gin.Context) {
 // UpdateEmail 修改邮箱
 // @Summary 修改邮箱
 // @Description 修改当前登录用户的邮箱地址
-// @Tags UserProfile
+// @Tags [用户]个人中心
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Bearer token"

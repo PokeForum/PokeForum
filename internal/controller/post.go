@@ -73,7 +73,7 @@ func (ctrl *PostController) PostRouter(router *gin.RouterGroup) {
 // CreatePost 发布新帖
 // @Summary 发布新帖
 // @Description 用户发布新的主题帖
-// @Tags Post
+// @Tags [用户]主题贴
 // @Accept json
 // @Produce json
 // @Param request body schema.UserPostCreateRequest true "帖子信息"
@@ -116,7 +116,7 @@ func (ctrl *PostController) CreatePost(c *gin.Context) {
 // SaveDraft 保存草稿
 // @Summary 保存草稿
 // @Description 用户保存帖子草稿
-// @Tags Post
+// @Tags [用户]主题贴
 // @Accept json
 // @Produce json
 // @Param request body schema.UserPostCreateRequest true "帖子信息"
@@ -159,7 +159,7 @@ func (ctrl *PostController) SaveDraft(c *gin.Context) {
 // UpdatePost 编辑帖子
 // @Summary 编辑帖子
 // @Description 用户编辑自己的帖子（每三分钟可操作一次）
-// @Tags Post
+// @Tags [用户]主题贴
 // @Accept json
 // @Produce json
 // @Param request body schema.UserPostUpdateRequest true "帖子信息"
@@ -203,7 +203,7 @@ func (ctrl *PostController) UpdatePost(c *gin.Context) {
 // SetPostPrivate 设置帖子私有
 // @Summary 设置帖子私有
 // @Description 用户设置帖子为私有或公开（每三日可操作一次）
-// @Tags Post
+// @Tags [用户]主题贴
 // @Accept json
 // @Produce json
 // @Param request body schema.UserPostActionRequest true "帖子信息"
@@ -247,7 +247,7 @@ func (ctrl *PostController) SetPostPrivate(c *gin.Context) {
 // LikePost 点赞帖子
 // @Summary 点赞帖子
 // @Description 用户点赞帖子（单向，不可取消点赞）
-// @Tags Post
+// @Tags [用户]主题贴
 // @Accept json
 // @Produce json
 // @Param request body schema.UserPostActionRequest true "帖子信息"
@@ -291,7 +291,7 @@ func (ctrl *PostController) LikePost(c *gin.Context) {
 // DislikePost 点踩帖子
 // @Summary 点踩帖子
 // @Description 用户点踩帖子（单向，不可取消点踩）
-// @Tags Post
+// @Tags [用户]主题贴
 // @Accept json
 // @Produce json
 // @Param request body schema.UserPostActionRequest true "帖子信息"
@@ -335,7 +335,7 @@ func (ctrl *PostController) DislikePost(c *gin.Context) {
 // FavoritePost 收藏帖子
 // @Summary 收藏帖子
 // @Description 用户收藏或取消收藏帖子（双向操作）
-// @Tags Post
+// @Tags [用户]主题贴
 // @Accept json
 // @Produce json
 // @Param request body schema.UserPostActionRequest true "帖子信息"
@@ -378,7 +378,7 @@ func (ctrl *PostController) FavoritePost(c *gin.Context) {
 // GetPostList 获取帖子列表
 // @Summary 获取帖子列表
 // @Description 获取帖子列表，支持分页和排序
-// @Tags Post
+// @Tags [用户]主题贴
 // @Accept json
 // @Produce json
 // @Param category_id query int false "版块ID"
@@ -416,7 +416,7 @@ func (ctrl *PostController) GetPostList(c *gin.Context) {
 // GetPostDetail 获取帖子详情
 // @Summary 获取帖子详情
 // @Description 获取指定帖子的详细信息，并增加浏览数
-// @Tags Post
+// @Tags [用户]主题贴
 // @Accept json
 // @Produce json
 // @Param id path int true "帖子ID"

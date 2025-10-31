@@ -42,7 +42,7 @@ func (ctrl *CommentManageController) CommentManageRouter(router *gin.RouterGroup
 // GetCommentList 获取评论列表
 // @Summary 获取评论列表
 // @Description 分页获取评论列表，支持多种筛选条件
-// @Tags CommentManage
+// @Tags [管理员]评论管理
 // @Accept json
 // @Produce json
 // @Param page query int true "页码" example("1")
@@ -85,7 +85,7 @@ func (ctrl *CommentManageController) GetCommentList(c *gin.Context) {
 // CreateComment 创建评论
 // @Summary 创建评论
 // @Description 管理员创建新评论
-// @Tags CommentManage
+// @Tags [管理员]评论管理
 // @Accept json
 // @Produce json
 // @Param request body schema.CommentCreateRequest true "评论信息"
@@ -141,7 +141,7 @@ func (ctrl *CommentManageController) CreateComment(c *gin.Context) {
 // UpdateComment 更新评论信息
 // @Summary 更新评论信息
 // @Description 更新评论的内容信息
-// @Tags CommentManage
+// @Tags [管理员]评论管理
 // @Accept json
 // @Produce json
 // @Param request body schema.CommentUpdateRequest true "评论信息"
@@ -197,7 +197,7 @@ func (ctrl *CommentManageController) UpdateComment(c *gin.Context) {
 // GetCommentDetail 获取评论详情
 // @Summary 获取评论详情
 // @Description 获取指定评论的详细信息
-// @Tags CommentManage
+// @Tags [管理员]评论管理
 // @Accept json
 // @Produce json
 // @Param id path int true "评论ID" example("1")
@@ -234,7 +234,7 @@ func (ctrl *CommentManageController) GetCommentDetail(c *gin.Context) {
 // DeleteComment 删除评论
 // @Summary 删除评论
 // @Description 删除指定的评论
-// @Tags CommentManage
+// @Tags [管理员]评论管理
 // @Accept json
 // @Produce json
 // @Param id path int true "评论ID" example("1")
@@ -271,7 +271,7 @@ func (ctrl *CommentManageController) DeleteComment(c *gin.Context) {
 // SetCommentSelected 设置评论精选
 // @Summary 设置评论精选
 // @Description 设置或取消评论的精选状态
-// @Tags CommentManage
+// @Tags [管理员]评论管理
 // @Accept json
 // @Produce json
 // @Param request body schema.CommentSelectedUpdateRequest true "精选信息"
@@ -306,7 +306,7 @@ func (ctrl *CommentManageController) SetCommentSelected(c *gin.Context) {
 // SetCommentPin 设置评论置顶
 // @Summary 设置评论置顶
 // @Description 设置或取消评论的置顶状态
-// @Tags CommentManage
+// @Tags [管理员]评论管理
 // @Accept json
 // @Produce json
 // @Param request body schema.CommentPinUpdateRequest true "置顶信息"

@@ -35,7 +35,7 @@ func (ctrl *DashboardController) DashboardRouter(router *gin.RouterGroup) {
 // GetDashboardStats 获取仪表盘统计数据
 // @Summary 获取仪表盘统计数据
 // @Description 获取系统各项统计数据，包括用户、帖子、评论、版块和系统统计
-// @Tags Dashboard
+// @Tags [管理员]仪表盘
 // @Accept json
 // @Produce json
 // @Param start_date query string false "开始日期" example("2024-01-01")
@@ -65,7 +65,7 @@ func (ctrl *DashboardController) GetDashboardStats(c *gin.Context) {
 // GetRecentActivity 获取最近活动
 // @Summary 获取最近活动
 // @Description 获取系统最近的活动，包括最近帖子、评论和新用户
-// @Tags Dashboard
+// @Tags [管理员]仪表盘
 // @Accept json
 // @Produce json
 // @Success 200 {object} response.Data{data=schema.RecentActivityResponse} "获取成功"
@@ -93,7 +93,7 @@ func (ctrl *DashboardController) GetRecentActivity(c *gin.Context) {
 // GetPopularPosts 获取热门帖子
 // @Summary 获取热门帖子
 // @Description 获取浏览量最高的热门帖子列表
-// @Tags Dashboard
+// @Tags [管理员]仪表盘
 // @Accept json
 // @Produce json
 // @Success 200 {object} response.Data{data=schema.PopularPostsResponse} "获取成功"
@@ -121,7 +121,7 @@ func (ctrl *DashboardController) GetPopularPosts(c *gin.Context) {
 // GetPopularCategories 获取热门版块
 // @Summary 获取热门版块
 // @Description 获取帖子数量最多的热门版块列表
-// @Tags Dashboard
+// @Tags [管理员]仪表盘
 // @Accept json
 // @Produce json
 // @Success 200 {object} response.Data{data=schema.PopularCategoriesResponse} "获取成功"

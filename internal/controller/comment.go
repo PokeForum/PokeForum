@@ -25,6 +25,22 @@ func NewCommentController(injector *do.Injector) *CommentController {
 	}
 }
 
+// CommentRouter 评论相关路由注册
+func (ctrl *CommentController) CommentRouter(router *gin.RouterGroup) {
+	// 发布评论
+	router.POST("", ctrl.CreateComment)
+	// 编辑评论
+	router.PUT("", ctrl.UpdateComment)
+	// 获取评论列表
+	router.GET("", ctrl.GetCommentList)
+	// 获取评论详情
+	router.GET("/:id", ctrl.GetCommentDetail)
+	// 点赞评论
+	router.POST("/like", ctrl.LikeComment)
+	// 点踩评论
+	router.POST("/dislike", ctrl.DislikeComment)
+}
+
 // getUserID 从Header中获取token并解析用户ID
 func (ctrl *CommentController) getUserID(c *gin.Context) (int, error) {
 	// 从Header中获取token
@@ -51,7 +67,7 @@ func (ctrl *CommentController) getUserID(c *gin.Context) (int, error) {
 // CreateComment 创建评论
 // @Summary 创建评论
 // @Description 用户创建新评论，支持回复评论和回复用户
-// @Tags Comment
+// @Tags [用户]评论
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Bearer token"
@@ -93,7 +109,7 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 // UpdateComment 更新评论
 // @Summary 更新评论
 // @Description 用户更新自己的评论内容
-// @Tags Comment
+// @Tags [用户]评论
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Bearer token"
@@ -136,7 +152,7 @@ func (ctrl *CommentController) UpdateComment(c *gin.Context) {
 // LikeComment 点赞评论
 // @Summary 点赞评论
 // @Description 用户点赞评论，单向操作不可取消
-// @Tags Comment
+// @Tags [用户]评论
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Bearer token"
@@ -178,7 +194,7 @@ func (ctrl *CommentController) LikeComment(c *gin.Context) {
 // DislikeComment 点踩评论
 // @Summary 点踩评论
 // @Description 用户点踩评论，单向操作不可取消
-// @Tags Comment
+// @Tags [用户]评论
 // @Accept json
 // @Produce json
 // @Param Authorization header string true "Bearer token"
@@ -220,7 +236,7 @@ func (ctrl *CommentController) DislikeComment(c *gin.Context) {
 // GetCommentList 获取评论列表
 // @Summary 获取评论列表
 // @Description 分页获取指定帖子的评论列表，支持排序
-// @Tags Comment
+// @Tags [用户]评论
 // @Accept json
 // @Produce json
 // @Param post_id query int true "帖子ID"
@@ -257,7 +273,7 @@ func (ctrl *CommentController) GetCommentList(c *gin.Context) {
 // GetCommentDetail 获取评论详情
 // @Summary 获取评论详情
 // @Description 根据评论ID获取评论详细信息
-// @Tags Comment
+// @Tags [用户]评论
 // @Accept json
 // @Produce json
 // @Param id path int true "评论ID"
@@ -290,20 +306,4 @@ func (ctrl *CommentController) GetCommentDetail(c *gin.Context) {
 
 	// 返回成功响应
 	response.ResSuccess(c, result)
-}
-
-// CommentRouter 评论相关路由注册
-func (ctrl *CommentController) CommentRouter(router *gin.RouterGroup) {
-	// 发布评论
-	router.POST("", ctrl.CreateComment)
-	// 编辑评论
-	router.PUT("", ctrl.UpdateComment)
-	// 获取评论列表
-	router.GET("", ctrl.GetCommentList)
-	// 获取评论详情
-	router.GET("/:id", ctrl.GetCommentDetail)
-	// 点赞评论
-	router.POST("/like", ctrl.LikeComment)
-	// 点踩评论
-	router.POST("/dislike", ctrl.DislikeComment)
 }

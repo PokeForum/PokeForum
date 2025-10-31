@@ -55,7 +55,7 @@ func (ctrl *UserManageController) UserManageRouter(router *gin.RouterGroup) {
 // GetUserList 获取用户列表
 // @Summary 获取用户列表
 // @Description 分页获取用户列表，支持关键词搜索和状态筛选
-// @Tags UserManage
+// @Tags [管理员]用户管理
 // @Accept json
 // @Produce json
 // @Param page query int true "页码" example("1")
@@ -94,7 +94,7 @@ func (ctrl *UserManageController) GetUserList(c *gin.Context) {
 // CreateUser 创建用户
 // @Summary 创建用户
 // @Description 管理员创建新用户账户
-// @Tags UserManage
+// @Tags [管理员]用户管理
 // @Accept json
 // @Produce json
 // @Param request body schema.UserCreateRequest true "用户信息"
@@ -148,7 +148,7 @@ func (ctrl *UserManageController) CreateUser(c *gin.Context) {
 // UpdateUser 更新用户信息
 // @Summary 更新用户信息
 // @Description 更新用户的基本信息
-// @Tags UserManage
+// @Tags [管理员]用户管理
 // @Accept json
 // @Produce json
 // @Param request body schema.UserUpdateRequest true "用户信息"
@@ -202,7 +202,7 @@ func (ctrl *UserManageController) UpdateUser(c *gin.Context) {
 // GetUserDetail 获取用户详情
 // @Summary 获取用户详情
 // @Description 获取指定用户的详细信息
-// @Tags UserManage
+// @Tags [管理员]用户管理
 // @Accept json
 // @Produce json
 // @Param id path int true "用户ID" example("1")
@@ -239,7 +239,7 @@ func (ctrl *UserManageController) GetUserDetail(c *gin.Context) {
 // UpdateUserStatus 更新用户状态
 // @Summary 更新用户状态
 // @Description 更新用户的状态（正常、禁言、封禁等）
-// @Tags UserManage
+// @Tags [管理员]用户管理
 // @Accept json
 // @Produce json
 // @Param request body schema.UserStatusUpdateRequest true "状态信息"
@@ -274,7 +274,7 @@ func (ctrl *UserManageController) UpdateUserStatus(c *gin.Context) {
 // UpdateUserRole 更新用户身份
 // @Summary 更新用户身份
 // @Description 更新用户的身份权限（普通用户、版主、管理员等）
-// @Tags UserManage
+// @Tags [管理员]用户管理
 // @Accept json
 // @Produce json
 // @Param request body schema.UserRoleUpdateRequest true "身份信息"
@@ -309,7 +309,7 @@ func (ctrl *UserManageController) UpdateUserRole(c *gin.Context) {
 // UpdateUserPoints 更新用户积分
 // @Summary 更新用户积分
 // @Description 为用户增加或减少积分
-// @Tags UserManage
+// @Tags [管理员]用户管理
 // @Accept json
 // @Produce json
 // @Param request body schema.UserPointsUpdateRequest true "积分信息"
@@ -344,7 +344,7 @@ func (ctrl *UserManageController) UpdateUserPoints(c *gin.Context) {
 // UpdateUserCurrency 更新用户货币
 // @Summary 更新用户货币
 // @Description 为用户增加或减少货币
-// @Tags UserManage
+// @Tags [管理员]用户管理
 // @Accept json
 // @Produce json
 // @Param request body schema.UserCurrencyUpdateRequest true "货币信息"
@@ -379,7 +379,7 @@ func (ctrl *UserManageController) UpdateUserCurrency(c *gin.Context) {
 // SetModeratorCategories 设置版主管理版块
 // @Summary 设置版主管理版块
 // @Description 为指定版主设置其管理的版块列表
-// @Tags UserManage
+// @Tags [管理员]用户管理
 // @Accept json
 // @Produce json
 // @Param request body schema.ModeratorCategoryRequest true "版块信息"
@@ -414,7 +414,7 @@ func (ctrl *UserManageController) SetModeratorCategories(c *gin.Context) {
 // GetUserBalanceLog 获取用户余额变动记录
 // @Summary 获取用户余额变动记录
 // @Description 分页获取用户余额变动记录，支持多种筛选条件
-// @Tags UserManage
+// @Tags [管理员]用户管理
 // @Accept json
 // @Produce json
 // @Param page query int true "页码" example("1")
@@ -456,7 +456,7 @@ func (ctrl *UserManageController) GetUserBalanceLog(c *gin.Context) {
 // GetUserBalanceSummary 获取用户余额汇总信息
 // @Summary 获取用户余额汇总信息
 // @Description 获取指定用户的余额汇总统计信息
-// @Tags UserManage
+// @Tags [管理员]用户管理
 // @Accept json
 // @Produce json
 // @Param id path int true "用户ID" example("1")

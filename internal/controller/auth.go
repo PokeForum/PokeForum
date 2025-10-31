@@ -38,7 +38,7 @@ func (ctrl *AuthController) AuthRouter(router *gin.RouterGroup) {
 // Register 用户注册接口
 // @Summary 用户注册
 // @Description 创建新用户账户
-// @Tags Auth
+// @Tags 认证
 // @Accept json
 // @Produce json
 // @Param request body schema.RegisterRequest true "注册信息"
@@ -78,7 +78,7 @@ func (ctrl *AuthController) Register(c *gin.Context) {
 // Login 用户登录接口
 // @Summary 用户登录
 // @Description 用户登录获取认证信息
-// @Tags Auth
+// @Tags 认证
 // @Accept json
 // @Produce json
 // @Param request body schema.LoginRequest true "登录信息"
@@ -132,7 +132,7 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 // Logout 用户退出登录接口
 // @Summary 用户退出登录
 // @Description 用户退出登录，清除认证信息
-// @Tags Auth
+// @Tags 认证
 // @Accept json
 // @Produce json
 // @Success 200 {object} response.Data "退出登录成功"

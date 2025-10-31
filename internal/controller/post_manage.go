@@ -46,7 +46,7 @@ func (ctrl *PostManageController) PostManageRouter(router *gin.RouterGroup) {
 // GetPostList 获取帖子列表
 // @Summary 获取帖子列表
 // @Description 分页获取帖子列表，支持多种筛选条件
-// @Tags PostManage
+// @Tags [管理员]主题贴管理
 // @Accept json
 // @Produce json
 // @Param page query int true "页码" example("1")
@@ -88,7 +88,7 @@ func (ctrl *PostManageController) GetPostList(c *gin.Context) {
 // CreatePost 创建帖子
 // @Summary 创建帖子
 // @Description 管理员创建新帖子
-// @Tags PostManage
+// @Tags [管理员]主题贴管理
 // @Accept json
 // @Produce json
 // @Param request body schema.PostCreateRequest true "帖子信息"
@@ -145,7 +145,7 @@ func (ctrl *PostManageController) CreatePost(c *gin.Context) {
 // UpdatePost 更新帖子信息
 // @Summary 更新帖子信息
 // @Description 更新帖子的基本信息
-// @Tags PostManage
+// @Tags [管理员]主题贴管理
 // @Accept json
 // @Produce json
 // @Param request body schema.PostUpdateRequest true "帖子信息"
@@ -202,7 +202,7 @@ func (ctrl *PostManageController) UpdatePost(c *gin.Context) {
 // GetPostDetail 获取帖子详情
 // @Summary 获取帖子详情
 // @Description 获取指定帖子的详细信息
-// @Tags PostManage
+// @Tags [管理员]主题贴管理
 // @Accept json
 // @Produce json
 // @Param id path int true "帖子ID" example("1")
@@ -239,7 +239,7 @@ func (ctrl *PostManageController) GetPostDetail(c *gin.Context) {
 // DeletePost 删除帖子
 // @Summary 删除帖子
 // @Description 软删除帖子（将状态设为封禁）
-// @Tags PostManage
+// @Tags [管理员]主题贴管理
 // @Accept json
 // @Produce json
 // @Param id path int true "帖子ID" example("1")
@@ -276,7 +276,7 @@ func (ctrl *PostManageController) DeletePost(c *gin.Context) {
 // UpdatePostStatus 更新帖子状态
 // @Summary 更新帖子状态
 // @Description 更新帖子的状态（正常、锁定、草稿、私有、封禁）
-// @Tags PostManage
+// @Tags [管理员]主题贴管理
 // @Accept json
 // @Produce json
 // @Param request body schema.PostStatusUpdateRequest true "状态信息"
@@ -311,7 +311,7 @@ func (ctrl *PostManageController) UpdatePostStatus(c *gin.Context) {
 // SetPostEssence 设置帖子精华
 // @Summary 设置帖子精华
 // @Description 设置或取消帖子的精华状态
-// @Tags PostManage
+// @Tags [管理员]主题贴管理
 // @Accept json
 // @Produce json
 // @Param request body schema.PostEssenceUpdateRequest true "精华信息"
@@ -346,7 +346,7 @@ func (ctrl *PostManageController) SetPostEssence(c *gin.Context) {
 // SetPostPin 设置帖子置顶
 // @Summary 设置帖子置顶
 // @Description 设置或取消帖子的置顶状态
-// @Tags PostManage
+// @Tags [管理员]主题贴管理
 // @Accept json
 // @Produce json
 // @Param request body schema.PostPinUpdateRequest true "置顶信息"
@@ -381,7 +381,7 @@ func (ctrl *PostManageController) SetPostPin(c *gin.Context) {
 // MovePost 移动帖子到其他版块
 // @Summary 移动帖子
 // @Description 将帖子移动到指定的版块
-// @Tags PostManage
+// @Tags [管理员]主题贴管理
 // @Accept json
 // @Produce json
 // @Param request body schema.PostMoveRequest true "移动信息"

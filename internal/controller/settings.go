@@ -78,7 +78,7 @@ func (ctrl *SettingsController) SettingsRouter(router *gin.RouterGroup) {
 // GetRoutineSettings 获取常规设置
 // @Summary 获取常规设置
 // @Description 获取网站的常规配置，包括Logo、Icon、备案号等
-// @Tags SuperAdmin.Settings
+// @Tags [超级管理员]系统设置
 // @Accept json
 // @Produce json
 // @Success 200 {object} response.Data{data=schema.RoutineSettingsResponse} "获取成功"
@@ -104,7 +104,7 @@ func (ctrl *SettingsController) GetRoutineSettings(c *gin.Context) {
 // UpdateRoutineSettings 更新常规设置
 // @Summary 更新常规设置
 // @Description 更新网站的常规配置
-// @Tags SuperAdmin.Settings
+// @Tags [超级管理员]系统设置
 // @Accept json
 // @Produce json
 // @Param request body schema.RoutineSettingsRequest true "常规设置信息"
@@ -137,7 +137,7 @@ func (ctrl *SettingsController) UpdateRoutineSettings(c *gin.Context) {
 // GetHomeSettings 获取首页设置
 // @Summary 获取首页设置
 // @Description 获取首页的配置，包括幻灯片、友情链接等
-// @Tags SuperAdmin.Settings
+// @Tags [超级管理员]系统设置
 // @Accept json
 // @Produce json
 // @Success 200 {object} response.Data{data=schema.HomeSettingsResponse} "获取成功"
@@ -163,7 +163,7 @@ func (ctrl *SettingsController) GetHomeSettings(c *gin.Context) {
 // UpdateHomeSettings 更新首页设置
 // @Summary 更新首页设置
 // @Description 更新首页的配置
-// @Tags SuperAdmin.Settings
+// @Tags [超级管理员]系统设置
 // @Accept json
 // @Produce json
 // @Param request body schema.HomeSettingsRequest true "首页设置信息"
@@ -196,7 +196,7 @@ func (ctrl *SettingsController) UpdateHomeSettings(c *gin.Context) {
 // GetCommentSettings 获取评论设置
 // @Summary 获取评论设置
 // @Description 获取评论相关的配置，包括审核、黑名单等
-// @Tags SuperAdmin.Settings
+// @Tags [超级管理员]系统设置
 // @Accept json
 // @Produce json
 // @Success 200 {object} response.Data{data=schema.CommentSettingsResponse} "获取成功"
@@ -222,7 +222,7 @@ func (ctrl *SettingsController) GetCommentSettings(c *gin.Context) {
 // UpdateCommentSettings 更新评论设置
 // @Summary 更新评论设置
 // @Description 更新评论相关的配置
-// @Tags SuperAdmin.Settings
+// @Tags [超级管理员]系统设置
 // @Accept json
 // @Produce json
 // @Param request body schema.CommentSettingsRequest true "评论设置信息"
@@ -255,7 +255,7 @@ func (ctrl *SettingsController) UpdateCommentSettings(c *gin.Context) {
 // GetSeoSettings 获取SEO设置
 // @Summary 获取SEO设置
 // @Description 获取网站SEO相关配置，包括网站名称、关键词、描述等
-// @Tags SuperAdmin.Settings
+// @Tags [超级管理员]系统设置
 // @Accept json
 // @Produce json
 // @Success 200 {object} response.Data{data=schema.SeoSettingsResponse} "获取成功"
@@ -281,7 +281,7 @@ func (ctrl *SettingsController) GetSeoSettings(c *gin.Context) {
 // UpdateSeoSettings 更新SEO设置
 // @Summary 更新SEO设置
 // @Description 更新网站SEO相关配置
-// @Tags SuperAdmin.Settings
+// @Tags [超级管理员]系统设置
 // @Accept json
 // @Produce json
 // @Param request body schema.SeoSettingsRequest true "SEO设置信息"
@@ -314,7 +314,7 @@ func (ctrl *SettingsController) UpdateSeoSettings(c *gin.Context) {
 // GetCodeSettings 获取代码配置
 // @Summary 获取代码配置
 // @Description 获取自定义代码配置，包括页头、页脚代码和自定义CSS
-// @Tags SuperAdmin.Settings
+// @Tags [超级管理员]系统设置
 // @Accept json
 // @Produce json
 // @Success 200 {object} response.Data{data=schema.CodeSettingsResponse} "获取成功"
@@ -340,7 +340,7 @@ func (ctrl *SettingsController) GetCodeSettings(c *gin.Context) {
 // UpdateCodeSettings 更新代码配置
 // @Summary 更新代码配置
 // @Description 更新自定义代码配置
-// @Tags SuperAdmin.Settings
+// @Tags [超级管理员]系统设置
 // @Accept json
 // @Produce json
 // @Param request body schema.CodeSettingsRequest true "代码配置信息"
@@ -373,7 +373,7 @@ func (ctrl *SettingsController) UpdateCodeSettings(c *gin.Context) {
 // GetSafeSettings 获取安全设置
 // @Summary 获取安全设置
 // @Description 获取安全相关配置，包括注册控制、邮箱白名单等
-// @Tags SuperAdmin.Settings
+// @Tags [超级管理员]系统设置
 // @Accept json
 // @Produce json
 // @Success 200 {object} response.Data{data=schema.SafeSettingsResponse} "获取成功"
@@ -399,7 +399,7 @@ func (ctrl *SettingsController) GetSafeSettings(c *gin.Context) {
 // UpdateSafeSettings 更新安全设置
 // @Summary 更新安全设置
 // @Description 更新安全相关配置
-// @Tags SuperAdmin.Settings
+// @Tags [超级管理员]系统设置
 // @Accept json
 // @Produce json
 // @Param request body schema.SafeSettingsRequest true "安全设置信息"
@@ -432,7 +432,7 @@ func (ctrl *SettingsController) UpdateSafeSettings(c *gin.Context) {
 // GetEmailSettings 获取邮箱设置
 // @Summary 获取邮箱设置
 // @Description 获取SMTP邮箱服务配置
-// @Tags SuperAdmin.Settings
+// @Tags [超级管理员]系统设置
 // @Accept json
 // @Produce json
 // @Success 200 {object} response.Data{data=schema.EmailSMTPConfigResponse} "获取成功"
@@ -458,7 +458,7 @@ func (ctrl *SettingsController) GetEmailSettings(c *gin.Context) {
 // UpdateEmailSettings 更新邮箱设置
 // @Summary 更新邮箱设置
 // @Description 更新SMTP邮箱服务配置
-// @Tags SuperAdmin.Settings
+// @Tags [超级管理员]系统设置
 // @Accept json
 // @Produce json
 // @Param request body schema.EmailSMTPConfigRequest true "SMTP配置信息"
@@ -491,7 +491,7 @@ func (ctrl *SettingsController) UpdateEmailSettings(c *gin.Context) {
 // SendTestEmail 发送测试邮件
 // @Summary 发送测试邮件
 // @Description 使用当前SMTP配置发送一封测试邮件
-// @Tags SuperAdmin.Settings
+// @Tags [超级管理员]系统设置
 // @Accept json
 // @Produce json
 // @Param request body schema.EmailTestRequest true "收件人邮箱"
