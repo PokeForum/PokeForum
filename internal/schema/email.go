@@ -38,6 +38,8 @@ type EmailSMTPConfigResponse struct {
 	Port int `json:"port" example:"587"`
 	// SMTP用户名
 	Username string `json:"username" example:"user@example.com"`
+	// SMTP密码
+	Password string `json:"password" example:"password123"`
 	// 是否强制使用SSL加密连接
 	ForcedSSL bool `json:"forced_ssl" example:"false"`
 	// SMTP连接有效期（单位：秒）

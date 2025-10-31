@@ -383,6 +383,11 @@ func (s *SettingsService) GetSMTPConfig(ctx context.Context) (*schema.EmailSMTPC
 		resp.Username = username
 	}
 
+	// 解析SMTP密码
+	if password, ok := configMap[_const.EmailPassword]; ok {
+		resp.Password = password
+	}
+
 	// 解析是否强制使用SSL加密连接
 	if forcedSSL, ok := configMap[_const.EmailForcedSSL]; ok {
 		resp.ForcedSSL = forcedSSL == "true"
@@ -435,18 +440,6 @@ func (s *SettingsService) SendTestEmail(ctx context.Context, toEmail string) err
 		return errors.New("SMTP配置不完整")
 	}
 
-	// 获取密码（从数据库查询，密码不在GetSMTPConfig返回的对象中）
-	passwordCfg, err := s.db.Settings.Query().
-		Where(
-			settings.ModuleEQ(settings.ModuleFunction),
-			settings.KeyEQ(_const.EmailPassword),
-		).
-		First(ctx)
-	if err != nil {
-		s.logger.Error("获取邮箱密码失败", tracing.WithTraceIDField(ctx), zap.Error(err))
-		return fmt.Errorf("获取邮箱密码失败: %w", err)
-	}
-
 	// 创建SMTP配置对象，用于建立SMTP连接
 	smtpConfig := email.SMTPConfig{
 		Name:       config.Sender,
@@ -454,7 +447,7 @@ func (s *SettingsService) SendTestEmail(ctx context.Context, toEmail string) err
 		Host:       config.Host,
 		Port:       config.Port,
 		User:       config.Username,
-		Password:   passwordCfg.Value,
+		Password:   config.Password, // 直接使用配置中的密码
 		Encryption: config.ForcedSSL,
 		Keepalive:  config.ConnectionValidity,
 	}
@@ -491,7 +484,7 @@ func (s *SettingsService) SendTestEmail(ctx context.Context, toEmail string) err
 	// 建立SMTP连接并发送邮件，配置SMTP选项
 	opts := []mail.Option{
 		mail.WithPort(smtpConfig.Port),
-		mail.WithTimeout(30),
+		mail.WithTimeout(60),
 		mail.WithSMTPAuth(mail.SMTPAuthAutoDiscover),
 		mail.WithTLSPortPolicy(mail.TLSOpportunistic),
 		mail.WithUsername(smtpConfig.User),
