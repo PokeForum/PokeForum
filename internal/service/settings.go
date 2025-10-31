@@ -154,7 +154,7 @@ func (s *SettingsService) GetRoutineSettings(ctx context.Context) (*schema.Routi
 		WebSiteIcon:           configMap[_const.RoutineWebSiteIcon],
 		ICPRecord:             configMap[_const.RoutineICPRecord],
 		PublicSecurityNetwork: configMap[_const.RoutinePublicSecurityNetwork],
-		IsCloseCopyright:      configMap[_const.RoutineIsCloseCopyright] == "true",
+		IsCloseCopyright:      configMap[_const.RoutineIsCloseCopyright] == _const.SettingBoolTrue.String(),
 	}
 
 	return resp, nil
@@ -239,8 +239,8 @@ func (s *SettingsService) GetCommentSettings(ctx context.Context) (*schema.Comme
 	}
 
 	resp := &schema.CommentSettingsResponse{
-		ShowCommentInfo:  configMap[_const.CommentShowCommentInfo] == "true",
-		RequireApproval:  configMap[_const.CommentRequireApproval] == "true",
+		ShowCommentInfo:  configMap[_const.CommentShowCommentInfo] == _const.SettingBoolTrue.String(),
+		RequireApproval:  configMap[_const.CommentRequireApproval] == _const.SettingBoolTrue.String(),
 		KeywordBlacklist: configMap[_const.CommentKeywordBlacklist],
 	}
 
@@ -320,10 +320,10 @@ func (s *SettingsService) GetSafeSettings(ctx context.Context) (*schema.SafeSett
 	}
 
 	resp := &schema.SafeSettingsResponse{
-		IsCloseRegister:        configMap[_const.SafeIsCloseRegister] == "true",
-		IsEnableEmailWhitelist: configMap[_const.SafeIsEnableEmailWhitelist] == "true",
+		IsCloseRegister:        configMap[_const.SafeIsCloseRegister] == _const.SettingBoolTrue.String(),
+		IsEnableEmailWhitelist: configMap[_const.SafeIsEnableEmailWhitelist] == _const.SettingBoolTrue.String(),
 		EmailWhitelist:         configMap[_const.SafeEmailWhitelist],
-		VerifyEmail:            configMap[_const.SafeVerifyEmail] == "true",
+		VerifyEmail:            configMap[_const.SafeVerifyEmail] == _const.SettingBoolTrue.String(),
 	}
 
 	return resp, nil
@@ -353,7 +353,7 @@ func (s *SettingsService) GetSMTPConfig(ctx context.Context) (*schema.EmailSMTPC
 
 	// 解析是否启用邮箱服务
 	if isEnable, ok := configMap[_const.EmailIsEnableEmailService]; ok {
-		resp.IsEnable = isEnable == "true"
+		resp.IsEnable = isEnable == _const.SettingBoolTrue.String()
 	}
 
 	// 解析发件人名称
@@ -390,7 +390,7 @@ func (s *SettingsService) GetSMTPConfig(ctx context.Context) (*schema.EmailSMTPC
 
 	// 解析是否强制使用SSL加密连接
 	if forcedSSL, ok := configMap[_const.EmailForcedSSL]; ok {
-		resp.ForcedSSL = forcedSSL == "true"
+		resp.ForcedSSL = forcedSSL == _const.SettingBoolTrue.String()
 	}
 
 	// 解析SMTP连接有效期（单位：秒），需要将字符串转换为整数
