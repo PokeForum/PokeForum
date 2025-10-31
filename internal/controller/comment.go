@@ -75,7 +75,7 @@ func (ctrl *CommentController) getUserID(c *gin.Context) (int, error) {
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /forum/comments [post]
+// @Router /comments [post]
 func (ctrl *CommentController) CreateComment(c *gin.Context) {
 	// 获取用户ID
 	userID, err := ctrl.getUserID(c)
@@ -117,7 +117,7 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 403 {object} response.Data "权限不足"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /forum/comments [put]
+// @Router /comments [put]
 func (ctrl *CommentController) UpdateComment(c *gin.Context) {
 	// 获取用户ID
 	userID, err := ctrl.getUserID(c)
@@ -158,7 +158,7 @@ func (ctrl *CommentController) UpdateComment(c *gin.Context) {
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /forum/comments/like [post]
+// @Router /comments/like [post]
 func (ctrl *CommentController) LikeComment(c *gin.Context) {
 	// 获取用户ID
 	userID, err := ctrl.getUserID(c)
@@ -199,7 +199,7 @@ func (ctrl *CommentController) LikeComment(c *gin.Context) {
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /forum/comments/dislike [post]
+// @Router /comments/dislike [post]
 func (ctrl *CommentController) DislikeComment(c *gin.Context) {
 	// 获取用户ID
 	userID, err := ctrl.getUserID(c)
@@ -243,7 +243,7 @@ func (ctrl *CommentController) DislikeComment(c *gin.Context) {
 // @Success 200 {object} response.Data{data=schema.UserCommentListResponse} "获取成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /forum/comments [get]
+// @Router /comments [get]
 func (ctrl *CommentController) GetCommentList(c *gin.Context) {
 	// 解析请求参数
 	var req schema.UserCommentListRequest
@@ -277,7 +277,7 @@ func (ctrl *CommentController) GetCommentList(c *gin.Context) {
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 404 {object} response.Data "评论不存在"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /forum/comments/{id} [get]
+// @Router /comments/{id} [get]
 func (ctrl *CommentController) GetCommentDetail(c *gin.Context) {
 	// 解析评论ID
 	commentID, err := strconv.Atoi(c.Param("id"))
