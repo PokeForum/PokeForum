@@ -10,10 +10,10 @@ import (
 	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
+	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/utils"
-	"github.com/gomodule/redigo/redis"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -47,15 +47,15 @@ type IUserManageService interface {
 // UserManageService 用户管理服务实现
 type UserManageService struct {
 	db     *ent.Client
-	cache  *redis.Pool
+	cache  cache.ICacheService
 	logger *zap.Logger
 }
 
 // NewUserManageService 创建用户管理服务实例
-func NewUserManageService(db *ent.Client, cache *redis.Pool, logger *zap.Logger) IUserManageService {
+func NewUserManageService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) IUserManageService {
 	return &UserManageService{
 		db:     db,
-		cache:  cache,
+		cache:  cacheService,
 		logger: logger,
 	}
 }
@@ -160,7 +160,7 @@ func (s *UserManageService) CreateUser(ctx context.Context, req schema.UserCreat
 	}
 
 	// 创建用户
-	user, err := s.db.User.Create().
+	u, err := s.db.User.Create().
 		SetUsername(req.Username).
 		SetEmail(req.Email).
 		SetPassword(string(hashedPassword)).
@@ -175,8 +175,8 @@ func (s *UserManageService) CreateUser(ctx context.Context, req schema.UserCreat
 		return nil, fmt.Errorf("创建用户失败: %w", err)
 	}
 
-	s.logger.Info("用户创建成功", zap.Int("user_id", user.ID), tracing.WithTraceIDField(ctx))
-	return user, nil
+	s.logger.Info("用户创建成功", zap.Int("user_id", u.ID), tracing.WithTraceIDField(ctx))
+	return u, nil
 }
 
 // UpdateUser 更新用户信息
@@ -231,14 +231,14 @@ func (s *UserManageService) UpdateUser(ctx context.Context, req schema.UserUpdat
 		update.SetReadme(req.Readme)
 	}
 
-	user, err := update.Save(ctx)
+	u, err := update.Save(ctx)
 	if err != nil {
 		s.logger.Error("更新用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("更新用户信息失败: %w", err)
 	}
 
-	s.logger.Info("用户信息更新成功", zap.Int("user_id", user.ID), tracing.WithTraceIDField(ctx))
-	return user, nil
+	s.logger.Info("用户信息更新成功", zap.Int("user_id", u.ID), tracing.WithTraceIDField(ctx))
+	return u, nil
 }
 
 // UpdateUserStatus 更新用户状态
@@ -311,7 +311,7 @@ func (s *UserManageService) UpdateUserPoints(ctx context.Context, req schema.Use
 	s.logger.Info("更新用户积分", zap.Int("user_id", req.ID), zap.Int("points", req.Points), tracing.WithTraceIDField(ctx))
 
 	// 获取用户当前积分
-	user, err := s.db.User.Get(ctx, req.ID)
+	u, err := s.db.User.Get(ctx, req.ID)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return errors.New("用户不存在")
@@ -321,7 +321,7 @@ func (s *UserManageService) UpdateUserPoints(ctx context.Context, req schema.Use
 	}
 
 	// 计算新积分
-	newPoints := user.Points + req.Points
+	newPoints := u.Points + req.Points
 	if newPoints < 0 {
 		return errors.New("积分不能为负数")
 	}
@@ -341,7 +341,7 @@ func (s *UserManageService) UpdateUserPoints(ctx context.Context, req schema.Use
 		req.ID,
 		userbalancelog.TypePoints,
 		req.Points,
-		user.Points,
+		u.Points,
 		newPoints,
 		req.Reason,
 		"",  // 操作者名称，这里可以后续从context中获取
@@ -356,7 +356,7 @@ func (s *UserManageService) UpdateUserPoints(ctx context.Context, req schema.Use
 		// 不影响主流程，只记录错误
 	}
 
-	s.logger.Info("用户积分更新成功", zap.Int("old_points", user.Points), zap.Int("new_points", newPoints), tracing.WithTraceIDField(ctx))
+	s.logger.Info("用户积分更新成功", zap.Int("old_points", u.Points), zap.Int("new_points", newPoints), tracing.WithTraceIDField(ctx))
 	return nil
 }
 
@@ -365,7 +365,7 @@ func (s *UserManageService) UpdateUserCurrency(ctx context.Context, req schema.U
 	s.logger.Info("更新用户货币", zap.Int("user_id", req.ID), zap.Int("currency", req.Currency), tracing.WithTraceIDField(ctx))
 
 	// 获取用户当前货币
-	user, err := s.db.User.Get(ctx, req.ID)
+	u, err := s.db.User.Get(ctx, req.ID)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return errors.New("用户不存在")
@@ -375,7 +375,7 @@ func (s *UserManageService) UpdateUserCurrency(ctx context.Context, req schema.U
 	}
 
 	// 计算新货币
-	newCurrency := user.Currency + req.Currency
+	newCurrency := u.Currency + req.Currency
 	if newCurrency < 0 {
 		return errors.New("货币不能为负数")
 	}
@@ -395,7 +395,7 @@ func (s *UserManageService) UpdateUserCurrency(ctx context.Context, req schema.U
 		req.ID,
 		userbalancelog.TypeCurrency,
 		req.Currency,
-		user.Currency,
+		u.Currency,
 		newCurrency,
 		req.Reason,
 		"",  // 操作者名称，这里可以后续从context中获取
@@ -410,7 +410,7 @@ func (s *UserManageService) UpdateUserCurrency(ctx context.Context, req schema.U
 		// 不影响主流程，只记录错误
 	}
 
-	s.logger.Info("用户货币更新成功", zap.Int("old_currency", user.Currency), zap.Int("new_currency", newCurrency), tracing.WithTraceIDField(ctx))
+	s.logger.Info("用户货币更新成功", zap.Int("old_currency", u.Currency), zap.Int("new_currency", newCurrency), tracing.WithTraceIDField(ctx))
 	return nil
 }
 
@@ -464,7 +464,7 @@ func (s *UserManageService) GetUserDetail(ctx context.Context, id int) (*schema.
 	s.logger.Info("获取用户详情", zap.Int("user_id", id), tracing.WithTraceIDField(ctx))
 
 	// 获取用户信息
-	user, err := s.db.User.Query().
+	u, err := s.db.User.Query().
 		Where(user.ID(id)).
 		WithManagedCategories().
 		Only(ctx)
@@ -478,8 +478,8 @@ func (s *UserManageService) GetUserDetail(ctx context.Context, id int) (*schema.
 
 	// 构建管理的版块列表
 	managedCategories := make([]schema.CategoryBasicInfo, 0)
-	if user.Edges.ManagedCategories != nil {
-		for _, cat := range user.Edges.ManagedCategories {
+	if u.Edges.ManagedCategories != nil {
+		for _, cat := range u.Edges.ManagedCategories {
 			managedCategories = append(managedCategories, schema.CategoryBasicInfo{
 				ID:   cat.ID,
 				Name: cat.Name,
@@ -490,21 +490,21 @@ func (s *UserManageService) GetUserDetail(ctx context.Context, id int) (*schema.
 
 	// 构建响应数据
 	response := &schema.UserDetailResponse{
-		ID:                user.ID,
-		Username:          user.Username,
-		Email:             user.Email,
-		Avatar:            user.Avatar,
-		Signature:         user.Signature,
-		Readme:            user.Readme,
-		EmailVerified:     user.EmailVerified,
-		Points:            user.Points,
-		Currency:          user.Currency,
-		PostCount:         user.PostCount,
-		CommentCount:      user.CommentCount,
-		Status:            user.Status.String(),
-		Role:              user.Role.String(),
-		CreatedAt:         user.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:         user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		ID:                u.ID,
+		Username:          u.Username,
+		Email:             u.Email,
+		Avatar:            u.Avatar,
+		Signature:         u.Signature,
+		Readme:            u.Readme,
+		EmailVerified:     u.EmailVerified,
+		Points:            u.Points,
+		Currency:          u.Currency,
+		PostCount:         u.PostCount,
+		CommentCount:      u.CommentCount,
+		Status:            u.Status.String(),
+		Role:              u.Role.String(),
+		CreatedAt:         u.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		UpdatedAt:         u.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 		ManagedCategories: managedCategories,
 	}
 
@@ -646,7 +646,7 @@ func (s *UserManageService) GetUserBalanceSummary(ctx context.Context, userID in
 	s.logger.Info("获取用户余额汇总信息", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
 	// 获取用户信息
-	user, err := s.db.User.Get(ctx, userID)
+	u, err := s.db.User.Get(ctx, userID)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, errors.New("用户不存在")
@@ -715,10 +715,10 @@ func (s *UserManageService) GetUserBalanceSummary(ctx context.Context, userID in
 
 	// 构建响应数据
 	summary := &schema.UserBalanceSummary{
-		UserID:           user.ID,
-		Username:         user.Username,
-		CurrentPoints:    user.Points,
-		CurrentCurrency:  user.Currency,
+		UserID:           u.ID,
+		Username:         u.Username,
+		CurrentPoints:    u.Points,
+		CurrentCurrency:  u.Currency,
 		TotalPointsIn:    pointsIn,
 		TotalPointsOut:   -pointsOut, // 转为正数
 		TotalCurrencyIn:  currencyIn,

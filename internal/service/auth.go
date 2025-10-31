@@ -7,12 +7,13 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/user"
+	_const "github.com/PokeForum/PokeForum/internal/const"
+	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/utils"
 	"github.com/click33/sa-token-go/stputil"
-	"github.com/gomodule/redigo/redis"
 	"go.uber.org/zap"
 )
 
@@ -28,23 +29,35 @@ type IAuthService interface {
 
 // AuthService 认证服务实现
 type AuthService struct {
-	db     *ent.Client
-	cache  *redis.Pool
-	logger *zap.Logger
+	db       *ent.Client
+	cache    cache.ICacheService
+	logger   *zap.Logger
+	settings ISettingsService // 添加设置服务依赖
 }
 
 // NewAuthService 创建认证服务实例
-func NewAuthService(db *ent.Client, cache *redis.Pool, logger *zap.Logger) IAuthService {
+func NewAuthService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger, settings ISettingsService) IAuthService {
 	return &AuthService{
-		db:     db,
-		cache:  cache,
-		logger: logger,
+		db:       db,
+		cache:    cacheService,
+		logger:   logger,
+		settings: settings,
 	}
 }
 
 // Register 用户注册
 // 验证用户名和邮箱是否已存在，然后创建新用户
 func (s *AuthService) Register(ctx context.Context, req schema.RegisterRequest) (*ent.User, error) {
+	// 检查系统是否允许注册
+	isCloseRegister, err := s.settings.GetSettingByKey(ctx, _const.SafeIsCloseRegister, _const.SettingBoolTrue.String())
+	if err != nil {
+		s.logger.Error("查询注册设置失败", tracing.WithTraceIDField(ctx), zap.Error(err))
+		return nil, fmt.Errorf("查询注册设置失败: %w", err)
+	}
+	if isCloseRegister == "true" {
+		return nil, errors.New("系统已关闭注册功能")
+	}
+
 	// 检查用户名是否已存在
 	existingUser, err := s.db.User.Query().
 		Where(user.UsernameEQ(req.Username)).

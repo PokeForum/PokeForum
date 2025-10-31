@@ -8,9 +8,9 @@ import (
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/user"
+	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
-	"github.com/gomodule/redigo/redis"
 	"go.uber.org/zap"
 )
 
@@ -35,15 +35,15 @@ type ICategoryManageService interface {
 // CategoryManageService 版块管理服务实现
 type CategoryManageService struct {
 	db     *ent.Client
-	cache  *redis.Pool
+	cache  cache.ICacheService
 	logger *zap.Logger
 }
 
 // NewCategoryManageService 创建版块管理服务实例
-func NewCategoryManageService(db *ent.Client, cache *redis.Pool, logger *zap.Logger) ICategoryManageService {
+func NewCategoryManageService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) ICategoryManageService {
 	return &CategoryManageService{
 		db:     db,
-		cache:  cache,
+		cache:  cacheService,
 		logger: logger,
 	}
 }

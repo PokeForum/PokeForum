@@ -11,9 +11,9 @@ import (
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
 	"github.com/PokeForum/PokeForum/ent/user"
+	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
-	"github.com/gomodule/redigo/redis"
 	"go.uber.org/zap"
 )
 
@@ -46,15 +46,15 @@ type IPostService interface {
 // PostService 帖子服务实现
 type PostService struct {
 	db     *ent.Client
-	cache  *redis.Pool
+	cache  cache.ICacheService
 	logger *zap.Logger
 }
 
 // NewPostService 创建帖子服务实例
-func NewPostService(db *ent.Client, cache *redis.Pool, logger *zap.Logger) IPostService {
+func NewPostService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) IPostService {
 	return &PostService{
 		db:     db,
-		cache:  cache,
+		cache:  cacheService,
 		logger: logger,
 	}
 }
@@ -709,13 +709,9 @@ func (s *PostService) CheckEditPermission(ctx context.Context, userID, postID in
 	// 生成Redis键名：post:edit:limit:{userID}:{postID}
 	redisKey := fmt.Sprintf("post:edit:limit:%d:%d", userID, postID)
 
-	// 获取Redis连接
-	conn := s.cache.Get()
-	defer conn.Close()
-
 	// 检查是否在限制期内
-	lastEditTime, err := redis.String(conn.Do("GET", redisKey))
-	if err != nil && !errors.Is(err, redis.ErrNil) {
+	lastEditTime, err := s.cache.Get(redisKey)
+	if err != nil {
 		s.logger.Error("获取编辑限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return false, fmt.Errorf("获取编辑限制失败: %w", err)
 	}
@@ -738,7 +734,7 @@ func (s *PostService) CheckEditPermission(ctx context.Context, userID, postID in
 
 	// 设置新的编辑时间限制
 	currentTime := time.Now().Format(time.RFC3339)
-	_, err = conn.Do("SETEX", redisKey, 180, currentTime) // 180秒 = 3分钟
+	err = s.cache.SetEx(redisKey, currentTime, 180) // 180秒 = 3分钟
 	if err != nil {
 		s.logger.Error("设置编辑限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		// 设置失败，但允许操作
@@ -753,13 +749,9 @@ func (s *PostService) CheckPrivatePermission(ctx context.Context, userID, postID
 	// 生成Redis键名：post:private:limit:{userID}:{postID}
 	redisKey := fmt.Sprintf("post:private:limit:%d:%d", userID, postID)
 
-	// 获取Redis连接
-	conn := s.cache.Get()
-	defer conn.Close()
-
 	// 检查是否在限制期内
-	lastPrivateTime, err := redis.String(conn.Do("GET", redisKey))
-	if err != nil && !errors.Is(err, redis.ErrNil) {
+	lastPrivateTime, err := s.cache.Get(redisKey)
+	if err != nil {
 		s.logger.Error("获取私有设置限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return false, fmt.Errorf("获取私有设置限制失败: %w", err)
 	}
@@ -782,7 +774,7 @@ func (s *PostService) CheckPrivatePermission(ctx context.Context, userID, postID
 
 	// 设置新的私有设置时间限制
 	currentTime := time.Now().Format(time.RFC3339)
-	_, err = conn.Do("SETEX", redisKey, 259200, currentTime) // 259200秒 = 3天
+	err = s.cache.SetEx(redisKey, currentTime, 259200) // 259200秒 = 3天
 	if err != nil {
 		s.logger.Error("设置私有限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		// 设置失败，但允许操作

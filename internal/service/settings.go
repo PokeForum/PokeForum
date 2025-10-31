@@ -10,10 +10,10 @@ import (
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/settings"
 	_const "github.com/PokeForum/PokeForum/internal/const"
+	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/email"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
-	"github.com/gomodule/redigo/redis"
 	"github.com/wneessen/go-mail"
 	"go.uber.org/zap"
 )
@@ -48,20 +48,26 @@ type ISettingsService interface {
 	GetSMTPConfig(ctx context.Context) (*schema.EmailSMTPConfigResponse, error)
 	UpdateSMTPConfig(ctx context.Context, req schema.EmailSMTPConfigRequest) error
 	SendTestEmail(ctx context.Context, toEmail string) error
+
+	// GetSettingByKey 根据key获取设置值 - 公共方法
+	GetSettingByKey(ctx context.Context, key string, defaultValue string) (string, error)
+
+	// ClearSettingCache 清理指定设置的缓存 - 公共方法
+	ClearSettingCache(key string)
 }
 
 // SettingsService 设置服务实现
 type SettingsService struct {
 	db     *ent.Client
-	cache  *redis.Pool
+	cache  cache.ICacheService
 	logger *zap.Logger
 }
 
 // NewSettingsService 创建设置服务实例
-func NewSettingsService(db *ent.Client, cache *redis.Pool, logger *zap.Logger) ISettingsService {
+func NewSettingsService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) ISettingsService {
 	return &SettingsService{
 		db:     db,
-		cache:  cache,
+		cache:  cacheService,
 		logger: logger,
 	}
 }
@@ -119,6 +125,9 @@ func (s *SettingsService) upsertSetting(ctx context.Context, module settings.Mod
 			return fmt.Errorf("创建配置 %s 失败: %w", key, err)
 		}
 	}
+
+	// 清理对应的Redis缓存
+	s.ClearSettingCache(key)
 
 	return nil
 }
@@ -508,4 +517,47 @@ func (s *SettingsService) SendTestEmail(ctx context.Context, toEmail string) err
 	}
 
 	return nil
+}
+
+// GetSettingByKey 根据key获取设置值 - 公共方法
+// 提供给其他服务查询单个设置项的通用方法，使用Redis缓存加速查询
+func (s *SettingsService) GetSettingByKey(ctx context.Context, key string, defaultValue string) (string, error) {
+	// 先从Redis缓存中查询
+	cacheKey := _const.GetSettingKey(key)
+	cachedValue, err := s.cache.Get(cacheKey)
+	if err == nil && cachedValue != "" {
+		// 缓存命中，直接返回
+		return cachedValue, nil
+	}
+
+	// 缓存未命中，从数据库查询
+	setting, err := s.db.Settings.Query().
+		Where(settings.KeyEQ(key)).
+		First(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			// 如果设置不存在，缓存默认值并返回默认值
+			if err = s.cache.SetEx(cacheKey, defaultValue, 300); err != nil {
+				s.logger.Warn("设置缓存默认值失败", tracing.WithTraceIDField(ctx), zap.Error(err))
+			} // 缓存5分钟
+			return defaultValue, nil
+		}
+		s.logger.Error("查询设置失败", tracing.WithTraceIDField(ctx), zap.String("key", key), zap.Error(err))
+		return "", fmt.Errorf("查询设置失败: %w", err)
+	}
+
+	// 将查询结果缓存到Redis，设置1天过期时间
+	if err = s.cache.SetEx(cacheKey, setting.Value, 86400); err != nil {
+		s.logger.Warn("缓存设置值失败", tracing.WithTraceIDField(ctx), zap.String("key", key), zap.Error(err))
+	}
+
+	return setting.Value, nil
+}
+
+// ClearSettingCache 清理指定设置的Redis缓存 - 公共方法
+func (s *SettingsService) ClearSettingCache(key string) {
+	cacheKey := _const.GetSettingKey(key)
+	if _, err := s.cache.Del(cacheKey); err != nil {
+		s.logger.Warn("清理设置缓存失败", zap.String("key", key), zap.Error(err))
+	}
 }

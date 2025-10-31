@@ -9,9 +9,9 @@ import (
 	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/user"
+	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
-	"github.com/gomodule/redigo/redis"
 	"go.uber.org/zap"
 )
 
@@ -40,15 +40,15 @@ type IPostManageService interface {
 // PostManageService 帖子管理服务实现
 type PostManageService struct {
 	db     *ent.Client
-	cache  *redis.Pool
+	cache  cache.ICacheService
 	logger *zap.Logger
 }
 
 // NewPostManageService 创建帖子管理服务实例
-func NewPostManageService(db *ent.Client, cache *redis.Pool, logger *zap.Logger) IPostManageService {
+func NewPostManageService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) IPostManageService {
 	return &PostManageService{
 		db:     db,
-		cache:  cache,
+		cache:  cacheService,
 		logger: logger,
 	}
 }

@@ -13,9 +13,9 @@ import (
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
 	"github.com/PokeForum/PokeForum/ent/user"
+	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
-	"github.com/gomodule/redigo/redis"
 	"go.uber.org/zap"
 )
 
@@ -45,15 +45,15 @@ type IUserProfileService interface {
 // UserProfileService 用户个人中心服务实现
 type UserProfileService struct {
 	db     *ent.Client
-	cache  *redis.Pool
+	cache  cache.ICacheService
 	logger *zap.Logger
 }
 
 // NewUserProfileService 创建用户个人中心服务实例
-func NewUserProfileService(db *ent.Client, cache *redis.Pool, logger *zap.Logger) IUserProfileService {
+func NewUserProfileService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) IUserProfileService {
 	return &UserProfileService{
 		db:     db,
-		cache:  cache,
+		cache:  cacheService,
 		logger: logger,
 	}
 }
@@ -487,13 +487,9 @@ func (s *UserProfileService) CheckUsernameUpdatePermission(ctx context.Context, 
 	// 生成Redis键名：user:username:update:limit:{userID}
 	redisKey := fmt.Sprintf("user:username:update:limit:%d", userID)
 
-	// 获取Redis连接
-	conn := s.cache.Get()
-	defer conn.Close()
-
 	// 检查是否在限制期内
-	lastUpdateTime, err := redis.String(conn.Do("GET", redisKey))
-	if err != nil && !errors.Is(err, redis.ErrNil) {
+	lastUpdateTime, err := s.cache.Get(redisKey)
+	if err != nil {
 		s.logger.Error("获取用户名修改限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return false, fmt.Errorf("获取用户名修改限制失败: %w", err)
 	}
@@ -516,7 +512,7 @@ func (s *UserProfileService) CheckUsernameUpdatePermission(ctx context.Context, 
 
 	// 设置新的修改时间限制
 	currentTime := time.Now().Format(time.RFC3339)
-	_, err = conn.Do("SETEX", redisKey, 604800, currentTime) // 604800秒 = 7天
+	err = s.cache.SetEx(redisKey, currentTime, 604800) // 604800秒 = 7天
 	if err != nil {
 		s.logger.Error("设置用户名修改限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		// 设置失败，但允许操作

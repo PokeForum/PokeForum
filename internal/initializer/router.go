@@ -7,6 +7,7 @@ import (
 	"github.com/PokeForum/PokeForum/internal/configs"
 	"github.com/PokeForum/PokeForum/internal/controller"
 	"github.com/PokeForum/PokeForum/internal/middleware"
+	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 	"github.com/PokeForum/PokeForum/internal/service"
 	saGin "github.com/click33/sa-token-go/integrations/gin"
@@ -18,49 +19,102 @@ import (
 )
 
 func InjectorSrv(injector *do.Injector) {
-	// 注册 AuthService
-	do.Provide(injector, func(i *do.Injector) (service.IAuthService, error) {
-		return service.NewAuthService(configs.DB, configs.Cache, configs.Log), nil
+	// 注册 CacheService - 最先注册，方便所有Service使用
+	do.Provide(injector, func(i *do.Injector) (cache.ICacheService, error) {
+		return cache.NewRedisCacheService(configs.Cache, configs.Log), nil
 	})
-	// 注册 SettingsService
+
+	// 注册 SettingsService - 需要先注册，方便其他Service依赖它
 	do.Provide(injector, func(i *do.Injector) (service.ISettingsService, error) {
-		return service.NewSettingsService(configs.DB, configs.Cache, configs.Log), nil
+		cacheService, err := do.Invoke[cache.ICacheService](injector)
+		if err != nil {
+			return nil, err
+		}
+		return service.NewSettingsService(configs.DB, cacheService, configs.Log), nil
+	})
+	// 注册 AuthService - 现在依赖SettingsService
+	do.Provide(injector, func(i *do.Injector) (service.IAuthService, error) {
+		cacheService, err := do.Invoke[cache.ICacheService](injector)
+		if err != nil {
+			return nil, err
+		}
+		settingsService, err := do.Invoke[service.ISettingsService](injector)
+		if err != nil {
+			return nil, err
+		}
+		return service.NewAuthService(configs.DB, cacheService, configs.Log, settingsService), nil
 	})
 	// 注册 UserManageService
 	do.Provide(injector, func(i *do.Injector) (service.IUserManageService, error) {
-		return service.NewUserManageService(configs.DB, configs.Cache, configs.Log), nil
+		cacheService, err := do.Invoke[cache.ICacheService](injector)
+		if err != nil {
+			return nil, err
+		}
+		return service.NewUserManageService(configs.DB, cacheService, configs.Log), nil
 	})
 	// 注册 CategoryManageService
 	do.Provide(injector, func(i *do.Injector) (service.ICategoryManageService, error) {
-		return service.NewCategoryManageService(configs.DB, configs.Cache, configs.Log), nil
+		cacheService, err := do.Invoke[cache.ICacheService](injector)
+		if err != nil {
+			return nil, err
+		}
+		return service.NewCategoryManageService(configs.DB, cacheService, configs.Log), nil
 	})
 	// 注册 PostManageService
 	do.Provide(injector, func(i *do.Injector) (service.IPostManageService, error) {
-		return service.NewPostManageService(configs.DB, configs.Cache, configs.Log), nil
+		cacheService, err := do.Invoke[cache.ICacheService](injector)
+		if err != nil {
+			return nil, err
+		}
+		return service.NewPostManageService(configs.DB, cacheService, configs.Log), nil
 	})
 	// 注册 CommentManageService
 	do.Provide(injector, func(i *do.Injector) (service.ICommentManageService, error) {
-		return service.NewCommentManageService(configs.DB, configs.Cache, configs.Log), nil
+		cacheService, err := do.Invoke[cache.ICacheService](injector)
+		if err != nil {
+			return nil, err
+		}
+		return service.NewCommentManageService(configs.DB, cacheService, configs.Log), nil
 	})
 	// 注册 DashboardService
 	do.Provide(injector, func(i *do.Injector) (service.IDashboardService, error) {
-		return service.NewDashboardService(configs.DB, configs.Cache, configs.Log), nil
+		cacheService, err := do.Invoke[cache.ICacheService](injector)
+		if err != nil {
+			return nil, err
+		}
+		return service.NewDashboardService(configs.DB, cacheService, configs.Log), nil
 	})
 	// 注册 ModeratorService
 	do.Provide(injector, func(i *do.Injector) (service.IModeratorService, error) {
-		return service.NewModeratorService(configs.DB, configs.Cache, configs.Log), nil
+		cacheService, err := do.Invoke[cache.ICacheService](injector)
+		if err != nil {
+			return nil, err
+		}
+		return service.NewModeratorService(configs.DB, cacheService, configs.Log), nil
 	})
 	// 注册 PostService
 	do.Provide(injector, func(i *do.Injector) (service.IPostService, error) {
-		return service.NewPostService(configs.DB, configs.Cache, configs.Log), nil
+		cacheService, err := do.Invoke[cache.ICacheService](injector)
+		if err != nil {
+			return nil, err
+		}
+		return service.NewPostService(configs.DB, cacheService, configs.Log), nil
 	})
 	// 注册 CommentService
 	do.Provide(injector, func(i *do.Injector) (service.ICommentService, error) {
-		return service.NewCommentService(configs.DB, configs.Cache, configs.Log), nil
+		cacheService, err := do.Invoke[cache.ICacheService](injector)
+		if err != nil {
+			return nil, err
+		}
+		return service.NewCommentService(configs.DB, cacheService, configs.Log), nil
 	})
 	// 注册 UserProfileService
 	do.Provide(injector, func(i *do.Injector) (service.IUserProfileService, error) {
-		return service.NewUserProfileService(configs.DB, configs.Cache, configs.Log), nil
+		cacheService, err := do.Invoke[cache.ICacheService](injector)
+		if err != nil {
+			return nil, err
+		}
+		return service.NewUserProfileService(configs.DB, cacheService, configs.Log), nil
 	})
 }
 

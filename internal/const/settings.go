@@ -1,5 +1,24 @@
 package _const
 
+// SettingPrefix 缓存前缀
+const SettingPrefix = "setting:"
+
+// GetSettingKey 获取设置键名
+func GetSettingKey(key string) string {
+	return SettingPrefix + key
+}
+
+type SettingBool string
+
+const (
+	SettingBoolTrue  SettingBool = "true"
+	SettingBoolFalse SettingBool = "false"
+)
+
+func (s SettingBool) String() string {
+	return string(s)
+}
+
 // 常规设置
 const (
 	// RoutineWebSiteLogo 网站Logo

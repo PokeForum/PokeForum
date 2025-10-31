@@ -10,9 +10,9 @@ import (
 	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/user"
+	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
-	"github.com/gomodule/redigo/redis"
 	"go.uber.org/zap"
 )
 
@@ -31,15 +31,15 @@ type IDashboardService interface {
 // DashboardService 仪表盘服务实现
 type DashboardService struct {
 	db     *ent.Client
-	cache  *redis.Pool
+	cache  cache.ICacheService
 	logger *zap.Logger
 }
 
 // NewDashboardService 创建仪表盘服务实例
-func NewDashboardService(db *ent.Client, cache *redis.Pool, logger *zap.Logger) IDashboardService {
+func NewDashboardService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) IDashboardService {
 	return &DashboardService{
 		db:     db,
-		cache:  cache,
+		cache:  cacheService,
 		logger: logger,
 	}
 }

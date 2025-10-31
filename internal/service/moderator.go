@@ -9,9 +9,9 @@ import (
 	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/user"
+	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
-	"github.com/gomodule/redigo/redis"
 	"go.uber.org/zap"
 )
 
@@ -42,15 +42,15 @@ type IModeratorService interface {
 // ModeratorService 版主服务实现
 type ModeratorService struct {
 	db     *ent.Client
-	cache  *redis.Pool
+	cache  cache.ICacheService
 	logger *zap.Logger
 }
 
 // NewModeratorService 创建版主服务实例
-func NewModeratorService(db *ent.Client, cache *redis.Pool, logger *zap.Logger) IModeratorService {
+func NewModeratorService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) IModeratorService {
 	return &ModeratorService{
 		db:     db,
-		cache:  cache,
+		cache:  cacheService,
 		logger: logger,
 	}
 }
