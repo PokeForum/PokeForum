@@ -174,8 +174,13 @@ func Routers(injector *do.Injector) *gin.Engine {
 				*/
 				// 发布评论
 				// 编辑评论
-				// 点赞评论
-				// 点踩评论
+				// 点赞评论(单向, 不可取消点赞)
+				// 点踩评论(单向, 不可取消点赞)
+				// 获取评论列表
+				// 获取评论详情
+				CommentGroup := ForumGroup.Group("/comments")
+				CommentCon := controller.NewCommentController(injector)
+				CommentCon.CommentRouter(CommentGroup)
 			}
 		}
 
