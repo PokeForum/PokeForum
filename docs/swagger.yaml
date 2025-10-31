@@ -3263,7 +3263,7 @@ paths:
       summary: 获取版块列表
       tags:
       - '[用户]版块'
-  /forum/comments:
+  /comments:
     get:
       consumes:
       - application/json
@@ -3396,7 +3396,7 @@ paths:
       summary: 更新评论
       tags:
       - '[用户]评论'
-  /forum/comments/{id}:
+  /comments/{id}:
     get:
       consumes:
       - application/json
@@ -3434,7 +3434,7 @@ paths:
       summary: 获取评论详情
       tags:
       - '[用户]评论'
-  /forum/comments/dislike:
+  /comments/dislike:
     post:
       consumes:
       - application/json
@@ -3473,7 +3473,7 @@ paths:
       summary: 点踩评论
       tags:
       - '[用户]评论'
-  /forum/comments/like:
+  /comments/like:
     post:
       consumes:
       - application/json

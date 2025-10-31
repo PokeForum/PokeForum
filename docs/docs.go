@@ -215,7 +215,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/forum/comments": {
+        "/comments": {
             "get": {
                 "description": "分页获取指定帖子的评论列表，支持排序",
                 "consumes": [
@@ -428,7 +428,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/forum/comments/dislike": {
+        "/comments/dislike": {
             "post": {
                 "description": "用户点踩评论，单向操作不可取消",
                 "consumes": [
@@ -492,7 +492,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/forum/comments/like": {
+        "/comments/like": {
             "post": {
                 "description": "用户点赞评论，单向操作不可取消",
                 "consumes": [
@@ -556,7 +556,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/forum/comments/{id}": {
+        "/comments/{id}": {
             "get": {
                 "description": "根据评论ID获取评论详细信息",
                 "consumes": [
