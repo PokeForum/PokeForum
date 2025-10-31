@@ -191,14 +191,14 @@ func (s *AuthService) GetUserByID(ctx context.Context, id int) (*ent.User, error
 
 // isEmailDomainInWhitelist 检查邮箱域名是否在白名单中
 // emailDomain: 要检查的域名，如 "gmail.com"
-// whitelist: 白名单字符串，每行一个域名，如 "gmail.com\nqq.com"
+// whitelist: 白名单字符串，用英文逗号分隔域名，如 "gmail.com,qq.com"
 func isEmailDomainInWhitelist(emailDomain, whitelist string) bool {
 	if whitelist == "" {
 		return false // 白名单为空，不允许任何域名
 	}
 
-	// 将白名单按行分割
-	domains := strings.Split(whitelist, "\n")
+	// 将白名单按英文逗号分割
+	domains := strings.Split(whitelist, ",")
 
 	// 遍历白名单中的每个域名
 	for _, domain := range domains {
