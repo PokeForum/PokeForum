@@ -54,7 +54,7 @@ func (s *AuthService) Register(ctx context.Context, req schema.RegisterRequest) 
 		s.logger.Error("查询注册设置失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("查询注册设置失败: %w", err)
 	}
-	if isCloseRegister == "true" {
+	if isCloseRegister == _const.SettingBoolTrue.String() {
 		return nil, errors.New("系统已关闭注册功能")
 	}
 
