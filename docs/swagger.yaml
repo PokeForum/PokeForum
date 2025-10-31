@@ -3105,1404 +3105,6 @@ info:
   title: PokeForum API
   version: "1.0"
 paths:
-  /api/v1/forum/comments:
-    get:
-      consumes:
-      - application/json
-      description: 分页获取指定帖子的评论列表，支持排序
-      parameters:
-      - description: 帖子ID
-        in: query
-        name: post_id
-        required: true
-        type: integer
-      - description: 页码
-        in: query
-        name: page
-        required: true
-        type: integer
-      - description: 每页数量
-        in: query
-        name: page_size
-        required: true
-        type: integer
-      - description: 排序字段：created_at, like_count
-        example: '"created_at"'
-        in: query
-        name: sort_by
-        type: string
-      - description: 是否降序
-        in: query
-        name: sort_desc
-        type: boolean
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 获取成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserCommentListResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 获取评论列表
-      tags:
-      - '[用户]评论'
-    post:
-      consumes:
-      - application/json
-      description: 用户创建新评论，支持回复评论和回复用户
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 创建评论请求
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.UserCommentCreateRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 创建成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserCommentCreateResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 创建评论
-      tags:
-      - '[用户]评论'
-    put:
-      consumes:
-      - application/json
-      description: 用户更新自己的评论内容
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 更新评论请求
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.UserCommentUpdateRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 更新成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserCommentUpdateResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "403":
-          description: 权限不足
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 更新评论
-      tags:
-      - '[用户]评论'
-  /api/v1/forum/comments/{id}:
-    get:
-      consumes:
-      - application/json
-      description: 根据评论ID获取评论详细信息
-      parameters:
-      - description: 评论ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 获取成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserCommentDetailResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "404":
-          description: 评论不存在
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 获取评论详情
-      tags:
-      - '[用户]评论'
-  /api/v1/forum/comments/dislike:
-    post:
-      consumes:
-      - application/json
-      description: 用户点踩评论，单向操作不可取消
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 点踩评论请求
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.UserCommentActionRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 点踩成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserCommentActionResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 点踩评论
-      tags:
-      - '[用户]评论'
-  /api/v1/forum/comments/like:
-    post:
-      consumes:
-      - application/json
-      description: 用户点赞评论，单向操作不可取消
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 点赞评论请求
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.UserCommentActionRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 点赞成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserCommentActionResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 点赞评论
-      tags:
-      - '[用户]评论'
-  /api/v1/forum/posts:
-    get:
-      consumes:
-      - application/json
-      description: 获取帖子列表，支持分页和排序
-      parameters:
-      - description: 版块ID
-        in: query
-        name: category_id
-        type: integer
-      - default: 1
-        description: 页码，默认1
-        in: query
-        name: page
-        type: integer
-      - default: 20
-        description: 每页数量，默认20，最大100
-        in: query
-        name: page_size
-        type: integer
-      - default: latest
-        description: 排序方式：latest(最新)、hot(热门)、essence(精华)
-        in: query
-        name: sort
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 获取成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserPostListResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 获取帖子列表
-      tags:
-      - '[用户]主题贴'
-    post:
-      consumes:
-      - application/json
-      description: 用户发布新的主题帖
-      parameters:
-      - description: 帖子信息
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.UserPostCreateRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 发布成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserPostCreateResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未登录
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 发布新帖
-      tags:
-      - '[用户]主题贴'
-    put:
-      consumes:
-      - application/json
-      description: 用户编辑自己的帖子（每三分钟可操作一次）
-      parameters:
-      - description: 帖子信息
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.UserPostUpdateRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 编辑成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserPostUpdateResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未登录
-          schema:
-            $ref: '#/definitions/response.Data'
-        "403":
-          description: 权限不足或操作过于频繁
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 编辑帖子
-      tags:
-      - '[用户]主题贴'
-  /api/v1/forum/posts/{id}:
-    get:
-      consumes:
-      - application/json
-      description: 获取指定帖子的详细信息，并增加浏览数
-      parameters:
-      - description: 帖子ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 获取成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserPostDetailResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "404":
-          description: 帖子不存在
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 获取帖子详情
-      tags:
-      - '[用户]主题贴'
-  /api/v1/forum/posts/dislike:
-    post:
-      consumes:
-      - application/json
-      description: 用户点踩帖子（单向，不可取消点踩）
-      parameters:
-      - description: 帖子信息
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.UserPostActionRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 点踩成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserPostActionResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未登录
-          schema:
-            $ref: '#/definitions/response.Data'
-        "403":
-          description: 已经点踩过
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 点踩帖子
-      tags:
-      - '[用户]主题贴'
-  /api/v1/forum/posts/draft:
-    post:
-      consumes:
-      - application/json
-      description: 用户保存帖子草稿
-      parameters:
-      - description: 帖子信息
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.UserPostCreateRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 保存成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserPostCreateResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未登录
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 保存草稿
-      tags:
-      - '[用户]主题贴'
-  /api/v1/forum/posts/favorite:
-    post:
-      consumes:
-      - application/json
-      description: 用户收藏或取消收藏帖子（双向操作）
-      parameters:
-      - description: 帖子信息
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.UserPostActionRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 操作成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserPostActionResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未登录
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 收藏帖子
-      tags:
-      - '[用户]主题贴'
-  /api/v1/forum/posts/like:
-    post:
-      consumes:
-      - application/json
-      description: 用户点赞帖子（单向，不可取消点赞）
-      parameters:
-      - description: 帖子信息
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.UserPostActionRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 点赞成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserPostActionResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未登录
-          schema:
-            $ref: '#/definitions/response.Data'
-        "403":
-          description: 已经点赞过
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 点赞帖子
-      tags:
-      - '[用户]主题贴'
-  /api/v1/forum/posts/private:
-    put:
-      consumes:
-      - application/json
-      description: 用户设置帖子为私有或公开（每三日可操作一次）
-      parameters:
-      - description: 帖子信息
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.UserPostActionRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 设置成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserPostActionResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未登录
-          schema:
-            $ref: '#/definitions/response.Data'
-        "403":
-          description: 权限不足或操作过于频繁
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 设置帖子私有
-      tags:
-      - '[用户]主题贴'
-  /api/v1/moderator/categories:
-    get:
-      consumes:
-      - application/json
-      description: 获取当前版主有管理权限的所有版块列表
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 获取成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.ModeratorCategoriesResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "403":
-          description: 权限不足
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 获取版主管理的版块列表
-      tags:
-      - '[版主]版块管理'
-    put:
-      consumes:
-      - application/json
-      description: 版主编辑自己管理的版块信息
-      parameters:
-      - description: 版块信息
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.CategoryEditRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 编辑成功
-          schema:
-            $ref: '#/definitions/response.Data'
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "403":
-          description: 权限不足
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 编辑版块
-      tags:
-      - '[版主]版块管理'
-  /api/v1/moderator/categories/{category_id}/announcements:
-    get:
-      consumes:
-      - application/json
-      description: 获取指定版块的公告列表
-      parameters:
-      - description: 版块ID
-        in: path
-        name: category_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 获取成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/schema.CategoryAnnouncementResponse'
-                  type: array
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "403":
-          description: 权限不足
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 获取版块公告列表
-      tags:
-      - '[版主]版块管理'
-  /api/v1/moderator/categories/announcement:
-    post:
-      consumes:
-      - application/json
-      description: 版主为自己管理的版块创建公告
-      parameters:
-      - description: 公告信息
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.CategoryAnnouncementRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 创建成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.CategoryAnnouncementResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "403":
-          description: 权限不足
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 创建版块公告
-      tags:
-      - '[版主]版块管理'
-  /api/v1/moderator/posts:
-    put:
-      consumes:
-      - application/json
-      description: 版主编辑指定版块内的帖子内容
-      parameters:
-      - description: 帖子信息
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.PostEditRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 编辑成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.ModeratorPostResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "403":
-          description: 权限不足
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 编辑帖子
-      tags:
-      - '[版主]版块管理'
-  /api/v1/moderator/posts/ban:
-    post:
-      consumes:
-      - application/json
-      description: 版主封禁指定版块内的帖子
-      parameters:
-      - description: 封禁信息
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.PostBanRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 封禁成功
-          schema:
-            $ref: '#/definitions/response.Data'
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "403":
-          description: 权限不足
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 封禁帖子
-      tags:
-      - '[版主]版块管理'
-  /api/v1/moderator/posts/essence:
-    put:
-      consumes:
-      - application/json
-      description: 版主设置或取消帖子的精华状态
-      parameters:
-      - description: 精华信息
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.PostEssenceRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 设置成功
-          schema:
-            $ref: '#/definitions/response.Data'
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "403":
-          description: 权限不足
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 设置帖子精华
-      tags:
-      - '[版主]版块管理'
-  /api/v1/moderator/posts/lock:
-    put:
-      consumes:
-      - application/json
-      description: 版主锁定或解锁帖子，锁定后用户无法回复
-      parameters:
-      - description: 锁定信息
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.PostLockRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 设置成功
-          schema:
-            $ref: '#/definitions/response.Data'
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "403":
-          description: 权限不足
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 锁定帖子
-      tags:
-      - '[版主]版块管理'
-  /api/v1/moderator/posts/move:
-    put:
-      consumes:
-      - application/json
-      description: 版主将帖子移动到自己有权限的其他版块
-      parameters:
-      - description: 移动信息
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.PostMoveRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 移动成功
-          schema:
-            $ref: '#/definitions/response.Data'
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "403":
-          description: 权限不足
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 移动帖子
-      tags:
-      - '[版主]版块管理'
-  /api/v1/moderator/posts/pin:
-    put:
-      consumes:
-      - application/json
-      description: 版主置顶或取消置顶帖子
-      parameters:
-      - description: 置顶信息
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.PostPinRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 设置成功
-          schema:
-            $ref: '#/definitions/response.Data'
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "403":
-          description: 权限不足
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 置顶帖子
-      tags:
-      - '[版主]版块管理'
-  /api/v1/profile/avatar:
-    put:
-      consumes:
-      - application/json
-      description: 修改当前登录用户的头像
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 修改头像请求
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.UserUpdateAvatarRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 修改成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserUpdateAvatarResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 修改头像
-      tags:
-      - '[用户]个人中心'
-  /api/v1/profile/comments:
-    get:
-      consumes:
-      - application/json
-      description: 获取当前登录用户发布的评论列表，支持分页
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 页码
-        in: query
-        name: page
-        required: true
-        type: integer
-      - description: 每页数量
-        in: query
-        name: page_size
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 获取成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserProfileCommentsResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 获取用户评论列表
-      tags:
-      - '[用户]个人中心'
-  /api/v1/profile/email:
-    put:
-      consumes:
-      - application/json
-      description: 修改当前登录用户的邮箱地址
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 修改邮箱请求
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.UserUpdateEmailRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 修改成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserUpdateEmailResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 修改邮箱
-      tags:
-      - '[用户]个人中心'
-  /api/v1/profile/favorites:
-    get:
-      consumes:
-      - application/json
-      description: 获取当前登录用户收藏的帖子列表，支持分页
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 页码
-        in: query
-        name: page
-        required: true
-        type: integer
-      - description: 每页数量
-        in: query
-        name: page_size
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 获取成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserProfileFavoritesResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 获取用户收藏列表
-      tags:
-      - '[用户]个人中心'
-  /api/v1/profile/overview:
-    get:
-      consumes:
-      - application/json
-      description: 获取当前登录用户的个人信息和统计数据
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 获取成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserProfileOverviewResponse'
-              type: object
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 获取用户个人中心概览
-      tags:
-      - '[用户]个人中心'
-  /api/v1/profile/password:
-    put:
-      consumes:
-      - application/json
-      description: 修改当前登录用户的密码
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 修改密码请求
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.UserUpdatePasswordRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 修改成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserUpdatePasswordResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 修改密码
-      tags:
-      - '[用户]个人中心'
-  /api/v1/profile/posts:
-    get:
-      consumes:
-      - application/json
-      description: 获取当前登录用户发布的主题帖列表，支持分页和状态筛选
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 页码
-        in: query
-        name: page
-        required: true
-        type: integer
-      - description: 每页数量
-        in: query
-        name: page_size
-        required: true
-        type: integer
-      - description: 帖子状态筛选：Normal、Draft、Private
-        example: '"Normal"'
-        in: query
-        name: status
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 获取成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserProfilePostsResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 获取用户主题帖列表
-      tags:
-      - '[用户]个人中心'
-  /api/v1/profile/username:
-    put:
-      consumes:
-      - application/json
-      description: 修改当前登录用户的用户名（每七日可操作一次）
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 修改用户名请求
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.UserUpdateUsernameRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 修改成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.UserUpdateUsernameResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "403":
-          description: 操作过于频繁
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 修改用户名
-      tags:
-      - '[用户]个人中心'
   /auth/login:
     post:
       consumes:
@@ -4594,6 +3196,255 @@ paths:
       summary: 用户注册
       tags:
       - 认证
+  /forum/comments:
+    get:
+      consumes:
+      - application/json
+      description: 分页获取指定帖子的评论列表，支持排序
+      parameters:
+      - description: 帖子ID
+        in: query
+        name: post_id
+        required: true
+        type: integer
+      - description: 页码
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        required: true
+        type: integer
+      - description: 排序字段：created_at, like_count
+        example: '"created_at"'
+        in: query
+        name: sort_by
+        type: string
+      - description: 是否降序
+        in: query
+        name: sort_desc
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserCommentListResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取评论列表
+      tags:
+      - '[用户]评论'
+    post:
+      consumes:
+      - application/json
+      description: 用户创建新评论，支持回复评论和回复用户
+      parameters:
+      - description: 创建评论请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserCommentCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 创建成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserCommentCreateResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 创建评论
+      tags:
+      - '[用户]评论'
+    put:
+      consumes:
+      - application/json
+      description: 用户更新自己的评论内容
+      parameters:
+      - description: 更新评论请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserCommentUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserCommentUpdateResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "403":
+          description: 权限不足
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 更新评论
+      tags:
+      - '[用户]评论'
+  /forum/comments/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 根据评论ID获取评论详细信息
+      parameters:
+      - description: 评论ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserCommentDetailResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "404":
+          description: 评论不存在
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取评论详情
+      tags:
+      - '[用户]评论'
+  /forum/comments/dislike:
+    post:
+      consumes:
+      - application/json
+      description: 用户点踩评论，单向操作不可取消
+      parameters:
+      - description: 点踩评论请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserCommentActionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 点踩成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserCommentActionResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 点踩评论
+      tags:
+      - '[用户]评论'
+  /forum/comments/like:
+    post:
+      consumes:
+      - application/json
+      description: 用户点赞评论，单向操作不可取消
+      parameters:
+      - description: 点赞评论请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserCommentActionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 点赞成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserCommentActionResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 点赞评论
+      tags:
+      - '[用户]评论'
   /manage/categories:
     get:
       consumes:
@@ -5936,6 +4787,1094 @@ paths:
       summary: 更新用户状态
       tags:
       - '[管理员]用户管理'
+  /moderator/categories:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前版主有管理权限的所有版块列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.ModeratorCategoriesResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "403":
+          description: 权限不足
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取版主管理的版块列表
+      tags:
+      - '[版主]版块管理'
+    put:
+      consumes:
+      - application/json
+      description: 版主编辑自己管理的版块信息
+      parameters:
+      - description: 版块信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.CategoryEditRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 编辑成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "403":
+          description: 权限不足
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 编辑版块
+      tags:
+      - '[版主]版块管理'
+  /moderator/categories/{category_id}/announcements:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定版块的公告列表
+      parameters:
+      - description: 版块ID
+        in: path
+        name: category_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.CategoryAnnouncementResponse'
+                  type: array
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "403":
+          description: 权限不足
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取版块公告列表
+      tags:
+      - '[版主]版块管理'
+  /moderator/categories/announcement:
+    post:
+      consumes:
+      - application/json
+      description: 版主为自己管理的版块创建公告
+      parameters:
+      - description: 公告信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.CategoryAnnouncementRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 创建成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.CategoryAnnouncementResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "403":
+          description: 权限不足
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 创建版块公告
+      tags:
+      - '[版主]版块管理'
+  /moderator/posts:
+    put:
+      consumes:
+      - application/json
+      description: 版主编辑指定版块内的帖子内容
+      parameters:
+      - description: 帖子信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.PostEditRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 编辑成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.ModeratorPostResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "403":
+          description: 权限不足
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 编辑帖子
+      tags:
+      - '[版主]版块管理'
+  /moderator/posts/ban:
+    post:
+      consumes:
+      - application/json
+      description: 版主封禁指定版块内的帖子
+      parameters:
+      - description: 封禁信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.PostBanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 封禁成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "403":
+          description: 权限不足
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 封禁帖子
+      tags:
+      - '[版主]版块管理'
+  /moderator/posts/essence:
+    put:
+      consumes:
+      - application/json
+      description: 版主设置或取消帖子的精华状态
+      parameters:
+      - description: 精华信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.PostEssenceRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 设置成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "403":
+          description: 权限不足
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 设置帖子精华
+      tags:
+      - '[版主]版块管理'
+  /moderator/posts/lock:
+    put:
+      consumes:
+      - application/json
+      description: 版主锁定或解锁帖子，锁定后用户无法回复
+      parameters:
+      - description: 锁定信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.PostLockRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 设置成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "403":
+          description: 权限不足
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 锁定帖子
+      tags:
+      - '[版主]版块管理'
+  /moderator/posts/move:
+    put:
+      consumes:
+      - application/json
+      description: 版主将帖子移动到自己有权限的其他版块
+      parameters:
+      - description: 移动信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.PostMoveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 移动成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "403":
+          description: 权限不足
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 移动帖子
+      tags:
+      - '[版主]版块管理'
+  /moderator/posts/pin:
+    put:
+      consumes:
+      - application/json
+      description: 版主置顶或取消置顶帖子
+      parameters:
+      - description: 置顶信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.PostPinRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 设置成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "403":
+          description: 权限不足
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 置顶帖子
+      tags:
+      - '[版主]版块管理'
+  /posts:
+    get:
+      consumes:
+      - application/json
+      description: 获取帖子列表，支持分页和排序
+      parameters:
+      - description: 版块ID
+        in: query
+        name: category_id
+        type: integer
+      - default: 1
+        description: 页码，默认1
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: 每页数量，默认20，最大100
+        in: query
+        name: page_size
+        type: integer
+      - default: latest
+        description: 排序方式：latest(最新)、hot(热门)、essence(精华)
+        in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserPostListResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取帖子列表
+      tags:
+      - '[用户]主题贴'
+    post:
+      consumes:
+      - application/json
+      description: 用户发布新的主题帖
+      parameters:
+      - description: 帖子信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserPostCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 发布成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserPostCreateResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未登录
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 发布新帖
+      tags:
+      - '[用户]主题贴'
+    put:
+      consumes:
+      - application/json
+      description: 用户编辑自己的帖子（每三分钟可操作一次）
+      parameters:
+      - description: 帖子信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserPostUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 编辑成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserPostUpdateResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未登录
+          schema:
+            $ref: '#/definitions/response.Data'
+        "403":
+          description: 权限不足或操作过于频繁
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 编辑帖子
+      tags:
+      - '[用户]主题贴'
+  /posts/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定帖子的详细信息，并增加浏览数
+      parameters:
+      - description: 帖子ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserPostDetailResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "404":
+          description: 帖子不存在
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取帖子详情
+      tags:
+      - '[用户]主题贴'
+  /posts/dislike:
+    post:
+      consumes:
+      - application/json
+      description: 用户点踩帖子（单向，不可取消点踩）
+      parameters:
+      - description: 帖子信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserPostActionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 点踩成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserPostActionResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未登录
+          schema:
+            $ref: '#/definitions/response.Data'
+        "403":
+          description: 已经点踩过
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 点踩帖子
+      tags:
+      - '[用户]主题贴'
+  /posts/draft:
+    post:
+      consumes:
+      - application/json
+      description: 用户保存帖子草稿
+      parameters:
+      - description: 帖子信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserPostCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 保存成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserPostCreateResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未登录
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 保存草稿
+      tags:
+      - '[用户]主题贴'
+  /posts/favorite:
+    post:
+      consumes:
+      - application/json
+      description: 用户收藏或取消收藏帖子（双向操作）
+      parameters:
+      - description: 帖子信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserPostActionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 操作成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserPostActionResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未登录
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 收藏帖子
+      tags:
+      - '[用户]主题贴'
+  /posts/like:
+    post:
+      consumes:
+      - application/json
+      description: 用户点赞帖子（单向，不可取消点赞）
+      parameters:
+      - description: 帖子信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserPostActionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 点赞成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserPostActionResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未登录
+          schema:
+            $ref: '#/definitions/response.Data'
+        "403":
+          description: 已经点赞过
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 点赞帖子
+      tags:
+      - '[用户]主题贴'
+  /posts/private:
+    put:
+      consumes:
+      - application/json
+      description: 用户设置帖子为私有或公开（每三日可操作一次）
+      parameters:
+      - description: 帖子信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserPostActionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 设置成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserPostActionResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未登录
+          schema:
+            $ref: '#/definitions/response.Data'
+        "403":
+          description: 权限不足或操作过于频繁
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 设置帖子私有
+      tags:
+      - '[用户]主题贴'
+  /profile/avatar:
+    put:
+      consumes:
+      - application/json
+      description: 修改当前登录用户的头像
+      parameters:
+      - description: 修改头像请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserUpdateAvatarRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 修改成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserUpdateAvatarResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 修改头像
+      tags:
+      - '[用户]个人中心'
+  /profile/comments:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前登录用户发布的评论列表，支持分页
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserProfileCommentsResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取用户评论列表
+      tags:
+      - '[用户]个人中心'
+  /profile/email:
+    put:
+      consumes:
+      - application/json
+      description: 修改当前登录用户的邮箱地址
+      parameters:
+      - description: 修改邮箱请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserUpdateEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 修改成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserUpdateEmailResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 修改邮箱
+      tags:
+      - '[用户]个人中心'
+  /profile/favorites:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前登录用户收藏的帖子列表，支持分页
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserProfileFavoritesResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取用户收藏列表
+      tags:
+      - '[用户]个人中心'
+  /profile/overview:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前登录用户的个人信息和统计数据
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserProfileOverviewResponse'
+              type: object
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取用户个人中心概览
+      tags:
+      - '[用户]个人中心'
+  /profile/password:
+    put:
+      consumes:
+      - application/json
+      description: 修改当前登录用户的密码
+      parameters:
+      - description: 修改密码请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserUpdatePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 修改成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserUpdatePasswordResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 修改密码
+      tags:
+      - '[用户]个人中心'
+  /profile/posts:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前登录用户发布的主题帖列表，支持分页和状态筛选
+      parameters:
+      - description: 页码
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        required: true
+        type: integer
+      - description: 帖子状态筛选：Normal、Draft、Private
+        example: '"Normal"'
+        in: query
+        name: status
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserProfilePostsResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取用户主题帖列表
+      tags:
+      - '[用户]个人中心'
+  /profile/username:
+    put:
+      consumes:
+      - application/json
+      description: 修改当前登录用户的用户名（每七日可操作一次）
+      parameters:
+      - description: 修改用户名请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserUpdateUsernameRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 修改成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserUpdateUsernameResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "403":
+          description: 操作过于频繁
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 修改用户名
+      tags:
+      - '[用户]个人中心'
   /super/manage/settings/code:
     get:
       consumes:

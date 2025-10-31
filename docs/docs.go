@@ -24,2240 +24,6 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/forum/comments": {
-            "get": {
-                "description": "分页获取指定帖子的评论列表，支持排序",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]评论"
-                ],
-                "summary": "获取评论列表",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "帖子ID",
-                        "name": "post_id",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页数量",
-                        "name": "page_size",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "\"created_at\"",
-                        "description": "排序字段：created_at, like_count",
-                        "name": "sort_by",
-                        "in": "query"
-                    },
-                    {
-                        "type": "boolean",
-                        "description": "是否降序",
-                        "name": "sort_desc",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "获取成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserCommentListResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "用户更新自己的评论内容",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]评论"
-                ],
-                "summary": "更新评论",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "更新评论请求",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UserCommentUpdateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "更新成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserCommentUpdateResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "403": {
-                        "description": "权限不足",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "用户创建新评论，支持回复评论和回复用户",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]评论"
-                ],
-                "summary": "创建评论",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "创建评论请求",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UserCommentCreateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "创建成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserCommentCreateResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/forum/comments/dislike": {
-            "post": {
-                "description": "用户点踩评论，单向操作不可取消",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]评论"
-                ],
-                "summary": "点踩评论",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "点踩评论请求",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UserCommentActionRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "点踩成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserCommentActionResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/forum/comments/like": {
-            "post": {
-                "description": "用户点赞评论，单向操作不可取消",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]评论"
-                ],
-                "summary": "点赞评论",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "点赞评论请求",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UserCommentActionRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "点赞成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserCommentActionResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/forum/comments/{id}": {
-            "get": {
-                "description": "根据评论ID获取评论详细信息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]评论"
-                ],
-                "summary": "获取评论详情",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "评论ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "获取成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserCommentDetailResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "404": {
-                        "description": "评论不存在",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/forum/posts": {
-            "get": {
-                "description": "获取帖子列表，支持分页和排序",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]主题贴"
-                ],
-                "summary": "获取帖子列表",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "版块ID",
-                        "name": "category_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "页码，默认1",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "每页数量，默认20，最大100",
-                        "name": "page_size",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "default": "latest",
-                        "description": "排序方式：latest(最新)、hot(热门)、essence(精华)",
-                        "name": "sort",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "获取成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserPostListResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "用户编辑自己的帖子（每三分钟可操作一次）",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]主题贴"
-                ],
-                "summary": "编辑帖子",
-                "parameters": [
-                    {
-                        "description": "帖子信息",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UserPostUpdateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "编辑成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserPostUpdateResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未登录",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "403": {
-                        "description": "权限不足或操作过于频繁",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "用户发布新的主题帖",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]主题贴"
-                ],
-                "summary": "发布新帖",
-                "parameters": [
-                    {
-                        "description": "帖子信息",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UserPostCreateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "发布成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserPostCreateResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未登录",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/forum/posts/dislike": {
-            "post": {
-                "description": "用户点踩帖子（单向，不可取消点踩）",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]主题贴"
-                ],
-                "summary": "点踩帖子",
-                "parameters": [
-                    {
-                        "description": "帖子信息",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UserPostActionRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "点踩成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserPostActionResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未登录",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "403": {
-                        "description": "已经点踩过",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/forum/posts/draft": {
-            "post": {
-                "description": "用户保存帖子草稿",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]主题贴"
-                ],
-                "summary": "保存草稿",
-                "parameters": [
-                    {
-                        "description": "帖子信息",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UserPostCreateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "保存成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserPostCreateResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未登录",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/forum/posts/favorite": {
-            "post": {
-                "description": "用户收藏或取消收藏帖子（双向操作）",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]主题贴"
-                ],
-                "summary": "收藏帖子",
-                "parameters": [
-                    {
-                        "description": "帖子信息",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UserPostActionRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "操作成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserPostActionResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未登录",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/forum/posts/like": {
-            "post": {
-                "description": "用户点赞帖子（单向，不可取消点赞）",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]主题贴"
-                ],
-                "summary": "点赞帖子",
-                "parameters": [
-                    {
-                        "description": "帖子信息",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UserPostActionRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "点赞成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserPostActionResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未登录",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "403": {
-                        "description": "已经点赞过",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/forum/posts/private": {
-            "put": {
-                "description": "用户设置帖子为私有或公开（每三日可操作一次）",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]主题贴"
-                ],
-                "summary": "设置帖子私有",
-                "parameters": [
-                    {
-                        "description": "帖子信息",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UserPostActionRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "设置成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserPostActionResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未登录",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "403": {
-                        "description": "权限不足或操作过于频繁",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/forum/posts/{id}": {
-            "get": {
-                "description": "获取指定帖子的详细信息，并增加浏览数",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]主题贴"
-                ],
-                "summary": "获取帖子详情",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "帖子ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "获取成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserPostDetailResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "404": {
-                        "description": "帖子不存在",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/moderator/categories": {
-            "get": {
-                "description": "获取当前版主有管理权限的所有版块列表",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[版主]版块管理"
-                ],
-                "summary": "获取版主管理的版块列表",
-                "responses": {
-                    "200": {
-                        "description": "获取成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.ModeratorCategoriesResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "403": {
-                        "description": "权限不足",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "版主编辑自己管理的版块信息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[版主]版块管理"
-                ],
-                "summary": "编辑版块",
-                "parameters": [
-                    {
-                        "description": "版块信息",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.CategoryEditRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "编辑成功",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "403": {
-                        "description": "权限不足",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/moderator/categories/announcement": {
-            "post": {
-                "description": "版主为自己管理的版块创建公告",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[版主]版块管理"
-                ],
-                "summary": "创建版块公告",
-                "parameters": [
-                    {
-                        "description": "公告信息",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.CategoryAnnouncementRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "创建成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.CategoryAnnouncementResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "403": {
-                        "description": "权限不足",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/moderator/categories/{category_id}/announcements": {
-            "get": {
-                "description": "获取指定版块的公告列表",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[版主]版块管理"
-                ],
-                "summary": "获取版块公告列表",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "版块ID",
-                        "name": "category_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "获取成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/schema.CategoryAnnouncementResponse"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "403": {
-                        "description": "权限不足",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/moderator/posts": {
-            "put": {
-                "description": "版主编辑指定版块内的帖子内容",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[版主]版块管理"
-                ],
-                "summary": "编辑帖子",
-                "parameters": [
-                    {
-                        "description": "帖子信息",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.PostEditRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "编辑成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.ModeratorPostResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "403": {
-                        "description": "权限不足",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/moderator/posts/ban": {
-            "post": {
-                "description": "版主封禁指定版块内的帖子",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[版主]版块管理"
-                ],
-                "summary": "封禁帖子",
-                "parameters": [
-                    {
-                        "description": "封禁信息",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.PostBanRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "封禁成功",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "403": {
-                        "description": "权限不足",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/moderator/posts/essence": {
-            "put": {
-                "description": "版主设置或取消帖子的精华状态",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[版主]版块管理"
-                ],
-                "summary": "设置帖子精华",
-                "parameters": [
-                    {
-                        "description": "精华信息",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.PostEssenceRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "设置成功",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "403": {
-                        "description": "权限不足",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/moderator/posts/lock": {
-            "put": {
-                "description": "版主锁定或解锁帖子，锁定后用户无法回复",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[版主]版块管理"
-                ],
-                "summary": "锁定帖子",
-                "parameters": [
-                    {
-                        "description": "锁定信息",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.PostLockRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "设置成功",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "403": {
-                        "description": "权限不足",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/moderator/posts/move": {
-            "put": {
-                "description": "版主将帖子移动到自己有权限的其他版块",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[版主]版块管理"
-                ],
-                "summary": "移动帖子",
-                "parameters": [
-                    {
-                        "description": "移动信息",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.PostMoveRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "移动成功",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "403": {
-                        "description": "权限不足",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/moderator/posts/pin": {
-            "put": {
-                "description": "版主置顶或取消置顶帖子",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[版主]版块管理"
-                ],
-                "summary": "置顶帖子",
-                "parameters": [
-                    {
-                        "description": "置顶信息",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.PostPinRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "设置成功",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "403": {
-                        "description": "权限不足",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/profile/avatar": {
-            "put": {
-                "description": "修改当前登录用户的头像",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]个人中心"
-                ],
-                "summary": "修改头像",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "修改头像请求",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UserUpdateAvatarRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "修改成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserUpdateAvatarResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/profile/comments": {
-            "get": {
-                "description": "获取当前登录用户发布的评论列表，支持分页",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]个人中心"
-                ],
-                "summary": "获取用户评论列表",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页数量",
-                        "name": "page_size",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "获取成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserProfileCommentsResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/profile/email": {
-            "put": {
-                "description": "修改当前登录用户的邮箱地址",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]个人中心"
-                ],
-                "summary": "修改邮箱",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "修改邮箱请求",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UserUpdateEmailRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "修改成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserUpdateEmailResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/profile/favorites": {
-            "get": {
-                "description": "获取当前登录用户收藏的帖子列表，支持分页",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]个人中心"
-                ],
-                "summary": "获取用户收藏列表",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页数量",
-                        "name": "page_size",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "获取成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserProfileFavoritesResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/profile/overview": {
-            "get": {
-                "description": "获取当前登录用户的个人信息和统计数据",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]个人中心"
-                ],
-                "summary": "获取用户个人中心概览",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "获取成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserProfileOverviewResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/profile/password": {
-            "put": {
-                "description": "修改当前登录用户的密码",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]个人中心"
-                ],
-                "summary": "修改密码",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "修改密码请求",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UserUpdatePasswordRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "修改成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserUpdatePasswordResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/profile/posts": {
-            "get": {
-                "description": "获取当前登录用户发布的主题帖列表，支持分页和状态筛选",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]个人中心"
-                ],
-                "summary": "获取用户主题帖列表",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "页码",
-                        "name": "page",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "每页数量",
-                        "name": "page_size",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "example": "\"Normal\"",
-                        "description": "帖子状态筛选：Normal、Draft、Private",
-                        "name": "status",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "获取成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserProfilePostsResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/profile/username": {
-            "put": {
-                "description": "修改当前登录用户的用户名（每七日可操作一次）",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]个人中心"
-                ],
-                "summary": "修改用户名",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "description": "修改用户名请求",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UserUpdateUsernameRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "修改成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserUpdateUsernameResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "403": {
-                        "description": "操作过于频繁",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
         "/auth/login": {
             "post": {
                 "description": "用户登录获取认证信息",
@@ -2401,6 +167,409 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/forum/comments": {
+            "get": {
+                "description": "分页获取指定帖子的评论列表，支持排序",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]评论"
+                ],
+                "summary": "获取评论列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "帖子ID",
+                        "name": "post_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"created_at\"",
+                        "description": "排序字段：created_at, like_count",
+                        "name": "sort_by",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "是否降序",
+                        "name": "sort_desc",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserCommentListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "用户更新自己的评论内容",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]评论"
+                ],
+                "summary": "更新评论",
+                "parameters": [
+                    {
+                        "description": "更新评论请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserCommentUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "更新成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserCommentUpdateResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "权限不足",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "用户创建新评论，支持回复评论和回复用户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]评论"
+                ],
+                "summary": "创建评论",
+                "parameters": [
+                    {
+                        "description": "创建评论请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserCommentCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "创建成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserCommentCreateResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/forum/comments/dislike": {
+            "post": {
+                "description": "用户点踩评论，单向操作不可取消",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]评论"
+                ],
+                "summary": "点踩评论",
+                "parameters": [
+                    {
+                        "description": "点踩评论请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserCommentActionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "点踩成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserCommentActionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/forum/comments/like": {
+            "post": {
+                "description": "用户点赞评论，单向操作不可取消",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]评论"
+                ],
+                "summary": "点赞评论",
+                "parameters": [
+                    {
+                        "description": "点赞评论请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserCommentActionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "点赞成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserCommentActionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/forum/comments/{id}": {
+            "get": {
+                "description": "根据评论ID获取评论详细信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]评论"
+                ],
+                "summary": "获取评论详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "评论ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserCommentDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "404": {
+                        "description": "评论不存在",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -4528,6 +2697,1751 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/moderator/categories": {
+            "get": {
+                "description": "获取当前版主有管理权限的所有版块列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[版主]版块管理"
+                ],
+                "summary": "获取版主管理的版块列表",
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.ModeratorCategoriesResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "权限不足",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "版主编辑自己管理的版块信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[版主]版块管理"
+                ],
+                "summary": "编辑版块",
+                "parameters": [
+                    {
+                        "description": "版块信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.CategoryEditRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "编辑成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "权限不足",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/moderator/categories/announcement": {
+            "post": {
+                "description": "版主为自己管理的版块创建公告",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[版主]版块管理"
+                ],
+                "summary": "创建版块公告",
+                "parameters": [
+                    {
+                        "description": "公告信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.CategoryAnnouncementRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "创建成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.CategoryAnnouncementResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "权限不足",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/moderator/categories/{category_id}/announcements": {
+            "get": {
+                "description": "获取指定版块的公告列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[版主]版块管理"
+                ],
+                "summary": "获取版块公告列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "版块ID",
+                        "name": "category_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/schema.CategoryAnnouncementResponse"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "权限不足",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/moderator/posts": {
+            "put": {
+                "description": "版主编辑指定版块内的帖子内容",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[版主]版块管理"
+                ],
+                "summary": "编辑帖子",
+                "parameters": [
+                    {
+                        "description": "帖子信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.PostEditRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "编辑成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.ModeratorPostResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "权限不足",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/moderator/posts/ban": {
+            "post": {
+                "description": "版主封禁指定版块内的帖子",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[版主]版块管理"
+                ],
+                "summary": "封禁帖子",
+                "parameters": [
+                    {
+                        "description": "封禁信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.PostBanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "封禁成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "权限不足",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/moderator/posts/essence": {
+            "put": {
+                "description": "版主设置或取消帖子的精华状态",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[版主]版块管理"
+                ],
+                "summary": "设置帖子精华",
+                "parameters": [
+                    {
+                        "description": "精华信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.PostEssenceRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "设置成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "权限不足",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/moderator/posts/lock": {
+            "put": {
+                "description": "版主锁定或解锁帖子，锁定后用户无法回复",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[版主]版块管理"
+                ],
+                "summary": "锁定帖子",
+                "parameters": [
+                    {
+                        "description": "锁定信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.PostLockRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "设置成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "权限不足",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/moderator/posts/move": {
+            "put": {
+                "description": "版主将帖子移动到自己有权限的其他版块",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[版主]版块管理"
+                ],
+                "summary": "移动帖子",
+                "parameters": [
+                    {
+                        "description": "移动信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.PostMoveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "移动成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "权限不足",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/moderator/posts/pin": {
+            "put": {
+                "description": "版主置顶或取消置顶帖子",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[版主]版块管理"
+                ],
+                "summary": "置顶帖子",
+                "parameters": [
+                    {
+                        "description": "置顶信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.PostPinRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "设置成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "权限不足",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts": {
+            "get": {
+                "description": "获取帖子列表，支持分页和排序",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]主题贴"
+                ],
+                "summary": "获取帖子列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "版块ID",
+                        "name": "category_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "页码，默认1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "每页数量，默认20，最大100",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "default": "latest",
+                        "description": "排序方式：latest(最新)、hot(热门)、essence(精华)",
+                        "name": "sort",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserPostListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "用户编辑自己的帖子（每三分钟可操作一次）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]主题贴"
+                ],
+                "summary": "编辑帖子",
+                "parameters": [
+                    {
+                        "description": "帖子信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserPostUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "编辑成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserPostUpdateResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "权限不足或操作过于频繁",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "用户发布新的主题帖",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]主题贴"
+                ],
+                "summary": "发布新帖",
+                "parameters": [
+                    {
+                        "description": "帖子信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserPostCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "发布成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserPostCreateResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/dislike": {
+            "post": {
+                "description": "用户点踩帖子（单向，不可取消点踩）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]主题贴"
+                ],
+                "summary": "点踩帖子",
+                "parameters": [
+                    {
+                        "description": "帖子信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserPostActionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "点踩成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserPostActionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "已经点踩过",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/draft": {
+            "post": {
+                "description": "用户保存帖子草稿",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]主题贴"
+                ],
+                "summary": "保存草稿",
+                "parameters": [
+                    {
+                        "description": "帖子信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserPostCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "保存成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserPostCreateResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/favorite": {
+            "post": {
+                "description": "用户收藏或取消收藏帖子（双向操作）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]主题贴"
+                ],
+                "summary": "收藏帖子",
+                "parameters": [
+                    {
+                        "description": "帖子信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserPostActionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "操作成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserPostActionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/like": {
+            "post": {
+                "description": "用户点赞帖子（单向，不可取消点赞）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]主题贴"
+                ],
+                "summary": "点赞帖子",
+                "parameters": [
+                    {
+                        "description": "帖子信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserPostActionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "点赞成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserPostActionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "已经点赞过",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/private": {
+            "put": {
+                "description": "用户设置帖子为私有或公开（每三日可操作一次）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]主题贴"
+                ],
+                "summary": "设置帖子私有",
+                "parameters": [
+                    {
+                        "description": "帖子信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserPostActionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "设置成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserPostActionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "权限不足或操作过于频繁",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/posts/{id}": {
+            "get": {
+                "description": "获取指定帖子的详细信息，并增加浏览数",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]主题贴"
+                ],
+                "summary": "获取帖子详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "帖子ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserPostDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "404": {
+                        "description": "帖子不存在",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/avatar": {
+            "put": {
+                "description": "修改当前登录用户的头像",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]个人中心"
+                ],
+                "summary": "修改头像",
+                "parameters": [
+                    {
+                        "description": "修改头像请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserUpdateAvatarRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "修改成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserUpdateAvatarResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/comments": {
+            "get": {
+                "description": "获取当前登录用户发布的评论列表，支持分页",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]个人中心"
+                ],
+                "summary": "获取用户评论列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserProfileCommentsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/email": {
+            "put": {
+                "description": "修改当前登录用户的邮箱地址",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]个人中心"
+                ],
+                "summary": "修改邮箱",
+                "parameters": [
+                    {
+                        "description": "修改邮箱请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserUpdateEmailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "修改成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserUpdateEmailResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/favorites": {
+            "get": {
+                "description": "获取当前登录用户收藏的帖子列表，支持分页",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]个人中心"
+                ],
+                "summary": "获取用户收藏列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserProfileFavoritesResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/overview": {
+            "get": {
+                "description": "获取当前登录用户的个人信息和统计数据",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]个人中心"
+                ],
+                "summary": "获取用户个人中心概览",
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserProfileOverviewResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/password": {
+            "put": {
+                "description": "修改当前登录用户的密码",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]个人中心"
+                ],
+                "summary": "修改密码",
+                "parameters": [
+                    {
+                        "description": "修改密码请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserUpdatePasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "修改成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserUpdatePasswordResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/posts": {
+            "get": {
+                "description": "获取当前登录用户发布的主题帖列表，支持分页和状态筛选",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]个人中心"
+                ],
+                "summary": "获取用户主题帖列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"Normal\"",
+                        "description": "帖子状态筛选：Normal、Draft、Private",
+                        "name": "status",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserProfilePostsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/username": {
+            "put": {
+                "description": "修改当前登录用户的用户名（每七日可操作一次）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]个人中心"
+                ],
+                "summary": "修改用户名",
+                "parameters": [
+                    {
+                        "description": "修改用户名请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserUpdateUsernameRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "修改成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserUpdateUsernameResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "操作过于频繁",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
