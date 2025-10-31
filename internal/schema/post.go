@@ -119,13 +119,13 @@ type UserPostActionResponse struct {
 // UserPostListRequest 帖子列表请求
 type UserPostListRequest struct {
 	// 版块ID，可选
-	CategoryID int `json:"category_id,omitempty"`
+	CategoryID int `form:"category_id,omitempty"`
 	// 页码，默认1
-	Page int `json:"page" binding:"min=1"`
+	Page int `form:"page" binding:"min=1"`
 	// 每页数量，默认20，最大100
-	PageSize int `json:"page_size" binding:"min=1,max=100"`
+	PageSize int `form:"page_size" binding:"min=1,max=100"`
 	// 排序方式：latest(最新)、hot(热门)、essence(精华)
-	Sort string `json:"sort" binding:"omitempty,oneof=latest hot essence"`
+	Sort string `form:"sort" binding:"omitempty,oneof=latest hot essence"`
 }
 
 // UserPostListResponse 帖子列表响应

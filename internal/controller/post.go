@@ -81,7 +81,7 @@ func (ctrl *PostController) PostRouter(router *gin.RouterGroup) {
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 401 {object} response.Data "未登录"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /api/v1/forum/posts [post]
+// @Router /posts [post]
 func (ctrl *PostController) CreatePost(c *gin.Context) {
 	var req schema.UserPostCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -124,7 +124,7 @@ func (ctrl *PostController) CreatePost(c *gin.Context) {
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 401 {object} response.Data "未登录"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /api/v1/forum/posts/draft [post]
+// @Router /posts/draft [post]
 func (ctrl *PostController) SaveDraft(c *gin.Context) {
 	var req schema.UserPostCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -168,7 +168,7 @@ func (ctrl *PostController) SaveDraft(c *gin.Context) {
 // @Failure 401 {object} response.Data "未登录"
 // @Failure 403 {object} response.Data "权限不足或操作过于频繁"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /api/v1/forum/posts [put]
+// @Router /posts [put]
 func (ctrl *PostController) UpdatePost(c *gin.Context) {
 	var req schema.UserPostUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -212,7 +212,7 @@ func (ctrl *PostController) UpdatePost(c *gin.Context) {
 // @Failure 401 {object} response.Data "未登录"
 // @Failure 403 {object} response.Data "权限不足或操作过于频繁"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /api/v1/forum/posts/private [put]
+// @Router /posts/private [put]
 func (ctrl *PostController) SetPostPrivate(c *gin.Context) {
 	var req schema.UserPostActionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -256,7 +256,7 @@ func (ctrl *PostController) SetPostPrivate(c *gin.Context) {
 // @Failure 401 {object} response.Data "未登录"
 // @Failure 403 {object} response.Data "已经点赞过"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /api/v1/forum/posts/like [post]
+// @Router /posts/like [post]
 func (ctrl *PostController) LikePost(c *gin.Context) {
 	var req schema.UserPostActionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -300,7 +300,7 @@ func (ctrl *PostController) LikePost(c *gin.Context) {
 // @Failure 401 {object} response.Data "未登录"
 // @Failure 403 {object} response.Data "已经点踩过"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /api/v1/forum/posts/dislike [post]
+// @Router /posts/dislike [post]
 func (ctrl *PostController) DislikePost(c *gin.Context) {
 	var req schema.UserPostActionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -343,7 +343,7 @@ func (ctrl *PostController) DislikePost(c *gin.Context) {
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 401 {object} response.Data "未登录"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /api/v1/forum/posts/favorite [post]
+// @Router /posts/favorite [post]
 func (ctrl *PostController) FavoritePost(c *gin.Context) {
 	var req schema.UserPostActionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -388,7 +388,7 @@ func (ctrl *PostController) FavoritePost(c *gin.Context) {
 // @Success 200 {object} response.Data{data=schema.UserPostListResponse} "获取成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /api/v1/forum/posts [get]
+// @Router /posts [get]
 func (ctrl *PostController) GetPostList(c *gin.Context) {
 	var req schema.UserPostListRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -424,7 +424,7 @@ func (ctrl *PostController) GetPostList(c *gin.Context) {
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 404 {object} response.Data "帖子不存在"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /api/v1/forum/posts/{id} [get]
+// @Router /posts/{id} [get]
 func (ctrl *PostController) GetPostDetail(c *gin.Context) {
 	var req schema.UserPostDetailRequest
 	if err := c.ShouldBindUri(&req); err != nil {

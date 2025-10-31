@@ -70,13 +70,12 @@ func (ctrl *CommentController) getUserID(c *gin.Context) (int, error) {
 // @Tags [用户]评论
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Bearer token"
 // @Param request body schema.UserCommentCreateRequest true "创建评论请求"
 // @Success 200 {object} response.Data{data=schema.UserCommentCreateResponse} "创建成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /api/v1/forum/comments [post]
+// @Router /forum/comments [post]
 func (ctrl *CommentController) CreateComment(c *gin.Context) {
 	// 获取用户ID
 	userID, err := ctrl.getUserID(c)
@@ -112,14 +111,13 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 // @Tags [用户]评论
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Bearer token"
 // @Param request body schema.UserCommentUpdateRequest true "更新评论请求"
 // @Success 200 {object} response.Data{data=schema.UserCommentUpdateResponse} "更新成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 403 {object} response.Data "权限不足"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /api/v1/forum/comments [put]
+// @Router /forum/comments [put]
 func (ctrl *CommentController) UpdateComment(c *gin.Context) {
 	// 获取用户ID
 	userID, err := ctrl.getUserID(c)
@@ -155,13 +153,12 @@ func (ctrl *CommentController) UpdateComment(c *gin.Context) {
 // @Tags [用户]评论
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Bearer token"
 // @Param request body schema.UserCommentActionRequest true "点赞评论请求"
 // @Success 200 {object} response.Data{data=schema.UserCommentActionResponse} "点赞成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /api/v1/forum/comments/like [post]
+// @Router /forum/comments/like [post]
 func (ctrl *CommentController) LikeComment(c *gin.Context) {
 	// 获取用户ID
 	userID, err := ctrl.getUserID(c)
@@ -197,13 +194,12 @@ func (ctrl *CommentController) LikeComment(c *gin.Context) {
 // @Tags [用户]评论
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Bearer token"
 // @Param request body schema.UserCommentActionRequest true "点踩评论请求"
 // @Success 200 {object} response.Data{data=schema.UserCommentActionResponse} "点踩成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /api/v1/forum/comments/dislike [post]
+// @Router /forum/comments/dislike [post]
 func (ctrl *CommentController) DislikeComment(c *gin.Context) {
 	// 获取用户ID
 	userID, err := ctrl.getUserID(c)
@@ -247,7 +243,7 @@ func (ctrl *CommentController) DislikeComment(c *gin.Context) {
 // @Success 200 {object} response.Data{data=schema.UserCommentListResponse} "获取成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /api/v1/forum/comments [get]
+// @Router /forum/comments [get]
 func (ctrl *CommentController) GetCommentList(c *gin.Context) {
 	// 解析请求参数
 	var req schema.UserCommentListRequest
@@ -281,7 +277,7 @@ func (ctrl *CommentController) GetCommentList(c *gin.Context) {
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 404 {object} response.Data "评论不存在"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /api/v1/forum/comments/{id} [get]
+// @Router /forum/comments/{id} [get]
 func (ctrl *CommentController) GetCommentDetail(c *gin.Context) {
 	// 解析评论ID
 	commentID, err := strconv.Atoi(c.Param("id"))

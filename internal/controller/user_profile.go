@@ -54,11 +54,10 @@ func (ctrl *UserProfileController) getUserID(c *gin.Context) (int, error) {
 // @Tags [用户]个人中心
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Bearer token"
 // @Success 200 {object} response.Data{data=schema.UserProfileOverviewResponse} "获取成功"
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /api/v1/profile/overview [get]
+// @Router /profile/overview [get]
 func (ctrl *UserProfileController) GetProfileOverview(c *gin.Context) {
 	// 获取用户ID
 	userID, err := ctrl.getUserID(c)
@@ -87,7 +86,6 @@ func (ctrl *UserProfileController) GetProfileOverview(c *gin.Context) {
 // @Tags [用户]个人中心
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Bearer token"
 // @Param page query int true "页码" example("1")
 // @Param page_size query int true "每页数量" example("20")
 // @Param status query string false "帖子状态筛选：Normal、Draft、Private" example("Normal")
@@ -95,7 +93,7 @@ func (ctrl *UserProfileController) GetProfileOverview(c *gin.Context) {
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /api/v1/profile/posts [get]
+// @Router /profile/posts [get]
 func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
 	// 获取用户ID
 	userID, err := ctrl.getUserID(c)
@@ -131,14 +129,13 @@ func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
 // @Tags [用户]个人中心
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Bearer token"
 // @Param page query int true "页码" example("1")
 // @Param page_size query int true "每页数量" example("20")
 // @Success 200 {object} response.Data{data=schema.UserProfileCommentsResponse} "获取成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /api/v1/profile/comments [get]
+// @Router /profile/comments [get]
 func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
 	// 获取用户ID
 	userID, err := ctrl.getUserID(c)
@@ -174,14 +171,13 @@ func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
 // @Tags [用户]个人中心
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Bearer token"
 // @Param page query int true "页码" example("1")
 // @Param page_size query int true "每页数量" example("20")
 // @Success 200 {object} response.Data{data=schema.UserProfileFavoritesResponse} "获取成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /api/v1/profile/favorites [get]
+// @Router /profile/favorites [get]
 func (ctrl *UserProfileController) GetUserFavorites(c *gin.Context) {
 	// 获取用户ID
 	userID, err := ctrl.getUserID(c)
@@ -217,13 +213,12 @@ func (ctrl *UserProfileController) GetUserFavorites(c *gin.Context) {
 // @Tags [用户]个人中心
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Bearer token"
 // @Param request body schema.UserUpdatePasswordRequest true "修改密码请求"
 // @Success 200 {object} response.Data{data=schema.UserUpdatePasswordResponse} "修改成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /api/v1/profile/password [put]
+// @Router /profile/password [put]
 func (ctrl *UserProfileController) UpdatePassword(c *gin.Context) {
 	// 获取用户ID
 	userID, err := ctrl.getUserID(c)
@@ -259,13 +254,12 @@ func (ctrl *UserProfileController) UpdatePassword(c *gin.Context) {
 // @Tags [用户]个人中心
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Bearer token"
 // @Param request body schema.UserUpdateAvatarRequest true "修改头像请求"
 // @Success 200 {object} response.Data{data=schema.UserUpdateAvatarResponse} "修改成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /api/v1/profile/avatar [put]
+// @Router /profile/avatar [put]
 func (ctrl *UserProfileController) UpdateAvatar(c *gin.Context) {
 	// 获取用户ID
 	userID, err := ctrl.getUserID(c)
@@ -301,14 +295,13 @@ func (ctrl *UserProfileController) UpdateAvatar(c *gin.Context) {
 // @Tags [用户]个人中心
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Bearer token"
 // @Param request body schema.UserUpdateUsernameRequest true "修改用户名请求"
 // @Success 200 {object} response.Data{data=schema.UserUpdateUsernameResponse} "修改成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 403 {object} response.Data "操作过于频繁"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /api/v1/profile/username [put]
+// @Router /profile/username [put]
 func (ctrl *UserProfileController) UpdateUsername(c *gin.Context) {
 	// 获取用户ID
 	userID, err := ctrl.getUserID(c)
@@ -344,13 +337,12 @@ func (ctrl *UserProfileController) UpdateUsername(c *gin.Context) {
 // @Tags [用户]个人中心
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Bearer token"
 // @Param request body schema.UserUpdateEmailRequest true "修改邮箱请求"
 // @Success 200 {object} response.Data{data=schema.UserUpdateEmailResponse} "修改成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /api/v1/profile/email [put]
+// @Router /profile/email [put]
 func (ctrl *UserProfileController) UpdateEmail(c *gin.Context) {
 	// 获取用户ID
 	userID, err := ctrl.getUserID(c)

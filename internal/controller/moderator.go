@@ -91,7 +91,7 @@ func (ctrl *ModeratorController) ModeratorRouter(router *gin.RouterGroup) {
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 403 {object} response.Data "权限不足"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /api/v1/moderator/categories [get]
+// @Router /moderator/categories [get]
 func (ctrl *ModeratorController) GetModeratorCategories(c *gin.Context) {
 	// 获取用户ID（通过其他中间件验证版主身份）
 	userID, err := ctrl.getUserID(c)
@@ -129,7 +129,7 @@ func (ctrl *ModeratorController) GetModeratorCategories(c *gin.Context) {
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 403 {object} response.Data "权限不足"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /api/v1/moderator/posts/ban [post]
+// @Router /moderator/posts/ban [post]
 func (ctrl *ModeratorController) BanPost(c *gin.Context) {
 	var req schema.PostBanRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -173,7 +173,7 @@ func (ctrl *ModeratorController) BanPost(c *gin.Context) {
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 403 {object} response.Data "权限不足"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /api/v1/moderator/posts [put]
+// @Router /moderator/posts [put]
 func (ctrl *ModeratorController) EditPost(c *gin.Context) {
 	var req schema.PostEditRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -217,7 +217,7 @@ func (ctrl *ModeratorController) EditPost(c *gin.Context) {
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 403 {object} response.Data "权限不足"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /api/v1/moderator/posts/move [put]
+// @Router /moderator/posts/move [put]
 func (ctrl *ModeratorController) MovePost(c *gin.Context) {
 	var req schema.PostMoveRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -261,7 +261,7 @@ func (ctrl *ModeratorController) MovePost(c *gin.Context) {
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 403 {object} response.Data "权限不足"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /api/v1/moderator/posts/essence [put]
+// @Router /moderator/posts/essence [put]
 func (ctrl *ModeratorController) SetPostEssence(c *gin.Context) {
 	var req schema.PostEssenceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -305,7 +305,7 @@ func (ctrl *ModeratorController) SetPostEssence(c *gin.Context) {
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 403 {object} response.Data "权限不足"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /api/v1/moderator/posts/lock [put]
+// @Router /moderator/posts/lock [put]
 func (ctrl *ModeratorController) LockPost(c *gin.Context) {
 	var req schema.PostLockRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -349,7 +349,7 @@ func (ctrl *ModeratorController) LockPost(c *gin.Context) {
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 403 {object} response.Data "权限不足"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /api/v1/moderator/posts/pin [put]
+// @Router /moderator/posts/pin [put]
 func (ctrl *ModeratorController) PinPost(c *gin.Context) {
 	var req schema.PostPinRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -393,7 +393,7 @@ func (ctrl *ModeratorController) PinPost(c *gin.Context) {
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 403 {object} response.Data "权限不足"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /api/v1/moderator/categories [put]
+// @Router /moderator/categories [put]
 func (ctrl *ModeratorController) EditCategory(c *gin.Context) {
 	var req schema.CategoryEditRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -437,7 +437,7 @@ func (ctrl *ModeratorController) EditCategory(c *gin.Context) {
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 403 {object} response.Data "权限不足"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /api/v1/moderator/categories/announcement [post]
+// @Router /moderator/categories/announcement [post]
 func (ctrl *ModeratorController) CreateCategoryAnnouncement(c *gin.Context) {
 	var req schema.CategoryAnnouncementRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -481,7 +481,7 @@ func (ctrl *ModeratorController) CreateCategoryAnnouncement(c *gin.Context) {
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 403 {object} response.Data "权限不足"
 // @Failure 500 {object} response.Data "服务器错误"
-// @Router /api/v1/moderator/categories/{category_id}/announcements [get]
+// @Router /moderator/categories/{category_id}/announcements [get]
 func (ctrl *ModeratorController) GetCategoryAnnouncements(c *gin.Context) {
 	var req struct {
 		CategoryID int `uri:"category_id" binding:"required"`
