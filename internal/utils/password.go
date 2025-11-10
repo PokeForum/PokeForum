@@ -8,7 +8,6 @@ import (
 )
 
 // HashPassword 对密码进行哈希加密
-// 使用 bcrypt 算法，默认成本为 12
 func HashPassword(password string) (string, error) {
 	// 使用 bcrypt 的 DefaultCost 生成哈希值
 	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
