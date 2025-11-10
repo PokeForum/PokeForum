@@ -13,3 +13,7 @@ build-linux-arm64:
 # Build for Linux AMD64
 build-linux-amd64:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o pf-linux-amd64 -ldflags '-s -w -extldflags "-static"'
+
+# Upx
+upx:
+	upx pf-*
