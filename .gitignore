@@ -37,3 +37,6 @@ logs/*
 
 # Data File
 data/theme/*
+
+# Build File
+pf-linux-*
