@@ -4,9 +4,9 @@ go 1.25.3
 
 require (
 	entgo.io/ent v0.14.5
-	github.com/click33/sa-token-go/integrations/gin v0.1.2
-	github.com/click33/sa-token-go/storage/redis v0.1.2
-	github.com/click33/sa-token-go/stputil v0.1.2
+	github.com/click33/sa-token-go/integrations/gin v0.1.3
+	github.com/click33/sa-token-go/storage/redis v0.1.3
+	github.com/click33/sa-token-go/stputil v0.1.3
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.11.0
@@ -37,7 +37,7 @@ require (
 	github.com/bytedance/sonic v1.14.1 // indirect
 	github.com/bytedance/sonic/loader v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/click33/sa-token-go/core v0.1.2 // indirect
+	github.com/click33/sa-token-go/core v0.1.3 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/gabriel-vasile/mimetype v1.4.10 // indirect

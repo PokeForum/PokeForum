@@ -220,30 +220,11 @@ func Routers(injector *do.Injector) *gin.Engine {
 			CategoryCon.CategoryRouter(CategoryGroup)
 
 			// 主题帖
-			/*
-				发帖前需要验证邮箱, 可通过开关配置
-			*/
-			// 发布新帖
-			// 保存草稿
-			// 编辑帖子(每三分钟可操作一次)
-			// 私有帖子(双向, 每三日可操作一次)
-			// 点赞帖子(单向, 不可取消点赞)
-			// 点踩帖子(单向, 不可取消点赞)
-			// 收藏帖子
 			PostGroup := ForumGroup.Group("/posts")
 			PostCon := controller.NewPostController(injector)
 			PostCon.PostRouter(PostGroup)
 
 			// 评论
-			/*
-				发评论前需要验证邮箱, 可通过开关配置
-			*/
-			// 发布评论
-			// 编辑评论
-			// 点赞评论(单向, 不可取消点赞)
-			// 点踩评论(单向, 不可取消点赞)
-			// 获取评论列表
-			// 获取评论详情
 			CommentGroup := ForumGroup.Group("/comments")
 			CommentCon := controller.NewCommentController(injector)
 			CommentCon.CommentRouter(CommentGroup)
