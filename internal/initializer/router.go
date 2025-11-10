@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	_ "github.com/PokeForum/PokeForum/docs"
+	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/configs"
 	"github.com/PokeForum/PokeForum/internal/controller"
 	"github.com/PokeForum/PokeForum/internal/middleware"
@@ -172,7 +173,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 	// 论坛接口
 	ForumGroup := AuthAPIGroup.Group("")
-	ForumGroup.Use()
+	ForumGroup.Use(saGin.CheckRole(user.RoleUser.String()))
 	{
 		// 用户
 		{
@@ -232,12 +233,14 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 		// 版主接口
 		ModeratorGroup := ForumGroup.Group("/moderator")
+		ModeratorGroup.Use(saGin.CheckRole(user.RoleModerator.String()))
 		ModeratorCon := controller.NewModeratorController(injector)
 		ModeratorCon.ModeratorRouter(ModeratorGroup)
 	}
 
 	// 管理员接口
 	ManageGroup := AuthAPIGroup.Group("/manage")
+	ManageGroup.Use(saGin.CheckRole(user.RoleAdmin.String()))
 	{
 		// 仪表盘
 		{
@@ -279,6 +282,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 	// 超级管理接口
 	SuperManageGroup := AuthAPIGroup.Group("/super/manage")
+	SuperManageGroup.Use(saGin.CheckRole(user.RoleSuperAdmin.String()))
 	{
 		// 设置管理（统一的设置控制器，包含所有系统设置）
 		SettingsGroup := SuperManageGroup.Group("/settings")
