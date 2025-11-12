@@ -45,7 +45,6 @@ type CategoryListItem struct {
 	Icon        string `json:"icon" example:"https://example.com/icon.png"` // 版块图标
 	Weight      int    `json:"weight" example:"0"`                          // 权重排序
 	Status      string `json:"status" example:"Normal"`                     // 版块状态
-	PostCount   int    `json:"post_count" example:"150"`                    // 帖子数量
 	CreatedAt   string `json:"created_at" example:"2024-01-01T00:00:00Z"`   // 创建时间
 	UpdatedAt   string `json:"updated_at" example:"2024-01-01T00:00:00Z"`   // 更新时间
 }
@@ -67,7 +66,6 @@ type CategoryDetailResponse struct {
 	Icon        string `json:"icon" example:"https://example.com/icon.png"` // 版块图标
 	Weight      int    `json:"weight" example:"0"`                          // 权重排序
 	Status      string `json:"status" example:"Normal"`                     // 版块状态
-	PostCount   int    `json:"post_count" example:"150"`                    // 帖子数量
 	CreatedAt   string `json:"created_at" example:"2024-01-01T00:00:00Z"`   // 创建时间
 	UpdatedAt   string `json:"updated_at" example:"2024-01-01T00:00:00Z"`   // 更新时间
 }

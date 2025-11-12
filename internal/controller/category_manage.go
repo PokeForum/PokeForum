@@ -120,7 +120,6 @@ func (ctrl *CategoryManageController) CreateCategory(c *gin.Context) {
 		Icon:        category.Icon,
 		Weight:      category.Weight,
 		Status:      category.Status.String(),
-		PostCount:   0, // TODO: 添加帖子统计功能
 		CreatedAt:   category.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		UpdatedAt:   category.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
@@ -169,7 +168,6 @@ func (ctrl *CategoryManageController) UpdateCategory(c *gin.Context) {
 		Icon:        category.Icon,
 		Weight:      category.Weight,
 		Status:      category.Status.String(),
-		PostCount:   0, // TODO: 添加帖子统计功能
 		CreatedAt:   category.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		UpdatedAt:   category.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
