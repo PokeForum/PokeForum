@@ -9,9 +9,9 @@ import (
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/post"
-	"github.com/PokeForum/PokeForum/ent/postaction"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
+	"github.com/PokeForum/PokeForum/internal/pkg/stats"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"go.uber.org/zap"
@@ -45,17 +45,19 @@ type IPostService interface {
 
 // PostService 帖子服务实现
 type PostService struct {
-	db     *ent.Client
-	cache  cache.ICacheService
-	logger *zap.Logger
+	db               *ent.Client
+	cache            cache.ICacheService
+	logger           *zap.Logger
+	postStatsService IPostStatsService
 }
 
 // NewPostService 创建帖子服务实例
 func NewPostService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) IPostService {
 	return &PostService{
-		db:     db,
-		cache:  cacheService,
-		logger: logger,
+		db:               db,
+		cache:            cacheService,
+		logger:           logger,
+		postStatsService: NewPostStatsService(db, cacheService, logger),
 	}
 }
 
@@ -331,62 +333,19 @@ func (s *PostService) SetPostPrivate(ctx context.Context, userID int, req schema
 func (s *PostService) LikePost(ctx context.Context, userID int, req schema.UserPostActionRequest) (*schema.UserPostActionResponse, error) {
 	s.logger.Info("点赞帖子", zap.Int("user_id", userID), zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
 
-	// 检查帖子是否存在
-	postData, err := s.db.Post.Query().
-		Where(post.IDEQ(req.ID)).
-		Only(ctx)
+	// 使用统计服务执行点赞操作
+	stats, err := s.postStatsService.PerformAction(ctx, userID, req.ID, "Like")
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("帖子不存在")
-		}
-		s.logger.Error("获取帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取帖子失败: %w", err)
-	}
-
-	// 检查是否已经点赞
-	existingAction, err := s.db.PostAction.Query().
-		Where(
-			postaction.UserID(userID),
-			postaction.PostID(req.ID),
-			postaction.ActionTypeEQ(postaction.ActionTypeLike),
-		).
-		Only(ctx)
-	if err != nil && !ent.IsNotFound(err) {
-		s.logger.Error("查询点赞记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("查询点赞记录失败: %w", err)
-	}
-
-	// 如果已经点赞，不可取消（单向操作）
-	if existingAction != nil {
-		return nil, errors.New("您已经点赞过该帖子，不可取消点赞")
-	}
-
-	// 创建点赞记录
-	_, err = s.db.PostAction.Create().
-		SetUserID(userID).
-		SetPostID(req.ID).
-		SetActionType(postaction.ActionTypeLike).
-		Save(ctx)
-	if err != nil {
-		s.logger.Error("创建点赞记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("创建点赞记录失败: %w", err)
-	}
-
-	// 更新帖子点赞数
-	updatedPost, err := s.db.Post.UpdateOneID(req.ID).
-		SetLikeCount(postData.LikeCount + 1).
-		Save(ctx)
-	if err != nil {
-		s.logger.Error("更新帖子点赞数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("更新帖子点赞数失败: %w", err)
+		s.logger.Error("点赞帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, err
 	}
 
 	// 构建响应数据
 	result := &schema.UserPostActionResponse{
 		Success:       true,
-		LikeCount:     updatedPost.LikeCount,
-		DislikeCount:  updatedPost.DislikeCount,
-		FavoriteCount: updatedPost.FavoriteCount,
+		LikeCount:     stats.LikeCount,
+		DislikeCount:  stats.DislikeCount,
+		FavoriteCount: stats.FavoriteCount,
 		ActionType:    "like",
 	}
 
@@ -398,62 +357,19 @@ func (s *PostService) LikePost(ctx context.Context, userID int, req schema.UserP
 func (s *PostService) DislikePost(ctx context.Context, userID int, req schema.UserPostActionRequest) (*schema.UserPostActionResponse, error) {
 	s.logger.Info("点踩帖子", zap.Int("user_id", userID), zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
 
-	// 检查帖子是否存在
-	postData, err := s.db.Post.Query().
-		Where(post.IDEQ(req.ID)).
-		Only(ctx)
+	// 使用统计服务执行点踩操作
+	stats, err := s.postStatsService.PerformAction(ctx, userID, req.ID, "Dislike")
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("帖子不存在")
-		}
-		s.logger.Error("获取帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取帖子失败: %w", err)
-	}
-
-	// 检查是否已经点踩
-	existingAction, err := s.db.PostAction.Query().
-		Where(
-			postaction.UserID(userID),
-			postaction.PostID(req.ID),
-			postaction.ActionTypeEQ(postaction.ActionTypeDislike),
-		).
-		Only(ctx)
-	if err != nil && !ent.IsNotFound(err) {
-		s.logger.Error("查询点踩记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("查询点踩记录失败: %w", err)
-	}
-
-	// 如果已经点踩，不可取消（单向操作）
-	if existingAction != nil {
-		return nil, errors.New("您已经点踩过该帖子，不可取消点踩")
-	}
-
-	// 创建点踩记录
-	_, err = s.db.PostAction.Create().
-		SetUserID(userID).
-		SetPostID(req.ID).
-		SetActionType(postaction.ActionTypeDislike).
-		Save(ctx)
-	if err != nil {
-		s.logger.Error("创建点踩记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("创建点踩记录失败: %w", err)
-	}
-
-	// 更新帖子点踩数
-	updatedPost, err := s.db.Post.UpdateOneID(req.ID).
-		SetDislikeCount(postData.DislikeCount + 1).
-		Save(ctx)
-	if err != nil {
-		s.logger.Error("更新帖子点踩数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("更新帖子点踩数失败: %w", err)
+		s.logger.Error("点踩帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, err
 	}
 
 	// 构建响应数据
 	result := &schema.UserPostActionResponse{
 		Success:       true,
-		LikeCount:     updatedPost.LikeCount,
-		DislikeCount:  updatedPost.DislikeCount,
-		FavoriteCount: updatedPost.FavoriteCount,
+		LikeCount:     stats.LikeCount,
+		DislikeCount:  stats.DislikeCount,
+		FavoriteCount: stats.FavoriteCount,
 		ActionType:    "dislike",
 	}
 
@@ -465,92 +381,45 @@ func (s *PostService) DislikePost(ctx context.Context, userID int, req schema.Us
 func (s *PostService) FavoritePost(ctx context.Context, userID int, req schema.UserPostActionRequest) (*schema.UserPostActionResponse, error) {
 	s.logger.Info("收藏帖子", zap.Int("user_id", userID), zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
 
-	// 检查帖子是否存在
-	postData, err := s.db.Post.Query().
-		Where(post.IDEQ(req.ID)).
-		Only(ctx)
+	// 先检查用户是否已经收藏
+	userActionStatus, err := s.postStatsService.GetUserActionStatus(ctx, userID, req.ID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("帖子不存在")
-		}
-		s.logger.Error("获取帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取帖子失败: %w", err)
+		s.logger.Error("获取用户操作状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, err
 	}
 
-	// 检查是否已经收藏
-	existingAction, err := s.db.PostAction.Query().
-		Where(
-			postaction.UserID(userID),
-			postaction.PostID(req.ID),
-			postaction.ActionTypeEQ(postaction.ActionTypeFavorite),
-		).
-		Only(ctx)
-	if err != nil && !ent.IsNotFound(err) {
-		s.logger.Error("查询收藏记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("查询收藏记录失败: %w", err)
-	}
+	var postStats *stats.Stats
+	var actionType string
 
-	// 如果已经收藏，取消收藏（双向操作）
-	if existingAction != nil {
-		// 删除收藏记录
-		err = s.db.PostAction.DeleteOne(existingAction).Exec(ctx)
+	if userActionStatus.HasFavorited {
+		// 已经收藏,执行取消收藏
+		postStats, err = s.postStatsService.CancelAction(ctx, userID, req.ID, "Favorite")
 		if err != nil {
-			s.logger.Error("删除收藏记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-			return nil, fmt.Errorf("删除收藏记录失败: %w", err)
+			s.logger.Error("取消收藏失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			return nil, err
 		}
-
-		// 更新帖子收藏数
-		updatedPost, err := s.db.Post.UpdateOneID(req.ID).
-			SetFavoriteCount(postData.FavoriteCount - 1).
-			Save(ctx)
-		if err != nil {
-			s.logger.Error("更新帖子收藏数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-			return nil, fmt.Errorf("更新帖子收藏数失败: %w", err)
-		}
-
-		// 构建响应数据
-		result := &schema.UserPostActionResponse{
-			Success:       true,
-			LikeCount:     updatedPost.LikeCount,
-			DislikeCount:  updatedPost.DislikeCount,
-			FavoriteCount: updatedPost.FavoriteCount,
-			ActionType:    "unfavorite",
-		}
-
+		actionType = "unfavorite"
 		s.logger.Info("取消收藏帖子成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
-		return result, nil
-	}
-
-	// 创建收藏记录
-	_, err = s.db.PostAction.Create().
-		SetUserID(userID).
-		SetPostID(req.ID).
-		SetActionType(postaction.ActionTypeFavorite).
-		Save(ctx)
-	if err != nil {
-		s.logger.Error("创建收藏记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("创建收藏记录失败: %w", err)
-	}
-
-	// 更新帖子收藏数
-	updatedPost, err := s.db.Post.UpdateOneID(req.ID).
-		SetFavoriteCount(postData.FavoriteCount + 1).
-		Save(ctx)
-	if err != nil {
-		s.logger.Error("更新帖子收藏数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("更新帖子收藏数失败: %w", err)
+	} else {
+		// 未收藏,执行收藏
+		postStats, err = s.postStatsService.PerformAction(ctx, userID, req.ID, "Favorite")
+		if err != nil {
+			s.logger.Error("收藏帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			return nil, err
+		}
+		actionType = "favorite"
+		s.logger.Info("收藏帖子成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
 	}
 
 	// 构建响应数据
 	result := &schema.UserPostActionResponse{
 		Success:       true,
-		LikeCount:     updatedPost.LikeCount,
-		DislikeCount:  updatedPost.DislikeCount,
-		FavoriteCount: updatedPost.FavoriteCount,
-		ActionType:    "favorite",
+		LikeCount:     postStats.LikeCount,
+		DislikeCount:  postStats.DislikeCount,
+		FavoriteCount: postStats.FavoriteCount,
+		ActionType:    actionType,
 	}
 
-	s.logger.Info("收藏帖子成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
 	return result, nil
 }
 

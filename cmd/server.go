@@ -33,7 +33,9 @@ import (
 
 	"github.com/PokeForum/PokeForum/internal/configs"
 	"github.com/PokeForum/PokeForum/internal/initializer"
+	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/logging"
+	"github.com/PokeForum/PokeForum/internal/service"
 	"github.com/PokeForum/PokeForum/internal/utils"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/samber/do"
@@ -102,6 +104,13 @@ func RunServer() {
 	// 注册路由
 	router := initializer.Routers(injector)
 
+	// 初始化缓存服务
+	cacheService := cache.NewRedisCacheService(configs.Cache, configs.Log)
+
+	// 启动统计数据同步任务(每5分钟同步一次)
+	syncTask := service.NewStatsSyncTask(configs.DB, cacheService, configs.Log)
+	syncTask.Start(5 * time.Minute)
+
 	// 启动服务
 	sDSN := fmt.Sprintf("%s:%s", configs.Host, configs.Port)
 	fmt.Printf("Server Run: %s \n", sDSN)
@@ -123,6 +132,9 @@ func RunServer() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM) // 此处不会阻塞
 	<-quit                                               // 阻塞此处，当接受到上述两种信号时，才继续往下执行
 	configs.Log.Info("Service ready to shut down")
+
+	// 停止统计数据同步任务
+	syncTask.Stop()
 
 	// 创建10秒超时的Context
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

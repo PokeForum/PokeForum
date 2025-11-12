@@ -287,3 +287,190 @@ func (r *RedisCacheService) HGetAll(key string) (map[string]string, error) {
 	}
 	return values, nil
 }
+
+// HIncrBy 哈希表字段自增
+func (r *RedisCacheService) HIncrBy(key, field string, increment int64) (int64, error) {
+	conn := r.getConn()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
+
+	value, err := redis.Int64(conn.Do("HINCRBY", key, field, increment))
+	if err != nil {
+		r.logger.Error("哈希表字段自增失败", zap.String("key", key), zap.String("field", field), zap.Int64("increment", increment), zap.Error(err))
+		return 0, fmt.Errorf("哈希表字段自增失败: %w", err)
+	}
+	return value, nil
+}
+
+// HMGet 批量获取哈希表字段值
+func (r *RedisCacheService) HMGet(key string, fields ...string) ([]string, error) {
+	if len(fields) == 0 {
+		return []string{}, nil
+	}
+
+	conn := r.getConn()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
+
+	// 构建参数列表
+	args := make([]interface{}, len(fields)+1)
+	args[0] = key
+	for i, field := range fields {
+		args[i+1] = field
+	}
+
+	values, err := redis.Strings(conn.Do("HMGET", args...))
+	if err != nil {
+		r.logger.Error("批量获取哈希表字段值失败", zap.String("key", key), zap.Strings("fields", fields), zap.Error(err))
+		return nil, fmt.Errorf("批量获取哈希表字段值失败: %w", err)
+	}
+	return values, nil
+}
+
+// HMSet 批量设置哈希表字段值
+func (r *RedisCacheService) HMSet(key string, fieldValues map[string]interface{}) error {
+	if len(fieldValues) == 0 {
+		return nil
+	}
+
+	conn := r.getConn()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
+
+	// 构建参数列表
+	args := make([]interface{}, len(fieldValues)*2+1)
+	args[0] = key
+	i := 1
+	for field, value := range fieldValues {
+		args[i] = field
+		args[i+1] = value
+		i += 2
+	}
+
+	_, err := conn.Do("HMSET", args...)
+	if err != nil {
+		r.logger.Error("批量设置哈希表字段值失败", zap.String("key", key), zap.Error(err))
+		return fmt.Errorf("批量设置哈希表字段值失败: %w", err)
+	}
+	return nil
+}
+
+// SAdd 向集合添加成员
+func (r *RedisCacheService) SAdd(key string, members ...interface{}) (int, error) {
+	if len(members) == 0 {
+		return 0, nil
+	}
+
+	conn := r.getConn()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
+
+	// 构建参数列表
+	args := make([]interface{}, len(members)+1)
+	args[0] = key
+	copy(args[1:], members)
+
+	count, err := redis.Int(conn.Do("SADD", args...))
+	if err != nil {
+		r.logger.Error("向集合添加成员失败", zap.String("key", key), zap.Error(err))
+		return 0, fmt.Errorf("向集合添加成员失败: %w", err)
+	}
+	return count, nil
+}
+
+// SMembers 获取集合所有成员
+func (r *RedisCacheService) SMembers(key string) ([]string, error) {
+	conn := r.getConn()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
+
+	members, err := redis.Strings(conn.Do("SMEMBERS", key))
+	if err != nil {
+		r.logger.Error("获取集合成员失败", zap.String("key", key), zap.Error(err))
+		return nil, fmt.Errorf("获取集合成员失败: %w", err)
+	}
+	return members, nil
+}
+
+// SRem 从集合移除成员
+func (r *RedisCacheService) SRem(key string, members ...interface{}) (int, error) {
+	if len(members) == 0 {
+		return 0, nil
+	}
+
+	conn := r.getConn()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
+
+	// 构建参数列表
+	args := make([]interface{}, len(members)+1)
+	args[0] = key
+	copy(args[1:], members)
+
+	count, err := redis.Int(conn.Do("SREM", args...))
+	if err != nil {
+		r.logger.Error("从集合移除成员失败", zap.String("key", key), zap.Error(err))
+		return 0, fmt.Errorf("从集合移除成员失败: %w", err)
+	}
+	return count, nil
+}
+
+// SCard 获取集合成员数量
+func (r *RedisCacheService) SCard(key string) (int64, error) {
+	conn := r.getConn()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
+
+	count, err := redis.Int64(conn.Do("SCARD", key))
+	if err != nil {
+		r.logger.Error("获取集合成员数量失败", zap.String("key", key), zap.Error(err))
+		return 0, fmt.Errorf("获取集合成员数量失败: %w", err)
+	}
+	return count, nil
+}
+
+// SIsMember 判断成员是否在集合中
+func (r *RedisCacheService) SIsMember(key string, member interface{}) (bool, error) {
+	conn := r.getConn()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
+
+	exists, err := redis.Bool(conn.Do("SISMEMBER", key, member))
+	if err != nil {
+		r.logger.Error("判断成员是否在集合中失败", zap.String("key", key), zap.Error(err))
+		return false, fmt.Errorf("判断成员是否在集合中失败: %w", err)
+	}
+	return exists, nil
+}

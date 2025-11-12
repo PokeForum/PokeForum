@@ -7,7 +7,6 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/comment"
-	"github.com/PokeForum/PokeForum/ent/commentaction"
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
@@ -34,17 +33,19 @@ type ICommentService interface {
 
 // CommentService 评论服务实现
 type CommentService struct {
-	db     *ent.Client
-	cache  cache.ICacheService
-	logger *zap.Logger
+	db               *ent.Client
+	cache            cache.ICacheService
+	logger           *zap.Logger
+	commentStatsService ICommentStatsService
 }
 
 // NewCommentService 创建评论服务实例
 func NewCommentService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) ICommentService {
 	return &CommentService{
-		db:     db,
-		cache:  cacheService,
-		logger: logger,
+		db:               db,
+		cache:            cacheService,
+		logger:           logger,
+		commentStatsService: NewCommentStatsService(db, cacheService, logger),
 	}
 }
 
@@ -214,69 +215,18 @@ func (s *CommentService) UpdateComment(ctx context.Context, userID int, req sche
 func (s *CommentService) LikeComment(ctx context.Context, userID int, req schema.UserCommentActionRequest) (*schema.UserCommentActionResponse, error) {
 	s.logger.Info("点赞评论", zap.Int("user_id", userID), zap.Int("comment_id", req.ID), tracing.WithTraceIDField(ctx))
 
-	// 检查评论是否存在
-	commentData, err := s.db.Comment.Query().
-		Where(comment.IDEQ(req.ID)).
-		Only(ctx)
+	// 使用统计服务执行点赞操作
+	stats, err := s.commentStatsService.PerformAction(ctx, userID, req.ID, "Like")
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("评论不存在")
-		}
-		s.logger.Error("获取评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取评论失败: %w", err)
-	}
-
-	// 检查是否已经点赞
-	existingAction, err := s.db.CommentAction.Query().
-		Where(commentaction.UserIDEQ(userID), commentaction.CommentIDEQ(req.ID), commentaction.ActionTypeEQ(commentaction.ActionTypeLike)).
-		Only(ctx)
-	if err != nil && !ent.IsNotFound(err) {
-		s.logger.Error("查询点赞记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("查询点赞记录失败: %w", err)
-	}
-
-	if existingAction != nil {
-		// 已经点赞，返回当前状态
-		return &schema.UserCommentActionResponse{
-			ID:           commentData.ID,
-			LikeCount:    commentData.LikeCount,
-			DislikeCount: commentData.DislikeCount,
-		}, nil
-	}
-
-	// 移除可能存在的点踩记录
-	_, err = s.db.CommentAction.Delete().
-		Where(commentaction.UserIDEQ(userID), commentaction.CommentIDEQ(req.ID), commentaction.ActionTypeEQ(commentaction.ActionTypeDislike)).
-		Exec(ctx)
-	if err != nil {
+		s.logger.Error("点赞评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, err
-	}
-
-	// 创建点赞记录
-	_, err = s.db.CommentAction.Create().
-		SetUserID(userID).
-		SetCommentID(req.ID).
-		SetActionType(commentaction.ActionTypeLike).
-		Save(ctx)
-	if err != nil {
-		s.logger.Error("创建点赞记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("创建点赞记录失败: %w", err)
-	}
-
-	// 更新评论点赞数
-	updatedComment, err := s.db.Comment.UpdateOne(commentData).
-		AddLikeCount(1).
-		Save(ctx)
-	if err != nil {
-		s.logger.Error("更新评论点赞数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("更新评论点赞数失败: %w", err)
 	}
 
 	// 构建响应数据
 	result := &schema.UserCommentActionResponse{
-		ID:           updatedComment.ID,
-		LikeCount:    updatedComment.LikeCount,
-		DislikeCount: updatedComment.DislikeCount,
+		ID:           stats.ID,
+		LikeCount:    stats.LikeCount,
+		DislikeCount: stats.DislikeCount,
 	}
 
 	s.logger.Info("点赞评论成功", zap.Int("comment_id", result.ID), tracing.WithTraceIDField(ctx))
@@ -287,69 +237,18 @@ func (s *CommentService) LikeComment(ctx context.Context, userID int, req schema
 func (s *CommentService) DislikeComment(ctx context.Context, userID int, req schema.UserCommentActionRequest) (*schema.UserCommentActionResponse, error) {
 	s.logger.Info("点踩评论", zap.Int("user_id", userID), zap.Int("comment_id", req.ID), tracing.WithTraceIDField(ctx))
 
-	// 检查评论是否存在
-	commentData, err := s.db.Comment.Query().
-		Where(comment.IDEQ(req.ID)).
-		Only(ctx)
+	// 使用统计服务执行点踩操作
+	stats, err := s.commentStatsService.PerformAction(ctx, userID, req.ID, "Dislike")
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("评论不存在")
-		}
-		s.logger.Error("获取评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取评论失败: %w", err)
-	}
-
-	// 检查是否已经点踩
-	existingAction, err := s.db.CommentAction.Query().
-		Where(commentaction.UserIDEQ(userID), commentaction.CommentIDEQ(req.ID), commentaction.ActionTypeEQ(commentaction.ActionTypeDislike)).
-		Only(ctx)
-	if err != nil && !ent.IsNotFound(err) {
-		s.logger.Error("查询点踩记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("查询点踩记录失败: %w", err)
-	}
-
-	if existingAction != nil {
-		// 已经点踩，返回当前状态
-		return &schema.UserCommentActionResponse{
-			ID:           commentData.ID,
-			LikeCount:    commentData.LikeCount,
-			DislikeCount: commentData.DislikeCount,
-		}, nil
-	}
-
-	// 移除可能存在的点赞记录
-	_, err = s.db.CommentAction.Delete().
-		Where(commentaction.UserIDEQ(userID), commentaction.CommentIDEQ(req.ID), commentaction.ActionTypeEQ(commentaction.ActionTypeLike)).
-		Exec(ctx)
-	if err != nil {
+		s.logger.Error("点踩评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, err
-	}
-
-	// 创建点踩记录
-	_, err = s.db.CommentAction.Create().
-		SetUserID(userID).
-		SetCommentID(req.ID).
-		SetActionType(commentaction.ActionTypeDislike).
-		Save(ctx)
-	if err != nil {
-		s.logger.Error("创建点踩记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("创建点踩记录失败: %w", err)
-	}
-
-	// 更新评论点踩数
-	updatedComment, err := s.db.Comment.UpdateOne(commentData).
-		AddDislikeCount(1).
-		Save(ctx)
-	if err != nil {
-		s.logger.Error("更新评论点踩数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("更新评论点踩数失败: %w", err)
 	}
 
 	// 构建响应数据
 	result := &schema.UserCommentActionResponse{
-		ID:           updatedComment.ID,
-		LikeCount:    updatedComment.LikeCount,
-		DislikeCount: updatedComment.DislikeCount,
+		ID:           stats.ID,
+		LikeCount:    stats.LikeCount,
+		DislikeCount: stats.DislikeCount,
 	}
 
 	s.logger.Info("点踩评论成功", zap.Int("comment_id", result.ID), tracing.WithTraceIDField(ctx))

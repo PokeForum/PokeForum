@@ -84,4 +84,51 @@ type ICacheService interface {
 	// key: 哈希表键名
 	// 返回: 字段和值的映射以及错误信息
 	HGetAll(key string) (map[string]string, error)
+
+	// HIncrBy 哈希表字段自增
+	// key: 哈希表键名
+	// field: 字段名
+	// increment: 增量值
+	// 返回: 自增后的值和错误信息
+	HIncrBy(key, field string, increment int64) (int64, error)
+
+	// HMGet 批量获取哈希表字段值
+	// key: 哈希表键名
+	// fields: 字段名列表
+	// 返回: 字段值列表和错误信息
+	HMGet(key string, fields ...string) ([]string, error)
+
+	// HMSet 批量设置哈希表字段值
+	// key: 哈希表键名
+	// fieldValues: 字段和值的映射
+	// 返回: 错误信息
+	HMSet(key string, fieldValues map[string]interface{}) error
+
+	// SAdd 向集合添加成员
+	// key: 集合键名
+	// members: 要添加的成员（支持多个）
+	// 返回: 添加的数量和错误信息
+	SAdd(key string, members ...interface{}) (int, error)
+
+	// SMembers 获取集合所有成员
+	// key: 集合键名
+	// 返回: 成员列表和错误信息
+	SMembers(key string) ([]string, error)
+
+	// SRem 从集合移除成员
+	// key: 集合键名
+	// members: 要移除的成员（支持多个）
+	// 返回: 移除的数量和错误信息
+	SRem(key string, members ...interface{}) (int, error)
+
+	// SCard 获取集合成员数量
+	// key: 集合键名
+	// 返回: 成员数量和错误信息
+	SCard(key string) (int64, error)
+
+	// SIsMember 判断成员是否在集合中
+	// key: 集合键名
+	// member: 要判断的成员
+	// 返回: 是否存在和错误信息
+	SIsMember(key string, member interface{}) (bool, error)
 }
