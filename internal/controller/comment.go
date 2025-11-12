@@ -94,8 +94,15 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 	// 获取服务实例
 	commentService := do.MustInvoke[service.ICommentService](ctrl.injector)
 
+	// 获取客户端IP和设备信息
+	clientIP := c.ClientIP()
+	deviceInfo := c.GetHeader("User-Agent")
+	if deviceInfo == "" {
+		deviceInfo = "Unknown"
+	}
+
 	// 调用服务创建评论
-	result, err := commentService.CreateComment(c.Request.Context(), userID, req)
+	result, err := commentService.CreateComment(c.Request.Context(), userID, clientIP, deviceInfo, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, 500, "创建评论失败", err.Error())
 		return

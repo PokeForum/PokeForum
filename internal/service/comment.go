@@ -19,7 +19,7 @@ import (
 // ICommentService 评论服务接口
 type ICommentService interface {
 	// CreateComment 创建评论
-	CreateComment(ctx context.Context, userID int, req schema.UserCommentCreateRequest) (*schema.UserCommentCreateResponse, error)
+	CreateComment(ctx context.Context, userID int, clientIP, deviceInfo string, req schema.UserCommentCreateRequest) (*schema.UserCommentCreateResponse, error)
 	// UpdateComment 更新评论
 	UpdateComment(ctx context.Context, userID int, req schema.UserCommentUpdateRequest) (*schema.UserCommentUpdateResponse, error)
 	// LikeComment 点赞评论
@@ -49,8 +49,8 @@ func NewCommentService(db *ent.Client, cacheService cache.ICacheService, logger 
 }
 
 // CreateComment 创建评论
-func (s *CommentService) CreateComment(ctx context.Context, userID int, req schema.UserCommentCreateRequest) (*schema.UserCommentCreateResponse, error) {
-	s.logger.Info("创建评论", zap.Int("user_id", userID), zap.Int("post_id", req.PostID), tracing.WithTraceIDField(ctx))
+func (s *CommentService) CreateComment(ctx context.Context, userID int, clientIP, deviceInfo string, req schema.UserCommentCreateRequest) (*schema.UserCommentCreateResponse, error) {
+	s.logger.Info("创建评论", zap.Int("user_id", userID), zap.Int("post_id", req.PostID), zap.String("client_ip", clientIP), zap.String("device_info", deviceInfo), tracing.WithTraceIDField(ctx))
 
 	// 检查帖子是否存在且状态正常
 	postData, err := s.db.Post.Query().
@@ -121,8 +121,8 @@ func (s *CommentService) CreateComment(ctx context.Context, userID int, req sche
 		SetContent(req.Content).
 		SetNillableParentID(req.ParentID).
 		SetNillableReplyToUserID(req.ReplyToUserID).
-		SetCommenterIP("127.0.0.1"). // TODO: 从请求中获取真实IP
-		SetDeviceInfo("Unknown").    // TODO: 从请求中获取设备信息
+		SetCommenterIP(clientIP).   // 从请求中获取真实IP
+		SetDeviceInfo(deviceInfo). // 从请求中获取设备信息
 		Save(ctx)
 	if err != nil {
 		s.logger.Error("创建评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
