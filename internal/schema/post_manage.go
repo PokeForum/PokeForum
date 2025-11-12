@@ -68,7 +68,7 @@ type PostListItem struct {
 	CategoryID    int    `json:"category_id" example:"1"`                   // 版块ID
 	CategoryName  string `json:"category_name" example:"技术讨论"`              // 版块名称
 	Title         string `json:"title" example:"技术分享帖"`                     // 帖子标题
-	Content       string `json:"content" example:"## 技术分享\n这是内容"`           // 帖子内容（截取前200字符）
+	Content       string `json:"content" example:"## 技术分享\n这是内容"`           // 帖子内容（截取前100字符）
 	ViewCount     int    `json:"view_count" example:"150"`                  // 浏览数
 	LikeCount     int    `json:"like_count" example:"25"`                   // 点赞数
 	DislikeCount  int    `json:"dislike_count" example:"2"`                 // 点踩数

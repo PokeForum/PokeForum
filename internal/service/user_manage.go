@@ -458,7 +458,10 @@ func (s *UserManageService) SetModeratorCategories(ctx context.Context, req sche
 		Where(categorymoderator.UserIDEQ(req.UserID)).
 		Exec(ctx)
 	if err != nil {
-		tx.Rollback()
+		err = tx.Rollback()
+		if err != nil {
+			return err
+		}
 		s.logger.Error("删除旧版主关联记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("删除旧版主关联记录失败: %w", err)
 	}
@@ -474,7 +477,10 @@ func (s *UserManageService) SetModeratorCategories(ctx context.Context, req sche
 
 		_, err = tx.CategoryModerator.CreateBulk(bulk...).Save(ctx)
 		if err != nil {
-			tx.Rollback()
+			err = tx.Rollback()
+			if err != nil {
+				return err
+			}
 			s.logger.Error("批量插入版主关联记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 			return fmt.Errorf("批量插入版主关联记录失败: %w", err)
 		}

@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/configs"
 	"github.com/PokeForum/PokeForum/internal/initializer"
@@ -90,7 +91,12 @@ func createSuperAdmin() error {
 	if configs.DB == nil {
 		return fmt.Errorf("数据库初始化失败，请检查配置文件中的数据库连接信息")
 	}
-	defer configs.DB.Close()
+	defer func(DB *ent.Client) {
+		err := DB.Close()
+		if err != nil {
+			configs.Log.Warn(err.Error())
+		}
+	}(configs.DB)
 
 	// 自动迁移数据库
 	fmt.Println("正在迁移数据库结构...")

@@ -152,10 +152,10 @@ func (s *PostManageService) GetPostList(ctx context.Context, req schema.PostList
 	// 转换为响应格式
 	list := make([]schema.PostListItem, len(posts))
 	for i, p := range posts {
-		// 截取内容前200字符
+		// 截取内容前100字符
 		content := p.Content
-		if len(content) > 200 {
-			content = content[:200] + "..."
+		if len(content) > 100 {
+			content = content[:100] + "..."
 		}
 
 		// 获取关联信息

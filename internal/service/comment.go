@@ -245,9 +245,12 @@ func (s *CommentService) LikeComment(ctx context.Context, userID int, req schema
 	}
 
 	// 移除可能存在的点踩记录
-	s.db.CommentAction.Delete().
+	_, err = s.db.CommentAction.Delete().
 		Where(commentaction.UserIDEQ(userID), commentaction.CommentIDEQ(req.ID), commentaction.ActionTypeEQ(commentaction.ActionTypeDislike)).
 		Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	// 创建点赞记录
 	_, err = s.db.CommentAction.Create().
@@ -315,9 +318,12 @@ func (s *CommentService) DislikeComment(ctx context.Context, userID int, req sch
 	}
 
 	// 移除可能存在的点赞记录
-	s.db.CommentAction.Delete().
+	_, err = s.db.CommentAction.Delete().
 		Where(commentaction.UserIDEQ(userID), commentaction.CommentIDEQ(req.ID), commentaction.ActionTypeEQ(commentaction.ActionTypeLike)).
 		Exec(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	// 创建点踩记录
 	_, err = s.db.CommentAction.Create().

@@ -282,8 +282,8 @@ func (s *CategoryManageService) GetCategoryDetail(ctx context.Context, id int) (
 
 // SetCategoryModerators 设置版块版主
 func (s *CategoryManageService) SetCategoryModerators(ctx context.Context, req schema.CategoryModeratorRequest) error {
-	s.logger.Info("设置版块版主", 
-		zap.Int("category_id", req.CategoryID), 
+	s.logger.Info("设置版块版主",
+		zap.Int("category_id", req.CategoryID),
 		zap.Int("user_id", req.UserID),
 		tracing.WithTraceIDField(ctx))
 
@@ -331,7 +331,10 @@ func (s *CategoryManageService) SetCategoryModerators(ctx context.Context, req s
 		).
 		Exist(ctx)
 	if err != nil {
-		tx.Rollback()
+		err = tx.Rollback()
+		if err != nil {
+			return err
+		}
 		s.logger.Error("检查版主关联失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("检查版主关联失败: %w", err)
 	}
@@ -343,7 +346,10 @@ func (s *CategoryManageService) SetCategoryModerators(ctx context.Context, req s
 			SetUserID(req.UserID).
 			Save(ctx)
 		if err != nil {
-			tx.Rollback()
+			err = tx.Rollback()
+			if err != nil {
+				return err
+			}
 			s.logger.Error("添加版主关联记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 			return fmt.Errorf("添加版主关联记录失败: %w", err)
 		}
@@ -364,8 +370,8 @@ func (s *CategoryManageService) SetCategoryModerators(ctx context.Context, req s
 
 // RemoveCategoryModerator 移除版块版主
 func (s *CategoryManageService) RemoveCategoryModerator(ctx context.Context, req schema.CategoryModeratorRequest) error {
-	s.logger.Info("移除版块版主", 
-		zap.Int("category_id", req.CategoryID), 
+	s.logger.Info("移除版块版主",
+		zap.Int("category_id", req.CategoryID),
 		zap.Int("user_id", req.UserID),
 		tracing.WithTraceIDField(ctx))
 

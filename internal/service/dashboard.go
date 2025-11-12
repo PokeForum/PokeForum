@@ -423,12 +423,12 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 	for id := range postIDs {
 		postIDList = append(postIDList, id)
 	}
-	posts_data, _ := s.db.Post.Query().
+	postsData, _ := s.db.Post.Query().
 		Where(post.IDIn(postIDList...)).
 		Select(post.FieldID, post.FieldTitle).
 		All(ctx)
 	postMap := make(map[int]string)
-	for _, p := range posts_data {
+	for _, p := range postsData {
 		postMap[p.ID] = p.Title
 	}
 

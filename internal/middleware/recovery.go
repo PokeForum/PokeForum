@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/PokeForum/PokeForum/internal/configs"
@@ -15,14 +16,14 @@ func Recovery() gin.HandlerFunc {
 	return gin.CustomRecovery(func(c *gin.Context, recovered any) {
 		// 从context中获取链路ID，用于追踪请求
 		traceID := tracing.GetTraceID(c.Request.Context())
-		
+
 		// 尝试转换为validator.ValidationErrors
-		if errs, ok := recovered.(validator.ValidationErrors); ok {
-			_ = errs // 参数校验失败
+		var errs validator.ValidationErrors
+		if errors.As(&errs, &recovered) {
 			c.String(http.StatusBadRequest, "参数校验失败")
 			return
 		}
-		
+
 		// 尝试转换为error
 		if err, ok := recovered.(error); ok {
 			// 在错误日志中包含链路ID
@@ -30,7 +31,7 @@ func Recovery() gin.HandlerFunc {
 			c.String(http.StatusInternalServerError, err.Error())
 			return
 		}
-		
+
 		c.AbortWithStatus(http.StatusInternalServerError)
 	})
 }
