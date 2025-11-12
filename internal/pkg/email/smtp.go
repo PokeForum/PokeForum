@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/wneessen/go-mail"
 	"go.uber.org/zap"
 )
@@ -73,12 +74,17 @@ func (client *SMTPPool) Send(ctx context.Context, to, title, body string) error 
 	m.Subject(title)
 	m.SetMessageID()
 	m.SetBodyString(mail.TypeTextHTML, body)
+	
+	// 从context中获取链路ID和用户ID
+	cid := tracing.GetTraceID(ctx)
+	userID := tracing.GetUserID(ctx)
+	
 	client.ch <- &message{
 		msg:     m,
 		subject: title,
 		to:      to,
-		cid:     "", // TODO: 从 context 中获取关联 ID
-		userID:  0,  // TODO: 从 context 中获取用户 ID
+		cid:     cid,
+		userID:  userID,
 	}
 	return nil
 }
@@ -149,9 +155,17 @@ func (client *SMTPPool) Init() {
 						continue // 邮件已发送，不视为发送失败
 					}
 
-					client.l.Warn("邮件发送失败", zap.String("to", m.to), zap.String("cid", m.cid), zap.Error(err))
+					client.l.Warn("邮件发送失败", 
+						zap.String("to", m.to), 
+						zap.String("cid", m.cid), 
+						zap.Int("userID", m.userID),
+						zap.Error(err))
 				} else {
-					client.l.Info("邮件发送成功", zap.String("to", m.to), zap.String("subject", m.subject))
+					client.l.Info("邮件发送成功", 
+						zap.String("to", m.to), 
+						zap.String("subject", m.subject),
+						zap.String("cid", m.cid),
+						zap.Int("userID", m.userID))
 				}
 			// 长时间没有新邮件，则关闭 SMTP 连接
 			case <-time.After(time.Duration(client.config.Keepalive) * time.Second):

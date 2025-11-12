@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
+	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 	"github.com/gin-gonic/gin"
@@ -513,7 +514,10 @@ func (ctrl *SettingsController) SendTestEmail(c *gin.Context) {
 		return
 	}
 
-	if err = settingsService.SendTestEmail(c.Request.Context(), req.ToEmail); err != nil {
+	// 从gin.Context获取用户ID并设置到context中
+	ctx := tracing.ContextWithUserID(c, c.Request.Context())
+
+	if err = settingsService.SendTestEmail(ctx, req.ToEmail); err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
