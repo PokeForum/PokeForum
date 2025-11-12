@@ -8780,11 +8780,6 @@ const docTemplate = `{
                     "type": "string",
                     "example": "技术讨论"
                 },
-                "post_count": {
-                    "description": "帖子数量",
-                    "type": "integer",
-                    "example": 150
-                },
                 "slug": {
                     "description": "版块英文标识",
                     "type": "string",
