@@ -126,6 +126,14 @@ func InjectorSrv(injector *do.Injector) {
 		}
 		return service.NewUserProfileService(configs.DB, cacheService, configs.Log), nil
 	})
+	// 注册 RankingService
+	do.Provide(injector, func(i *do.Injector) (service.IRankingService, error) {
+		cacheService, err := do.Invoke[cache.ICacheService](injector)
+		if err != nil {
+			return nil, err
+		}
+		return service.NewRankingService(configs.DB, cacheService, configs.Log), nil
+	})
 	// 注册 OAuthProviderService
 	do.Provide(injector, func(i *do.Injector) (service.IOAuthProviderService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
@@ -220,15 +228,11 @@ func Routers(injector *do.Injector) *gin.Engine {
 			{
 			}
 
-			// TODO 排行榜
+			// 排行榜
 			{
-				// 阅读榜(总榜/月榜/周榜)
-				// 主题数
-				// 评论数
-				// 积分榜
-				// TODO 邀请数
-				// TODO 财富榜
-				// TODO 活跃榜(签到榜)
+				RankingGroup := ForumGroup.Group("/ranking")
+				RankingCon := controller.NewRankingController(injector)
+				RankingCon.RankingRouter(RankingGroup)
 			}
 
 			// 版块
