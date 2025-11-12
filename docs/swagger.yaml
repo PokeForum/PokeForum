@@ -1040,6 +1040,258 @@ definitions:
         example: newuser
         type: string
     type: object
+  schema.OAuthProviderCreateRequest:
+    properties:
+      auth_url:
+        description: 授权URL
+        example: https://github.com/login/oauth/authorize
+        type: string
+      client_id:
+        description: 客户端ID
+        example: your_client_id
+        type: string
+      client_secret:
+        description: 客户端密钥
+        example: your_client_secret
+        type: string
+      enabled:
+        description: 是否启用
+        example: true
+        type: boolean
+      extra_config:
+        additionalProperties: true
+        description: 额外配置参数
+        type: object
+      provider:
+        description: 提供商类型
+        enum:
+        - QQ
+        - GitHub
+        - Apple
+        - Google
+        - Telegram
+        - FIDO2
+        example: GitHub
+        type: string
+      redirect_url:
+        description: 回调URL
+        example: https://example.com/auth/callback
+        type: string
+      scopes:
+        description: 请求范围
+        example:
+        - user:email
+        items:
+          type: string
+        type: array
+      sort_order:
+        description: 排序顺序
+        example: 0
+        minimum: 0
+        type: integer
+      token_url:
+        description: Token获取URL
+        example: https://github.com/login/oauth/access_token
+        type: string
+      user_info_url:
+        description: 用户信息获取URL
+        example: https://api.github.com/user
+        type: string
+    required:
+    - client_id
+    - client_secret
+    - provider
+    type: object
+  schema.OAuthProviderDetailResponse:
+    properties:
+      auth_url:
+        description: 授权URL
+        example: https://github.com/login/oauth/authorize
+        type: string
+      client_id:
+        description: 客户端ID
+        example: your_client_id
+        type: string
+      client_secret:
+        description: 客户端密钥（脱敏）
+        example: '***'
+        type: string
+      created_at:
+        description: 创建时间
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      enabled:
+        description: 是否启用
+        example: true
+        type: boolean
+      extra_config:
+        additionalProperties: true
+        description: 额外配置参数
+        type: object
+      id:
+        description: 提供商ID
+        example: 1
+        type: integer
+      provider:
+        description: 提供商类型
+        example: GitHub
+        type: string
+      redirect_url:
+        description: 回调URL
+        example: https://example.com/auth/callback
+        type: string
+      scopes:
+        description: 请求范围
+        example:
+        - user:email
+        items:
+          type: string
+        type: array
+      sort_order:
+        description: 排序顺序
+        example: 0
+        type: integer
+      token_url:
+        description: Token获取URL
+        example: https://github.com/login/oauth/access_token
+        type: string
+      updated_at:
+        description: 更新时间
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      user_info_url:
+        description: 用户信息获取URL
+        example: https://api.github.com/user
+        type: string
+    type: object
+  schema.OAuthProviderListItem:
+    properties:
+      auth_url:
+        description: 授权URL
+        example: https://github.com/login/oauth/authorize
+        type: string
+      client_id:
+        description: 客户端ID
+        example: your_client_id
+        type: string
+      created_at:
+        description: 创建时间
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      enabled:
+        description: 是否启用
+        example: true
+        type: boolean
+      id:
+        description: 提供商ID
+        example: 1
+        type: integer
+      provider:
+        description: 提供商类型
+        example: GitHub
+        type: string
+      redirect_url:
+        description: 回调URL
+        example: https://example.com/auth/callback
+        type: string
+      scopes:
+        description: 请求范围
+        example:
+        - user:email
+        items:
+          type: string
+        type: array
+      sort_order:
+        description: 排序顺序
+        example: 0
+        type: integer
+      token_url:
+        description: Token获取URL
+        example: https://github.com/login/oauth/access_token
+        type: string
+      updated_at:
+        description: 更新时间
+        example: "2024-01-01T00:00:00Z"
+        type: string
+      user_info_url:
+        description: 用户信息获取URL
+        example: https://api.github.com/user
+        type: string
+    type: object
+  schema.OAuthProviderListResponse:
+    properties:
+      list:
+        description: 提供商列表
+        items:
+          $ref: '#/definitions/schema.OAuthProviderListItem'
+        type: array
+    type: object
+  schema.OAuthProviderStatusUpdateRequest:
+    properties:
+      enabled:
+        description: 是否启用
+        example: true
+        type: boolean
+      id:
+        description: 提供商ID
+        example: 1
+        type: integer
+    required:
+    - id
+    type: object
+  schema.OAuthProviderUpdateRequest:
+    properties:
+      auth_url:
+        description: 授权URL
+        example: https://github.com/login/oauth/authorize
+        type: string
+      client_id:
+        description: 客户端ID
+        example: your_client_id
+        type: string
+      client_secret:
+        description: 客户端密钥（为空则不更新）
+        example: your_client_secret
+        type: string
+      enabled:
+        description: 是否启用
+        example: true
+        type: boolean
+      extra_config:
+        additionalProperties: true
+        description: 额外配置参数
+        type: object
+      id:
+        description: 提供商ID
+        example: 1
+        type: integer
+      redirect_url:
+        description: 回调URL
+        example: https://example.com/auth/callback
+        type: string
+      scopes:
+        description: 请求范围
+        example:
+        - user:email
+        items:
+          type: string
+        type: array
+      sort_order:
+        description: 排序顺序
+        example: 0
+        minimum: 0
+        type: integer
+      token_url:
+        description: Token获取URL
+        example: https://github.com/login/oauth/access_token
+        type: string
+      user_info_url:
+        description: 用户信息获取URL
+        example: https://api.github.com/user
+        type: string
+    required:
+    - id
+    type: object
   schema.PopularCategoriesResponse:
     properties:
       categories:
@@ -1316,7 +1568,7 @@ definitions:
         example: 技术讨论
         type: string
       content:
-        description: 帖子内容（截取前200字符）
+        description: 帖子内容（截取前100字符）
         example: |-
           ## 技术分享
           这是内容
@@ -6432,6 +6684,229 @@ paths:
       summary: 更新首页设置
       tags:
       - '[超级管理员]系统设置'
+  /super/manage/settings/oauth:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有OAuth提供商列表，支持提供商类型和启用状态筛选
+      parameters:
+      - description: 提供商类型
+        example: '"GitHub"'
+        in: query
+        name: provider
+        type: string
+      - description: 是否启用
+        example: true
+        in: query
+        name: enabled
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.OAuthProviderListResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 获取OAuth提供商列表
+      tags:
+      - '[超级管理员]OAuth提供商管理'
+    post:
+      consumes:
+      - application/json
+      description: 管理员创建新的OAuth提供商配置
+      parameters:
+      - description: OAuth提供商信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.OAuthProviderCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 创建成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.OAuthProviderDetailResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 创建OAuth提供商
+      tags:
+      - '[超级管理员]OAuth提供商管理'
+    put:
+      consumes:
+      - application/json
+      description: 更新OAuth提供商的配置信息
+      parameters:
+      - description: OAuth提供商信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.OAuthProviderUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.OAuthProviderDetailResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 更新OAuth提供商信息
+      tags:
+      - '[超级管理员]OAuth提供商管理'
+  /super/manage/settings/oauth/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的OAuth提供商配置
+      parameters:
+      - description: OAuth提供商ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 删除成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "404":
+          description: OAuth提供商不存在
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 删除OAuth提供商
+      tags:
+      - '[超级管理员]OAuth提供商管理'
+    get:
+      consumes:
+      - application/json
+      description: 获取指定OAuth提供商的详细信息
+      parameters:
+      - description: OAuth提供商ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.OAuthProviderDetailResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "404":
+          description: OAuth提供商不存在
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 获取OAuth提供商详情
+      tags:
+      - '[超级管理员]OAuth提供商管理'
+  /super/manage/settings/oauth/status:
+    put:
+      consumes:
+      - application/json
+      description: 启用或禁用OAuth提供商
+      parameters:
+      - description: 状态更新信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.OAuthProviderStatusUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "404":
+          description: OAuth提供商不存在
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 更新OAuth提供商状态
+      tags:
+      - '[超级管理员]OAuth提供商管理'
   /super/manage/settings/routine:
     get:
       consumes:
