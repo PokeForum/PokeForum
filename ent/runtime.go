@@ -10,6 +10,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/categorymoderator"
 	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/commentaction"
+	"github.com/PokeForum/PokeForum/ent/oauthprovider"
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
 	"github.com/PokeForum/PokeForum/ent/schema"
@@ -17,6 +18,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 	"github.com/PokeForum/PokeForum/ent/userloginlog"
+	"github.com/PokeForum/PokeForum/ent/useroauth"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -186,6 +188,35 @@ func init() {
 	commentactionDescID := commentactionFields[0].Descriptor()
 	// commentaction.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	commentaction.IDValidator = commentactionDescID.Validators[0].(func(int) error)
+	oauthproviderMixin := schema.OAuthProvider{}.Mixin()
+	oauthproviderMixinFields0 := oauthproviderMixin[0].Fields()
+	_ = oauthproviderMixinFields0
+	oauthproviderFields := schema.OAuthProvider{}.Fields()
+	_ = oauthproviderFields
+	// oauthproviderDescCreatedAt is the schema descriptor for created_at field.
+	oauthproviderDescCreatedAt := oauthproviderMixinFields0[0].Descriptor()
+	// oauthprovider.DefaultCreatedAt holds the default value on creation for the created_at field.
+	oauthprovider.DefaultCreatedAt = oauthproviderDescCreatedAt.Default.(func() time.Time)
+	// oauthproviderDescUpdatedAt is the schema descriptor for updated_at field.
+	oauthproviderDescUpdatedAt := oauthproviderMixinFields0[1].Descriptor()
+	// oauthprovider.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	oauthprovider.DefaultUpdatedAt = oauthproviderDescUpdatedAt.Default.(func() time.Time)
+	// oauthprovider.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	oauthprovider.UpdateDefaultUpdatedAt = oauthproviderDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// oauthproviderDescEnabled is the schema descriptor for enabled field.
+	oauthproviderDescEnabled := oauthproviderFields[10].Descriptor()
+	// oauthprovider.DefaultEnabled holds the default value on creation for the enabled field.
+	oauthprovider.DefaultEnabled = oauthproviderDescEnabled.Default.(bool)
+	// oauthproviderDescSortOrder is the schema descriptor for sort_order field.
+	oauthproviderDescSortOrder := oauthproviderFields[11].Descriptor()
+	// oauthprovider.DefaultSortOrder holds the default value on creation for the sort_order field.
+	oauthprovider.DefaultSortOrder = oauthproviderDescSortOrder.Default.(int)
+	// oauthprovider.SortOrderValidator is a validator for the "sort_order" field. It is called by the builders before save.
+	oauthprovider.SortOrderValidator = oauthproviderDescSortOrder.Validators[0].(func(int) error)
+	// oauthproviderDescID is the schema descriptor for id field.
+	oauthproviderDescID := oauthproviderFields[0].Descriptor()
+	// oauthprovider.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	oauthprovider.IDValidator = oauthproviderDescID.Validators[0].(func(int) error)
 	postMixin := schema.Post{}.Mixin()
 	postMixinFields0 := postMixin[0].Fields()
 	_ = postMixinFields0
@@ -424,4 +455,31 @@ func init() {
 	userloginlogDescID := userloginlogFields[0].Descriptor()
 	// userloginlog.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	userloginlog.IDValidator = userloginlogDescID.Validators[0].(func(int) error)
+	useroauthMixin := schema.UserOAuth{}.Mixin()
+	useroauthMixinFields0 := useroauthMixin[0].Fields()
+	_ = useroauthMixinFields0
+	useroauthFields := schema.UserOAuth{}.Fields()
+	_ = useroauthFields
+	// useroauthDescCreatedAt is the schema descriptor for created_at field.
+	useroauthDescCreatedAt := useroauthMixinFields0[0].Descriptor()
+	// useroauth.DefaultCreatedAt holds the default value on creation for the created_at field.
+	useroauth.DefaultCreatedAt = useroauthDescCreatedAt.Default.(func() time.Time)
+	// useroauthDescUpdatedAt is the schema descriptor for updated_at field.
+	useroauthDescUpdatedAt := useroauthMixinFields0[1].Descriptor()
+	// useroauth.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	useroauth.DefaultUpdatedAt = useroauthDescUpdatedAt.Default.(func() time.Time)
+	// useroauth.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	useroauth.UpdateDefaultUpdatedAt = useroauthDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// useroauthDescUserID is the schema descriptor for user_id field.
+	useroauthDescUserID := useroauthFields[1].Descriptor()
+	// useroauth.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	useroauth.UserIDValidator = useroauthDescUserID.Validators[0].(func(int) error)
+	// useroauthDescProviderUserID is the schema descriptor for provider_user_id field.
+	useroauthDescProviderUserID := useroauthFields[3].Descriptor()
+	// useroauth.ProviderUserIDValidator is a validator for the "provider_user_id" field. It is called by the builders before save.
+	useroauth.ProviderUserIDValidator = useroauthDescProviderUserID.Validators[0].(func(string) error)
+	// useroauthDescID is the schema descriptor for id field.
+	useroauthDescID := useroauthFields[0].Descriptor()
+	// useroauth.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	useroauth.IDValidator = useroauthDescID.Validators[0].(func(int) error)
 }

@@ -22,6 +22,8 @@ type Tx struct {
 	Comment *CommentClient
 	// CommentAction is the client for interacting with the CommentAction builders.
 	CommentAction *CommentActionClient
+	// OAuthProvider is the client for interacting with the OAuthProvider builders.
+	OAuthProvider *OAuthProviderClient
 	// Post is the client for interacting with the Post builders.
 	Post *PostClient
 	// PostAction is the client for interacting with the PostAction builders.
@@ -34,6 +36,8 @@ type Tx struct {
 	UserBalanceLog *UserBalanceLogClient
 	// UserLoginLog is the client for interacting with the UserLoginLog builders.
 	UserLoginLog *UserLoginLogClient
+	// UserOAuth is the client for interacting with the UserOAuth builders.
+	UserOAuth *UserOAuthClient
 
 	// lazily loaded.
 	client     *Client
@@ -170,12 +174,14 @@ func (tx *Tx) init() {
 	tx.CategoryModerator = NewCategoryModeratorClient(tx.config)
 	tx.Comment = NewCommentClient(tx.config)
 	tx.CommentAction = NewCommentActionClient(tx.config)
+	tx.OAuthProvider = NewOAuthProviderClient(tx.config)
 	tx.Post = NewPostClient(tx.config)
 	tx.PostAction = NewPostActionClient(tx.config)
 	tx.Settings = NewSettingsClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserBalanceLog = NewUserBalanceLogClient(tx.config)
 	tx.UserLoginLog = NewUserLoginLogClient(tx.config)
+	tx.UserOAuth = NewUserOAuthClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

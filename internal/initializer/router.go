@@ -125,6 +125,14 @@ func InjectorSrv(injector *do.Injector) {
 		}
 		return service.NewUserProfileService(configs.DB, cacheService, configs.Log), nil
 	})
+	// 注册 OAuthProviderService
+	do.Provide(injector, func(i *do.Injector) (service.IOAuthProviderService, error) {
+		cacheService, err := do.Invoke[cache.ICacheService](injector)
+		if err != nil {
+			return nil, err
+		}
+		return service.NewOAuthProviderService(configs.DB, cacheService, configs.Log), nil
+	})
 }
 
 func Routers(injector *do.Injector) *gin.Engine {
@@ -290,16 +298,11 @@ func Routers(injector *do.Injector) *gin.Engine {
 		SettingsCon := controller.NewSettingsController(injector)
 		SettingsCon.SettingsRouter(SettingsGroup)
 
-		// 功能设置
+		// OAuth提供商管理
+		OAuthGroup := SuperManageGroup.Group("/settings/oauth")
 		{
-			/*
-				- TODO 第三方登录
-					- QQ
-					- Telegram
-					- Github
-					- Apple
-					- Google
-			*/
+			OAuthProviderCon := controller.NewOAuthProviderController(injector)
+			OAuthProviderCon.OAuthProviderRouter(OAuthGroup)
 		}
 
 		// TODO 广告设置

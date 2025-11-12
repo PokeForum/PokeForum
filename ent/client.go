@@ -19,12 +19,14 @@ import (
 	"github.com/PokeForum/PokeForum/ent/categorymoderator"
 	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/commentaction"
+	"github.com/PokeForum/PokeForum/ent/oauthprovider"
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
 	"github.com/PokeForum/PokeForum/ent/settings"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 	"github.com/PokeForum/PokeForum/ent/userloginlog"
+	"github.com/PokeForum/PokeForum/ent/useroauth"
 )
 
 // Client is the client that holds all ent builders.
@@ -42,6 +44,8 @@ type Client struct {
 	Comment *CommentClient
 	// CommentAction is the client for interacting with the CommentAction builders.
 	CommentAction *CommentActionClient
+	// OAuthProvider is the client for interacting with the OAuthProvider builders.
+	OAuthProvider *OAuthProviderClient
 	// Post is the client for interacting with the Post builders.
 	Post *PostClient
 	// PostAction is the client for interacting with the PostAction builders.
@@ -54,6 +58,8 @@ type Client struct {
 	UserBalanceLog *UserBalanceLogClient
 	// UserLoginLog is the client for interacting with the UserLoginLog builders.
 	UserLoginLog *UserLoginLogClient
+	// UserOAuth is the client for interacting with the UserOAuth builders.
+	UserOAuth *UserOAuthClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -70,12 +76,14 @@ func (c *Client) init() {
 	c.CategoryModerator = NewCategoryModeratorClient(c.config)
 	c.Comment = NewCommentClient(c.config)
 	c.CommentAction = NewCommentActionClient(c.config)
+	c.OAuthProvider = NewOAuthProviderClient(c.config)
 	c.Post = NewPostClient(c.config)
 	c.PostAction = NewPostActionClient(c.config)
 	c.Settings = NewSettingsClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.UserBalanceLog = NewUserBalanceLogClient(c.config)
 	c.UserLoginLog = NewUserLoginLogClient(c.config)
+	c.UserOAuth = NewUserOAuthClient(c.config)
 }
 
 type (
@@ -173,12 +181,14 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CategoryModerator: NewCategoryModeratorClient(cfg),
 		Comment:           NewCommentClient(cfg),
 		CommentAction:     NewCommentActionClient(cfg),
+		OAuthProvider:     NewOAuthProviderClient(cfg),
 		Post:              NewPostClient(cfg),
 		PostAction:        NewPostActionClient(cfg),
 		Settings:          NewSettingsClient(cfg),
 		User:              NewUserClient(cfg),
 		UserBalanceLog:    NewUserBalanceLogClient(cfg),
 		UserLoginLog:      NewUserLoginLogClient(cfg),
+		UserOAuth:         NewUserOAuthClient(cfg),
 	}, nil
 }
 
@@ -203,12 +213,14 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CategoryModerator: NewCategoryModeratorClient(cfg),
 		Comment:           NewCommentClient(cfg),
 		CommentAction:     NewCommentActionClient(cfg),
+		OAuthProvider:     NewOAuthProviderClient(cfg),
 		Post:              NewPostClient(cfg),
 		PostAction:        NewPostActionClient(cfg),
 		Settings:          NewSettingsClient(cfg),
 		User:              NewUserClient(cfg),
 		UserBalanceLog:    NewUserBalanceLogClient(cfg),
 		UserLoginLog:      NewUserLoginLogClient(cfg),
+		UserOAuth:         NewUserOAuthClient(cfg),
 	}, nil
 }
 
@@ -239,7 +251,8 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Blacklist, c.Category, c.CategoryModerator, c.Comment, c.CommentAction,
-		c.Post, c.PostAction, c.Settings, c.User, c.UserBalanceLog, c.UserLoginLog,
+		c.OAuthProvider, c.Post, c.PostAction, c.Settings, c.User, c.UserBalanceLog,
+		c.UserLoginLog, c.UserOAuth,
 	} {
 		n.Use(hooks...)
 	}
@@ -250,7 +263,8 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Blacklist, c.Category, c.CategoryModerator, c.Comment, c.CommentAction,
-		c.Post, c.PostAction, c.Settings, c.User, c.UserBalanceLog, c.UserLoginLog,
+		c.OAuthProvider, c.Post, c.PostAction, c.Settings, c.User, c.UserBalanceLog,
+		c.UserLoginLog, c.UserOAuth,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -269,6 +283,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Comment.mutate(ctx, m)
 	case *CommentActionMutation:
 		return c.CommentAction.mutate(ctx, m)
+	case *OAuthProviderMutation:
+		return c.OAuthProvider.mutate(ctx, m)
 	case *PostMutation:
 		return c.Post.mutate(ctx, m)
 	case *PostActionMutation:
@@ -281,6 +297,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.UserBalanceLog.mutate(ctx, m)
 	case *UserLoginLogMutation:
 		return c.UserLoginLog.mutate(ctx, m)
+	case *UserOAuthMutation:
+		return c.UserOAuth.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -948,6 +966,139 @@ func (c *CommentActionClient) mutate(ctx context.Context, m *CommentActionMutati
 		return (&CommentActionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown CommentAction mutation op: %q", m.Op())
+	}
+}
+
+// OAuthProviderClient is a client for the OAuthProvider schema.
+type OAuthProviderClient struct {
+	config
+}
+
+// NewOAuthProviderClient returns a client for the OAuthProvider from the given config.
+func NewOAuthProviderClient(c config) *OAuthProviderClient {
+	return &OAuthProviderClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `oauthprovider.Hooks(f(g(h())))`.
+func (c *OAuthProviderClient) Use(hooks ...Hook) {
+	c.hooks.OAuthProvider = append(c.hooks.OAuthProvider, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `oauthprovider.Intercept(f(g(h())))`.
+func (c *OAuthProviderClient) Intercept(interceptors ...Interceptor) {
+	c.inters.OAuthProvider = append(c.inters.OAuthProvider, interceptors...)
+}
+
+// Create returns a builder for creating a OAuthProvider entity.
+func (c *OAuthProviderClient) Create() *OAuthProviderCreate {
+	mutation := newOAuthProviderMutation(c.config, OpCreate)
+	return &OAuthProviderCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of OAuthProvider entities.
+func (c *OAuthProviderClient) CreateBulk(builders ...*OAuthProviderCreate) *OAuthProviderCreateBulk {
+	return &OAuthProviderCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *OAuthProviderClient) MapCreateBulk(slice any, setFunc func(*OAuthProviderCreate, int)) *OAuthProviderCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &OAuthProviderCreateBulk{err: fmt.Errorf("calling to OAuthProviderClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*OAuthProviderCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &OAuthProviderCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for OAuthProvider.
+func (c *OAuthProviderClient) Update() *OAuthProviderUpdate {
+	mutation := newOAuthProviderMutation(c.config, OpUpdate)
+	return &OAuthProviderUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *OAuthProviderClient) UpdateOne(_m *OAuthProvider) *OAuthProviderUpdateOne {
+	mutation := newOAuthProviderMutation(c.config, OpUpdateOne, withOAuthProvider(_m))
+	return &OAuthProviderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *OAuthProviderClient) UpdateOneID(id int) *OAuthProviderUpdateOne {
+	mutation := newOAuthProviderMutation(c.config, OpUpdateOne, withOAuthProviderID(id))
+	return &OAuthProviderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for OAuthProvider.
+func (c *OAuthProviderClient) Delete() *OAuthProviderDelete {
+	mutation := newOAuthProviderMutation(c.config, OpDelete)
+	return &OAuthProviderDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *OAuthProviderClient) DeleteOne(_m *OAuthProvider) *OAuthProviderDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *OAuthProviderClient) DeleteOneID(id int) *OAuthProviderDeleteOne {
+	builder := c.Delete().Where(oauthprovider.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &OAuthProviderDeleteOne{builder}
+}
+
+// Query returns a query builder for OAuthProvider.
+func (c *OAuthProviderClient) Query() *OAuthProviderQuery {
+	return &OAuthProviderQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeOAuthProvider},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a OAuthProvider entity by its id.
+func (c *OAuthProviderClient) Get(ctx context.Context, id int) (*OAuthProvider, error) {
+	return c.Query().Where(oauthprovider.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *OAuthProviderClient) GetX(ctx context.Context, id int) *OAuthProvider {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *OAuthProviderClient) Hooks() []Hook {
+	return c.hooks.OAuthProvider
+}
+
+// Interceptors returns the client interceptors.
+func (c *OAuthProviderClient) Interceptors() []Interceptor {
+	return c.inters.OAuthProvider
+}
+
+func (c *OAuthProviderClient) mutate(ctx context.Context, m *OAuthProviderMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&OAuthProviderCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&OAuthProviderUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&OAuthProviderUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&OAuthProviderDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown OAuthProvider mutation op: %q", m.Op())
 	}
 }
 
@@ -1749,14 +1900,149 @@ func (c *UserLoginLogClient) mutate(ctx context.Context, m *UserLoginLogMutation
 	}
 }
 
+// UserOAuthClient is a client for the UserOAuth schema.
+type UserOAuthClient struct {
+	config
+}
+
+// NewUserOAuthClient returns a client for the UserOAuth from the given config.
+func NewUserOAuthClient(c config) *UserOAuthClient {
+	return &UserOAuthClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `useroauth.Hooks(f(g(h())))`.
+func (c *UserOAuthClient) Use(hooks ...Hook) {
+	c.hooks.UserOAuth = append(c.hooks.UserOAuth, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `useroauth.Intercept(f(g(h())))`.
+func (c *UserOAuthClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserOAuth = append(c.inters.UserOAuth, interceptors...)
+}
+
+// Create returns a builder for creating a UserOAuth entity.
+func (c *UserOAuthClient) Create() *UserOAuthCreate {
+	mutation := newUserOAuthMutation(c.config, OpCreate)
+	return &UserOAuthCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserOAuth entities.
+func (c *UserOAuthClient) CreateBulk(builders ...*UserOAuthCreate) *UserOAuthCreateBulk {
+	return &UserOAuthCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UserOAuthClient) MapCreateBulk(slice any, setFunc func(*UserOAuthCreate, int)) *UserOAuthCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UserOAuthCreateBulk{err: fmt.Errorf("calling to UserOAuthClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UserOAuthCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UserOAuthCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserOAuth.
+func (c *UserOAuthClient) Update() *UserOAuthUpdate {
+	mutation := newUserOAuthMutation(c.config, OpUpdate)
+	return &UserOAuthUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserOAuthClient) UpdateOne(_m *UserOAuth) *UserOAuthUpdateOne {
+	mutation := newUserOAuthMutation(c.config, OpUpdateOne, withUserOAuth(_m))
+	return &UserOAuthUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserOAuthClient) UpdateOneID(id int) *UserOAuthUpdateOne {
+	mutation := newUserOAuthMutation(c.config, OpUpdateOne, withUserOAuthID(id))
+	return &UserOAuthUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserOAuth.
+func (c *UserOAuthClient) Delete() *UserOAuthDelete {
+	mutation := newUserOAuthMutation(c.config, OpDelete)
+	return &UserOAuthDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserOAuthClient) DeleteOne(_m *UserOAuth) *UserOAuthDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserOAuthClient) DeleteOneID(id int) *UserOAuthDeleteOne {
+	builder := c.Delete().Where(useroauth.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserOAuthDeleteOne{builder}
+}
+
+// Query returns a query builder for UserOAuth.
+func (c *UserOAuthClient) Query() *UserOAuthQuery {
+	return &UserOAuthQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserOAuth},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserOAuth entity by its id.
+func (c *UserOAuthClient) Get(ctx context.Context, id int) (*UserOAuth, error) {
+	return c.Query().Where(useroauth.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserOAuthClient) GetX(ctx context.Context, id int) *UserOAuth {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *UserOAuthClient) Hooks() []Hook {
+	return c.hooks.UserOAuth
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserOAuthClient) Interceptors() []Interceptor {
+	return c.inters.UserOAuth
+}
+
+func (c *UserOAuthClient) mutate(ctx context.Context, m *UserOAuthMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserOAuthCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserOAuthUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserOAuthUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserOAuthDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UserOAuth mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Blacklist, Category, CategoryModerator, Comment, CommentAction, Post,
-		PostAction, Settings, User, UserBalanceLog, UserLoginLog []ent.Hook
+		Blacklist, Category, CategoryModerator, Comment, CommentAction, OAuthProvider,
+		Post, PostAction, Settings, User, UserBalanceLog, UserLoginLog,
+		UserOAuth []ent.Hook
 	}
 	inters struct {
-		Blacklist, Category, CategoryModerator, Comment, CommentAction, Post,
-		PostAction, Settings, User, UserBalanceLog, UserLoginLog []ent.Interceptor
+		Blacklist, Category, CategoryModerator, Comment, CommentAction, OAuthProvider,
+		Post, PostAction, Settings, User, UserBalanceLog, UserLoginLog,
+		UserOAuth []ent.Interceptor
 	}
 )

@@ -21,6 +21,9 @@ type Comment func(*sql.Selector)
 // CommentAction is the predicate function for commentaction builders.
 type CommentAction func(*sql.Selector)
 
+// OAuthProvider is the predicate function for oauthprovider builders.
+type OAuthProvider func(*sql.Selector)
+
 // Post is the predicate function for post builders.
 type Post func(*sql.Selector)
 
@@ -38,3 +41,6 @@ type UserBalanceLog func(*sql.Selector)
 
 // UserLoginLog is the predicate function for userloginlog builders.
 type UserLoginLog func(*sql.Selector)
+
+// UserOAuth is the predicate function for useroauth builders.
+type UserOAuth func(*sql.Selector)

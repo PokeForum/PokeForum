@@ -69,6 +69,18 @@ func (f CommentActionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Valu
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CommentActionMutation", m)
 }
 
+// The OAuthProviderFunc type is an adapter to allow the use of ordinary
+// function as OAuthProvider mutator.
+type OAuthProviderFunc func(context.Context, *ent.OAuthProviderMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f OAuthProviderFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.OAuthProviderMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.OAuthProviderMutation", m)
+}
+
 // The PostFunc type is an adapter to allow the use of ordinary
 // function as Post mutator.
 type PostFunc func(context.Context, *ent.PostMutation) (ent.Value, error)
@@ -139,6 +151,18 @@ func (f UserLoginLogFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserLoginLogMutation", m)
+}
+
+// The UserOAuthFunc type is an adapter to allow the use of ordinary
+// function as UserOAuth mutator.
+type UserOAuthFunc func(context.Context, *ent.UserOAuthMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserOAuthFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserOAuthMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserOAuthMutation", m)
 }
 
 // Condition is a hook condition function.

@@ -178,6 +178,46 @@ var (
 			},
 		},
 	}
+	// OauthProvidersColumns holds the columns for the "oauth_providers" table.
+	OauthProvidersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "provider", Type: field.TypeEnum, Enums: []string{"QQ", "GitHub", "Apple", "Google", "Telegram", "FIDO2"}},
+		{Name: "client_id", Type: field.TypeString, Nullable: true},
+		{Name: "client_secret", Type: field.TypeString, Nullable: true},
+		{Name: "auth_url", Type: field.TypeString, Nullable: true},
+		{Name: "token_url", Type: field.TypeString, Nullable: true},
+		{Name: "user_info_url", Type: field.TypeString, Nullable: true},
+		{Name: "redirect_url", Type: field.TypeString, Nullable: true},
+		{Name: "scopes", Type: field.TypeJSON, Nullable: true},
+		{Name: "extra_config", Type: field.TypeJSON, Nullable: true},
+		{Name: "enabled", Type: field.TypeBool, Default: false},
+		{Name: "sort_order", Type: field.TypeInt, Default: 0},
+	}
+	// OauthProvidersTable holds the schema information for the "oauth_providers" table.
+	OauthProvidersTable = &schema.Table{
+		Name:       "oauth_providers",
+		Columns:    OauthProvidersColumns,
+		PrimaryKey: []*schema.Column{OauthProvidersColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "oauthprovider_provider",
+				Unique:  true,
+				Columns: []*schema.Column{OauthProvidersColumns[3]},
+			},
+			{
+				Name:    "oauthprovider_enabled",
+				Unique:  false,
+				Columns: []*schema.Column{OauthProvidersColumns[12]},
+			},
+			{
+				Name:    "oauthprovider_sort_order",
+				Unique:  false,
+				Columns: []*schema.Column{OauthProvidersColumns[13]},
+			},
+		},
+	}
 	// PostsColumns holds the columns for the "posts" table.
 	PostsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -414,6 +454,47 @@ var (
 			},
 		},
 	}
+	// UserOauthsColumns holds the columns for the "user_oauths" table.
+	UserOauthsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "provider", Type: field.TypeEnum, Enums: []string{"QQ", "GitHub", "Apple", "Google", "Telegram", "FIDO2"}},
+		{Name: "provider_user_id", Type: field.TypeString},
+		{Name: "provider_username", Type: field.TypeString, Nullable: true},
+		{Name: "provider_email", Type: field.TypeString, Nullable: true},
+		{Name: "provider_avatar", Type: field.TypeString, Nullable: true},
+		{Name: "extra_data", Type: field.TypeJSON, Nullable: true},
+	}
+	// UserOauthsTable holds the schema information for the "user_oauths" table.
+	UserOauthsTable = &schema.Table{
+		Name:       "user_oauths",
+		Columns:    UserOauthsColumns,
+		PrimaryKey: []*schema.Column{UserOauthsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "useroauth_provider_provider_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{UserOauthsColumns[4], UserOauthsColumns[5]},
+			},
+			{
+				Name:    "useroauth_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{UserOauthsColumns[3]},
+			},
+			{
+				Name:    "useroauth_provider",
+				Unique:  false,
+				Columns: []*schema.Column{UserOauthsColumns[4]},
+			},
+			{
+				Name:    "useroauth_user_id_provider",
+				Unique:  false,
+				Columns: []*schema.Column{UserOauthsColumns[3], UserOauthsColumns[4]},
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		BlacklistsTable,
@@ -421,12 +502,14 @@ var (
 		CategoryModeratorsTable,
 		CommentsTable,
 		CommentActionsTable,
+		OauthProvidersTable,
 		PostsTable,
 		PostActionsTable,
 		SettingsTable,
 		UsersTable,
 		UserBalanceLogsTable,
 		UserLoginLogsTable,
+		UserOauthsTable,
 	}
 )
 
