@@ -92,9 +92,6 @@ func (s *CategoryManageService) GetCategoryList(ctx context.Context, req schema.
 	// 转换为响应格式
 	list := make([]schema.CategoryListItem, len(categories))
 	for i, cat := range categories {
-		// TODO: 添加帖子统计功能，暂时设为0
-		postCount := 0
-
 		list[i] = schema.CategoryListItem{
 			ID:          cat.ID,
 			Name:        cat.Name,
@@ -103,7 +100,6 @@ func (s *CategoryManageService) GetCategoryList(ctx context.Context, req schema.
 			Icon:        cat.Icon,
 			Weight:      cat.Weight,
 			Status:      cat.Status.String(),
-			PostCount:   postCount,
 			CreatedAt:   cat.CreatedAt.Format("2006-01-02T15:04:05Z"),
 			UpdatedAt:   cat.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 		}
@@ -260,9 +256,6 @@ func (s *CategoryManageService) GetCategoryDetail(ctx context.Context, id int) (
 		return nil, fmt.Errorf("获取版块失败: %w", err)
 	}
 
-	// TODO: 添加帖子统计功能，暂时设为0
-	postCount := 0
-
 	// 转换为响应格式
 	result := &schema.CategoryDetailResponse{
 		ID:          categories.ID,
@@ -272,7 +265,6 @@ func (s *CategoryManageService) GetCategoryDetail(ctx context.Context, id int) (
 		Icon:        categories.Icon,
 		Weight:      categories.Weight,
 		Status:      categories.Status.String(),
-		PostCount:   postCount,
 		CreatedAt:   categories.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		UpdatedAt:   categories.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
