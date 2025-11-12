@@ -1792,6 +1792,30 @@ definitions:
     required:
     - id
     type: object
+  schema.RankingItem:
+    properties:
+      count:
+        description: 统计数值
+        type: integer
+      created_at:
+        description: 创建时间
+        type: string
+      post_id:
+        description: 帖子ID（阅读榜）
+        type: integer
+      post_title:
+        description: 帖子标题（阅读榜）
+        type: string
+      rank:
+        description: 排名
+        type: integer
+      user_id:
+        description: 用户ID（评论榜）
+        type: integer
+      username:
+        description: 用户名（评论榜）
+        type: string
+    type: object
   schema.RecentActivityResponse:
     properties:
       new_users:
@@ -3238,6 +3262,32 @@ definitions:
       total:
         description: 总数量
         type: integer
+    type: object
+  schema.UserRankingListResponse:
+    properties:
+      items:
+        description: 排行榜项目列表
+        items:
+          $ref: '#/definitions/schema.RankingItem'
+        type: array
+      page:
+        description: 当前页码
+        type: integer
+      page_size:
+        description: 每页数量
+        type: integer
+      time_range:
+        description: 时间范围
+        type: string
+      total:
+        description: 总数量
+        type: integer
+      total_pages:
+        description: 总页数
+        type: integer
+      type:
+        description: 排行榜类型
+        type: string
     type: object
   schema.UserResponse:
     properties:
@@ -6407,6 +6457,57 @@ paths:
       summary: 修改用户名
       tags:
       - '[用户]个人中心'
+  /ranking:
+    get:
+      consumes:
+      - application/json
+      description: 根据排行榜类型和时间范围获取排行榜数据，支持阅读榜和评论榜
+      parameters:
+      - description: 排行榜类型：reading(阅读榜), comment(评论榜)
+        example: '"reading"'
+        in: query
+        name: type
+        required: true
+        type: string
+      - description: 时间范围：all(总榜), month(月榜), week(周榜)
+        example: '"all"'
+        in: query
+        name: time_range
+        required: true
+        type: string
+      - description: 页码
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserRankingListResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取排行榜列表
+      tags:
+      - '[用户]排行榜'
   /super/manage/settings/code:
     get:
       consumes:

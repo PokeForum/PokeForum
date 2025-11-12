@@ -4720,6 +4720,85 @@ const docTemplate = `{
                 }
             }
         },
+        "/ranking": {
+            "get": {
+                "description": "根据排行榜类型和时间范围获取排行榜数据，支持阅读榜和评论榜",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]排行榜"
+                ],
+                "summary": "获取排行榜列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"reading\"",
+                        "description": "排行榜类型：reading(阅读榜), comment(评论榜)",
+                        "name": "type",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"all\"",
+                        "description": "时间范围：all(总榜), month(月榜), week(周榜)",
+                        "name": "time_range",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "每页数量",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserRankingListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
         "/super/manage/settings/code": {
             "get": {
                 "security": [
@@ -8156,6 +8235,39 @@ const docTemplate = `{
                 }
             }
         },
+        "schema.RankingItem": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "description": "统计数值",
+                    "type": "integer"
+                },
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "post_id": {
+                    "description": "帖子ID（阅读榜）",
+                    "type": "integer"
+                },
+                "post_title": {
+                    "description": "帖子标题（阅读榜）",
+                    "type": "string"
+                },
+                "rank": {
+                    "description": "排名",
+                    "type": "integer"
+                },
+                "user_id": {
+                    "description": "用户ID（评论榜）",
+                    "type": "integer"
+                },
+                "username": {
+                    "description": "用户名（评论榜）",
+                    "type": "string"
+                }
+            }
+        },
         "schema.RecentActivityResponse": {
             "type": "object",
             "properties": {
@@ -10051,6 +10163,42 @@ const docTemplate = `{
                 "total": {
                     "description": "总数量",
                     "type": "integer"
+                }
+            }
+        },
+        "schema.UserRankingListResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "description": "排行榜项目列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.RankingItem"
+                    }
+                },
+                "page": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "page_size": {
+                    "description": "每页数量",
+                    "type": "integer"
+                },
+                "time_range": {
+                    "description": "时间范围",
+                    "type": "string"
+                },
+                "total": {
+                    "description": "总数量",
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "description": "总页数",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "排行榜类型",
+                    "type": "string"
                 }
             }
         },
