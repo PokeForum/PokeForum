@@ -61,6 +61,9 @@ func (Post) Fields() []ent.Field {
 		field.Enum("status").
 			Values("Normal", "Locked", "Draft", "Private", "Ban").
 			Default("Normal"),
+		// 最后编辑时间，可选字段，用于记录帖子的最后编辑时间
+		field.Time("last_edited_at").
+			Optional(),
 	}
 }
 
@@ -81,6 +84,8 @@ func (Post) Indexes() []ent.Index {
 		index.Fields("status"),
 		index.Fields("is_essence"),
 		index.Fields("is_pinned"),
+		// 为最后编辑时间创建索引
+		index.Fields("last_edited_at"),
 		// 创建复合索引优化版块内帖子查询
 		index.Fields("category_id", "status", "created_at"),
 	}

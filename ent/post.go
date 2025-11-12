@@ -46,7 +46,9 @@ type Post struct {
 	// PublishIP holds the value of the "publish_ip" field.
 	PublishIP string `json:"publish_ip,omitempty"`
 	// Status holds the value of the "status" field.
-	Status       post.Status `json:"status,omitempty"`
+	Status post.Status `json:"status,omitempty"`
+	// LastEditedAt holds the value of the "last_edited_at" field.
+	LastEditedAt time.Time `json:"last_edited_at,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -61,7 +63,7 @@ func (*Post) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case post.FieldTitle, post.FieldContent, post.FieldReadPermission, post.FieldPublishIP, post.FieldStatus:
 			values[i] = new(sql.NullString)
-		case post.FieldCreatedAt, post.FieldUpdatedAt:
+		case post.FieldCreatedAt, post.FieldUpdatedAt, post.FieldLastEditedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -174,6 +176,12 @@ func (_m *Post) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Status = post.Status(value.String)
 			}
+		case post.FieldLastEditedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field last_edited_at", values[i])
+			} else if value.Valid {
+				_m.LastEditedAt = value.Time
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -254,6 +262,9 @@ func (_m *Post) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))
+	builder.WriteString(", ")
+	builder.WriteString("last_edited_at=")
+	builder.WriteString(_m.LastEditedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

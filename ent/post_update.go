@@ -270,6 +270,26 @@ func (_u *PostUpdate) SetNillableStatus(v *post.Status) *PostUpdate {
 	return _u
 }
 
+// SetLastEditedAt sets the "last_edited_at" field.
+func (_u *PostUpdate) SetLastEditedAt(v time.Time) *PostUpdate {
+	_u.mutation.SetLastEditedAt(v)
+	return _u
+}
+
+// SetNillableLastEditedAt sets the "last_edited_at" field if the given value is not nil.
+func (_u *PostUpdate) SetNillableLastEditedAt(v *time.Time) *PostUpdate {
+	if v != nil {
+		_u.SetLastEditedAt(*v)
+	}
+	return _u
+}
+
+// ClearLastEditedAt clears the value of the "last_edited_at" field.
+func (_u *PostUpdate) ClearLastEditedAt() *PostUpdate {
+	_u.mutation.ClearLastEditedAt()
+	return _u
+}
+
 // Mutation returns the PostMutation object of the builder.
 func (_u *PostUpdate) Mutation() *PostMutation {
 	return _u.mutation
@@ -438,6 +458,12 @@ func (_u *PostUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(post.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.LastEditedAt(); ok {
+		_spec.SetField(post.FieldLastEditedAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastEditedAtCleared() {
+		_spec.ClearField(post.FieldLastEditedAt, field.TypeTime)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -701,6 +727,26 @@ func (_u *PostUpdateOne) SetNillableStatus(v *post.Status) *PostUpdateOne {
 	return _u
 }
 
+// SetLastEditedAt sets the "last_edited_at" field.
+func (_u *PostUpdateOne) SetLastEditedAt(v time.Time) *PostUpdateOne {
+	_u.mutation.SetLastEditedAt(v)
+	return _u
+}
+
+// SetNillableLastEditedAt sets the "last_edited_at" field if the given value is not nil.
+func (_u *PostUpdateOne) SetNillableLastEditedAt(v *time.Time) *PostUpdateOne {
+	if v != nil {
+		_u.SetLastEditedAt(*v)
+	}
+	return _u
+}
+
+// ClearLastEditedAt clears the value of the "last_edited_at" field.
+func (_u *PostUpdateOne) ClearLastEditedAt() *PostUpdateOne {
+	_u.mutation.ClearLastEditedAt()
+	return _u
+}
+
 // Mutation returns the PostMutation object of the builder.
 func (_u *PostUpdateOne) Mutation() *PostMutation {
 	return _u.mutation
@@ -899,6 +945,12 @@ func (_u *PostUpdateOne) sqlSave(ctx context.Context) (_node *Post, err error) {
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(post.FieldStatus, field.TypeEnum, value)
+	}
+	if value, ok := _u.mutation.LastEditedAt(); ok {
+		_spec.SetField(post.FieldLastEditedAt, field.TypeTime, value)
+	}
+	if _u.mutation.LastEditedAtCleared() {
+		_spec.ClearField(post.FieldLastEditedAt, field.TypeTime)
 	}
 	_node = &Post{config: _u.config}
 	_spec.Assign = _node.assignValues

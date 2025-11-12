@@ -44,6 +44,8 @@ const (
 	FieldPublishIP = "publish_ip"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
+	// FieldLastEditedAt holds the string denoting the last_edited_at field in the database.
+	FieldLastEditedAt = "last_edited_at"
 	// Table holds the table name of the post in the database.
 	Table = "posts"
 )
@@ -66,6 +68,7 @@ var Columns = []string{
 	FieldIsPinned,
 	FieldPublishIP,
 	FieldStatus,
+	FieldLastEditedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -227,4 +230,9 @@ func ByPublishIP(opts ...sql.OrderTermOption) OrderOption {
 // ByStatus orders the results by the status field.
 func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByLastEditedAt orders the results by the last_edited_at field.
+func ByLastEditedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastEditedAt, opts...).ToFunc()
 }

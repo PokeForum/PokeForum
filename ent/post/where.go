@@ -124,6 +124,11 @@ func PublishIP(v string) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldPublishIP, v))
 }
 
+// LastEditedAt applies equality check predicate on the "last_edited_at" field. It's identical to LastEditedAtEQ.
+func LastEditedAt(v time.Time) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldLastEditedAt, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldCreatedAt, v))
@@ -762,6 +767,56 @@ func StatusIn(vs ...Status) predicate.Post {
 // StatusNotIn applies the NotIn predicate on the "status" field.
 func StatusNotIn(vs ...Status) predicate.Post {
 	return predicate.Post(sql.FieldNotIn(FieldStatus, vs...))
+}
+
+// LastEditedAtEQ applies the EQ predicate on the "last_edited_at" field.
+func LastEditedAtEQ(v time.Time) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldLastEditedAt, v))
+}
+
+// LastEditedAtNEQ applies the NEQ predicate on the "last_edited_at" field.
+func LastEditedAtNEQ(v time.Time) predicate.Post {
+	return predicate.Post(sql.FieldNEQ(FieldLastEditedAt, v))
+}
+
+// LastEditedAtIn applies the In predicate on the "last_edited_at" field.
+func LastEditedAtIn(vs ...time.Time) predicate.Post {
+	return predicate.Post(sql.FieldIn(FieldLastEditedAt, vs...))
+}
+
+// LastEditedAtNotIn applies the NotIn predicate on the "last_edited_at" field.
+func LastEditedAtNotIn(vs ...time.Time) predicate.Post {
+	return predicate.Post(sql.FieldNotIn(FieldLastEditedAt, vs...))
+}
+
+// LastEditedAtGT applies the GT predicate on the "last_edited_at" field.
+func LastEditedAtGT(v time.Time) predicate.Post {
+	return predicate.Post(sql.FieldGT(FieldLastEditedAt, v))
+}
+
+// LastEditedAtGTE applies the GTE predicate on the "last_edited_at" field.
+func LastEditedAtGTE(v time.Time) predicate.Post {
+	return predicate.Post(sql.FieldGTE(FieldLastEditedAt, v))
+}
+
+// LastEditedAtLT applies the LT predicate on the "last_edited_at" field.
+func LastEditedAtLT(v time.Time) predicate.Post {
+	return predicate.Post(sql.FieldLT(FieldLastEditedAt, v))
+}
+
+// LastEditedAtLTE applies the LTE predicate on the "last_edited_at" field.
+func LastEditedAtLTE(v time.Time) predicate.Post {
+	return predicate.Post(sql.FieldLTE(FieldLastEditedAt, v))
+}
+
+// LastEditedAtIsNil applies the IsNil predicate on the "last_edited_at" field.
+func LastEditedAtIsNil() predicate.Post {
+	return predicate.Post(sql.FieldIsNull(FieldLastEditedAt))
+}
+
+// LastEditedAtNotNil applies the NotNil predicate on the "last_edited_at" field.
+func LastEditedAtNotNil() predicate.Post {
+	return predicate.Post(sql.FieldNotNull(FieldLastEditedAt))
 }
 
 // And groups predicates with the AND operator between them.

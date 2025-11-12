@@ -5131,6 +5131,7 @@ type PostMutation struct {
 	is_pinned         *bool
 	publish_ip        *string
 	status            *post.Status
+	last_edited_at    *time.Time
 	clearedFields     map[string]struct{}
 	done              bool
 	oldValue          func(context.Context) (*Post, error)
@@ -5927,6 +5928,55 @@ func (m *PostMutation) ResetStatus() {
 	m.status = nil
 }
 
+// SetLastEditedAt sets the "last_edited_at" field.
+func (m *PostMutation) SetLastEditedAt(t time.Time) {
+	m.last_edited_at = &t
+}
+
+// LastEditedAt returns the value of the "last_edited_at" field in the mutation.
+func (m *PostMutation) LastEditedAt() (r time.Time, exists bool) {
+	v := m.last_edited_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastEditedAt returns the old "last_edited_at" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldLastEditedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastEditedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastEditedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastEditedAt: %w", err)
+	}
+	return oldValue.LastEditedAt, nil
+}
+
+// ClearLastEditedAt clears the value of the "last_edited_at" field.
+func (m *PostMutation) ClearLastEditedAt() {
+	m.last_edited_at = nil
+	m.clearedFields[post.FieldLastEditedAt] = struct{}{}
+}
+
+// LastEditedAtCleared returns if the "last_edited_at" field was cleared in this mutation.
+func (m *PostMutation) LastEditedAtCleared() bool {
+	_, ok := m.clearedFields[post.FieldLastEditedAt]
+	return ok
+}
+
+// ResetLastEditedAt resets all changes to the "last_edited_at" field.
+func (m *PostMutation) ResetLastEditedAt() {
+	m.last_edited_at = nil
+	delete(m.clearedFields, post.FieldLastEditedAt)
+}
+
 // Where appends a list predicates to the PostMutation builder.
 func (m *PostMutation) Where(ps ...predicate.Post) {
 	m.predicates = append(m.predicates, ps...)
@@ -5961,7 +6011,7 @@ func (m *PostMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PostMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 16)
 	if m.created_at != nil {
 		fields = append(fields, post.FieldCreatedAt)
 	}
@@ -6007,6 +6057,9 @@ func (m *PostMutation) Fields() []string {
 	if m.status != nil {
 		fields = append(fields, post.FieldStatus)
 	}
+	if m.last_edited_at != nil {
+		fields = append(fields, post.FieldLastEditedAt)
+	}
 	return fields
 }
 
@@ -6045,6 +6098,8 @@ func (m *PostMutation) Field(name string) (ent.Value, bool) {
 		return m.PublishIP()
 	case post.FieldStatus:
 		return m.Status()
+	case post.FieldLastEditedAt:
+		return m.LastEditedAt()
 	}
 	return nil, false
 }
@@ -6084,6 +6139,8 @@ func (m *PostMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldPublishIP(ctx)
 	case post.FieldStatus:
 		return m.OldStatus(ctx)
+	case post.FieldLastEditedAt:
+		return m.OldLastEditedAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown Post field %s", name)
 }
@@ -6198,6 +6255,13 @@ func (m *PostMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetStatus(v)
 		return nil
+	case post.FieldLastEditedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastEditedAt(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Post field %s", name)
 }
@@ -6309,6 +6373,9 @@ func (m *PostMutation) ClearedFields() []string {
 	if m.FieldCleared(post.FieldPublishIP) {
 		fields = append(fields, post.FieldPublishIP)
 	}
+	if m.FieldCleared(post.FieldLastEditedAt) {
+		fields = append(fields, post.FieldLastEditedAt)
+	}
 	return fields
 }
 
@@ -6328,6 +6395,9 @@ func (m *PostMutation) ClearField(name string) error {
 		return nil
 	case post.FieldPublishIP:
 		m.ClearPublishIP()
+		return nil
+	case post.FieldLastEditedAt:
+		m.ClearLastEditedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Post nullable field %s", name)
@@ -6381,6 +6451,9 @@ func (m *PostMutation) ResetField(name string) error {
 		return nil
 	case post.FieldStatus:
 		m.ResetStatus()
+		return nil
+	case post.FieldLastEditedAt:
+		m.ResetLastEditedAt()
 		return nil
 	}
 	return fmt.Errorf("unknown Post field %s", name)

@@ -236,6 +236,7 @@ var (
 		{Name: "is_pinned", Type: field.TypeBool, Default: false},
 		{Name: "publish_ip", Type: field.TypeString, Nullable: true},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"Normal", "Locked", "Draft", "Private", "Ban"}, Default: "Normal"},
+		{Name: "last_edited_at", Type: field.TypeTime, Nullable: true},
 	}
 	// PostsTable holds the schema information for the "posts" table.
 	PostsTable = &schema.Table{
@@ -267,6 +268,11 @@ var (
 				Name:    "post_is_pinned",
 				Unique:  false,
 				Columns: []*schema.Column{PostsColumns[13]},
+			},
+			{
+				Name:    "post_last_edited_at",
+				Unique:  false,
+				Columns: []*schema.Column{PostsColumns[16]},
 			},
 			{
 				Name:    "post_category_id_status_created_at",

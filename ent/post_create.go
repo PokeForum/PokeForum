@@ -198,6 +198,20 @@ func (_c *PostCreate) SetNillableStatus(v *post.Status) *PostCreate {
 	return _c
 }
 
+// SetLastEditedAt sets the "last_edited_at" field.
+func (_c *PostCreate) SetLastEditedAt(v time.Time) *PostCreate {
+	_c.mutation.SetLastEditedAt(v)
+	return _c
+}
+
+// SetNillableLastEditedAt sets the "last_edited_at" field if the given value is not nil.
+func (_c *PostCreate) SetNillableLastEditedAt(v *time.Time) *PostCreate {
+	if v != nil {
+		_c.SetLastEditedAt(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *PostCreate) SetID(v int) *PostCreate {
 	_c.mutation.SetID(v)
@@ -459,6 +473,10 @@ func (_c *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(post.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
+	}
+	if value, ok := _c.mutation.LastEditedAt(); ok {
+		_spec.SetField(post.FieldLastEditedAt, field.TypeTime, value)
+		_node.LastEditedAt = value
 	}
 	return _node, _spec
 }
