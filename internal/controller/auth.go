@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"context"
+
 	"github.com/PokeForum/PokeForum/internal/configs"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
@@ -10,6 +12,7 @@ import (
 	"github.com/click33/sa-token-go/stputil"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
+	"go.uber.org/zap"
 )
 
 // AuthController 认证控制器
@@ -119,7 +122,33 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 	if err = stputil.SetRoles(user.ID, satoken.GetUserRole(user.Role.String())); err != nil {
 		configs.Log.Warn(err.Error())
 	}
-	// TODO 记录登录日志
+
+	// 记录登录日志 - 使用协程异步保存
+	go func() {
+		// 获取客户端IP地址
+		clientIP := c.ClientIP()
+		// 获取设备信息
+		deviceInfo := c.GetHeader("User-Agent")
+		if deviceInfo == "" {
+			deviceInfo = "Unknown"
+		}
+
+		// 创建登录记录
+		_, err := configs.DB.UserLoginLog.Create().
+			SetUserID(user.ID).
+			SetIPAddress(clientIP).
+			SetDeviceInfo(deviceInfo).
+			SetSuccess(true).
+			Save(context.Background())
+
+		if err != nil {
+			// 记录错误日志，但不影响主流程
+			configs.Log.Error("保存登录日志失败",
+				zap.Int("user_id", user.ID),
+				zap.String("ip_address", clientIP),
+				zap.Error(err))
+		}
+	}()
 
 	// 返回成功响应
 	response.ResSuccess(c, schema.LoginResponse{
