@@ -11,10 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
 	"github.com/PokeForum/PokeForum/ent/predicate"
-	"github.com/PokeForum/PokeForum/ent/user"
 )
 
 // PostActionUpdate is the builder for updating PostAction entities.
@@ -38,6 +36,7 @@ func (_u *PostActionUpdate) SetUpdatedAt(v time.Time) *PostActionUpdate {
 
 // SetUserID sets the "user_id" field.
 func (_u *PostActionUpdate) SetUserID(v int) *PostActionUpdate {
+	_u.mutation.ResetUserID()
 	_u.mutation.SetUserID(v)
 	return _u
 }
@@ -50,8 +49,15 @@ func (_u *PostActionUpdate) SetNillableUserID(v *int) *PostActionUpdate {
 	return _u
 }
 
+// AddUserID adds value to the "user_id" field.
+func (_u *PostActionUpdate) AddUserID(v int) *PostActionUpdate {
+	_u.mutation.AddUserID(v)
+	return _u
+}
+
 // SetPostID sets the "post_id" field.
 func (_u *PostActionUpdate) SetPostID(v int) *PostActionUpdate {
+	_u.mutation.ResetPostID()
 	_u.mutation.SetPostID(v)
 	return _u
 }
@@ -61,6 +67,12 @@ func (_u *PostActionUpdate) SetNillablePostID(v *int) *PostActionUpdate {
 	if v != nil {
 		_u.SetPostID(*v)
 	}
+	return _u
+}
+
+// AddPostID adds value to the "post_id" field.
+func (_u *PostActionUpdate) AddPostID(v int) *PostActionUpdate {
+	_u.mutation.AddPostID(v)
 	return _u
 }
 
@@ -78,31 +90,9 @@ func (_u *PostActionUpdate) SetNillableActionType(v *postaction.ActionType) *Pos
 	return _u
 }
 
-// SetUser sets the "user" edge to the User entity.
-func (_u *PostActionUpdate) SetUser(v *User) *PostActionUpdate {
-	return _u.SetUserID(v.ID)
-}
-
-// SetPost sets the "post" edge to the Post entity.
-func (_u *PostActionUpdate) SetPost(v *Post) *PostActionUpdate {
-	return _u.SetPostID(v.ID)
-}
-
 // Mutation returns the PostActionMutation object of the builder.
 func (_u *PostActionUpdate) Mutation() *PostActionMutation {
 	return _u.mutation
-}
-
-// ClearUser clears the "user" edge to the User entity.
-func (_u *PostActionUpdate) ClearUser() *PostActionUpdate {
-	_u.mutation.ClearUser()
-	return _u
-}
-
-// ClearPost clears the "post" edge to the Post entity.
-func (_u *PostActionUpdate) ClearPost() *PostActionUpdate {
-	_u.mutation.ClearPost()
-	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -158,12 +148,6 @@ func (_u *PostActionUpdate) check() error {
 			return &ValidationError{Name: "action_type", err: fmt.Errorf(`ent: validator failed for field "PostAction.action_type": %w`, err)}
 		}
 	}
-	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "PostAction.user"`)
-	}
-	if _u.mutation.PostCleared() && len(_u.mutation.PostIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "PostAction.post"`)
-	}
 	return nil
 }
 
@@ -182,66 +166,20 @@ func (_u *PostActionUpdate) sqlSave(ctx context.Context) (_node int, err error) 
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(postaction.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.UserID(); ok {
+		_spec.SetField(postaction.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedUserID(); ok {
+		_spec.AddField(postaction.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.PostID(); ok {
+		_spec.SetField(postaction.FieldPostID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedPostID(); ok {
+		_spec.AddField(postaction.FieldPostID, field.TypeInt, value)
+	}
 	if value, ok := _u.mutation.ActionType(); ok {
 		_spec.SetField(postaction.FieldActionType, field.TypeEnum, value)
-	}
-	if _u.mutation.UserCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   postaction.UserTable,
-			Columns: []string{postaction.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.UserIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   postaction.UserTable,
-			Columns: []string{postaction.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.PostCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   postaction.PostTable,
-			Columns: []string{postaction.PostColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.PostIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   postaction.PostTable,
-			Columns: []string{postaction.PostColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -271,6 +209,7 @@ func (_u *PostActionUpdateOne) SetUpdatedAt(v time.Time) *PostActionUpdateOne {
 
 // SetUserID sets the "user_id" field.
 func (_u *PostActionUpdateOne) SetUserID(v int) *PostActionUpdateOne {
+	_u.mutation.ResetUserID()
 	_u.mutation.SetUserID(v)
 	return _u
 }
@@ -283,8 +222,15 @@ func (_u *PostActionUpdateOne) SetNillableUserID(v *int) *PostActionUpdateOne {
 	return _u
 }
 
+// AddUserID adds value to the "user_id" field.
+func (_u *PostActionUpdateOne) AddUserID(v int) *PostActionUpdateOne {
+	_u.mutation.AddUserID(v)
+	return _u
+}
+
 // SetPostID sets the "post_id" field.
 func (_u *PostActionUpdateOne) SetPostID(v int) *PostActionUpdateOne {
+	_u.mutation.ResetPostID()
 	_u.mutation.SetPostID(v)
 	return _u
 }
@@ -294,6 +240,12 @@ func (_u *PostActionUpdateOne) SetNillablePostID(v *int) *PostActionUpdateOne {
 	if v != nil {
 		_u.SetPostID(*v)
 	}
+	return _u
+}
+
+// AddPostID adds value to the "post_id" field.
+func (_u *PostActionUpdateOne) AddPostID(v int) *PostActionUpdateOne {
+	_u.mutation.AddPostID(v)
 	return _u
 }
 
@@ -311,31 +263,9 @@ func (_u *PostActionUpdateOne) SetNillableActionType(v *postaction.ActionType) *
 	return _u
 }
 
-// SetUser sets the "user" edge to the User entity.
-func (_u *PostActionUpdateOne) SetUser(v *User) *PostActionUpdateOne {
-	return _u.SetUserID(v.ID)
-}
-
-// SetPost sets the "post" edge to the Post entity.
-func (_u *PostActionUpdateOne) SetPost(v *Post) *PostActionUpdateOne {
-	return _u.SetPostID(v.ID)
-}
-
 // Mutation returns the PostActionMutation object of the builder.
 func (_u *PostActionUpdateOne) Mutation() *PostActionMutation {
 	return _u.mutation
-}
-
-// ClearUser clears the "user" edge to the User entity.
-func (_u *PostActionUpdateOne) ClearUser() *PostActionUpdateOne {
-	_u.mutation.ClearUser()
-	return _u
-}
-
-// ClearPost clears the "post" edge to the Post entity.
-func (_u *PostActionUpdateOne) ClearPost() *PostActionUpdateOne {
-	_u.mutation.ClearPost()
-	return _u
 }
 
 // Where appends a list predicates to the PostActionUpdate builder.
@@ -404,12 +334,6 @@ func (_u *PostActionUpdateOne) check() error {
 			return &ValidationError{Name: "action_type", err: fmt.Errorf(`ent: validator failed for field "PostAction.action_type": %w`, err)}
 		}
 	}
-	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "PostAction.user"`)
-	}
-	if _u.mutation.PostCleared() && len(_u.mutation.PostIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "PostAction.post"`)
-	}
 	return nil
 }
 
@@ -445,66 +369,20 @@ func (_u *PostActionUpdateOne) sqlSave(ctx context.Context) (_node *PostAction, 
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(postaction.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.UserID(); ok {
+		_spec.SetField(postaction.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedUserID(); ok {
+		_spec.AddField(postaction.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.PostID(); ok {
+		_spec.SetField(postaction.FieldPostID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedPostID(); ok {
+		_spec.AddField(postaction.FieldPostID, field.TypeInt, value)
+	}
 	if value, ok := _u.mutation.ActionType(); ok {
 		_spec.SetField(postaction.FieldActionType, field.TypeEnum, value)
-	}
-	if _u.mutation.UserCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   postaction.UserTable,
-			Columns: []string{postaction.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.UserIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   postaction.UserTable,
-			Columns: []string{postaction.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.PostCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   postaction.PostTable,
-			Columns: []string{postaction.PostColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.PostIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   postaction.PostTable,
-			Columns: []string{postaction.PostColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &PostAction{config: _u.config}
 	_spec.Assign = _node.assignValues

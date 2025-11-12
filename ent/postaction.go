@@ -9,9 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
-	"github.com/PokeForum/PokeForum/ent/user"
 )
 
 // PostAction is the model entity for the PostAction schema.
@@ -28,44 +26,8 @@ type PostAction struct {
 	// PostID holds the value of the "post_id" field.
 	PostID int `json:"post_id,omitempty"`
 	// ActionType holds the value of the "action_type" field.
-	ActionType postaction.ActionType `json:"action_type,omitempty"`
-	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the PostActionQuery when eager-loading is set.
-	Edges        PostActionEdges `json:"edges"`
+	ActionType   postaction.ActionType `json:"action_type,omitempty"`
 	selectValues sql.SelectValues
-}
-
-// PostActionEdges holds the relations/edges for other nodes in the graph.
-type PostActionEdges struct {
-	// User holds the value of the user edge.
-	User *User `json:"user,omitempty"`
-	// Post holds the value of the post edge.
-	Post *Post `json:"post,omitempty"`
-	// loadedTypes holds the information for reporting if a
-	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
-}
-
-// UserOrErr returns the User value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e PostActionEdges) UserOrErr() (*User, error) {
-	if e.User != nil {
-		return e.User, nil
-	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: user.Label}
-	}
-	return nil, &NotLoadedError{edge: "user"}
-}
-
-// PostOrErr returns the Post value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e PostActionEdges) PostOrErr() (*Post, error) {
-	if e.Post != nil {
-		return e.Post, nil
-	} else if e.loadedTypes[1] {
-		return nil, &NotFoundError{label: post.Label}
-	}
-	return nil, &NotLoadedError{edge: "post"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -141,16 +103,6 @@ func (_m *PostAction) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *PostAction) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
-}
-
-// QueryUser queries the "user" edge of the PostAction entity.
-func (_m *PostAction) QueryUser() *UserQuery {
-	return NewPostActionClient(_m.config).QueryUser(_m)
-}
-
-// QueryPost queries the "post" edge of the PostAction entity.
-func (_m *PostAction) QueryPost() *PostQuery {
-	return NewPostActionClient(_m.config).QueryPost(_m)
 }
 
 // Update returns a builder for updating this PostAction.

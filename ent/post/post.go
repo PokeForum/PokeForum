@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -45,26 +44,8 @@ const (
 	FieldPublishIP = "publish_ip"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
-	// EdgeAuthor holds the string denoting the author edge name in mutations.
-	EdgeAuthor = "author"
-	// EdgeCategory holds the string denoting the category edge name in mutations.
-	EdgeCategory = "category"
 	// Table holds the table name of the post in the database.
 	Table = "posts"
-	// AuthorTable is the table that holds the author relation/edge.
-	AuthorTable = "posts"
-	// AuthorInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	AuthorInverseTable = "users"
-	// AuthorColumn is the table column denoting the author relation/edge.
-	AuthorColumn = "user_id"
-	// CategoryTable is the table that holds the category relation/edge.
-	CategoryTable = "posts"
-	// CategoryInverseTable is the table name for the Category entity.
-	// It exists in this package in order to avoid circular dependency with the "category" package.
-	CategoryInverseTable = "categories"
-	// CategoryColumn is the table column denoting the category relation/edge.
-	CategoryColumn = "category_id"
 )
 
 // Columns holds all SQL columns for post fields.
@@ -246,32 +227,4 @@ func ByPublishIP(opts ...sql.OrderTermOption) OrderOption {
 // ByStatus orders the results by the status field.
 func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldStatus, opts...).ToFunc()
-}
-
-// ByAuthorField orders the results by author field.
-func ByAuthorField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newAuthorStep(), sql.OrderByField(field, opts...))
-	}
-}
-
-// ByCategoryField orders the results by category field.
-func ByCategoryField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newCategoryStep(), sql.OrderByField(field, opts...))
-	}
-}
-func newAuthorStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(AuthorInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, AuthorTable, AuthorColumn),
-	)
-}
-func newCategoryStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(CategoryInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, CategoryTable, CategoryColumn),
-	)
 }

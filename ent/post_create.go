@@ -10,9 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/post"
-	"github.com/PokeForum/PokeForum/ent/user"
 )
 
 // PostCreate is the builder for creating a Post entity.
@@ -206,22 +204,6 @@ func (_c *PostCreate) SetID(v int) *PostCreate {
 	return _c
 }
 
-// SetAuthorID sets the "author" edge to the User entity by ID.
-func (_c *PostCreate) SetAuthorID(id int) *PostCreate {
-	_c.mutation.SetAuthorID(id)
-	return _c
-}
-
-// SetAuthor sets the "author" edge to the User entity.
-func (_c *PostCreate) SetAuthor(v *User) *PostCreate {
-	return _c.SetAuthorID(v.ID)
-}
-
-// SetCategory sets the "category" edge to the Category entity.
-func (_c *PostCreate) SetCategory(v *Category) *PostCreate {
-	return _c.SetCategoryID(v.ID)
-}
-
 // Mutation returns the PostMutation object of the builder.
 func (_c *PostCreate) Mutation() *PostMutation {
 	return _c.mutation
@@ -386,12 +368,6 @@ func (_c *PostCreate) check() error {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Post.id": %w`, err)}
 		}
 	}
-	if len(_c.mutation.AuthorIDs()) == 0 {
-		return &ValidationError{Name: "author", err: errors.New(`ent: missing required edge "Post.author"`)}
-	}
-	if len(_c.mutation.CategoryIDs()) == 0 {
-		return &ValidationError{Name: "category", err: errors.New(`ent: missing required edge "Post.category"`)}
-	}
 	return nil
 }
 
@@ -431,6 +407,14 @@ func (_c *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(post.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.UserID(); ok {
+		_spec.SetField(post.FieldUserID, field.TypeInt, value)
+		_node.UserID = value
+	}
+	if value, ok := _c.mutation.CategoryID(); ok {
+		_spec.SetField(post.FieldCategoryID, field.TypeInt, value)
+		_node.CategoryID = value
 	}
 	if value, ok := _c.mutation.Title(); ok {
 		_spec.SetField(post.FieldTitle, field.TypeString, value)
@@ -475,40 +459,6 @@ func (_c *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(post.FieldStatus, field.TypeEnum, value)
 		_node.Status = value
-	}
-	if nodes := _c.mutation.AuthorIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   post.AuthorTable,
-			Columns: []string{post.AuthorColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.UserID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.CategoryIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   post.CategoryTable,
-			Columns: []string{post.CategoryColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.CategoryID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

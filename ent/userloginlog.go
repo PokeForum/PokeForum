@@ -9,7 +9,6 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userloginlog"
 )
 
@@ -33,31 +32,8 @@ type UserLoginLog struct {
 	// Success holds the value of the "success" field.
 	Success bool `json:"success,omitempty"`
 	// DeviceInfo holds the value of the "device_info" field.
-	DeviceInfo string `json:"device_info,omitempty"`
-	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the UserLoginLogQuery when eager-loading is set.
-	Edges        UserLoginLogEdges `json:"edges"`
+	DeviceInfo   string `json:"device_info,omitempty"`
 	selectValues sql.SelectValues
-}
-
-// UserLoginLogEdges holds the relations/edges for other nodes in the graph.
-type UserLoginLogEdges struct {
-	// User holds the value of the user edge.
-	User *User `json:"user,omitempty"`
-	// loadedTypes holds the information for reporting if a
-	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
-}
-
-// UserOrErr returns the User value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e UserLoginLogEdges) UserOrErr() (*User, error) {
-	if e.User != nil {
-		return e.User, nil
-	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: user.Label}
-	}
-	return nil, &NotLoadedError{edge: "user"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -153,11 +129,6 @@ func (_m *UserLoginLog) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *UserLoginLog) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
-}
-
-// QueryUser queries the "user" edge of the UserLoginLog entity.
-func (_m *UserLoginLog) QueryUser() *UserQuery {
-	return NewUserLoginLogClient(_m.config).QueryUser(_m)
 }
 
 // Update returns a builder for updating this UserLoginLog.

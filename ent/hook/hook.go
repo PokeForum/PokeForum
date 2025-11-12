@@ -9,6 +9,18 @@ import (
 	"github.com/PokeForum/PokeForum/ent"
 )
 
+// The BlacklistFunc type is an adapter to allow the use of ordinary
+// function as Blacklist mutator.
+type BlacklistFunc func(context.Context, *ent.BlacklistMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f BlacklistFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.BlacklistMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BlacklistMutation", m)
+}
+
 // The CategoryFunc type is an adapter to allow the use of ordinary
 // function as Category mutator.
 type CategoryFunc func(context.Context, *ent.CategoryMutation) (ent.Value, error)

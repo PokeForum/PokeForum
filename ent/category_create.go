@@ -11,7 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/PokeForum/PokeForum/ent/category"
-	"github.com/PokeForum/PokeForum/ent/user"
 )
 
 // CategoryCreate is the builder for creating a Category entity.
@@ -135,21 +134,6 @@ func (_c *CategoryCreate) SetNillableAnnouncement(v *string) *CategoryCreate {
 func (_c *CategoryCreate) SetID(v int) *CategoryCreate {
 	_c.mutation.SetID(v)
 	return _c
-}
-
-// AddModeratorIDs adds the "moderators" edge to the User entity by IDs.
-func (_c *CategoryCreate) AddModeratorIDs(ids ...int) *CategoryCreate {
-	_c.mutation.AddModeratorIDs(ids...)
-	return _c
-}
-
-// AddModerators adds the "moderators" edges to the User entity.
-func (_c *CategoryCreate) AddModerators(v ...*User) *CategoryCreate {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _c.AddModeratorIDs(ids...)
 }
 
 // Mutation returns the CategoryMutation object of the builder.
@@ -312,22 +296,6 @@ func (_c *CategoryCreate) createSpec() (*Category, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Announcement(); ok {
 		_spec.SetField(category.FieldAnnouncement, field.TypeString, value)
 		_node.Announcement = value
-	}
-	if nodes := _c.mutation.ModeratorsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   category.ModeratorsTable,
-			Columns: category.ModeratorsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

@@ -11,8 +11,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/PokeForum/PokeForum/ent/comment"
-	"github.com/PokeForum/PokeForum/ent/post"
-	"github.com/PokeForum/PokeForum/ent/user"
 )
 
 // CommentCreate is the builder for creating a Comment entity.
@@ -186,32 +184,6 @@ func (_c *CommentCreate) SetID(v int) *CommentCreate {
 	return _c
 }
 
-// SetPost sets the "post" edge to the Post entity.
-func (_c *CommentCreate) SetPost(v *Post) *CommentCreate {
-	return _c.SetPostID(v.ID)
-}
-
-// SetAuthorID sets the "author" edge to the User entity by ID.
-func (_c *CommentCreate) SetAuthorID(id int) *CommentCreate {
-	_c.mutation.SetAuthorID(id)
-	return _c
-}
-
-// SetAuthor sets the "author" edge to the User entity.
-func (_c *CommentCreate) SetAuthor(v *User) *CommentCreate {
-	return _c.SetAuthorID(v.ID)
-}
-
-// SetParent sets the "parent" edge to the Comment entity.
-func (_c *CommentCreate) SetParent(v *Comment) *CommentCreate {
-	return _c.SetParentID(v.ID)
-}
-
-// SetReplyToUser sets the "reply_to_user" edge to the User entity.
-func (_c *CommentCreate) SetReplyToUser(v *User) *CommentCreate {
-	return _c.SetReplyToUserID(v.ID)
-}
-
 // Mutation returns the CommentMutation object of the builder.
 func (_c *CommentCreate) Mutation() *CommentMutation {
 	return _c.mutation
@@ -332,12 +304,6 @@ func (_c *CommentCreate) check() error {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Comment.id": %w`, err)}
 		}
 	}
-	if len(_c.mutation.PostIDs()) == 0 {
-		return &ValidationError{Name: "post", err: errors.New(`ent: missing required edge "Comment.post"`)}
-	}
-	if len(_c.mutation.AuthorIDs()) == 0 {
-		return &ValidationError{Name: "author", err: errors.New(`ent: missing required edge "Comment.author"`)}
-	}
 	return nil
 }
 
@@ -378,6 +344,22 @@ func (_c *CommentCreate) createSpec() (*Comment, *sqlgraph.CreateSpec) {
 		_spec.SetField(comment.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
+	if value, ok := _c.mutation.PostID(); ok {
+		_spec.SetField(comment.FieldPostID, field.TypeInt, value)
+		_node.PostID = value
+	}
+	if value, ok := _c.mutation.UserID(); ok {
+		_spec.SetField(comment.FieldUserID, field.TypeInt, value)
+		_node.UserID = value
+	}
+	if value, ok := _c.mutation.ParentID(); ok {
+		_spec.SetField(comment.FieldParentID, field.TypeInt, value)
+		_node.ParentID = value
+	}
+	if value, ok := _c.mutation.ReplyToUserID(); ok {
+		_spec.SetField(comment.FieldReplyToUserID, field.TypeInt, value)
+		_node.ReplyToUserID = value
+	}
 	if value, ok := _c.mutation.Content(); ok {
 		_spec.SetField(comment.FieldContent, field.TypeString, value)
 		_node.Content = value
@@ -405,74 +387,6 @@ func (_c *CommentCreate) createSpec() (*Comment, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.DeviceInfo(); ok {
 		_spec.SetField(comment.FieldDeviceInfo, field.TypeString, value)
 		_node.DeviceInfo = value
-	}
-	if nodes := _c.mutation.PostIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   comment.PostTable,
-			Columns: []string{comment.PostColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.PostID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.AuthorIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   comment.AuthorTable,
-			Columns: []string{comment.AuthorColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.UserID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.ParentIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2O,
-			Inverse: false,
-			Table:   comment.ParentTable,
-			Columns: []string{comment.ParentColumn},
-			Bidi:    true,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.ParentID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.ReplyToUserIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   comment.ReplyToUserTable,
-			Columns: []string{comment.ReplyToUserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.ReplyToUserID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

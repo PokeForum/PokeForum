@@ -2,8 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
-	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // Category holds the schema definition for the Category entity.
@@ -44,12 +44,19 @@ func (Category) Fields() []ent.Field {
 }
 
 // Edges of the Category.
+// 注意: 所有关联关系仅用于ORM查询，不会在数据库层面创建外键
+// 版主权限管理通过中间表在应用层维护
 func (Category) Edges() []ent.Edge {
-	return []ent.Edge{
-		// 版块与用户的多对多关联，用于版主权限管理
-		// 反向关联到User的managed_categories
-		edge.From("moderators", User.Type).
-			Ref("managed_categories"),
+	return nil
+}
+
+// Indexes of the Category.
+func (Category) Indexes() []ent.Index {
+	return []ent.Index{
+		// 为常用查询字段创建索引
+		index.Fields("status"),
+		index.Fields("weight"),
+		// slug已经是唯一字段，会自动创建唯一索引
 	}
 }
 

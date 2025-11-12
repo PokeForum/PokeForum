@@ -5,6 +5,7 @@ package ent
 import (
 	"time"
 
+	"github.com/PokeForum/PokeForum/ent/blacklist"
 	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/commentaction"
@@ -21,6 +22,33 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	blacklistMixin := schema.Blacklist{}.Mixin()
+	blacklistMixinFields0 := blacklistMixin[0].Fields()
+	_ = blacklistMixinFields0
+	blacklistFields := schema.Blacklist{}.Fields()
+	_ = blacklistFields
+	// blacklistDescCreatedAt is the schema descriptor for created_at field.
+	blacklistDescCreatedAt := blacklistMixinFields0[0].Descriptor()
+	// blacklist.DefaultCreatedAt holds the default value on creation for the created_at field.
+	blacklist.DefaultCreatedAt = blacklistDescCreatedAt.Default.(func() time.Time)
+	// blacklistDescUpdatedAt is the schema descriptor for updated_at field.
+	blacklistDescUpdatedAt := blacklistMixinFields0[1].Descriptor()
+	// blacklist.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	blacklist.DefaultUpdatedAt = blacklistDescUpdatedAt.Default.(func() time.Time)
+	// blacklist.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	blacklist.UpdateDefaultUpdatedAt = blacklistDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// blacklistDescUserID is the schema descriptor for user_id field.
+	blacklistDescUserID := blacklistFields[1].Descriptor()
+	// blacklist.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	blacklist.UserIDValidator = blacklistDescUserID.Validators[0].(func(int) error)
+	// blacklistDescBlockedUserID is the schema descriptor for blocked_user_id field.
+	blacklistDescBlockedUserID := blacklistFields[2].Descriptor()
+	// blacklist.BlockedUserIDValidator is a validator for the "blocked_user_id" field. It is called by the builders before save.
+	blacklist.BlockedUserIDValidator = blacklistDescBlockedUserID.Validators[0].(func(int) error)
+	// blacklistDescID is the schema descriptor for id field.
+	blacklistDescID := blacklistFields[0].Descriptor()
+	// blacklist.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	blacklist.IDValidator = blacklistDescID.Validators[0].(func(int) error)
 	categoryMixin := schema.Category{}.Mixin()
 	categoryMixinFields0 := categoryMixin[0].Fields()
 	_ = categoryMixinFields0

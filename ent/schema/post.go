@@ -2,8 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
-	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // Post holds the schema definition for the Post entity.
@@ -65,18 +65,24 @@ func (Post) Fields() []ent.Field {
 }
 
 // Edges of the Post.
+// 注意: 所有关联关系仅用于ORM查询，不会在数据库层面创建外键
+// 数据完整性由应用层逻辑保证
 func (Post) Edges() []ent.Edge {
-	return []ent.Edge{
-		// 关联到User表
-		edge.To("author", User.Type).
-			Field("user_id").
-			Unique().
-			Required(),
-		// 关联到Category表
-		edge.To("category", Category.Type).
-			Field("category_id").
-			Unique().
-			Required(),
+	return nil
+}
+
+// Indexes of the Post.
+func (Post) Indexes() []ent.Index {
+	return []ent.Index{
+		// 为关联字段创建索引以优化查询性能
+		index.Fields("user_id"),
+		index.Fields("category_id"),
+		// 为常用查询字段创建索引
+		index.Fields("status"),
+		index.Fields("is_essence"),
+		index.Fields("is_pinned"),
+		// 创建复合索引优化版块内帖子查询
+		index.Fields("category_id", "status", "created_at"),
 	}
 }
 

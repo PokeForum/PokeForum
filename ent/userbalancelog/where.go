@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/PokeForum/PokeForum/ent/predicate"
 )
 
@@ -218,6 +217,26 @@ func UserIDIn(vs ...int) predicate.UserBalanceLog {
 // UserIDNotIn applies the NotIn predicate on the "user_id" field.
 func UserIDNotIn(vs ...int) predicate.UserBalanceLog {
 	return predicate.UserBalanceLog(sql.FieldNotIn(FieldUserID, vs...))
+}
+
+// UserIDGT applies the GT predicate on the "user_id" field.
+func UserIDGT(v int) predicate.UserBalanceLog {
+	return predicate.UserBalanceLog(sql.FieldGT(FieldUserID, v))
+}
+
+// UserIDGTE applies the GTE predicate on the "user_id" field.
+func UserIDGTE(v int) predicate.UserBalanceLog {
+	return predicate.UserBalanceLog(sql.FieldGTE(FieldUserID, v))
+}
+
+// UserIDLT applies the LT predicate on the "user_id" field.
+func UserIDLT(v int) predicate.UserBalanceLog {
+	return predicate.UserBalanceLog(sql.FieldLT(FieldUserID, v))
+}
+
+// UserIDLTE applies the LTE predicate on the "user_id" field.
+func UserIDLTE(v int) predicate.UserBalanceLog {
+	return predicate.UserBalanceLog(sql.FieldLTE(FieldUserID, v))
 }
 
 // TypeEQ applies the EQ predicate on the "type" field.
@@ -823,29 +842,6 @@ func UserAgentEqualFold(v string) predicate.UserBalanceLog {
 // UserAgentContainsFold applies the ContainsFold predicate on the "user_agent" field.
 func UserAgentContainsFold(v string) predicate.UserBalanceLog {
 	return predicate.UserBalanceLog(sql.FieldContainsFold(FieldUserAgent, v))
-}
-
-// HasUser applies the HasEdge predicate on the "user" edge.
-func HasUser() predicate.UserBalanceLog {
-	return predicate.UserBalanceLog(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, UserTable, UserColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
-func HasUserWith(preds ...predicate.User) predicate.UserBalanceLog {
-	return predicate.UserBalanceLog(func(s *sql.Selector) {
-		step := newUserStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
 }
 
 // And groups predicates with the AND operator between them.

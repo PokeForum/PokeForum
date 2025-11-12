@@ -11,21 +11,17 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/commentaction"
 	"github.com/PokeForum/PokeForum/ent/predicate"
-	"github.com/PokeForum/PokeForum/ent/user"
 )
 
 // CommentActionQuery is the builder for querying CommentAction entities.
 type CommentActionQuery struct {
 	config
-	ctx         *QueryContext
-	order       []commentaction.OrderOption
-	inters      []Interceptor
-	predicates  []predicate.CommentAction
-	withUser    *UserQuery
-	withComment *CommentQuery
+	ctx        *QueryContext
+	order      []commentaction.OrderOption
+	inters     []Interceptor
+	predicates []predicate.CommentAction
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -60,50 +56,6 @@ func (_q *CommentActionQuery) Unique(unique bool) *CommentActionQuery {
 func (_q *CommentActionQuery) Order(o ...commentaction.OrderOption) *CommentActionQuery {
 	_q.order = append(_q.order, o...)
 	return _q
-}
-
-// QueryUser chains the current query on the "user" edge.
-func (_q *CommentActionQuery) QueryUser() *UserQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(commentaction.Table, commentaction.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, commentaction.UserTable, commentaction.UserColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryComment chains the current query on the "comment" edge.
-func (_q *CommentActionQuery) QueryComment() *CommentQuery {
-	query := (&CommentClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(commentaction.Table, commentaction.FieldID, selector),
-			sqlgraph.To(comment.Table, comment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, commentaction.CommentTable, commentaction.CommentColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // First returns the first CommentAction entity from the query.
@@ -293,39 +245,15 @@ func (_q *CommentActionQuery) Clone() *CommentActionQuery {
 		return nil
 	}
 	return &CommentActionQuery{
-		config:      _q.config,
-		ctx:         _q.ctx.Clone(),
-		order:       append([]commentaction.OrderOption{}, _q.order...),
-		inters:      append([]Interceptor{}, _q.inters...),
-		predicates:  append([]predicate.CommentAction{}, _q.predicates...),
-		withUser:    _q.withUser.Clone(),
-		withComment: _q.withComment.Clone(),
+		config:     _q.config,
+		ctx:        _q.ctx.Clone(),
+		order:      append([]commentaction.OrderOption{}, _q.order...),
+		inters:     append([]Interceptor{}, _q.inters...),
+		predicates: append([]predicate.CommentAction{}, _q.predicates...),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
-}
-
-// WithUser tells the query-builder to eager-load the nodes that are connected to
-// the "user" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *CommentActionQuery) WithUser(opts ...func(*UserQuery)) *CommentActionQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withUser = query
-	return _q
-}
-
-// WithComment tells the query-builder to eager-load the nodes that are connected to
-// the "comment" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *CommentActionQuery) WithComment(opts ...func(*CommentQuery)) *CommentActionQuery {
-	query := (&CommentClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withComment = query
-	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -404,12 +332,8 @@ func (_q *CommentActionQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *CommentActionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*CommentAction, error) {
 	var (
-		nodes       = []*CommentAction{}
-		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
-			_q.withUser != nil,
-			_q.withComment != nil,
-		}
+		nodes = []*CommentAction{}
+		_spec = _q.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*CommentAction).scanValues(nil, columns)
@@ -417,7 +341,6 @@ func (_q *CommentActionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &CommentAction{config: _q.config}
 		nodes = append(nodes, node)
-		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -429,78 +352,7 @@ func (_q *CommentActionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withUser; query != nil {
-		if err := _q.loadUser(ctx, query, nodes, nil,
-			func(n *CommentAction, e *User) { n.Edges.User = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withComment; query != nil {
-		if err := _q.loadComment(ctx, query, nodes, nil,
-			func(n *CommentAction, e *Comment) { n.Edges.Comment = e }); err != nil {
-			return nil, err
-		}
-	}
 	return nodes, nil
-}
-
-func (_q *CommentActionQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*CommentAction, init func(*CommentAction), assign func(*CommentAction, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*CommentAction)
-	for i := range nodes {
-		fk := nodes[i].UserID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(user.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (_q *CommentActionQuery) loadComment(ctx context.Context, query *CommentQuery, nodes []*CommentAction, init func(*CommentAction), assign func(*CommentAction, *Comment)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*CommentAction)
-	for i := range nodes {
-		fk := nodes[i].CommentID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(comment.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "comment_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
 }
 
 func (_q *CommentActionQuery) sqlCount(ctx context.Context) (int, error) {
@@ -527,12 +379,6 @@ func (_q *CommentActionQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != commentaction.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
-		}
-		if _q.withUser != nil {
-			_spec.Node.AddColumnOnce(commentaction.FieldUserID)
-		}
-		if _q.withComment != nil {
-			_spec.Node.AddColumnOnce(commentaction.FieldCommentID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

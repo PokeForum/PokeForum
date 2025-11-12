@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/PokeForum/PokeForum/ent"
+	"github.com/PokeForum/PokeForum/ent/migrate"
 	"github.com/PokeForum/PokeForum/internal/configs"
 	"go.uber.org/zap"
 
@@ -38,7 +39,10 @@ func DB() *ent.Client {
 
 // AutoMigrate 自动迁移
 func AutoMigrate(client *ent.Client) {
-	if err := client.Schema.Create(context.Background()); err != nil {
+	if err := client.Schema.Create(
+		context.Background(),
+		migrate.WithForeignKeys(false), // 禁用所有外键
+	); err != nil {
 		configs.Log.Fatal("failed creating schema resources: ", zap.Error(err))
 	}
 }

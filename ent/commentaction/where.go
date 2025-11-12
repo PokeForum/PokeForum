@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/PokeForum/PokeForum/ent/predicate"
 )
 
@@ -175,6 +174,26 @@ func UserIDNotIn(vs ...int) predicate.CommentAction {
 	return predicate.CommentAction(sql.FieldNotIn(FieldUserID, vs...))
 }
 
+// UserIDGT applies the GT predicate on the "user_id" field.
+func UserIDGT(v int) predicate.CommentAction {
+	return predicate.CommentAction(sql.FieldGT(FieldUserID, v))
+}
+
+// UserIDGTE applies the GTE predicate on the "user_id" field.
+func UserIDGTE(v int) predicate.CommentAction {
+	return predicate.CommentAction(sql.FieldGTE(FieldUserID, v))
+}
+
+// UserIDLT applies the LT predicate on the "user_id" field.
+func UserIDLT(v int) predicate.CommentAction {
+	return predicate.CommentAction(sql.FieldLT(FieldUserID, v))
+}
+
+// UserIDLTE applies the LTE predicate on the "user_id" field.
+func UserIDLTE(v int) predicate.CommentAction {
+	return predicate.CommentAction(sql.FieldLTE(FieldUserID, v))
+}
+
 // CommentIDEQ applies the EQ predicate on the "comment_id" field.
 func CommentIDEQ(v int) predicate.CommentAction {
 	return predicate.CommentAction(sql.FieldEQ(FieldCommentID, v))
@@ -195,6 +214,26 @@ func CommentIDNotIn(vs ...int) predicate.CommentAction {
 	return predicate.CommentAction(sql.FieldNotIn(FieldCommentID, vs...))
 }
 
+// CommentIDGT applies the GT predicate on the "comment_id" field.
+func CommentIDGT(v int) predicate.CommentAction {
+	return predicate.CommentAction(sql.FieldGT(FieldCommentID, v))
+}
+
+// CommentIDGTE applies the GTE predicate on the "comment_id" field.
+func CommentIDGTE(v int) predicate.CommentAction {
+	return predicate.CommentAction(sql.FieldGTE(FieldCommentID, v))
+}
+
+// CommentIDLT applies the LT predicate on the "comment_id" field.
+func CommentIDLT(v int) predicate.CommentAction {
+	return predicate.CommentAction(sql.FieldLT(FieldCommentID, v))
+}
+
+// CommentIDLTE applies the LTE predicate on the "comment_id" field.
+func CommentIDLTE(v int) predicate.CommentAction {
+	return predicate.CommentAction(sql.FieldLTE(FieldCommentID, v))
+}
+
 // ActionTypeEQ applies the EQ predicate on the "action_type" field.
 func ActionTypeEQ(v ActionType) predicate.CommentAction {
 	return predicate.CommentAction(sql.FieldEQ(FieldActionType, v))
@@ -213,52 +252,6 @@ func ActionTypeIn(vs ...ActionType) predicate.CommentAction {
 // ActionTypeNotIn applies the NotIn predicate on the "action_type" field.
 func ActionTypeNotIn(vs ...ActionType) predicate.CommentAction {
 	return predicate.CommentAction(sql.FieldNotIn(FieldActionType, vs...))
-}
-
-// HasUser applies the HasEdge predicate on the "user" edge.
-func HasUser() predicate.CommentAction {
-	return predicate.CommentAction(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, UserTable, UserColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
-func HasUserWith(preds ...predicate.User) predicate.CommentAction {
-	return predicate.CommentAction(func(s *sql.Selector) {
-		step := newUserStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasComment applies the HasEdge predicate on the "comment" edge.
-func HasComment() predicate.CommentAction {
-	return predicate.CommentAction(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, CommentTable, CommentColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasCommentWith applies the HasEdge predicate on the "comment" edge with a given conditions (other predicates).
-func HasCommentWith(preds ...predicate.Comment) predicate.CommentAction {
-	return predicate.CommentAction(func(s *sql.Selector) {
-		step := newCommentStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
 }
 
 // And groups predicates with the AND operator between them.

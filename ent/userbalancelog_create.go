@@ -10,7 +10,6 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 )
 
@@ -175,11 +174,6 @@ func (_c *UserBalanceLogCreate) SetID(v int) *UserBalanceLogCreate {
 	return _c
 }
 
-// SetUser sets the "user" edge to the User entity.
-func (_c *UserBalanceLogCreate) SetUser(v *User) *UserBalanceLogCreate {
-	return _c.SetUserID(v.ID)
-}
-
 // Mutation returns the UserBalanceLogMutation object of the builder.
 func (_c *UserBalanceLogCreate) Mutation() *UserBalanceLogMutation {
 	return _c.mutation
@@ -271,9 +265,6 @@ func (_c *UserBalanceLogCreate) check() error {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "UserBalanceLog.id": %w`, err)}
 		}
 	}
-	if len(_c.mutation.UserIDs()) == 0 {
-		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "UserBalanceLog.user"`)}
-	}
 	return nil
 }
 
@@ -313,6 +304,10 @@ func (_c *UserBalanceLogCreate) createSpec() (*UserBalanceLog, *sqlgraph.CreateS
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(userbalancelog.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
+	}
+	if value, ok := _c.mutation.UserID(); ok {
+		_spec.SetField(userbalancelog.FieldUserID, field.TypeInt, value)
+		_node.UserID = value
 	}
 	if value, ok := _c.mutation.GetType(); ok {
 		_spec.SetField(userbalancelog.FieldType, field.TypeEnum, value)
@@ -357,23 +352,6 @@ func (_c *UserBalanceLogCreate) createSpec() (*UserBalanceLog, *sqlgraph.CreateS
 	if value, ok := _c.mutation.UserAgent(); ok {
 		_spec.SetField(userbalancelog.FieldUserAgent, field.TypeString, value)
 		_node.UserAgent = value
-	}
-	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   userbalancelog.UserTable,
-			Columns: []string{userbalancelog.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.UserID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

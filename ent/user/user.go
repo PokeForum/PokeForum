@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -47,24 +46,8 @@ const (
 	FieldStatus = "status"
 	// FieldRole holds the string denoting the role field in the database.
 	FieldRole = "role"
-	// EdgeManagedCategories holds the string denoting the managed_categories edge name in mutations.
-	EdgeManagedCategories = "managed_categories"
-	// EdgeBalanceLogs holds the string denoting the balance_logs edge name in mutations.
-	EdgeBalanceLogs = "balance_logs"
 	// Table holds the table name of the user in the database.
 	Table = "users"
-	// ManagedCategoriesTable is the table that holds the managed_categories relation/edge. The primary key declared below.
-	ManagedCategoriesTable = "user_managed_categories"
-	// ManagedCategoriesInverseTable is the table name for the Category entity.
-	// It exists in this package in order to avoid circular dependency with the "category" package.
-	ManagedCategoriesInverseTable = "categories"
-	// BalanceLogsTable is the table that holds the balance_logs relation/edge.
-	BalanceLogsTable = "user_balance_logs"
-	// BalanceLogsInverseTable is the table name for the UserBalanceLog entity.
-	// It exists in this package in order to avoid circular dependency with the "userbalancelog" package.
-	BalanceLogsInverseTable = "user_balance_logs"
-	// BalanceLogsColumn is the table column denoting the balance_logs relation/edge.
-	BalanceLogsColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -87,12 +70,6 @@ var Columns = []string{
 	FieldStatus,
 	FieldRole,
 }
-
-var (
-	// ManagedCategoriesPrimaryKey and ManagedCategoriesColumn2 are the table columns denoting the
-	// primary key for the managed_categories relation (M2M).
-	ManagedCategoriesPrimaryKey = []string{"user_id", "category_id"}
-)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -284,46 +261,4 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByRole orders the results by the role field.
 func ByRole(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRole, opts...).ToFunc()
-}
-
-// ByManagedCategoriesCount orders the results by managed_categories count.
-func ByManagedCategoriesCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newManagedCategoriesStep(), opts...)
-	}
-}
-
-// ByManagedCategories orders the results by managed_categories terms.
-func ByManagedCategories(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newManagedCategoriesStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-
-// ByBalanceLogsCount orders the results by balance_logs count.
-func ByBalanceLogsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newBalanceLogsStep(), opts...)
-	}
-}
-
-// ByBalanceLogs orders the results by balance_logs terms.
-func ByBalanceLogs(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newBalanceLogsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-func newManagedCategoriesStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ManagedCategoriesInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, ManagedCategoriesTable, ManagedCategoriesPrimaryKey...),
-	)
-}
-func newBalanceLogsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(BalanceLogsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, BalanceLogsTable, BalanceLogsColumn),
-	)
 }

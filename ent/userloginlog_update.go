@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/PokeForum/PokeForum/ent/predicate"
-	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userloginlog"
 )
 
@@ -37,6 +36,7 @@ func (_u *UserLoginLogUpdate) SetUpdatedAt(v time.Time) *UserLoginLogUpdate {
 
 // SetUserID sets the "user_id" field.
 func (_u *UserLoginLogUpdate) SetUserID(v int) *UserLoginLogUpdate {
+	_u.mutation.ResetUserID()
 	_u.mutation.SetUserID(v)
 	return _u
 }
@@ -46,6 +46,12 @@ func (_u *UserLoginLogUpdate) SetNillableUserID(v *int) *UserLoginLogUpdate {
 	if v != nil {
 		_u.SetUserID(*v)
 	}
+	return _u
+}
+
+// AddUserID adds value to the "user_id" field.
+func (_u *UserLoginLogUpdate) AddUserID(v int) *UserLoginLogUpdate {
+	_u.mutation.AddUserID(v)
 	return _u
 }
 
@@ -137,20 +143,9 @@ func (_u *UserLoginLogUpdate) ClearDeviceInfo() *UserLoginLogUpdate {
 	return _u
 }
 
-// SetUser sets the "user" edge to the User entity.
-func (_u *UserLoginLogUpdate) SetUser(v *User) *UserLoginLogUpdate {
-	return _u.SetUserID(v.ID)
-}
-
 // Mutation returns the UserLoginLogMutation object of the builder.
 func (_u *UserLoginLogUpdate) Mutation() *UserLoginLogMutation {
 	return _u.mutation
-}
-
-// ClearUser clears the "user" edge to the User entity.
-func (_u *UserLoginLogUpdate) ClearUser() *UserLoginLogUpdate {
-	_u.mutation.ClearUser()
-	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -201,9 +196,6 @@ func (_u *UserLoginLogUpdate) check() error {
 			return &ValidationError{Name: "ip_address", err: fmt.Errorf(`ent: validator failed for field "UserLoginLog.ip_address": %w`, err)}
 		}
 	}
-	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "UserLoginLog.user"`)
-	}
 	return nil
 }
 
@@ -221,6 +213,12 @@ func (_u *UserLoginLogUpdate) sqlSave(ctx context.Context) (_node int, err error
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(userloginlog.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.UserID(); ok {
+		_spec.SetField(userloginlog.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedUserID(); ok {
+		_spec.AddField(userloginlog.FieldUserID, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.IPAddress(); ok {
 		_spec.SetField(userloginlog.FieldIPAddress, field.TypeString, value)
@@ -245,35 +243,6 @@ func (_u *UserLoginLogUpdate) sqlSave(ctx context.Context) (_node int, err error
 	}
 	if _u.mutation.DeviceInfoCleared() {
 		_spec.ClearField(userloginlog.FieldDeviceInfo, field.TypeString)
-	}
-	if _u.mutation.UserCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   userloginlog.UserTable,
-			Columns: []string{userloginlog.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.UserIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   userloginlog.UserTable,
-			Columns: []string{userloginlog.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -303,6 +272,7 @@ func (_u *UserLoginLogUpdateOne) SetUpdatedAt(v time.Time) *UserLoginLogUpdateOn
 
 // SetUserID sets the "user_id" field.
 func (_u *UserLoginLogUpdateOne) SetUserID(v int) *UserLoginLogUpdateOne {
+	_u.mutation.ResetUserID()
 	_u.mutation.SetUserID(v)
 	return _u
 }
@@ -312,6 +282,12 @@ func (_u *UserLoginLogUpdateOne) SetNillableUserID(v *int) *UserLoginLogUpdateOn
 	if v != nil {
 		_u.SetUserID(*v)
 	}
+	return _u
+}
+
+// AddUserID adds value to the "user_id" field.
+func (_u *UserLoginLogUpdateOne) AddUserID(v int) *UserLoginLogUpdateOne {
+	_u.mutation.AddUserID(v)
 	return _u
 }
 
@@ -403,20 +379,9 @@ func (_u *UserLoginLogUpdateOne) ClearDeviceInfo() *UserLoginLogUpdateOne {
 	return _u
 }
 
-// SetUser sets the "user" edge to the User entity.
-func (_u *UserLoginLogUpdateOne) SetUser(v *User) *UserLoginLogUpdateOne {
-	return _u.SetUserID(v.ID)
-}
-
 // Mutation returns the UserLoginLogMutation object of the builder.
 func (_u *UserLoginLogUpdateOne) Mutation() *UserLoginLogMutation {
 	return _u.mutation
-}
-
-// ClearUser clears the "user" edge to the User entity.
-func (_u *UserLoginLogUpdateOne) ClearUser() *UserLoginLogUpdateOne {
-	_u.mutation.ClearUser()
-	return _u
 }
 
 // Where appends a list predicates to the UserLoginLogUpdate builder.
@@ -480,9 +445,6 @@ func (_u *UserLoginLogUpdateOne) check() error {
 			return &ValidationError{Name: "ip_address", err: fmt.Errorf(`ent: validator failed for field "UserLoginLog.ip_address": %w`, err)}
 		}
 	}
-	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "UserLoginLog.user"`)
-	}
 	return nil
 }
 
@@ -518,6 +480,12 @@ func (_u *UserLoginLogUpdateOne) sqlSave(ctx context.Context) (_node *UserLoginL
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(userloginlog.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.UserID(); ok {
+		_spec.SetField(userloginlog.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedUserID(); ok {
+		_spec.AddField(userloginlog.FieldUserID, field.TypeInt, value)
+	}
 	if value, ok := _u.mutation.IPAddress(); ok {
 		_spec.SetField(userloginlog.FieldIPAddress, field.TypeString, value)
 	}
@@ -541,35 +509,6 @@ func (_u *UserLoginLogUpdateOne) sqlSave(ctx context.Context) (_node *UserLoginL
 	}
 	if _u.mutation.DeviceInfoCleared() {
 		_spec.ClearField(userloginlog.FieldDeviceInfo, field.TypeString)
-	}
-	if _u.mutation.UserCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   userloginlog.UserTable,
-			Columns: []string{userloginlog.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.UserIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   userloginlog.UserTable,
-			Columns: []string{userloginlog.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &UserLoginLog{config: _u.config}
 	_spec.Assign = _node.assignValues

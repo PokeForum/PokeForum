@@ -13,7 +13,6 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/predicate"
-	"github.com/PokeForum/PokeForum/ent/user"
 )
 
 // CategoryUpdate is the builder for updating Category entities.
@@ -158,45 +157,9 @@ func (_u *CategoryUpdate) ClearAnnouncement() *CategoryUpdate {
 	return _u
 }
 
-// AddModeratorIDs adds the "moderators" edge to the User entity by IDs.
-func (_u *CategoryUpdate) AddModeratorIDs(ids ...int) *CategoryUpdate {
-	_u.mutation.AddModeratorIDs(ids...)
-	return _u
-}
-
-// AddModerators adds the "moderators" edges to the User entity.
-func (_u *CategoryUpdate) AddModerators(v ...*User) *CategoryUpdate {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddModeratorIDs(ids...)
-}
-
 // Mutation returns the CategoryMutation object of the builder.
 func (_u *CategoryUpdate) Mutation() *CategoryMutation {
 	return _u.mutation
-}
-
-// ClearModerators clears all "moderators" edges to the User entity.
-func (_u *CategoryUpdate) ClearModerators() *CategoryUpdate {
-	_u.mutation.ClearModerators()
-	return _u
-}
-
-// RemoveModeratorIDs removes the "moderators" edge to User entities by IDs.
-func (_u *CategoryUpdate) RemoveModeratorIDs(ids ...int) *CategoryUpdate {
-	_u.mutation.RemoveModeratorIDs(ids...)
-	return _u
-}
-
-// RemoveModerators removes "moderators" edges to User entities.
-func (_u *CategoryUpdate) RemoveModerators(v ...*User) *CategoryUpdate {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveModeratorIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -302,51 +265,6 @@ func (_u *CategoryUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.AnnouncementCleared() {
 		_spec.ClearField(category.FieldAnnouncement, field.TypeString)
-	}
-	if _u.mutation.ModeratorsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   category.ModeratorsTable,
-			Columns: category.ModeratorsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedModeratorsIDs(); len(nodes) > 0 && !_u.mutation.ModeratorsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   category.ModeratorsTable,
-			Columns: category.ModeratorsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.ModeratorsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   category.ModeratorsTable,
-			Columns: category.ModeratorsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -497,45 +415,9 @@ func (_u *CategoryUpdateOne) ClearAnnouncement() *CategoryUpdateOne {
 	return _u
 }
 
-// AddModeratorIDs adds the "moderators" edge to the User entity by IDs.
-func (_u *CategoryUpdateOne) AddModeratorIDs(ids ...int) *CategoryUpdateOne {
-	_u.mutation.AddModeratorIDs(ids...)
-	return _u
-}
-
-// AddModerators adds the "moderators" edges to the User entity.
-func (_u *CategoryUpdateOne) AddModerators(v ...*User) *CategoryUpdateOne {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.AddModeratorIDs(ids...)
-}
-
 // Mutation returns the CategoryMutation object of the builder.
 func (_u *CategoryUpdateOne) Mutation() *CategoryMutation {
 	return _u.mutation
-}
-
-// ClearModerators clears all "moderators" edges to the User entity.
-func (_u *CategoryUpdateOne) ClearModerators() *CategoryUpdateOne {
-	_u.mutation.ClearModerators()
-	return _u
-}
-
-// RemoveModeratorIDs removes the "moderators" edge to User entities by IDs.
-func (_u *CategoryUpdateOne) RemoveModeratorIDs(ids ...int) *CategoryUpdateOne {
-	_u.mutation.RemoveModeratorIDs(ids...)
-	return _u
-}
-
-// RemoveModerators removes "moderators" edges to User entities.
-func (_u *CategoryUpdateOne) RemoveModerators(v ...*User) *CategoryUpdateOne {
-	ids := make([]int, len(v))
-	for i := range v {
-		ids[i] = v[i].ID
-	}
-	return _u.RemoveModeratorIDs(ids...)
 }
 
 // Where appends a list predicates to the CategoryUpdate builder.
@@ -671,51 +553,6 @@ func (_u *CategoryUpdateOne) sqlSave(ctx context.Context) (_node *Category, err 
 	}
 	if _u.mutation.AnnouncementCleared() {
 		_spec.ClearField(category.FieldAnnouncement, field.TypeString)
-	}
-	if _u.mutation.ModeratorsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   category.ModeratorsTable,
-			Columns: category.ModeratorsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.RemovedModeratorsIDs(); len(nodes) > 0 && !_u.mutation.ModeratorsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   category.ModeratorsTable,
-			Columns: category.ModeratorsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.ModeratorsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   category.ModeratorsTable,
-			Columns: category.ModeratorsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Category{config: _u.config}
 	_spec.Assign = _node.assignValues

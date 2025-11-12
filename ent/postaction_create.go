@@ -10,9 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
-	"github.com/PokeForum/PokeForum/ent/user"
 )
 
 // PostActionCreate is the builder for creating a PostAction entity.
@@ -72,16 +70,6 @@ func (_c *PostActionCreate) SetActionType(v postaction.ActionType) *PostActionCr
 func (_c *PostActionCreate) SetID(v int) *PostActionCreate {
 	_c.mutation.SetID(v)
 	return _c
-}
-
-// SetUser sets the "user" edge to the User entity.
-func (_c *PostActionCreate) SetUser(v *User) *PostActionCreate {
-	return _c.SetUserID(v.ID)
-}
-
-// SetPost sets the "post" edge to the Post entity.
-func (_c *PostActionCreate) SetPost(v *Post) *PostActionCreate {
-	return _c.SetPostID(v.ID)
 }
 
 // Mutation returns the PostActionMutation object of the builder.
@@ -166,12 +154,6 @@ func (_c *PostActionCreate) check() error {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "PostAction.id": %w`, err)}
 		}
 	}
-	if len(_c.mutation.UserIDs()) == 0 {
-		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "PostAction.user"`)}
-	}
-	if len(_c.mutation.PostIDs()) == 0 {
-		return &ValidationError{Name: "post", err: errors.New(`ent: missing required edge "PostAction.post"`)}
-	}
 	return nil
 }
 
@@ -212,43 +194,17 @@ func (_c *PostActionCreate) createSpec() (*PostAction, *sqlgraph.CreateSpec) {
 		_spec.SetField(postaction.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
+	if value, ok := _c.mutation.UserID(); ok {
+		_spec.SetField(postaction.FieldUserID, field.TypeInt, value)
+		_node.UserID = value
+	}
+	if value, ok := _c.mutation.PostID(); ok {
+		_spec.SetField(postaction.FieldPostID, field.TypeInt, value)
+		_node.PostID = value
+	}
 	if value, ok := _c.mutation.ActionType(); ok {
 		_spec.SetField(postaction.FieldActionType, field.TypeEnum, value)
 		_node.ActionType = value
-	}
-	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   postaction.UserTable,
-			Columns: []string{postaction.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.UserID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.PostIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   postaction.PostTable,
-			Columns: []string{postaction.PostColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.PostID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

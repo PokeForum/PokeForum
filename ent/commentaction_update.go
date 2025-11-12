@@ -11,10 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/commentaction"
 	"github.com/PokeForum/PokeForum/ent/predicate"
-	"github.com/PokeForum/PokeForum/ent/user"
 )
 
 // CommentActionUpdate is the builder for updating CommentAction entities.
@@ -38,6 +36,7 @@ func (_u *CommentActionUpdate) SetUpdatedAt(v time.Time) *CommentActionUpdate {
 
 // SetUserID sets the "user_id" field.
 func (_u *CommentActionUpdate) SetUserID(v int) *CommentActionUpdate {
+	_u.mutation.ResetUserID()
 	_u.mutation.SetUserID(v)
 	return _u
 }
@@ -50,8 +49,15 @@ func (_u *CommentActionUpdate) SetNillableUserID(v *int) *CommentActionUpdate {
 	return _u
 }
 
+// AddUserID adds value to the "user_id" field.
+func (_u *CommentActionUpdate) AddUserID(v int) *CommentActionUpdate {
+	_u.mutation.AddUserID(v)
+	return _u
+}
+
 // SetCommentID sets the "comment_id" field.
 func (_u *CommentActionUpdate) SetCommentID(v int) *CommentActionUpdate {
+	_u.mutation.ResetCommentID()
 	_u.mutation.SetCommentID(v)
 	return _u
 }
@@ -61,6 +67,12 @@ func (_u *CommentActionUpdate) SetNillableCommentID(v *int) *CommentActionUpdate
 	if v != nil {
 		_u.SetCommentID(*v)
 	}
+	return _u
+}
+
+// AddCommentID adds value to the "comment_id" field.
+func (_u *CommentActionUpdate) AddCommentID(v int) *CommentActionUpdate {
+	_u.mutation.AddCommentID(v)
 	return _u
 }
 
@@ -78,31 +90,9 @@ func (_u *CommentActionUpdate) SetNillableActionType(v *commentaction.ActionType
 	return _u
 }
 
-// SetUser sets the "user" edge to the User entity.
-func (_u *CommentActionUpdate) SetUser(v *User) *CommentActionUpdate {
-	return _u.SetUserID(v.ID)
-}
-
-// SetComment sets the "comment" edge to the Comment entity.
-func (_u *CommentActionUpdate) SetComment(v *Comment) *CommentActionUpdate {
-	return _u.SetCommentID(v.ID)
-}
-
 // Mutation returns the CommentActionMutation object of the builder.
 func (_u *CommentActionUpdate) Mutation() *CommentActionMutation {
 	return _u.mutation
-}
-
-// ClearUser clears the "user" edge to the User entity.
-func (_u *CommentActionUpdate) ClearUser() *CommentActionUpdate {
-	_u.mutation.ClearUser()
-	return _u
-}
-
-// ClearComment clears the "comment" edge to the Comment entity.
-func (_u *CommentActionUpdate) ClearComment() *CommentActionUpdate {
-	_u.mutation.ClearComment()
-	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -158,12 +148,6 @@ func (_u *CommentActionUpdate) check() error {
 			return &ValidationError{Name: "action_type", err: fmt.Errorf(`ent: validator failed for field "CommentAction.action_type": %w`, err)}
 		}
 	}
-	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "CommentAction.user"`)
-	}
-	if _u.mutation.CommentCleared() && len(_u.mutation.CommentIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "CommentAction.comment"`)
-	}
 	return nil
 }
 
@@ -182,66 +166,20 @@ func (_u *CommentActionUpdate) sqlSave(ctx context.Context) (_node int, err erro
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(commentaction.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.UserID(); ok {
+		_spec.SetField(commentaction.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedUserID(); ok {
+		_spec.AddField(commentaction.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.CommentID(); ok {
+		_spec.SetField(commentaction.FieldCommentID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedCommentID(); ok {
+		_spec.AddField(commentaction.FieldCommentID, field.TypeInt, value)
+	}
 	if value, ok := _u.mutation.ActionType(); ok {
 		_spec.SetField(commentaction.FieldActionType, field.TypeEnum, value)
-	}
-	if _u.mutation.UserCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   commentaction.UserTable,
-			Columns: []string{commentaction.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.UserIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   commentaction.UserTable,
-			Columns: []string{commentaction.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.CommentCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   commentaction.CommentTable,
-			Columns: []string{commentaction.CommentColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.CommentIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   commentaction.CommentTable,
-			Columns: []string{commentaction.CommentColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -271,6 +209,7 @@ func (_u *CommentActionUpdateOne) SetUpdatedAt(v time.Time) *CommentActionUpdate
 
 // SetUserID sets the "user_id" field.
 func (_u *CommentActionUpdateOne) SetUserID(v int) *CommentActionUpdateOne {
+	_u.mutation.ResetUserID()
 	_u.mutation.SetUserID(v)
 	return _u
 }
@@ -283,8 +222,15 @@ func (_u *CommentActionUpdateOne) SetNillableUserID(v *int) *CommentActionUpdate
 	return _u
 }
 
+// AddUserID adds value to the "user_id" field.
+func (_u *CommentActionUpdateOne) AddUserID(v int) *CommentActionUpdateOne {
+	_u.mutation.AddUserID(v)
+	return _u
+}
+
 // SetCommentID sets the "comment_id" field.
 func (_u *CommentActionUpdateOne) SetCommentID(v int) *CommentActionUpdateOne {
+	_u.mutation.ResetCommentID()
 	_u.mutation.SetCommentID(v)
 	return _u
 }
@@ -294,6 +240,12 @@ func (_u *CommentActionUpdateOne) SetNillableCommentID(v *int) *CommentActionUpd
 	if v != nil {
 		_u.SetCommentID(*v)
 	}
+	return _u
+}
+
+// AddCommentID adds value to the "comment_id" field.
+func (_u *CommentActionUpdateOne) AddCommentID(v int) *CommentActionUpdateOne {
+	_u.mutation.AddCommentID(v)
 	return _u
 }
 
@@ -311,31 +263,9 @@ func (_u *CommentActionUpdateOne) SetNillableActionType(v *commentaction.ActionT
 	return _u
 }
 
-// SetUser sets the "user" edge to the User entity.
-func (_u *CommentActionUpdateOne) SetUser(v *User) *CommentActionUpdateOne {
-	return _u.SetUserID(v.ID)
-}
-
-// SetComment sets the "comment" edge to the Comment entity.
-func (_u *CommentActionUpdateOne) SetComment(v *Comment) *CommentActionUpdateOne {
-	return _u.SetCommentID(v.ID)
-}
-
 // Mutation returns the CommentActionMutation object of the builder.
 func (_u *CommentActionUpdateOne) Mutation() *CommentActionMutation {
 	return _u.mutation
-}
-
-// ClearUser clears the "user" edge to the User entity.
-func (_u *CommentActionUpdateOne) ClearUser() *CommentActionUpdateOne {
-	_u.mutation.ClearUser()
-	return _u
-}
-
-// ClearComment clears the "comment" edge to the Comment entity.
-func (_u *CommentActionUpdateOne) ClearComment() *CommentActionUpdateOne {
-	_u.mutation.ClearComment()
-	return _u
 }
 
 // Where appends a list predicates to the CommentActionUpdate builder.
@@ -404,12 +334,6 @@ func (_u *CommentActionUpdateOne) check() error {
 			return &ValidationError{Name: "action_type", err: fmt.Errorf(`ent: validator failed for field "CommentAction.action_type": %w`, err)}
 		}
 	}
-	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "CommentAction.user"`)
-	}
-	if _u.mutation.CommentCleared() && len(_u.mutation.CommentIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "CommentAction.comment"`)
-	}
 	return nil
 }
 
@@ -445,66 +369,20 @@ func (_u *CommentActionUpdateOne) sqlSave(ctx context.Context) (_node *CommentAc
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(commentaction.FieldUpdatedAt, field.TypeTime, value)
 	}
+	if value, ok := _u.mutation.UserID(); ok {
+		_spec.SetField(commentaction.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedUserID(); ok {
+		_spec.AddField(commentaction.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.CommentID(); ok {
+		_spec.SetField(commentaction.FieldCommentID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedCommentID(); ok {
+		_spec.AddField(commentaction.FieldCommentID, field.TypeInt, value)
+	}
 	if value, ok := _u.mutation.ActionType(); ok {
 		_spec.SetField(commentaction.FieldActionType, field.TypeEnum, value)
-	}
-	if _u.mutation.UserCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   commentaction.UserTable,
-			Columns: []string{commentaction.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.UserIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   commentaction.UserTable,
-			Columns: []string{commentaction.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.CommentCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   commentaction.CommentTable,
-			Columns: []string{commentaction.CommentColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.CommentIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   commentaction.CommentTable,
-			Columns: []string{commentaction.CommentColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &CommentAction{config: _u.config}
 	_spec.Assign = _node.assignValues

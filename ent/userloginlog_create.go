@@ -10,7 +10,6 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userloginlog"
 )
 
@@ -123,11 +122,6 @@ func (_c *UserLoginLogCreate) SetID(v int) *UserLoginLogCreate {
 	return _c
 }
 
-// SetUser sets the "user" edge to the User entity.
-func (_c *UserLoginLogCreate) SetUser(v *User) *UserLoginLogCreate {
-	return _c.SetUserID(v.ID)
-}
-
 // Mutation returns the UserLoginLogMutation object of the builder.
 func (_c *UserLoginLogCreate) Mutation() *UserLoginLogMutation {
 	return _c.mutation
@@ -209,9 +203,6 @@ func (_c *UserLoginLogCreate) check() error {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "UserLoginLog.id": %w`, err)}
 		}
 	}
-	if len(_c.mutation.UserIDs()) == 0 {
-		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "UserLoginLog.user"`)}
-	}
 	return nil
 }
 
@@ -252,6 +243,10 @@ func (_c *UserLoginLogCreate) createSpec() (*UserLoginLog, *sqlgraph.CreateSpec)
 		_spec.SetField(userloginlog.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
+	if value, ok := _c.mutation.UserID(); ok {
+		_spec.SetField(userloginlog.FieldUserID, field.TypeInt, value)
+		_node.UserID = value
+	}
 	if value, ok := _c.mutation.IPAddress(); ok {
 		_spec.SetField(userloginlog.FieldIPAddress, field.TypeString, value)
 		_node.IPAddress = value
@@ -271,23 +266,6 @@ func (_c *UserLoginLogCreate) createSpec() (*UserLoginLog, *sqlgraph.CreateSpec)
 	if value, ok := _c.mutation.DeviceInfo(); ok {
 		_spec.SetField(userloginlog.FieldDeviceInfo, field.TypeString, value)
 		_node.DeviceInfo = value
-	}
-	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   userloginlog.UserTable,
-			Columns: []string{userloginlog.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.UserID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

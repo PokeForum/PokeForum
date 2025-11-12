@@ -183,12 +183,13 @@ func Routers(injector *do.Injector) *gin.Engine {
 				ProfileCon := controller.NewUserProfileController(injector)
 				ProfileCon.UserProfileRouter(ProfileGroup)
 
-				/*
-					- 屏蔽用户可阅览楼主帖子
-					- 禁止站内信楼主
-					- 禁止评论楼主帖子
-				*/
-				// TODO 屏蔽用户
+				// 拉黑用户
+				{
+					BlacklistGroup := ProfileGroup.Group("/blacklist")
+					BlacklistCon := controller.NewBlacklistController(injector)
+					BlacklistCon.BlacklistRouter(BlacklistGroup)
+				}
+
 				// TODO 举报
 
 				/*

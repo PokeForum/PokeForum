@@ -2,8 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
-	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // Comment holds the schema definition for the Comment entity.
@@ -56,26 +56,20 @@ func (Comment) Fields() []ent.Field {
 }
 
 // Edges of the Comment.
+// 注意: 所有关联关系仅用于ORM查询，不会在数据库层面创建外键
+// 数据完整性由应用层逻辑保证
 func (Comment) Edges() []ent.Edge {
-	return []ent.Edge{
-		// 关联到Post表
-		edge.To("post", Post.Type).
-			Field("post_id").
-			Unique().
-			Required(),
-		// 关联到评论用户
-		edge.To("author", User.Type).
-			Field("user_id").
-			Unique().
-			Required(),
-		// 关联到父评论（自引用）
-		edge.To("parent", Comment.Type).
-			Field("parent_id").
-			Unique(),
-		// 关联到回复的目标用户
-		edge.To("reply_to_user", User.Type).
-			Field("reply_to_user_id").
-			Unique(),
+	return nil
+}
+
+// Indexes of the Comment.
+func (Comment) Indexes() []ent.Index {
+	return []ent.Index{
+		// 为外键字段创建索引以优化查询性能
+		index.Fields("post_id"),
+		index.Fields("user_id"),
+		index.Fields("parent_id"),
+		index.Fields("reply_to_user_id"),
 	}
 }
 

@@ -8,6 +8,37 @@ import (
 )
 
 var (
+	// BlacklistsColumns holds the columns for the "blacklists" table.
+	BlacklistsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "blocked_user_id", Type: field.TypeInt},
+	}
+	// BlacklistsTable holds the schema information for the "blacklists" table.
+	BlacklistsTable = &schema.Table{
+		Name:       "blacklists",
+		Columns:    BlacklistsColumns,
+		PrimaryKey: []*schema.Column{BlacklistsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "blacklist_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{BlacklistsColumns[3]},
+			},
+			{
+				Name:    "blacklist_blocked_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{BlacklistsColumns[4]},
+			},
+			{
+				Name:    "blacklist_user_id_blocked_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{BlacklistsColumns[3], BlacklistsColumns[4]},
+			},
+		},
+	}
 	// CategoriesColumns holds the columns for the "categories" table.
 	CategoriesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -26,12 +57,28 @@ var (
 		Name:       "categories",
 		Columns:    CategoriesColumns,
 		PrimaryKey: []*schema.Column{CategoriesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "category_status",
+				Unique:  false,
+				Columns: []*schema.Column{CategoriesColumns[8]},
+			},
+			{
+				Name:    "category_weight",
+				Unique:  false,
+				Columns: []*schema.Column{CategoriesColumns[7]},
+			},
+		},
 	}
 	// CommentsColumns holds the columns for the "comments" table.
 	CommentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "post_id", Type: field.TypeInt},
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "parent_id", Type: field.TypeInt, Nullable: true},
+		{Name: "reply_to_user_id", Type: field.TypeInt, Nullable: true},
 		{Name: "content", Type: field.TypeString},
 		{Name: "like_count", Type: field.TypeInt, Default: 0},
 		{Name: "dislike_count", Type: field.TypeInt, Default: 0},
@@ -39,40 +86,32 @@ var (
 		{Name: "is_pinned", Type: field.TypeBool, Default: false},
 		{Name: "commenter_ip", Type: field.TypeString, Nullable: true},
 		{Name: "device_info", Type: field.TypeString, Nullable: true},
-		{Name: "post_id", Type: field.TypeInt},
-		{Name: "user_id", Type: field.TypeInt},
-		{Name: "parent_id", Type: field.TypeInt, Unique: true, Nullable: true},
-		{Name: "reply_to_user_id", Type: field.TypeInt, Nullable: true},
 	}
 	// CommentsTable holds the schema information for the "comments" table.
 	CommentsTable = &schema.Table{
 		Name:       "comments",
 		Columns:    CommentsColumns,
 		PrimaryKey: []*schema.Column{CommentsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
+		Indexes: []*schema.Index{
 			{
-				Symbol:     "comments_posts_post",
-				Columns:    []*schema.Column{CommentsColumns[10]},
-				RefColumns: []*schema.Column{PostsColumns[0]},
-				OnDelete:   schema.NoAction,
+				Name:    "comment_post_id",
+				Unique:  false,
+				Columns: []*schema.Column{CommentsColumns[3]},
 			},
 			{
-				Symbol:     "comments_users_author",
-				Columns:    []*schema.Column{CommentsColumns[11]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				Name:    "comment_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{CommentsColumns[4]},
 			},
 			{
-				Symbol:     "comments_comments_parent",
-				Columns:    []*schema.Column{CommentsColumns[12]},
-				RefColumns: []*schema.Column{CommentsColumns[0]},
-				OnDelete:   schema.SetNull,
+				Name:    "comment_parent_id",
+				Unique:  false,
+				Columns: []*schema.Column{CommentsColumns[5]},
 			},
 			{
-				Symbol:     "comments_users_reply_to_user",
-				Columns:    []*schema.Column{CommentsColumns[13]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.SetNull,
+				Name:    "comment_reply_to_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{CommentsColumns[6]},
 			},
 		},
 	}
@@ -81,34 +120,30 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "action_type", Type: field.TypeEnum, Enums: []string{"Like", "Dislike"}},
 		{Name: "user_id", Type: field.TypeInt},
 		{Name: "comment_id", Type: field.TypeInt},
+		{Name: "action_type", Type: field.TypeEnum, Enums: []string{"Like", "Dislike"}},
 	}
 	// CommentActionsTable holds the schema information for the "comment_actions" table.
 	CommentActionsTable = &schema.Table{
 		Name:       "comment_actions",
 		Columns:    CommentActionsColumns,
 		PrimaryKey: []*schema.Column{CommentActionsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "comment_actions_users_user",
-				Columns:    []*schema.Column{CommentActionsColumns[4]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "comment_actions_comments_comment",
-				Columns:    []*schema.Column{CommentActionsColumns[5]},
-				RefColumns: []*schema.Column{CommentsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
 		Indexes: []*schema.Index{
+			{
+				Name:    "commentaction_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{CommentActionsColumns[3]},
+			},
+			{
+				Name:    "commentaction_comment_id",
+				Unique:  false,
+				Columns: []*schema.Column{CommentActionsColumns[4]},
+			},
 			{
 				Name:    "commentaction_user_id_comment_id_action_type",
 				Unique:  true,
-				Columns: []*schema.Column{CommentActionsColumns[4], CommentActionsColumns[5], CommentActionsColumns[3]},
+				Columns: []*schema.Column{CommentActionsColumns[3], CommentActionsColumns[4], CommentActionsColumns[5]},
 			},
 		},
 	}
@@ -117,6 +152,8 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "category_id", Type: field.TypeInt},
 		{Name: "title", Type: field.TypeString},
 		{Name: "content", Type: field.TypeString},
 		{Name: "read_permission", Type: field.TypeString, Nullable: true},
@@ -128,26 +165,42 @@ var (
 		{Name: "is_pinned", Type: field.TypeBool, Default: false},
 		{Name: "publish_ip", Type: field.TypeString, Nullable: true},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"Normal", "Locked", "Draft", "Private", "Ban"}, Default: "Normal"},
-		{Name: "user_id", Type: field.TypeInt},
-		{Name: "category_id", Type: field.TypeInt},
 	}
 	// PostsTable holds the schema information for the "posts" table.
 	PostsTable = &schema.Table{
 		Name:       "posts",
 		Columns:    PostsColumns,
 		PrimaryKey: []*schema.Column{PostsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
+		Indexes: []*schema.Index{
 			{
-				Symbol:     "posts_users_author",
-				Columns:    []*schema.Column{PostsColumns[14]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				Name:    "post_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{PostsColumns[3]},
 			},
 			{
-				Symbol:     "posts_categories_category",
-				Columns:    []*schema.Column{PostsColumns[15]},
-				RefColumns: []*schema.Column{CategoriesColumns[0]},
-				OnDelete:   schema.NoAction,
+				Name:    "post_category_id",
+				Unique:  false,
+				Columns: []*schema.Column{PostsColumns[4]},
+			},
+			{
+				Name:    "post_status",
+				Unique:  false,
+				Columns: []*schema.Column{PostsColumns[15]},
+			},
+			{
+				Name:    "post_is_essence",
+				Unique:  false,
+				Columns: []*schema.Column{PostsColumns[12]},
+			},
+			{
+				Name:    "post_is_pinned",
+				Unique:  false,
+				Columns: []*schema.Column{PostsColumns[13]},
+			},
+			{
+				Name:    "post_category_id_status_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{PostsColumns[4], PostsColumns[15], PostsColumns[1]},
 			},
 		},
 	}
@@ -156,34 +209,30 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "action_type", Type: field.TypeEnum, Enums: []string{"Like", "Dislike", "Favorite"}},
 		{Name: "user_id", Type: field.TypeInt},
 		{Name: "post_id", Type: field.TypeInt},
+		{Name: "action_type", Type: field.TypeEnum, Enums: []string{"Like", "Dislike", "Favorite"}},
 	}
 	// PostActionsTable holds the schema information for the "post_actions" table.
 	PostActionsTable = &schema.Table{
 		Name:       "post_actions",
 		Columns:    PostActionsColumns,
 		PrimaryKey: []*schema.Column{PostActionsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "post_actions_users_user",
-				Columns:    []*schema.Column{PostActionsColumns[4]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-			{
-				Symbol:     "post_actions_posts_post",
-				Columns:    []*schema.Column{PostActionsColumns[5]},
-				RefColumns: []*schema.Column{PostsColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
 		Indexes: []*schema.Index{
+			{
+				Name:    "postaction_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{PostActionsColumns[3]},
+			},
+			{
+				Name:    "postaction_post_id",
+				Unique:  false,
+				Columns: []*schema.Column{PostActionsColumns[4]},
+			},
 			{
 				Name:    "postaction_user_id_post_id_action_type",
 				Unique:  true,
-				Columns: []*schema.Column{PostActionsColumns[4], PostActionsColumns[5], PostActionsColumns[3]},
+				Columns: []*schema.Column{PostActionsColumns[3], PostActionsColumns[4], PostActionsColumns[5]},
 			},
 		},
 	}
@@ -235,12 +284,30 @@ var (
 		Name:       "users",
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "user_status",
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[15]},
+			},
+			{
+				Name:    "user_role",
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[16]},
+			},
+			{
+				Name:    "user_email_verified",
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[10]},
+			},
+		},
 	}
 	// UserBalanceLogsColumns holds the columns for the "user_balance_logs" table.
 	UserBalanceLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt},
 		{Name: "type", Type: field.TypeEnum, Enums: []string{"points", "currency"}},
 		{Name: "amount", Type: field.TypeInt},
 		{Name: "before_amount", Type: field.TypeInt},
@@ -252,19 +319,32 @@ var (
 		{Name: "related_type", Type: field.TypeString, Nullable: true},
 		{Name: "ip_address", Type: field.TypeString, Nullable: true},
 		{Name: "user_agent", Type: field.TypeString, Nullable: true},
-		{Name: "user_id", Type: field.TypeInt},
 	}
 	// UserBalanceLogsTable holds the schema information for the "user_balance_logs" table.
 	UserBalanceLogsTable = &schema.Table{
 		Name:       "user_balance_logs",
 		Columns:    UserBalanceLogsColumns,
 		PrimaryKey: []*schema.Column{UserBalanceLogsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
+		Indexes: []*schema.Index{
 			{
-				Symbol:     "user_balance_logs_users_balance_logs",
-				Columns:    []*schema.Column{UserBalanceLogsColumns[14]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
+				Name:    "userbalancelog_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{UserBalanceLogsColumns[3]},
+			},
+			{
+				Name:    "userbalancelog_operator_id",
+				Unique:  false,
+				Columns: []*schema.Column{UserBalanceLogsColumns[9]},
+			},
+			{
+				Name:    "userbalancelog_type",
+				Unique:  false,
+				Columns: []*schema.Column{UserBalanceLogsColumns[4]},
+			},
+			{
+				Name:    "userbalancelog_user_id_type_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{UserBalanceLogsColumns[3], UserBalanceLogsColumns[4], UserBalanceLogsColumns[1]},
 			},
 		},
 	}
@@ -273,54 +353,39 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt},
 		{Name: "ip_address", Type: field.TypeString},
 		{Name: "ip_country", Type: field.TypeString, Nullable: true},
 		{Name: "ip_city", Type: field.TypeString, Nullable: true},
 		{Name: "success", Type: field.TypeBool, Default: true},
 		{Name: "device_info", Type: field.TypeString, Nullable: true},
-		{Name: "user_id", Type: field.TypeInt},
 	}
 	// UserLoginLogsTable holds the schema information for the "user_login_logs" table.
 	UserLoginLogsTable = &schema.Table{
 		Name:       "user_login_logs",
 		Columns:    UserLoginLogsColumns,
 		PrimaryKey: []*schema.Column{UserLoginLogsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
+		Indexes: []*schema.Index{
 			{
-				Symbol:     "user_login_logs_users_user",
-				Columns:    []*schema.Column{UserLoginLogsColumns[8]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.NoAction,
-			},
-		},
-	}
-	// UserManagedCategoriesColumns holds the columns for the "user_managed_categories" table.
-	UserManagedCategoriesColumns = []*schema.Column{
-		{Name: "user_id", Type: field.TypeInt},
-		{Name: "category_id", Type: field.TypeInt},
-	}
-	// UserManagedCategoriesTable holds the schema information for the "user_managed_categories" table.
-	UserManagedCategoriesTable = &schema.Table{
-		Name:       "user_managed_categories",
-		Columns:    UserManagedCategoriesColumns,
-		PrimaryKey: []*schema.Column{UserManagedCategoriesColumns[0], UserManagedCategoriesColumns[1]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "user_managed_categories_user_id",
-				Columns:    []*schema.Column{UserManagedCategoriesColumns[0]},
-				RefColumns: []*schema.Column{UsersColumns[0]},
-				OnDelete:   schema.Cascade,
+				Name:    "userloginlog_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{UserLoginLogsColumns[3]},
 			},
 			{
-				Symbol:     "user_managed_categories_category_id",
-				Columns:    []*schema.Column{UserManagedCategoriesColumns[1]},
-				RefColumns: []*schema.Column{CategoriesColumns[0]},
-				OnDelete:   schema.Cascade,
+				Name:    "userloginlog_success",
+				Unique:  false,
+				Columns: []*schema.Column{UserLoginLogsColumns[7]},
+			},
+			{
+				Name:    "userloginlog_user_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{UserLoginLogsColumns[3], UserLoginLogsColumns[1]},
 			},
 		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		BlacklistsTable,
 		CategoriesTable,
 		CommentsTable,
 		CommentActionsTable,
@@ -330,23 +395,8 @@ var (
 		UsersTable,
 		UserBalanceLogsTable,
 		UserLoginLogsTable,
-		UserManagedCategoriesTable,
 	}
 )
 
 func init() {
-	CommentsTable.ForeignKeys[0].RefTable = PostsTable
-	CommentsTable.ForeignKeys[1].RefTable = UsersTable
-	CommentsTable.ForeignKeys[2].RefTable = CommentsTable
-	CommentsTable.ForeignKeys[3].RefTable = UsersTable
-	CommentActionsTable.ForeignKeys[0].RefTable = UsersTable
-	CommentActionsTable.ForeignKeys[1].RefTable = CommentsTable
-	PostsTable.ForeignKeys[0].RefTable = UsersTable
-	PostsTable.ForeignKeys[1].RefTable = CategoriesTable
-	PostActionsTable.ForeignKeys[0].RefTable = UsersTable
-	PostActionsTable.ForeignKeys[1].RefTable = PostsTable
-	UserBalanceLogsTable.ForeignKeys[0].RefTable = UsersTable
-	UserLoginLogsTable.ForeignKeys[0].RefTable = UsersTable
-	UserManagedCategoriesTable.ForeignKeys[0].RefTable = UsersTable
-	UserManagedCategoriesTable.ForeignKeys[1].RefTable = CategoriesTable
 }

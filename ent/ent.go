@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/PokeForum/PokeForum/ent/blacklist"
 	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/commentaction"
@@ -81,6 +82,7 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			blacklist.Table:      blacklist.ValidColumn,
 			category.Table:       category.ValidColumn,
 			comment.Table:        comment.ValidColumn,
 			commentaction.Table:  commentaction.ValidColumn,

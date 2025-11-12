@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/PokeForum/PokeForum/ent/predicate"
 )
 
@@ -175,6 +174,26 @@ func UserIDNotIn(vs ...int) predicate.PostAction {
 	return predicate.PostAction(sql.FieldNotIn(FieldUserID, vs...))
 }
 
+// UserIDGT applies the GT predicate on the "user_id" field.
+func UserIDGT(v int) predicate.PostAction {
+	return predicate.PostAction(sql.FieldGT(FieldUserID, v))
+}
+
+// UserIDGTE applies the GTE predicate on the "user_id" field.
+func UserIDGTE(v int) predicate.PostAction {
+	return predicate.PostAction(sql.FieldGTE(FieldUserID, v))
+}
+
+// UserIDLT applies the LT predicate on the "user_id" field.
+func UserIDLT(v int) predicate.PostAction {
+	return predicate.PostAction(sql.FieldLT(FieldUserID, v))
+}
+
+// UserIDLTE applies the LTE predicate on the "user_id" field.
+func UserIDLTE(v int) predicate.PostAction {
+	return predicate.PostAction(sql.FieldLTE(FieldUserID, v))
+}
+
 // PostIDEQ applies the EQ predicate on the "post_id" field.
 func PostIDEQ(v int) predicate.PostAction {
 	return predicate.PostAction(sql.FieldEQ(FieldPostID, v))
@@ -195,6 +214,26 @@ func PostIDNotIn(vs ...int) predicate.PostAction {
 	return predicate.PostAction(sql.FieldNotIn(FieldPostID, vs...))
 }
 
+// PostIDGT applies the GT predicate on the "post_id" field.
+func PostIDGT(v int) predicate.PostAction {
+	return predicate.PostAction(sql.FieldGT(FieldPostID, v))
+}
+
+// PostIDGTE applies the GTE predicate on the "post_id" field.
+func PostIDGTE(v int) predicate.PostAction {
+	return predicate.PostAction(sql.FieldGTE(FieldPostID, v))
+}
+
+// PostIDLT applies the LT predicate on the "post_id" field.
+func PostIDLT(v int) predicate.PostAction {
+	return predicate.PostAction(sql.FieldLT(FieldPostID, v))
+}
+
+// PostIDLTE applies the LTE predicate on the "post_id" field.
+func PostIDLTE(v int) predicate.PostAction {
+	return predicate.PostAction(sql.FieldLTE(FieldPostID, v))
+}
+
 // ActionTypeEQ applies the EQ predicate on the "action_type" field.
 func ActionTypeEQ(v ActionType) predicate.PostAction {
 	return predicate.PostAction(sql.FieldEQ(FieldActionType, v))
@@ -213,52 +252,6 @@ func ActionTypeIn(vs ...ActionType) predicate.PostAction {
 // ActionTypeNotIn applies the NotIn predicate on the "action_type" field.
 func ActionTypeNotIn(vs ...ActionType) predicate.PostAction {
 	return predicate.PostAction(sql.FieldNotIn(FieldActionType, vs...))
-}
-
-// HasUser applies the HasEdge predicate on the "user" edge.
-func HasUser() predicate.PostAction {
-	return predicate.PostAction(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, UserTable, UserColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasUserWith applies the HasEdge predicate on the "user" edge with a given conditions (other predicates).
-func HasUserWith(preds ...predicate.User) predicate.PostAction {
-	return predicate.PostAction(func(s *sql.Selector) {
-		step := newUserStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasPost applies the HasEdge predicate on the "post" edge.
-func HasPost() predicate.PostAction {
-	return predicate.PostAction(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, PostTable, PostColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasPostWith applies the HasEdge predicate on the "post" edge with a given conditions (other predicates).
-func HasPostWith(preds ...predicate.Post) predicate.PostAction {
-	return predicate.PostAction(func(s *sql.Selector) {
-		step := newPostStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
 }
 
 // And groups predicates with the AND operator between them.

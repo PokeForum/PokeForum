@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/PokeForum/PokeForum/ent/predicate"
 )
 
@@ -225,6 +224,26 @@ func UserIDNotIn(vs ...int) predicate.Post {
 	return predicate.Post(sql.FieldNotIn(FieldUserID, vs...))
 }
 
+// UserIDGT applies the GT predicate on the "user_id" field.
+func UserIDGT(v int) predicate.Post {
+	return predicate.Post(sql.FieldGT(FieldUserID, v))
+}
+
+// UserIDGTE applies the GTE predicate on the "user_id" field.
+func UserIDGTE(v int) predicate.Post {
+	return predicate.Post(sql.FieldGTE(FieldUserID, v))
+}
+
+// UserIDLT applies the LT predicate on the "user_id" field.
+func UserIDLT(v int) predicate.Post {
+	return predicate.Post(sql.FieldLT(FieldUserID, v))
+}
+
+// UserIDLTE applies the LTE predicate on the "user_id" field.
+func UserIDLTE(v int) predicate.Post {
+	return predicate.Post(sql.FieldLTE(FieldUserID, v))
+}
+
 // CategoryIDEQ applies the EQ predicate on the "category_id" field.
 func CategoryIDEQ(v int) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldCategoryID, v))
@@ -243,6 +262,26 @@ func CategoryIDIn(vs ...int) predicate.Post {
 // CategoryIDNotIn applies the NotIn predicate on the "category_id" field.
 func CategoryIDNotIn(vs ...int) predicate.Post {
 	return predicate.Post(sql.FieldNotIn(FieldCategoryID, vs...))
+}
+
+// CategoryIDGT applies the GT predicate on the "category_id" field.
+func CategoryIDGT(v int) predicate.Post {
+	return predicate.Post(sql.FieldGT(FieldCategoryID, v))
+}
+
+// CategoryIDGTE applies the GTE predicate on the "category_id" field.
+func CategoryIDGTE(v int) predicate.Post {
+	return predicate.Post(sql.FieldGTE(FieldCategoryID, v))
+}
+
+// CategoryIDLT applies the LT predicate on the "category_id" field.
+func CategoryIDLT(v int) predicate.Post {
+	return predicate.Post(sql.FieldLT(FieldCategoryID, v))
+}
+
+// CategoryIDLTE applies the LTE predicate on the "category_id" field.
+func CategoryIDLTE(v int) predicate.Post {
+	return predicate.Post(sql.FieldLTE(FieldCategoryID, v))
 }
 
 // TitleEQ applies the EQ predicate on the "title" field.
@@ -723,52 +762,6 @@ func StatusIn(vs ...Status) predicate.Post {
 // StatusNotIn applies the NotIn predicate on the "status" field.
 func StatusNotIn(vs ...Status) predicate.Post {
 	return predicate.Post(sql.FieldNotIn(FieldStatus, vs...))
-}
-
-// HasAuthor applies the HasEdge predicate on the "author" edge.
-func HasAuthor() predicate.Post {
-	return predicate.Post(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, AuthorTable, AuthorColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasAuthorWith applies the HasEdge predicate on the "author" edge with a given conditions (other predicates).
-func HasAuthorWith(preds ...predicate.User) predicate.Post {
-	return predicate.Post(func(s *sql.Selector) {
-		step := newAuthorStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasCategory applies the HasEdge predicate on the "category" edge.
-func HasCategory() predicate.Post {
-	return predicate.Post(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, CategoryTable, CategoryColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasCategoryWith applies the HasEdge predicate on the "category" edge with a given conditions (other predicates).
-func HasCategoryWith(preds ...predicate.Category) predicate.Post {
-	return predicate.Post(func(s *sql.Selector) {
-		step := newCategoryStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
 }
 
 // And groups predicates with the AND operator between them.

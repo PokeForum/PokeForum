@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/PokeForum/PokeForum/ent/predicate"
 )
 
@@ -220,6 +219,26 @@ func PostIDNotIn(vs ...int) predicate.Comment {
 	return predicate.Comment(sql.FieldNotIn(FieldPostID, vs...))
 }
 
+// PostIDGT applies the GT predicate on the "post_id" field.
+func PostIDGT(v int) predicate.Comment {
+	return predicate.Comment(sql.FieldGT(FieldPostID, v))
+}
+
+// PostIDGTE applies the GTE predicate on the "post_id" field.
+func PostIDGTE(v int) predicate.Comment {
+	return predicate.Comment(sql.FieldGTE(FieldPostID, v))
+}
+
+// PostIDLT applies the LT predicate on the "post_id" field.
+func PostIDLT(v int) predicate.Comment {
+	return predicate.Comment(sql.FieldLT(FieldPostID, v))
+}
+
+// PostIDLTE applies the LTE predicate on the "post_id" field.
+func PostIDLTE(v int) predicate.Comment {
+	return predicate.Comment(sql.FieldLTE(FieldPostID, v))
+}
+
 // UserIDEQ applies the EQ predicate on the "user_id" field.
 func UserIDEQ(v int) predicate.Comment {
 	return predicate.Comment(sql.FieldEQ(FieldUserID, v))
@@ -240,6 +259,26 @@ func UserIDNotIn(vs ...int) predicate.Comment {
 	return predicate.Comment(sql.FieldNotIn(FieldUserID, vs...))
 }
 
+// UserIDGT applies the GT predicate on the "user_id" field.
+func UserIDGT(v int) predicate.Comment {
+	return predicate.Comment(sql.FieldGT(FieldUserID, v))
+}
+
+// UserIDGTE applies the GTE predicate on the "user_id" field.
+func UserIDGTE(v int) predicate.Comment {
+	return predicate.Comment(sql.FieldGTE(FieldUserID, v))
+}
+
+// UserIDLT applies the LT predicate on the "user_id" field.
+func UserIDLT(v int) predicate.Comment {
+	return predicate.Comment(sql.FieldLT(FieldUserID, v))
+}
+
+// UserIDLTE applies the LTE predicate on the "user_id" field.
+func UserIDLTE(v int) predicate.Comment {
+	return predicate.Comment(sql.FieldLTE(FieldUserID, v))
+}
+
 // ParentIDEQ applies the EQ predicate on the "parent_id" field.
 func ParentIDEQ(v int) predicate.Comment {
 	return predicate.Comment(sql.FieldEQ(FieldParentID, v))
@@ -258,6 +297,26 @@ func ParentIDIn(vs ...int) predicate.Comment {
 // ParentIDNotIn applies the NotIn predicate on the "parent_id" field.
 func ParentIDNotIn(vs ...int) predicate.Comment {
 	return predicate.Comment(sql.FieldNotIn(FieldParentID, vs...))
+}
+
+// ParentIDGT applies the GT predicate on the "parent_id" field.
+func ParentIDGT(v int) predicate.Comment {
+	return predicate.Comment(sql.FieldGT(FieldParentID, v))
+}
+
+// ParentIDGTE applies the GTE predicate on the "parent_id" field.
+func ParentIDGTE(v int) predicate.Comment {
+	return predicate.Comment(sql.FieldGTE(FieldParentID, v))
+}
+
+// ParentIDLT applies the LT predicate on the "parent_id" field.
+func ParentIDLT(v int) predicate.Comment {
+	return predicate.Comment(sql.FieldLT(FieldParentID, v))
+}
+
+// ParentIDLTE applies the LTE predicate on the "parent_id" field.
+func ParentIDLTE(v int) predicate.Comment {
+	return predicate.Comment(sql.FieldLTE(FieldParentID, v))
 }
 
 // ParentIDIsNil applies the IsNil predicate on the "parent_id" field.
@@ -288,6 +347,26 @@ func ReplyToUserIDIn(vs ...int) predicate.Comment {
 // ReplyToUserIDNotIn applies the NotIn predicate on the "reply_to_user_id" field.
 func ReplyToUserIDNotIn(vs ...int) predicate.Comment {
 	return predicate.Comment(sql.FieldNotIn(FieldReplyToUserID, vs...))
+}
+
+// ReplyToUserIDGT applies the GT predicate on the "reply_to_user_id" field.
+func ReplyToUserIDGT(v int) predicate.Comment {
+	return predicate.Comment(sql.FieldGT(FieldReplyToUserID, v))
+}
+
+// ReplyToUserIDGTE applies the GTE predicate on the "reply_to_user_id" field.
+func ReplyToUserIDGTE(v int) predicate.Comment {
+	return predicate.Comment(sql.FieldGTE(FieldReplyToUserID, v))
+}
+
+// ReplyToUserIDLT applies the LT predicate on the "reply_to_user_id" field.
+func ReplyToUserIDLT(v int) predicate.Comment {
+	return predicate.Comment(sql.FieldLT(FieldReplyToUserID, v))
+}
+
+// ReplyToUserIDLTE applies the LTE predicate on the "reply_to_user_id" field.
+func ReplyToUserIDLTE(v int) predicate.Comment {
+	return predicate.Comment(sql.FieldLTE(FieldReplyToUserID, v))
 }
 
 // ReplyToUserIDIsNil applies the IsNil predicate on the "reply_to_user_id" field.
@@ -613,98 +692,6 @@ func DeviceInfoEqualFold(v string) predicate.Comment {
 // DeviceInfoContainsFold applies the ContainsFold predicate on the "device_info" field.
 func DeviceInfoContainsFold(v string) predicate.Comment {
 	return predicate.Comment(sql.FieldContainsFold(FieldDeviceInfo, v))
-}
-
-// HasPost applies the HasEdge predicate on the "post" edge.
-func HasPost() predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, PostTable, PostColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasPostWith applies the HasEdge predicate on the "post" edge with a given conditions (other predicates).
-func HasPostWith(preds ...predicate.Post) predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		step := newPostStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasAuthor applies the HasEdge predicate on the "author" edge.
-func HasAuthor() predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, AuthorTable, AuthorColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasAuthorWith applies the HasEdge predicate on the "author" edge with a given conditions (other predicates).
-func HasAuthorWith(preds ...predicate.User) predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		step := newAuthorStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasParent applies the HasEdge predicate on the "parent" edge.
-func HasParent() predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, ParentTable, ParentColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasParentWith applies the HasEdge predicate on the "parent" edge with a given conditions (other predicates).
-func HasParentWith(preds ...predicate.Comment) predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		step := newParentStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasReplyToUser applies the HasEdge predicate on the "reply_to_user" edge.
-func HasReplyToUser() predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, ReplyToUserTable, ReplyToUserColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasReplyToUserWith applies the HasEdge predicate on the "reply_to_user" edge with a given conditions (other predicates).
-func HasReplyToUserWith(preds ...predicate.User) predicate.Comment {
-	return predicate.Comment(func(s *sql.Selector) {
-		step := newReplyToUserStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
 }
 
 // And groups predicates with the AND operator between them.

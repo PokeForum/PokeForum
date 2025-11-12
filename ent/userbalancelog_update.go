@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/PokeForum/PokeForum/ent/predicate"
-	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 )
 
@@ -37,6 +36,7 @@ func (_u *UserBalanceLogUpdate) SetUpdatedAt(v time.Time) *UserBalanceLogUpdate 
 
 // SetUserID sets the "user_id" field.
 func (_u *UserBalanceLogUpdate) SetUserID(v int) *UserBalanceLogUpdate {
+	_u.mutation.ResetUserID()
 	_u.mutation.SetUserID(v)
 	return _u
 }
@@ -46,6 +46,12 @@ func (_u *UserBalanceLogUpdate) SetNillableUserID(v *int) *UserBalanceLogUpdate 
 	if v != nil {
 		_u.SetUserID(*v)
 	}
+	return _u
+}
+
+// AddUserID adds value to the "user_id" field.
+func (_u *UserBalanceLogUpdate) AddUserID(v int) *UserBalanceLogUpdate {
+	_u.mutation.AddUserID(v)
 	return _u
 }
 
@@ -274,20 +280,9 @@ func (_u *UserBalanceLogUpdate) ClearUserAgent() *UserBalanceLogUpdate {
 	return _u
 }
 
-// SetUser sets the "user" edge to the User entity.
-func (_u *UserBalanceLogUpdate) SetUser(v *User) *UserBalanceLogUpdate {
-	return _u.SetUserID(v.ID)
-}
-
 // Mutation returns the UserBalanceLogMutation object of the builder.
 func (_u *UserBalanceLogUpdate) Mutation() *UserBalanceLogMutation {
 	return _u.mutation
-}
-
-// ClearUser clears the "user" edge to the User entity.
-func (_u *UserBalanceLogUpdate) ClearUser() *UserBalanceLogUpdate {
-	_u.mutation.ClearUser()
-	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -343,9 +338,6 @@ func (_u *UserBalanceLogUpdate) check() error {
 			return &ValidationError{Name: "reason", err: fmt.Errorf(`ent: validator failed for field "UserBalanceLog.reason": %w`, err)}
 		}
 	}
-	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "UserBalanceLog.user"`)
-	}
 	return nil
 }
 
@@ -363,6 +355,12 @@ func (_u *UserBalanceLogUpdate) sqlSave(ctx context.Context) (_node int, err err
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(userbalancelog.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.UserID(); ok {
+		_spec.SetField(userbalancelog.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedUserID(); ok {
+		_spec.AddField(userbalancelog.FieldUserID, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(userbalancelog.FieldType, field.TypeEnum, value)
@@ -430,35 +428,6 @@ func (_u *UserBalanceLogUpdate) sqlSave(ctx context.Context) (_node int, err err
 	if _u.mutation.UserAgentCleared() {
 		_spec.ClearField(userbalancelog.FieldUserAgent, field.TypeString)
 	}
-	if _u.mutation.UserCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   userbalancelog.UserTable,
-			Columns: []string{userbalancelog.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.UserIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   userbalancelog.UserTable,
-			Columns: []string{userbalancelog.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{userbalancelog.Label}
@@ -487,6 +456,7 @@ func (_u *UserBalanceLogUpdateOne) SetUpdatedAt(v time.Time) *UserBalanceLogUpda
 
 // SetUserID sets the "user_id" field.
 func (_u *UserBalanceLogUpdateOne) SetUserID(v int) *UserBalanceLogUpdateOne {
+	_u.mutation.ResetUserID()
 	_u.mutation.SetUserID(v)
 	return _u
 }
@@ -496,6 +466,12 @@ func (_u *UserBalanceLogUpdateOne) SetNillableUserID(v *int) *UserBalanceLogUpda
 	if v != nil {
 		_u.SetUserID(*v)
 	}
+	return _u
+}
+
+// AddUserID adds value to the "user_id" field.
+func (_u *UserBalanceLogUpdateOne) AddUserID(v int) *UserBalanceLogUpdateOne {
+	_u.mutation.AddUserID(v)
 	return _u
 }
 
@@ -724,20 +700,9 @@ func (_u *UserBalanceLogUpdateOne) ClearUserAgent() *UserBalanceLogUpdateOne {
 	return _u
 }
 
-// SetUser sets the "user" edge to the User entity.
-func (_u *UserBalanceLogUpdateOne) SetUser(v *User) *UserBalanceLogUpdateOne {
-	return _u.SetUserID(v.ID)
-}
-
 // Mutation returns the UserBalanceLogMutation object of the builder.
 func (_u *UserBalanceLogUpdateOne) Mutation() *UserBalanceLogMutation {
 	return _u.mutation
-}
-
-// ClearUser clears the "user" edge to the User entity.
-func (_u *UserBalanceLogUpdateOne) ClearUser() *UserBalanceLogUpdateOne {
-	_u.mutation.ClearUser()
-	return _u
 }
 
 // Where appends a list predicates to the UserBalanceLogUpdate builder.
@@ -806,9 +771,6 @@ func (_u *UserBalanceLogUpdateOne) check() error {
 			return &ValidationError{Name: "reason", err: fmt.Errorf(`ent: validator failed for field "UserBalanceLog.reason": %w`, err)}
 		}
 	}
-	if _u.mutation.UserCleared() && len(_u.mutation.UserIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "UserBalanceLog.user"`)
-	}
 	return nil
 }
 
@@ -843,6 +805,12 @@ func (_u *UserBalanceLogUpdateOne) sqlSave(ctx context.Context) (_node *UserBala
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(userbalancelog.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.UserID(); ok {
+		_spec.SetField(userbalancelog.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedUserID(); ok {
+		_spec.AddField(userbalancelog.FieldUserID, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.GetType(); ok {
 		_spec.SetField(userbalancelog.FieldType, field.TypeEnum, value)
@@ -909,35 +877,6 @@ func (_u *UserBalanceLogUpdateOne) sqlSave(ctx context.Context) (_node *UserBala
 	}
 	if _u.mutation.UserAgentCleared() {
 		_spec.ClearField(userbalancelog.FieldUserAgent, field.TypeString)
-	}
-	if _u.mutation.UserCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   userbalancelog.UserTable,
-			Columns: []string{userbalancelog.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.UserIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   userbalancelog.UserTable,
-			Columns: []string{userbalancelog.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &UserBalanceLog{config: _u.config}
 	_spec.Assign = _node.assignValues

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/PokeForum/PokeForum/ent/predicate"
 )
 
@@ -588,29 +587,6 @@ func AnnouncementEqualFold(v string) predicate.Category {
 // AnnouncementContainsFold applies the ContainsFold predicate on the "announcement" field.
 func AnnouncementContainsFold(v string) predicate.Category {
 	return predicate.Category(sql.FieldContainsFold(FieldAnnouncement, v))
-}
-
-// HasModerators applies the HasEdge predicate on the "moderators" edge.
-func HasModerators() predicate.Category {
-	return predicate.Category(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, ModeratorsTable, ModeratorsPrimaryKey...),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasModeratorsWith applies the HasEdge predicate on the "moderators" edge with a given conditions (other predicates).
-func HasModeratorsWith(preds ...predicate.User) predicate.Category {
-	return predicate.Category(func(s *sql.Selector) {
-		step := newModeratorsStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
 }
 
 // And groups predicates with the AND operator between them.

@@ -2,8 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
-	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // UserBalanceLog holds the schema definition for the UserBalanceLog entity.
@@ -66,14 +66,22 @@ func (UserBalanceLog) Fields() []ent.Field {
 }
 
 // Edges of the UserBalanceLog.
+// 注意: 所有关联关系仅用于ORM查询，不会在数据库层面创建外键
+// 数据完整性由应用层逻辑保证
 func (UserBalanceLog) Edges() []ent.Edge {
-	return []ent.Edge{
-		// 反向关联到用户表
-		edge.From("user", User.Type).
-			Ref("balance_logs").
-			Field("user_id").
-			Unique().
-			Required(),
+	return nil
+}
+
+// Indexes of the UserBalanceLog.
+func (UserBalanceLog) Indexes() []ent.Index {
+	return []ent.Index{
+		// 为关联字段创建索引以优化查询性能
+		index.Fields("user_id"),
+		index.Fields("operator_id"),
+		// 为常用查询字段创建索引
+		index.Fields("type"),
+		// 创建复合索引优化用户余额变动历史查询
+		index.Fields("user_id", "type", "created_at"),
 	}
 }
 

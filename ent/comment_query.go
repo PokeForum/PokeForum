@@ -12,22 +12,16 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/PokeForum/PokeForum/ent/comment"
-	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/predicate"
-	"github.com/PokeForum/PokeForum/ent/user"
 )
 
 // CommentQuery is the builder for querying Comment entities.
 type CommentQuery struct {
 	config
-	ctx             *QueryContext
-	order           []comment.OrderOption
-	inters          []Interceptor
-	predicates      []predicate.Comment
-	withPost        *PostQuery
-	withAuthor      *UserQuery
-	withParent      *CommentQuery
-	withReplyToUser *UserQuery
+	ctx        *QueryContext
+	order      []comment.OrderOption
+	inters     []Interceptor
+	predicates []predicate.Comment
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -62,94 +56,6 @@ func (_q *CommentQuery) Unique(unique bool) *CommentQuery {
 func (_q *CommentQuery) Order(o ...comment.OrderOption) *CommentQuery {
 	_q.order = append(_q.order, o...)
 	return _q
-}
-
-// QueryPost chains the current query on the "post" edge.
-func (_q *CommentQuery) QueryPost() *PostQuery {
-	query := (&PostClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(comment.Table, comment.FieldID, selector),
-			sqlgraph.To(post.Table, post.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, comment.PostTable, comment.PostColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryAuthor chains the current query on the "author" edge.
-func (_q *CommentQuery) QueryAuthor() *UserQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(comment.Table, comment.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, comment.AuthorTable, comment.AuthorColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryParent chains the current query on the "parent" edge.
-func (_q *CommentQuery) QueryParent() *CommentQuery {
-	query := (&CommentClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(comment.Table, comment.FieldID, selector),
-			sqlgraph.To(comment.Table, comment.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, comment.ParentTable, comment.ParentColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryReplyToUser chains the current query on the "reply_to_user" edge.
-func (_q *CommentQuery) QueryReplyToUser() *UserQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(comment.Table, comment.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, comment.ReplyToUserTable, comment.ReplyToUserColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // First returns the first Comment entity from the query.
@@ -339,63 +245,15 @@ func (_q *CommentQuery) Clone() *CommentQuery {
 		return nil
 	}
 	return &CommentQuery{
-		config:          _q.config,
-		ctx:             _q.ctx.Clone(),
-		order:           append([]comment.OrderOption{}, _q.order...),
-		inters:          append([]Interceptor{}, _q.inters...),
-		predicates:      append([]predicate.Comment{}, _q.predicates...),
-		withPost:        _q.withPost.Clone(),
-		withAuthor:      _q.withAuthor.Clone(),
-		withParent:      _q.withParent.Clone(),
-		withReplyToUser: _q.withReplyToUser.Clone(),
+		config:     _q.config,
+		ctx:        _q.ctx.Clone(),
+		order:      append([]comment.OrderOption{}, _q.order...),
+		inters:     append([]Interceptor{}, _q.inters...),
+		predicates: append([]predicate.Comment{}, _q.predicates...),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
-}
-
-// WithPost tells the query-builder to eager-load the nodes that are connected to
-// the "post" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *CommentQuery) WithPost(opts ...func(*PostQuery)) *CommentQuery {
-	query := (&PostClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withPost = query
-	return _q
-}
-
-// WithAuthor tells the query-builder to eager-load the nodes that are connected to
-// the "author" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *CommentQuery) WithAuthor(opts ...func(*UserQuery)) *CommentQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withAuthor = query
-	return _q
-}
-
-// WithParent tells the query-builder to eager-load the nodes that are connected to
-// the "parent" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *CommentQuery) WithParent(opts ...func(*CommentQuery)) *CommentQuery {
-	query := (&CommentClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withParent = query
-	return _q
-}
-
-// WithReplyToUser tells the query-builder to eager-load the nodes that are connected to
-// the "reply_to_user" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *CommentQuery) WithReplyToUser(opts ...func(*UserQuery)) *CommentQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withReplyToUser = query
-	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -474,14 +332,8 @@ func (_q *CommentQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *CommentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Comment, error) {
 	var (
-		nodes       = []*Comment{}
-		_spec       = _q.querySpec()
-		loadedTypes = [4]bool{
-			_q.withPost != nil,
-			_q.withAuthor != nil,
-			_q.withParent != nil,
-			_q.withReplyToUser != nil,
-		}
+		nodes = []*Comment{}
+		_spec = _q.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Comment).scanValues(nil, columns)
@@ -489,7 +341,6 @@ func (_q *CommentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Comm
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Comment{config: _q.config}
 		nodes = append(nodes, node)
-		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -501,148 +352,7 @@ func (_q *CommentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Comm
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withPost; query != nil {
-		if err := _q.loadPost(ctx, query, nodes, nil,
-			func(n *Comment, e *Post) { n.Edges.Post = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withAuthor; query != nil {
-		if err := _q.loadAuthor(ctx, query, nodes, nil,
-			func(n *Comment, e *User) { n.Edges.Author = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withParent; query != nil {
-		if err := _q.loadParent(ctx, query, nodes, nil,
-			func(n *Comment, e *Comment) { n.Edges.Parent = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withReplyToUser; query != nil {
-		if err := _q.loadReplyToUser(ctx, query, nodes, nil,
-			func(n *Comment, e *User) { n.Edges.ReplyToUser = e }); err != nil {
-			return nil, err
-		}
-	}
 	return nodes, nil
-}
-
-func (_q *CommentQuery) loadPost(ctx context.Context, query *PostQuery, nodes []*Comment, init func(*Comment), assign func(*Comment, *Post)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Comment)
-	for i := range nodes {
-		fk := nodes[i].PostID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(post.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "post_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (_q *CommentQuery) loadAuthor(ctx context.Context, query *UserQuery, nodes []*Comment, init func(*Comment), assign func(*Comment, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Comment)
-	for i := range nodes {
-		fk := nodes[i].UserID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(user.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (_q *CommentQuery) loadParent(ctx context.Context, query *CommentQuery, nodes []*Comment, init func(*Comment), assign func(*Comment, *Comment)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Comment)
-	for i := range nodes {
-		fk := nodes[i].ParentID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(comment.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "parent_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (_q *CommentQuery) loadReplyToUser(ctx context.Context, query *UserQuery, nodes []*Comment, init func(*Comment), assign func(*Comment, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Comment)
-	for i := range nodes {
-		fk := nodes[i].ReplyToUserID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(user.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "reply_to_user_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
 }
 
 func (_q *CommentQuery) sqlCount(ctx context.Context) (int, error) {
@@ -669,18 +379,6 @@ func (_q *CommentQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != comment.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
-		}
-		if _q.withPost != nil {
-			_spec.Node.AddColumnOnce(comment.FieldPostID)
-		}
-		if _q.withAuthor != nil {
-			_spec.Node.AddColumnOnce(comment.FieldUserID)
-		}
-		if _q.withParent != nil {
-			_spec.Node.AddColumnOnce(comment.FieldParentID)
-		}
-		if _q.withReplyToUser != nil {
-			_spec.Node.AddColumnOnce(comment.FieldReplyToUserID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

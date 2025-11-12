@@ -14,7 +14,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/PokeForum/PokeForum/ent/blacklist"
 	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/commentaction"
@@ -31,6 +31,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Blacklist is the client for interacting with the Blacklist builders.
+	Blacklist *BlacklistClient
 	// Category is the client for interacting with the Category builders.
 	Category *CategoryClient
 	// Comment is the client for interacting with the Comment builders.
@@ -60,6 +62,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Blacklist = NewBlacklistClient(c.config)
 	c.Category = NewCategoryClient(c.config)
 	c.Comment = NewCommentClient(c.config)
 	c.CommentAction = NewCommentActionClient(c.config)
@@ -161,6 +164,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:            ctx,
 		config:         cfg,
+		Blacklist:      NewBlacklistClient(cfg),
 		Category:       NewCategoryClient(cfg),
 		Comment:        NewCommentClient(cfg),
 		CommentAction:  NewCommentActionClient(cfg),
@@ -189,6 +193,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:            ctx,
 		config:         cfg,
+		Blacklist:      NewBlacklistClient(cfg),
 		Category:       NewCategoryClient(cfg),
 		Comment:        NewCommentClient(cfg),
 		CommentAction:  NewCommentActionClient(cfg),
@@ -204,7 +209,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Category.
+//		Blacklist.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -227,8 +232,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Category, c.Comment, c.CommentAction, c.Post, c.PostAction, c.Settings,
-		c.User, c.UserBalanceLog, c.UserLoginLog,
+		c.Blacklist, c.Category, c.Comment, c.CommentAction, c.Post, c.PostAction,
+		c.Settings, c.User, c.UserBalanceLog, c.UserLoginLog,
 	} {
 		n.Use(hooks...)
 	}
@@ -238,8 +243,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Category, c.Comment, c.CommentAction, c.Post, c.PostAction, c.Settings,
-		c.User, c.UserBalanceLog, c.UserLoginLog,
+		c.Blacklist, c.Category, c.Comment, c.CommentAction, c.Post, c.PostAction,
+		c.Settings, c.User, c.UserBalanceLog, c.UserLoginLog,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -248,6 +253,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *BlacklistMutation:
+		return c.Blacklist.mutate(ctx, m)
 	case *CategoryMutation:
 		return c.Category.mutate(ctx, m)
 	case *CommentMutation:
@@ -268,6 +275,139 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.UserLoginLog.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// BlacklistClient is a client for the Blacklist schema.
+type BlacklistClient struct {
+	config
+}
+
+// NewBlacklistClient returns a client for the Blacklist from the given config.
+func NewBlacklistClient(c config) *BlacklistClient {
+	return &BlacklistClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `blacklist.Hooks(f(g(h())))`.
+func (c *BlacklistClient) Use(hooks ...Hook) {
+	c.hooks.Blacklist = append(c.hooks.Blacklist, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `blacklist.Intercept(f(g(h())))`.
+func (c *BlacklistClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Blacklist = append(c.inters.Blacklist, interceptors...)
+}
+
+// Create returns a builder for creating a Blacklist entity.
+func (c *BlacklistClient) Create() *BlacklistCreate {
+	mutation := newBlacklistMutation(c.config, OpCreate)
+	return &BlacklistCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Blacklist entities.
+func (c *BlacklistClient) CreateBulk(builders ...*BlacklistCreate) *BlacklistCreateBulk {
+	return &BlacklistCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *BlacklistClient) MapCreateBulk(slice any, setFunc func(*BlacklistCreate, int)) *BlacklistCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &BlacklistCreateBulk{err: fmt.Errorf("calling to BlacklistClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*BlacklistCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &BlacklistCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Blacklist.
+func (c *BlacklistClient) Update() *BlacklistUpdate {
+	mutation := newBlacklistMutation(c.config, OpUpdate)
+	return &BlacklistUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *BlacklistClient) UpdateOne(_m *Blacklist) *BlacklistUpdateOne {
+	mutation := newBlacklistMutation(c.config, OpUpdateOne, withBlacklist(_m))
+	return &BlacklistUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *BlacklistClient) UpdateOneID(id int) *BlacklistUpdateOne {
+	mutation := newBlacklistMutation(c.config, OpUpdateOne, withBlacklistID(id))
+	return &BlacklistUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Blacklist.
+func (c *BlacklistClient) Delete() *BlacklistDelete {
+	mutation := newBlacklistMutation(c.config, OpDelete)
+	return &BlacklistDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *BlacklistClient) DeleteOne(_m *Blacklist) *BlacklistDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *BlacklistClient) DeleteOneID(id int) *BlacklistDeleteOne {
+	builder := c.Delete().Where(blacklist.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &BlacklistDeleteOne{builder}
+}
+
+// Query returns a query builder for Blacklist.
+func (c *BlacklistClient) Query() *BlacklistQuery {
+	return &BlacklistQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeBlacklist},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Blacklist entity by its id.
+func (c *BlacklistClient) Get(ctx context.Context, id int) (*Blacklist, error) {
+	return c.Query().Where(blacklist.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *BlacklistClient) GetX(ctx context.Context, id int) *Blacklist {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *BlacklistClient) Hooks() []Hook {
+	return c.hooks.Blacklist
+}
+
+// Interceptors returns the client interceptors.
+func (c *BlacklistClient) Interceptors() []Interceptor {
+	return c.inters.Blacklist
+}
+
+func (c *BlacklistClient) mutate(ctx context.Context, m *BlacklistMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&BlacklistCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&BlacklistUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&BlacklistUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&BlacklistDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Blacklist mutation op: %q", m.Op())
 	}
 }
 
@@ -377,22 +517,6 @@ func (c *CategoryClient) GetX(ctx context.Context, id int) *Category {
 		panic(err)
 	}
 	return obj
-}
-
-// QueryModerators queries the moderators edge of a Category.
-func (c *CategoryClient) QueryModerators(_m *Category) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(category.Table, category.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, category.ModeratorsTable, category.ModeratorsPrimaryKey...),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
 }
 
 // Hooks returns the client hooks.
@@ -528,70 +652,6 @@ func (c *CommentClient) GetX(ctx context.Context, id int) *Comment {
 	return obj
 }
 
-// QueryPost queries the post edge of a Comment.
-func (c *CommentClient) QueryPost(_m *Comment) *PostQuery {
-	query := (&PostClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(comment.Table, comment.FieldID, id),
-			sqlgraph.To(post.Table, post.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, comment.PostTable, comment.PostColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryAuthor queries the author edge of a Comment.
-func (c *CommentClient) QueryAuthor(_m *Comment) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(comment.Table, comment.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, comment.AuthorTable, comment.AuthorColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryParent queries the parent edge of a Comment.
-func (c *CommentClient) QueryParent(_m *Comment) *CommentQuery {
-	query := (&CommentClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(comment.Table, comment.FieldID, id),
-			sqlgraph.To(comment.Table, comment.FieldID),
-			sqlgraph.Edge(sqlgraph.O2O, false, comment.ParentTable, comment.ParentColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryReplyToUser queries the reply_to_user edge of a Comment.
-func (c *CommentClient) QueryReplyToUser(_m *Comment) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(comment.Table, comment.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, comment.ReplyToUserTable, comment.ReplyToUserColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // Hooks returns the client hooks.
 func (c *CommentClient) Hooks() []Hook {
 	return c.hooks.Comment
@@ -723,38 +783,6 @@ func (c *CommentActionClient) GetX(ctx context.Context, id int) *CommentAction {
 		panic(err)
 	}
 	return obj
-}
-
-// QueryUser queries the user edge of a CommentAction.
-func (c *CommentActionClient) QueryUser(_m *CommentAction) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(commentaction.Table, commentaction.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, commentaction.UserTable, commentaction.UserColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryComment queries the comment edge of a CommentAction.
-func (c *CommentActionClient) QueryComment(_m *CommentAction) *CommentQuery {
-	query := (&CommentClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(commentaction.Table, commentaction.FieldID, id),
-			sqlgraph.To(comment.Table, comment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, commentaction.CommentTable, commentaction.CommentColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
 }
 
 // Hooks returns the client hooks.
@@ -890,38 +918,6 @@ func (c *PostClient) GetX(ctx context.Context, id int) *Post {
 	return obj
 }
 
-// QueryAuthor queries the author edge of a Post.
-func (c *PostClient) QueryAuthor(_m *Post) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(post.Table, post.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, post.AuthorTable, post.AuthorColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryCategory queries the category edge of a Post.
-func (c *PostClient) QueryCategory(_m *Post) *CategoryQuery {
-	query := (&CategoryClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(post.Table, post.FieldID, id),
-			sqlgraph.To(category.Table, category.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, post.CategoryTable, post.CategoryColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // Hooks returns the client hooks.
 func (c *PostClient) Hooks() []Hook {
 	return c.hooks.Post
@@ -1053,38 +1049,6 @@ func (c *PostActionClient) GetX(ctx context.Context, id int) *PostAction {
 		panic(err)
 	}
 	return obj
-}
-
-// QueryUser queries the user edge of a PostAction.
-func (c *PostActionClient) QueryUser(_m *PostAction) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(postaction.Table, postaction.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, postaction.UserTable, postaction.UserColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryPost queries the post edge of a PostAction.
-func (c *PostActionClient) QueryPost(_m *PostAction) *PostQuery {
-	query := (&PostClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(postaction.Table, postaction.FieldID, id),
-			sqlgraph.To(post.Table, post.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, postaction.PostTable, postaction.PostColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
 }
 
 // Hooks returns the client hooks.
@@ -1353,38 +1317,6 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 	return obj
 }
 
-// QueryManagedCategories queries the managed_categories edge of a User.
-func (c *UserClient) QueryManagedCategories(_m *User) *CategoryQuery {
-	query := (&CategoryClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(category.Table, category.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, user.ManagedCategoriesTable, user.ManagedCategoriesPrimaryKey...),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// QueryBalanceLogs queries the balance_logs edge of a User.
-func (c *UserClient) QueryBalanceLogs(_m *User) *UserBalanceLogQuery {
-	query := (&UserBalanceLogClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(userbalancelog.Table, userbalancelog.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, user.BalanceLogsTable, user.BalanceLogsColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -1516,22 +1448,6 @@ func (c *UserBalanceLogClient) GetX(ctx context.Context, id int) *UserBalanceLog
 		panic(err)
 	}
 	return obj
-}
-
-// QueryUser queries the user edge of a UserBalanceLog.
-func (c *UserBalanceLogClient) QueryUser(_m *UserBalanceLog) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(userbalancelog.Table, userbalancelog.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, userbalancelog.UserTable, userbalancelog.UserColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
 }
 
 // Hooks returns the client hooks.
@@ -1667,22 +1583,6 @@ func (c *UserLoginLogClient) GetX(ctx context.Context, id int) *UserLoginLog {
 	return obj
 }
 
-// QueryUser queries the user edge of a UserLoginLog.
-func (c *UserLoginLogClient) QueryUser(_m *UserLoginLog) *UserQuery {
-	query := (&UserClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := _m.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(userloginlog.Table, userloginlog.FieldID, id),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, userloginlog.UserTable, userloginlog.UserColumn),
-		)
-		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // Hooks returns the client hooks.
 func (c *UserLoginLogClient) Hooks() []Hook {
 	return c.hooks.UserLoginLog
@@ -1711,11 +1611,11 @@ func (c *UserLoginLogClient) mutate(ctx context.Context, m *UserLoginLogMutation
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Category, Comment, CommentAction, Post, PostAction, Settings, User,
+		Blacklist, Category, Comment, CommentAction, Post, PostAction, Settings, User,
 		UserBalanceLog, UserLoginLog []ent.Hook
 	}
 	inters struct {
-		Category, Comment, CommentAction, Post, PostAction, Settings, User,
+		Blacklist, Category, Comment, CommentAction, Post, PostAction, Settings, User,
 		UserBalanceLog, UserLoginLog []ent.Interceptor
 	}
 )

@@ -48,40 +48,8 @@ type User struct {
 	// Status holds the value of the "status" field.
 	Status user.Status `json:"status,omitempty"`
 	// Role holds the value of the "role" field.
-	Role user.Role `json:"role,omitempty"`
-	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the UserQuery when eager-loading is set.
-	Edges        UserEdges `json:"edges"`
+	Role         user.Role `json:"role,omitempty"`
 	selectValues sql.SelectValues
-}
-
-// UserEdges holds the relations/edges for other nodes in the graph.
-type UserEdges struct {
-	// ManagedCategories holds the value of the managed_categories edge.
-	ManagedCategories []*Category `json:"managed_categories,omitempty"`
-	// BalanceLogs holds the value of the balance_logs edge.
-	BalanceLogs []*UserBalanceLog `json:"balance_logs,omitempty"`
-	// loadedTypes holds the information for reporting if a
-	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
-}
-
-// ManagedCategoriesOrErr returns the ManagedCategories value or an error if the edge
-// was not loaded in eager-loading.
-func (e UserEdges) ManagedCategoriesOrErr() ([]*Category, error) {
-	if e.loadedTypes[0] {
-		return e.ManagedCategories, nil
-	}
-	return nil, &NotLoadedError{edge: "managed_categories"}
-}
-
-// BalanceLogsOrErr returns the BalanceLogs value or an error if the edge
-// was not loaded in eager-loading.
-func (e UserEdges) BalanceLogsOrErr() ([]*UserBalanceLog, error) {
-	if e.loadedTypes[1] {
-		return e.BalanceLogs, nil
-	}
-	return nil, &NotLoadedError{edge: "balance_logs"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -225,16 +193,6 @@ func (_m *User) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *User) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
-}
-
-// QueryManagedCategories queries the "managed_categories" edge of the User entity.
-func (_m *User) QueryManagedCategories() *CategoryQuery {
-	return NewUserClient(_m.config).QueryManagedCategories(_m)
-}
-
-// QueryBalanceLogs queries the "balance_logs" edge of the User entity.
-func (_m *User) QueryBalanceLogs() *UserBalanceLogQuery {
-	return NewUserClient(_m.config).QueryBalanceLogs(_m)
 }
 
 // Update returns a builder for updating this User.

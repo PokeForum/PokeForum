@@ -11,21 +11,17 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/predicate"
-	"github.com/PokeForum/PokeForum/ent/user"
 )
 
 // PostQuery is the builder for querying Post entities.
 type PostQuery struct {
 	config
-	ctx          *QueryContext
-	order        []post.OrderOption
-	inters       []Interceptor
-	predicates   []predicate.Post
-	withAuthor   *UserQuery
-	withCategory *CategoryQuery
+	ctx        *QueryContext
+	order      []post.OrderOption
+	inters     []Interceptor
+	predicates []predicate.Post
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -60,50 +56,6 @@ func (_q *PostQuery) Unique(unique bool) *PostQuery {
 func (_q *PostQuery) Order(o ...post.OrderOption) *PostQuery {
 	_q.order = append(_q.order, o...)
 	return _q
-}
-
-// QueryAuthor chains the current query on the "author" edge.
-func (_q *PostQuery) QueryAuthor() *UserQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(post.Table, post.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, post.AuthorTable, post.AuthorColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryCategory chains the current query on the "category" edge.
-func (_q *PostQuery) QueryCategory() *CategoryQuery {
-	query := (&CategoryClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(post.Table, post.FieldID, selector),
-			sqlgraph.To(category.Table, category.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, post.CategoryTable, post.CategoryColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // First returns the first Post entity from the query.
@@ -293,39 +245,15 @@ func (_q *PostQuery) Clone() *PostQuery {
 		return nil
 	}
 	return &PostQuery{
-		config:       _q.config,
-		ctx:          _q.ctx.Clone(),
-		order:        append([]post.OrderOption{}, _q.order...),
-		inters:       append([]Interceptor{}, _q.inters...),
-		predicates:   append([]predicate.Post{}, _q.predicates...),
-		withAuthor:   _q.withAuthor.Clone(),
-		withCategory: _q.withCategory.Clone(),
+		config:     _q.config,
+		ctx:        _q.ctx.Clone(),
+		order:      append([]post.OrderOption{}, _q.order...),
+		inters:     append([]Interceptor{}, _q.inters...),
+		predicates: append([]predicate.Post{}, _q.predicates...),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
-}
-
-// WithAuthor tells the query-builder to eager-load the nodes that are connected to
-// the "author" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *PostQuery) WithAuthor(opts ...func(*UserQuery)) *PostQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withAuthor = query
-	return _q
-}
-
-// WithCategory tells the query-builder to eager-load the nodes that are connected to
-// the "category" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *PostQuery) WithCategory(opts ...func(*CategoryQuery)) *PostQuery {
-	query := (&CategoryClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withCategory = query
-	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -404,12 +332,8 @@ func (_q *PostQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *PostQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Post, error) {
 	var (
-		nodes       = []*Post{}
-		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
-			_q.withAuthor != nil,
-			_q.withCategory != nil,
-		}
+		nodes = []*Post{}
+		_spec = _q.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Post).scanValues(nil, columns)
@@ -417,7 +341,6 @@ func (_q *PostQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Post, e
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Post{config: _q.config}
 		nodes = append(nodes, node)
-		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -429,78 +352,7 @@ func (_q *PostQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Post, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withAuthor; query != nil {
-		if err := _q.loadAuthor(ctx, query, nodes, nil,
-			func(n *Post, e *User) { n.Edges.Author = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withCategory; query != nil {
-		if err := _q.loadCategory(ctx, query, nodes, nil,
-			func(n *Post, e *Category) { n.Edges.Category = e }); err != nil {
-			return nil, err
-		}
-	}
 	return nodes, nil
-}
-
-func (_q *PostQuery) loadAuthor(ctx context.Context, query *UserQuery, nodes []*Post, init func(*Post), assign func(*Post, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Post)
-	for i := range nodes {
-		fk := nodes[i].UserID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(user.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (_q *PostQuery) loadCategory(ctx context.Context, query *CategoryQuery, nodes []*Post, init func(*Post), assign func(*Post, *Category)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*Post)
-	for i := range nodes {
-		fk := nodes[i].CategoryID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(category.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "category_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
 }
 
 func (_q *PostQuery) sqlCount(ctx context.Context) (int, error) {
@@ -527,12 +379,6 @@ func (_q *PostQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != post.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
-		}
-		if _q.withAuthor != nil {
-			_spec.Node.AddColumnOnce(post.FieldUserID)
-		}
-		if _q.withCategory != nil {
-			_spec.Node.AddColumnOnce(post.FieldCategoryID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

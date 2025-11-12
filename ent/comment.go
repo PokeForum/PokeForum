@@ -10,8 +10,6 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/PokeForum/PokeForum/ent/comment"
-	"github.com/PokeForum/PokeForum/ent/post"
-	"github.com/PokeForum/PokeForum/ent/user"
 )
 
 // Comment is the model entity for the Comment schema.
@@ -44,70 +42,8 @@ type Comment struct {
 	// CommenterIP holds the value of the "commenter_ip" field.
 	CommenterIP string `json:"commenter_ip,omitempty"`
 	// DeviceInfo holds the value of the "device_info" field.
-	DeviceInfo string `json:"device_info,omitempty"`
-	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the CommentQuery when eager-loading is set.
-	Edges        CommentEdges `json:"edges"`
+	DeviceInfo   string `json:"device_info,omitempty"`
 	selectValues sql.SelectValues
-}
-
-// CommentEdges holds the relations/edges for other nodes in the graph.
-type CommentEdges struct {
-	// Post holds the value of the post edge.
-	Post *Post `json:"post,omitempty"`
-	// Author holds the value of the author edge.
-	Author *User `json:"author,omitempty"`
-	// Parent holds the value of the parent edge.
-	Parent *Comment `json:"parent,omitempty"`
-	// ReplyToUser holds the value of the reply_to_user edge.
-	ReplyToUser *User `json:"reply_to_user,omitempty"`
-	// loadedTypes holds the information for reporting if a
-	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [4]bool
-}
-
-// PostOrErr returns the Post value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e CommentEdges) PostOrErr() (*Post, error) {
-	if e.Post != nil {
-		return e.Post, nil
-	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: post.Label}
-	}
-	return nil, &NotLoadedError{edge: "post"}
-}
-
-// AuthorOrErr returns the Author value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e CommentEdges) AuthorOrErr() (*User, error) {
-	if e.Author != nil {
-		return e.Author, nil
-	} else if e.loadedTypes[1] {
-		return nil, &NotFoundError{label: user.Label}
-	}
-	return nil, &NotLoadedError{edge: "author"}
-}
-
-// ParentOrErr returns the Parent value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e CommentEdges) ParentOrErr() (*Comment, error) {
-	if e.Parent != nil {
-		return e.Parent, nil
-	} else if e.loadedTypes[2] {
-		return nil, &NotFoundError{label: comment.Label}
-	}
-	return nil, &NotLoadedError{edge: "parent"}
-}
-
-// ReplyToUserOrErr returns the ReplyToUser value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e CommentEdges) ReplyToUserOrErr() (*User, error) {
-	if e.ReplyToUser != nil {
-		return e.ReplyToUser, nil
-	} else if e.loadedTypes[3] {
-		return nil, &NotFoundError{label: user.Label}
-	}
-	return nil, &NotLoadedError{edge: "reply_to_user"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -233,26 +169,6 @@ func (_m *Comment) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *Comment) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
-}
-
-// QueryPost queries the "post" edge of the Comment entity.
-func (_m *Comment) QueryPost() *PostQuery {
-	return NewCommentClient(_m.config).QueryPost(_m)
-}
-
-// QueryAuthor queries the "author" edge of the Comment entity.
-func (_m *Comment) QueryAuthor() *UserQuery {
-	return NewCommentClient(_m.config).QueryAuthor(_m)
-}
-
-// QueryParent queries the "parent" edge of the Comment entity.
-func (_m *Comment) QueryParent() *CommentQuery {
-	return NewCommentClient(_m.config).QueryParent(_m)
-}
-
-// QueryReplyToUser queries the "reply_to_user" edge of the Comment entity.
-func (_m *Comment) QueryReplyToUser() *UserQuery {
-	return NewCommentClient(_m.config).QueryReplyToUser(_m)
 }
 
 // Update returns a builder for updating this Comment.

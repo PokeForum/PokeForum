@@ -11,10 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
 	"github.com/PokeForum/PokeForum/ent/predicate"
-	"github.com/PokeForum/PokeForum/ent/user"
 )
 
 // PostActionQuery is the builder for querying PostAction entities.
@@ -24,8 +22,6 @@ type PostActionQuery struct {
 	order      []postaction.OrderOption
 	inters     []Interceptor
 	predicates []predicate.PostAction
-	withUser   *UserQuery
-	withPost   *PostQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -60,50 +56,6 @@ func (_q *PostActionQuery) Unique(unique bool) *PostActionQuery {
 func (_q *PostActionQuery) Order(o ...postaction.OrderOption) *PostActionQuery {
 	_q.order = append(_q.order, o...)
 	return _q
-}
-
-// QueryUser chains the current query on the "user" edge.
-func (_q *PostActionQuery) QueryUser() *UserQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(postaction.Table, postaction.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, postaction.UserTable, postaction.UserColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryPost chains the current query on the "post" edge.
-func (_q *PostActionQuery) QueryPost() *PostQuery {
-	query := (&PostClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(postaction.Table, postaction.FieldID, selector),
-			sqlgraph.To(post.Table, post.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, postaction.PostTable, postaction.PostColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // First returns the first PostAction entity from the query.
@@ -298,34 +250,10 @@ func (_q *PostActionQuery) Clone() *PostActionQuery {
 		order:      append([]postaction.OrderOption{}, _q.order...),
 		inters:     append([]Interceptor{}, _q.inters...),
 		predicates: append([]predicate.PostAction{}, _q.predicates...),
-		withUser:   _q.withUser.Clone(),
-		withPost:   _q.withPost.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
-}
-
-// WithUser tells the query-builder to eager-load the nodes that are connected to
-// the "user" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *PostActionQuery) WithUser(opts ...func(*UserQuery)) *PostActionQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withUser = query
-	return _q
-}
-
-// WithPost tells the query-builder to eager-load the nodes that are connected to
-// the "post" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *PostActionQuery) WithPost(opts ...func(*PostQuery)) *PostActionQuery {
-	query := (&PostClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withPost = query
-	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -404,12 +332,8 @@ func (_q *PostActionQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *PostActionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*PostAction, error) {
 	var (
-		nodes       = []*PostAction{}
-		_spec       = _q.querySpec()
-		loadedTypes = [2]bool{
-			_q.withUser != nil,
-			_q.withPost != nil,
-		}
+		nodes = []*PostAction{}
+		_spec = _q.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*PostAction).scanValues(nil, columns)
@@ -417,7 +341,6 @@ func (_q *PostActionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*P
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &PostAction{config: _q.config}
 		nodes = append(nodes, node)
-		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -429,78 +352,7 @@ func (_q *PostActionQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*P
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withUser; query != nil {
-		if err := _q.loadUser(ctx, query, nodes, nil,
-			func(n *PostAction, e *User) { n.Edges.User = e }); err != nil {
-			return nil, err
-		}
-	}
-	if query := _q.withPost; query != nil {
-		if err := _q.loadPost(ctx, query, nodes, nil,
-			func(n *PostAction, e *Post) { n.Edges.Post = e }); err != nil {
-			return nil, err
-		}
-	}
 	return nodes, nil
-}
-
-func (_q *PostActionQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*PostAction, init func(*PostAction), assign func(*PostAction, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*PostAction)
-	for i := range nodes {
-		fk := nodes[i].UserID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(user.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (_q *PostActionQuery) loadPost(ctx context.Context, query *PostQuery, nodes []*PostAction, init func(*PostAction), assign func(*PostAction, *Post)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*PostAction)
-	for i := range nodes {
-		fk := nodes[i].PostID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(post.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "post_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
 }
 
 func (_q *PostActionQuery) sqlCount(ctx context.Context) (int, error) {
@@ -527,12 +379,6 @@ func (_q *PostActionQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != postaction.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
-		}
-		if _q.withUser != nil {
-			_spec.Node.AddColumnOnce(postaction.FieldUserID)
-		}
-		if _q.withPost != nil {
-			_spec.Node.AddColumnOnce(postaction.FieldPostID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

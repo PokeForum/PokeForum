@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -25,26 +24,8 @@ const (
 	FieldPostID = "post_id"
 	// FieldActionType holds the string denoting the action_type field in the database.
 	FieldActionType = "action_type"
-	// EdgeUser holds the string denoting the user edge name in mutations.
-	EdgeUser = "user"
-	// EdgePost holds the string denoting the post edge name in mutations.
-	EdgePost = "post"
 	// Table holds the table name of the postaction in the database.
 	Table = "post_actions"
-	// UserTable is the table that holds the user relation/edge.
-	UserTable = "post_actions"
-	// UserInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	UserInverseTable = "users"
-	// UserColumn is the table column denoting the user relation/edge.
-	UserColumn = "user_id"
-	// PostTable is the table that holds the post relation/edge.
-	PostTable = "post_actions"
-	// PostInverseTable is the table name for the Post entity.
-	// It exists in this package in order to avoid circular dependency with the "post" package.
-	PostInverseTable = "posts"
-	// PostColumn is the table column denoting the post relation/edge.
-	PostColumn = "post_id"
 )
 
 // Columns holds all SQL columns for postaction fields.
@@ -137,32 +118,4 @@ func ByPostID(opts ...sql.OrderTermOption) OrderOption {
 // ByActionType orders the results by the action_type field.
 func ByActionType(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldActionType, opts...).ToFunc()
-}
-
-// ByUserField orders the results by user field.
-func ByUserField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newUserStep(), sql.OrderByField(field, opts...))
-	}
-}
-
-// ByPostField orders the results by post field.
-func ByPostField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newPostStep(), sql.OrderByField(field, opts...))
-	}
-}
-func newUserStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(UserInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, UserTable, UserColumn),
-	)
-}
-func newPostStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(PostInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, PostTable, PostColumn),
-	)
 }

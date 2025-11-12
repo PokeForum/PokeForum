@@ -2,7 +2,6 @@ package schema
 
 import (
 	"entgo.io/ent"
-	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 )
@@ -31,24 +30,18 @@ func (PostAction) Fields() []ent.Field {
 }
 
 // Edges of the PostAction.
+// 注意: 所有关联关系仅用于ORM查询，不会在数据库层面创建外键
+// 数据完整性由应用层逻辑保证
 func (PostAction) Edges() []ent.Edge {
-	return []ent.Edge{
-		// 关联到User表
-		edge.To("user", User.Type).
-			Field("user_id").
-			Unique().
-			Required(),
-		// 关联到Post表
-		edge.To("post", Post.Type).
-			Field("post_id").
-			Unique().
-			Required(),
-	}
+	return nil
 }
 
 // Indexes of the PostAction.
 func (PostAction) Indexes() []ent.Index {
 	return []ent.Index{
+		// 为关联字段创建索引以优化查询性能
+		index.Fields("user_id"),
+		index.Fields("post_id"),
 		// 创建复合唯一索引，确保每个用户对同一帖子的同一行为只能有一条记录
 		index.Fields("user_id", "post_id", "action_type").
 			Unique(),

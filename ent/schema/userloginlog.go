@@ -2,8 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
-	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // UserLoginLog holds the schema definition for the UserLoginLog entity.
@@ -39,13 +39,21 @@ func (UserLoginLog) Fields() []ent.Field {
 }
 
 // Edges of the UserLoginLog.
+// 注意: 所有关联关系仅用于ORM查询，不会在数据库层面创建外键
+// 数据完整性由应用层逻辑保证
 func (UserLoginLog) Edges() []ent.Edge {
-	return []ent.Edge{
-		// 关联到User表
-		edge.To("user", User.Type).
-			Field("user_id").
-			Unique().
-			Required(),
+	return nil
+}
+
+// Indexes of the UserLoginLog.
+func (UserLoginLog) Indexes() []ent.Index {
+	return []ent.Index{
+		// 为关联字段创建索引以优化查询性能
+		index.Fields("user_id"),
+		// 为常用查询字段创建索引
+		index.Fields("success"),
+		// 创建复合索引优化用户登录历史查询
+		index.Fields("user_id", "created_at"),
 	}
 }
 

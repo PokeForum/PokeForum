@@ -12,7 +12,6 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/PokeForum/PokeForum/ent/predicate"
-	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 )
 
@@ -23,7 +22,6 @@ type UserBalanceLogQuery struct {
 	order      []userbalancelog.OrderOption
 	inters     []Interceptor
 	predicates []predicate.UserBalanceLog
-	withUser   *UserQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -58,28 +56,6 @@ func (_q *UserBalanceLogQuery) Unique(unique bool) *UserBalanceLogQuery {
 func (_q *UserBalanceLogQuery) Order(o ...userbalancelog.OrderOption) *UserBalanceLogQuery {
 	_q.order = append(_q.order, o...)
 	return _q
-}
-
-// QueryUser chains the current query on the "user" edge.
-func (_q *UserBalanceLogQuery) QueryUser() *UserQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := _q.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := _q.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(userbalancelog.Table, userbalancelog.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, userbalancelog.UserTable, userbalancelog.UserColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // First returns the first UserBalanceLog entity from the query.
@@ -274,22 +250,10 @@ func (_q *UserBalanceLogQuery) Clone() *UserBalanceLogQuery {
 		order:      append([]userbalancelog.OrderOption{}, _q.order...),
 		inters:     append([]Interceptor{}, _q.inters...),
 		predicates: append([]predicate.UserBalanceLog{}, _q.predicates...),
-		withUser:   _q.withUser.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
 	}
-}
-
-// WithUser tells the query-builder to eager-load the nodes that are connected to
-// the "user" edge. The optional arguments are used to configure the query builder of the edge.
-func (_q *UserBalanceLogQuery) WithUser(opts ...func(*UserQuery)) *UserBalanceLogQuery {
-	query := (&UserClient{config: _q.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	_q.withUser = query
-	return _q
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -368,11 +332,8 @@ func (_q *UserBalanceLogQuery) prepareQuery(ctx context.Context) error {
 
 func (_q *UserBalanceLogQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*UserBalanceLog, error) {
 	var (
-		nodes       = []*UserBalanceLog{}
-		_spec       = _q.querySpec()
-		loadedTypes = [1]bool{
-			_q.withUser != nil,
-		}
+		nodes = []*UserBalanceLog{}
+		_spec = _q.querySpec()
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*UserBalanceLog).scanValues(nil, columns)
@@ -380,7 +341,6 @@ func (_q *UserBalanceLogQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &UserBalanceLog{config: _q.config}
 		nodes = append(nodes, node)
-		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	for i := range hooks {
@@ -392,43 +352,7 @@ func (_q *UserBalanceLogQuery) sqlAll(ctx context.Context, hooks ...queryHook) (
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := _q.withUser; query != nil {
-		if err := _q.loadUser(ctx, query, nodes, nil,
-			func(n *UserBalanceLog, e *User) { n.Edges.User = e }); err != nil {
-			return nil, err
-		}
-	}
 	return nodes, nil
-}
-
-func (_q *UserBalanceLogQuery) loadUser(ctx context.Context, query *UserQuery, nodes []*UserBalanceLog, init func(*UserBalanceLog), assign func(*UserBalanceLog, *User)) error {
-	ids := make([]int, 0, len(nodes))
-	nodeids := make(map[int][]*UserBalanceLog)
-	for i := range nodes {
-		fk := nodes[i].UserID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(user.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "user_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
 }
 
 func (_q *UserBalanceLogQuery) sqlCount(ctx context.Context) (int, error) {
@@ -455,9 +379,6 @@ func (_q *UserBalanceLogQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != userbalancelog.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
-		}
-		if _q.withUser != nil {
-			_spec.Node.AddColumnOnce(userbalancelog.FieldUserID)
 		}
 	}
 	if ps := _q.predicates; len(ps) > 0 {

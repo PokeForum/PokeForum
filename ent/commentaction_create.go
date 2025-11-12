@@ -10,9 +10,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/commentaction"
-	"github.com/PokeForum/PokeForum/ent/user"
 )
 
 // CommentActionCreate is the builder for creating a CommentAction entity.
@@ -72,16 +70,6 @@ func (_c *CommentActionCreate) SetActionType(v commentaction.ActionType) *Commen
 func (_c *CommentActionCreate) SetID(v int) *CommentActionCreate {
 	_c.mutation.SetID(v)
 	return _c
-}
-
-// SetUser sets the "user" edge to the User entity.
-func (_c *CommentActionCreate) SetUser(v *User) *CommentActionCreate {
-	return _c.SetUserID(v.ID)
-}
-
-// SetComment sets the "comment" edge to the Comment entity.
-func (_c *CommentActionCreate) SetComment(v *Comment) *CommentActionCreate {
-	return _c.SetCommentID(v.ID)
 }
 
 // Mutation returns the CommentActionMutation object of the builder.
@@ -166,12 +154,6 @@ func (_c *CommentActionCreate) check() error {
 			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "CommentAction.id": %w`, err)}
 		}
 	}
-	if len(_c.mutation.UserIDs()) == 0 {
-		return &ValidationError{Name: "user", err: errors.New(`ent: missing required edge "CommentAction.user"`)}
-	}
-	if len(_c.mutation.CommentIDs()) == 0 {
-		return &ValidationError{Name: "comment", err: errors.New(`ent: missing required edge "CommentAction.comment"`)}
-	}
 	return nil
 }
 
@@ -212,43 +194,17 @@ func (_c *CommentActionCreate) createSpec() (*CommentAction, *sqlgraph.CreateSpe
 		_spec.SetField(commentaction.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
+	if value, ok := _c.mutation.UserID(); ok {
+		_spec.SetField(commentaction.FieldUserID, field.TypeInt, value)
+		_node.UserID = value
+	}
+	if value, ok := _c.mutation.CommentID(); ok {
+		_spec.SetField(commentaction.FieldCommentID, field.TypeInt, value)
+		_node.CommentID = value
+	}
 	if value, ok := _c.mutation.ActionType(); ok {
 		_spec.SetField(commentaction.FieldActionType, field.TypeEnum, value)
 		_node.ActionType = value
-	}
-	if nodes := _c.mutation.UserIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   commentaction.UserTable,
-			Columns: []string{commentaction.UserColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.UserID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := _c.mutation.CommentIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   commentaction.CommentTable,
-			Columns: []string{commentaction.CommentColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(comment.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.CommentID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

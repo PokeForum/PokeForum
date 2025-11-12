@@ -9,9 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/commentaction"
-	"github.com/PokeForum/PokeForum/ent/user"
 )
 
 // CommentAction is the model entity for the CommentAction schema.
@@ -28,44 +26,8 @@ type CommentAction struct {
 	// CommentID holds the value of the "comment_id" field.
 	CommentID int `json:"comment_id,omitempty"`
 	// ActionType holds the value of the "action_type" field.
-	ActionType commentaction.ActionType `json:"action_type,omitempty"`
-	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the CommentActionQuery when eager-loading is set.
-	Edges        CommentActionEdges `json:"edges"`
+	ActionType   commentaction.ActionType `json:"action_type,omitempty"`
 	selectValues sql.SelectValues
-}
-
-// CommentActionEdges holds the relations/edges for other nodes in the graph.
-type CommentActionEdges struct {
-	// User holds the value of the user edge.
-	User *User `json:"user,omitempty"`
-	// Comment holds the value of the comment edge.
-	Comment *Comment `json:"comment,omitempty"`
-	// loadedTypes holds the information for reporting if a
-	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
-}
-
-// UserOrErr returns the User value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e CommentActionEdges) UserOrErr() (*User, error) {
-	if e.User != nil {
-		return e.User, nil
-	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: user.Label}
-	}
-	return nil, &NotLoadedError{edge: "user"}
-}
-
-// CommentOrErr returns the Comment value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e CommentActionEdges) CommentOrErr() (*Comment, error) {
-	if e.Comment != nil {
-		return e.Comment, nil
-	} else if e.loadedTypes[1] {
-		return nil, &NotFoundError{label: comment.Label}
-	}
-	return nil, &NotLoadedError{edge: "comment"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -141,16 +103,6 @@ func (_m *CommentAction) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *CommentAction) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
-}
-
-// QueryUser queries the "user" edge of the CommentAction entity.
-func (_m *CommentAction) QueryUser() *UserQuery {
-	return NewCommentActionClient(_m.config).QueryUser(_m)
-}
-
-// QueryComment queries the "comment" edge of the CommentAction entity.
-func (_m *CommentAction) QueryComment() *CommentQuery {
-	return NewCommentActionClient(_m.config).QueryComment(_m)
 }
 
 // Update returns a builder for updating this CommentAction.

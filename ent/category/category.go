@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -33,15 +32,8 @@ const (
 	FieldStatus = "status"
 	// FieldAnnouncement holds the string denoting the announcement field in the database.
 	FieldAnnouncement = "announcement"
-	// EdgeModerators holds the string denoting the moderators edge name in mutations.
-	EdgeModerators = "moderators"
 	// Table holds the table name of the category in the database.
 	Table = "categories"
-	// ModeratorsTable is the table that holds the moderators relation/edge. The primary key declared below.
-	ModeratorsTable = "user_managed_categories"
-	// ModeratorsInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	ModeratorsInverseTable = "users"
 )
 
 // Columns holds all SQL columns for category fields.
@@ -57,12 +49,6 @@ var Columns = []string{
 	FieldStatus,
 	FieldAnnouncement,
 }
-
-var (
-	// ModeratorsPrimaryKey and ModeratorsColumn2 are the table columns denoting the
-	// primary key for the moderators relation (M2M).
-	ModeratorsPrimaryKey = []string{"user_id", "category_id"}
-)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -170,25 +156,4 @@ func ByStatus(opts ...sql.OrderTermOption) OrderOption {
 // ByAnnouncement orders the results by the announcement field.
 func ByAnnouncement(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAnnouncement, opts...).ToFunc()
-}
-
-// ByModeratorsCount orders the results by moderators count.
-func ByModeratorsCount(opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newModeratorsStep(), opts...)
-	}
-}
-
-// ByModerators orders the results by moderators terms.
-func ByModerators(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newModeratorsStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-func newModeratorsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ModeratorsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, ModeratorsTable, ModeratorsPrimaryKey...),
-	)
 }

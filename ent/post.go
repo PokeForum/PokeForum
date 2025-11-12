@@ -9,9 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/post"
-	"github.com/PokeForum/PokeForum/ent/user"
 )
 
 // Post is the model entity for the Post schema.
@@ -48,44 +46,8 @@ type Post struct {
 	// PublishIP holds the value of the "publish_ip" field.
 	PublishIP string `json:"publish_ip,omitempty"`
 	// Status holds the value of the "status" field.
-	Status post.Status `json:"status,omitempty"`
-	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the PostQuery when eager-loading is set.
-	Edges        PostEdges `json:"edges"`
+	Status       post.Status `json:"status,omitempty"`
 	selectValues sql.SelectValues
-}
-
-// PostEdges holds the relations/edges for other nodes in the graph.
-type PostEdges struct {
-	// Author holds the value of the author edge.
-	Author *User `json:"author,omitempty"`
-	// Category holds the value of the category edge.
-	Category *Category `json:"category,omitempty"`
-	// loadedTypes holds the information for reporting if a
-	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
-}
-
-// AuthorOrErr returns the Author value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e PostEdges) AuthorOrErr() (*User, error) {
-	if e.Author != nil {
-		return e.Author, nil
-	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: user.Label}
-	}
-	return nil, &NotLoadedError{edge: "author"}
-}
-
-// CategoryOrErr returns the Category value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e PostEdges) CategoryOrErr() (*Category, error) {
-	if e.Category != nil {
-		return e.Category, nil
-	} else if e.loadedTypes[1] {
-		return nil, &NotFoundError{label: category.Label}
-	}
-	return nil, &NotLoadedError{edge: "category"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -223,16 +185,6 @@ func (_m *Post) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *Post) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
-}
-
-// QueryAuthor queries the "author" edge of the Post entity.
-func (_m *Post) QueryAuthor() *UserQuery {
-	return NewPostClient(_m.config).QueryAuthor(_m)
-}
-
-// QueryCategory queries the "category" edge of the Post entity.
-func (_m *Post) QueryCategory() *CategoryQuery {
-	return NewPostClient(_m.config).QueryCategory(_m)
 }
 
 // Update returns a builder for updating this Post.

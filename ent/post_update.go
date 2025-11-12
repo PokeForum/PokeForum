@@ -11,10 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/predicate"
-	"github.com/PokeForum/PokeForum/ent/user"
 )
 
 // PostUpdate is the builder for updating Post entities.
@@ -38,6 +36,7 @@ func (_u *PostUpdate) SetUpdatedAt(v time.Time) *PostUpdate {
 
 // SetUserID sets the "user_id" field.
 func (_u *PostUpdate) SetUserID(v int) *PostUpdate {
+	_u.mutation.ResetUserID()
 	_u.mutation.SetUserID(v)
 	return _u
 }
@@ -50,8 +49,15 @@ func (_u *PostUpdate) SetNillableUserID(v *int) *PostUpdate {
 	return _u
 }
 
+// AddUserID adds value to the "user_id" field.
+func (_u *PostUpdate) AddUserID(v int) *PostUpdate {
+	_u.mutation.AddUserID(v)
+	return _u
+}
+
 // SetCategoryID sets the "category_id" field.
 func (_u *PostUpdate) SetCategoryID(v int) *PostUpdate {
+	_u.mutation.ResetCategoryID()
 	_u.mutation.SetCategoryID(v)
 	return _u
 }
@@ -61,6 +67,12 @@ func (_u *PostUpdate) SetNillableCategoryID(v *int) *PostUpdate {
 	if v != nil {
 		_u.SetCategoryID(*v)
 	}
+	return _u
+}
+
+// AddCategoryID adds value to the "category_id" field.
+func (_u *PostUpdate) AddCategoryID(v int) *PostUpdate {
+	_u.mutation.AddCategoryID(v)
 	return _u
 }
 
@@ -258,37 +270,9 @@ func (_u *PostUpdate) SetNillableStatus(v *post.Status) *PostUpdate {
 	return _u
 }
 
-// SetAuthorID sets the "author" edge to the User entity by ID.
-func (_u *PostUpdate) SetAuthorID(id int) *PostUpdate {
-	_u.mutation.SetAuthorID(id)
-	return _u
-}
-
-// SetAuthor sets the "author" edge to the User entity.
-func (_u *PostUpdate) SetAuthor(v *User) *PostUpdate {
-	return _u.SetAuthorID(v.ID)
-}
-
-// SetCategory sets the "category" edge to the Category entity.
-func (_u *PostUpdate) SetCategory(v *Category) *PostUpdate {
-	return _u.SetCategoryID(v.ID)
-}
-
 // Mutation returns the PostMutation object of the builder.
 func (_u *PostUpdate) Mutation() *PostMutation {
 	return _u.mutation
-}
-
-// ClearAuthor clears the "author" edge to the User entity.
-func (_u *PostUpdate) ClearAuthor() *PostUpdate {
-	_u.mutation.ClearAuthor()
-	return _u
-}
-
-// ClearCategory clears the "category" edge to the Category entity.
-func (_u *PostUpdate) ClearCategory() *PostUpdate {
-	_u.mutation.ClearCategory()
-	return _u
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -374,12 +358,6 @@ func (_u *PostUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Post.status": %w`, err)}
 		}
 	}
-	if _u.mutation.AuthorCleared() && len(_u.mutation.AuthorIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Post.author"`)
-	}
-	if _u.mutation.CategoryCleared() && len(_u.mutation.CategoryIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Post.category"`)
-	}
 	return nil
 }
 
@@ -397,6 +375,18 @@ func (_u *PostUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(post.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.UserID(); ok {
+		_spec.SetField(post.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedUserID(); ok {
+		_spec.AddField(post.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.CategoryID(); ok {
+		_spec.SetField(post.FieldCategoryID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedCategoryID(); ok {
+		_spec.AddField(post.FieldCategoryID, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Title(); ok {
 		_spec.SetField(post.FieldTitle, field.TypeString, value)
@@ -449,64 +439,6 @@ func (_u *PostUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(post.FieldStatus, field.TypeEnum, value)
 	}
-	if _u.mutation.AuthorCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   post.AuthorTable,
-			Columns: []string{post.AuthorColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.AuthorIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   post.AuthorTable,
-			Columns: []string{post.AuthorColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.CategoryCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   post.CategoryTable,
-			Columns: []string{post.CategoryColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.CategoryIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   post.CategoryTable,
-			Columns: []string{post.CategoryColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{post.Label}
@@ -535,6 +467,7 @@ func (_u *PostUpdateOne) SetUpdatedAt(v time.Time) *PostUpdateOne {
 
 // SetUserID sets the "user_id" field.
 func (_u *PostUpdateOne) SetUserID(v int) *PostUpdateOne {
+	_u.mutation.ResetUserID()
 	_u.mutation.SetUserID(v)
 	return _u
 }
@@ -547,8 +480,15 @@ func (_u *PostUpdateOne) SetNillableUserID(v *int) *PostUpdateOne {
 	return _u
 }
 
+// AddUserID adds value to the "user_id" field.
+func (_u *PostUpdateOne) AddUserID(v int) *PostUpdateOne {
+	_u.mutation.AddUserID(v)
+	return _u
+}
+
 // SetCategoryID sets the "category_id" field.
 func (_u *PostUpdateOne) SetCategoryID(v int) *PostUpdateOne {
+	_u.mutation.ResetCategoryID()
 	_u.mutation.SetCategoryID(v)
 	return _u
 }
@@ -558,6 +498,12 @@ func (_u *PostUpdateOne) SetNillableCategoryID(v *int) *PostUpdateOne {
 	if v != nil {
 		_u.SetCategoryID(*v)
 	}
+	return _u
+}
+
+// AddCategoryID adds value to the "category_id" field.
+func (_u *PostUpdateOne) AddCategoryID(v int) *PostUpdateOne {
+	_u.mutation.AddCategoryID(v)
 	return _u
 }
 
@@ -755,37 +701,9 @@ func (_u *PostUpdateOne) SetNillableStatus(v *post.Status) *PostUpdateOne {
 	return _u
 }
 
-// SetAuthorID sets the "author" edge to the User entity by ID.
-func (_u *PostUpdateOne) SetAuthorID(id int) *PostUpdateOne {
-	_u.mutation.SetAuthorID(id)
-	return _u
-}
-
-// SetAuthor sets the "author" edge to the User entity.
-func (_u *PostUpdateOne) SetAuthor(v *User) *PostUpdateOne {
-	return _u.SetAuthorID(v.ID)
-}
-
-// SetCategory sets the "category" edge to the Category entity.
-func (_u *PostUpdateOne) SetCategory(v *Category) *PostUpdateOne {
-	return _u.SetCategoryID(v.ID)
-}
-
 // Mutation returns the PostMutation object of the builder.
 func (_u *PostUpdateOne) Mutation() *PostMutation {
 	return _u.mutation
-}
-
-// ClearAuthor clears the "author" edge to the User entity.
-func (_u *PostUpdateOne) ClearAuthor() *PostUpdateOne {
-	_u.mutation.ClearAuthor()
-	return _u
-}
-
-// ClearCategory clears the "category" edge to the Category entity.
-func (_u *PostUpdateOne) ClearCategory() *PostUpdateOne {
-	_u.mutation.ClearCategory()
-	return _u
 }
 
 // Where appends a list predicates to the PostUpdate builder.
@@ -884,12 +802,6 @@ func (_u *PostUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Post.status": %w`, err)}
 		}
 	}
-	if _u.mutation.AuthorCleared() && len(_u.mutation.AuthorIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Post.author"`)
-	}
-	if _u.mutation.CategoryCleared() && len(_u.mutation.CategoryIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Post.category"`)
-	}
 	return nil
 }
 
@@ -924,6 +836,18 @@ func (_u *PostUpdateOne) sqlSave(ctx context.Context) (_node *Post, err error) {
 	}
 	if value, ok := _u.mutation.UpdatedAt(); ok {
 		_spec.SetField(post.FieldUpdatedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.UserID(); ok {
+		_spec.SetField(post.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedUserID(); ok {
+		_spec.AddField(post.FieldUserID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.CategoryID(); ok {
+		_spec.SetField(post.FieldCategoryID, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedCategoryID(); ok {
+		_spec.AddField(post.FieldCategoryID, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Title(); ok {
 		_spec.SetField(post.FieldTitle, field.TypeString, value)
@@ -975,64 +899,6 @@ func (_u *PostUpdateOne) sqlSave(ctx context.Context) (_node *Post, err error) {
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(post.FieldStatus, field.TypeEnum, value)
-	}
-	if _u.mutation.AuthorCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   post.AuthorTable,
-			Columns: []string{post.AuthorColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.AuthorIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   post.AuthorTable,
-			Columns: []string{post.AuthorColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if _u.mutation.CategoryCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   post.CategoryTable,
-			Columns: []string{post.CategoryColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := _u.mutation.CategoryIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: false,
-			Table:   post.CategoryTable,
-			Columns: []string{post.CategoryColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(category.FieldID, field.TypeInt),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Post{config: _u.config}
 	_spec.Assign = _node.assignValues

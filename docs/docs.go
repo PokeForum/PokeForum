@@ -4031,6 +4031,236 @@ const docTemplate = `{
                 }
             }
         },
+        "/profile/blacklist/add": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "将指定用户添加到当前用户的黑名单中",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "黑名单管理"
+                ],
+                "summary": "添加用户到黑名单",
+                "parameters": [
+                    {
+                        "description": "添加黑名单请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserBlacklistAddRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "添加成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserBlacklistAddResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "禁止操作",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "404": {
+                        "description": "用户不存在",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/blacklist/list": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取当前用户的黑名单列表，支持分页",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "黑名单管理"
+                ],
+                "summary": "获取用户黑名单列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "每页数量",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserBlacklistListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/blacklist/remove": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "将指定用户从当前用户的黑名单中移除",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "黑名单管理"
+                ],
+                "summary": "从黑名单移除用户",
+                "parameters": [
+                    {
+                        "description": "移除黑名单请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserBlacklistRemoveRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "移除成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserBlacklistRemoveResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "404": {
+                        "description": "黑名单记录不存在",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
         "/profile/comments": {
             "get": {
                 "description": "获取当前登录用户发布的评论列表，支持分页",
@@ -7717,6 +7947,125 @@ const docTemplate = `{
                     "description": "用户名",
                     "type": "string",
                     "example": "testuser"
+                }
+            }
+        },
+        "schema.UserBlacklistAddRequest": {
+            "type": "object",
+            "required": [
+                "blocked_user_id"
+            ],
+            "properties": {
+                "blocked_user_id": {
+                    "description": "被拉黑用户ID",
+                    "type": "integer",
+                    "example": 2
+                }
+            }
+        },
+        "schema.UserBlacklistAddResponse": {
+            "type": "object",
+            "properties": {
+                "blocked_user_id": {
+                    "description": "被拉黑用户ID",
+                    "type": "integer",
+                    "example": 2
+                },
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "id": {
+                    "description": "黑名单记录ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "user_id": {
+                    "description": "执行拉黑的用户ID",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "schema.UserBlacklistItem": {
+            "type": "object",
+            "properties": {
+                "blocked_avatar": {
+                    "description": "被拉黑用户头像",
+                    "type": "string",
+                    "example": "https://example.com/avatar.jpg"
+                },
+                "blocked_user_id": {
+                    "description": "被拉黑用户ID",
+                    "type": "integer",
+                    "example": 2
+                },
+                "blocked_username": {
+                    "description": "被拉黑用户名",
+                    "type": "string",
+                    "example": "targetuser"
+                },
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string",
+                    "example": "2024-01-01T00:00:00Z"
+                },
+                "id": {
+                    "description": "黑名单记录ID",
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
+        "schema.UserBlacklistListResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "description": "黑名单列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.UserBlacklistItem"
+                    }
+                },
+                "page": {
+                    "description": "当前页码",
+                    "type": "integer"
+                },
+                "page_size": {
+                    "description": "每页数量",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "总数量",
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "description": "总页数",
+                    "type": "integer"
+                }
+            }
+        },
+        "schema.UserBlacklistRemoveRequest": {
+            "type": "object",
+            "required": [
+                "blocked_user_id"
+            ],
+            "properties": {
+                "blocked_user_id": {
+                    "description": "被拉黑用户ID",
+                    "type": "integer",
+                    "example": 2
+                }
+            }
+        },
+        "schema.UserBlacklistRemoveResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "description": "操作结果消息",
+                    "type": "string",
+                    "example": "移除黑名单成功"
                 }
             }
         },

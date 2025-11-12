@@ -2,8 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
-	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // User holds the schema definition for the User entity.
@@ -71,13 +71,20 @@ func (User) Fields() []ent.Field {
 }
 
 // Edges of the User.
+// 注意: 所有关联关系仅用于ORM查询，不会在数据库层面创建外键
+// 用户相关的所有关联（版主权限、余额记录、黑名单等）均在应用层维护
 func (User) Edges() []ent.Edge {
-	return []ent.Edge{
-		// 用户与版块的多对多关联，用于版主权限管理
-		// 当用户身份为Moderator时，可以通过此关联查询其管理的版块
-		edge.To("managed_categories", Category.Type),
-		// 用户与余额变动记录的一对多关联
-		edge.To("balance_logs", UserBalanceLog.Type),
+	return nil
+}
+
+// Indexes of the User.
+func (User) Indexes() []ent.Index {
+	return []ent.Index{
+		// email和username已经是唯一字段，会自动创建唯一索引
+		// 为常用查询字段创建索引
+		index.Fields("status"),
+		index.Fields("role"),
+		index.Fields("email_verified"),
 	}
 }
 

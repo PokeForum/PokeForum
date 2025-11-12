@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -40,41 +39,8 @@ const (
 	FieldCommenterIP = "commenter_ip"
 	// FieldDeviceInfo holds the string denoting the device_info field in the database.
 	FieldDeviceInfo = "device_info"
-	// EdgePost holds the string denoting the post edge name in mutations.
-	EdgePost = "post"
-	// EdgeAuthor holds the string denoting the author edge name in mutations.
-	EdgeAuthor = "author"
-	// EdgeParent holds the string denoting the parent edge name in mutations.
-	EdgeParent = "parent"
-	// EdgeReplyToUser holds the string denoting the reply_to_user edge name in mutations.
-	EdgeReplyToUser = "reply_to_user"
 	// Table holds the table name of the comment in the database.
 	Table = "comments"
-	// PostTable is the table that holds the post relation/edge.
-	PostTable = "comments"
-	// PostInverseTable is the table name for the Post entity.
-	// It exists in this package in order to avoid circular dependency with the "post" package.
-	PostInverseTable = "posts"
-	// PostColumn is the table column denoting the post relation/edge.
-	PostColumn = "post_id"
-	// AuthorTable is the table that holds the author relation/edge.
-	AuthorTable = "comments"
-	// AuthorInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	AuthorInverseTable = "users"
-	// AuthorColumn is the table column denoting the author relation/edge.
-	AuthorColumn = "user_id"
-	// ParentTable is the table that holds the parent relation/edge.
-	ParentTable = "comments"
-	// ParentColumn is the table column denoting the parent relation/edge.
-	ParentColumn = "parent_id"
-	// ReplyToUserTable is the table that holds the reply_to_user relation/edge.
-	ReplyToUserTable = "comments"
-	// ReplyToUserInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	ReplyToUserInverseTable = "users"
-	// ReplyToUserColumn is the table column denoting the reply_to_user relation/edge.
-	ReplyToUserColumn = "reply_to_user_id"
 )
 
 // Columns holds all SQL columns for comment fields.
@@ -205,60 +171,4 @@ func ByCommenterIP(opts ...sql.OrderTermOption) OrderOption {
 // ByDeviceInfo orders the results by the device_info field.
 func ByDeviceInfo(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDeviceInfo, opts...).ToFunc()
-}
-
-// ByPostField orders the results by post field.
-func ByPostField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newPostStep(), sql.OrderByField(field, opts...))
-	}
-}
-
-// ByAuthorField orders the results by author field.
-func ByAuthorField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newAuthorStep(), sql.OrderByField(field, opts...))
-	}
-}
-
-// ByParentField orders the results by parent field.
-func ByParentField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newParentStep(), sql.OrderByField(field, opts...))
-	}
-}
-
-// ByReplyToUserField orders the results by reply_to_user field.
-func ByReplyToUserField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newReplyToUserStep(), sql.OrderByField(field, opts...))
-	}
-}
-func newPostStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(PostInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, PostTable, PostColumn),
-	)
-}
-func newAuthorStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(AuthorInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, AuthorTable, AuthorColumn),
-	)
-}
-func newParentStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(Table, FieldID),
-		sqlgraph.Edge(sqlgraph.O2O, false, ParentTable, ParentColumn),
-	)
-}
-func newReplyToUserStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ReplyToUserInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, false, ReplyToUserTable, ReplyToUserColumn),
-	)
 }

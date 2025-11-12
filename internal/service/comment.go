@@ -53,7 +53,7 @@ func (s *CommentService) CreateComment(ctx context.Context, userID int, req sche
 	s.logger.Info("创建评论", zap.Int("user_id", userID), zap.Int("post_id", req.PostID), tracing.WithTraceIDField(ctx))
 
 	// 检查帖子是否存在且状态正常
-	_, err := s.db.Post.Query().
+	postData, err := s.db.Post.Query().
 		Where(post.IDEQ(req.PostID), post.StatusEQ(post.StatusNormal)).
 		Only(ctx)
 	if err != nil {
@@ -62,6 +62,17 @@ func (s *CommentService) CreateComment(ctx context.Context, userID int, req sche
 		}
 		s.logger.Error("获取帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("获取帖子失败: %w", err)
+	}
+
+	// 检查是否被楼主拉黑
+	blacklistService := NewBlacklistService(s.db, s.logger)
+	isBlockedByAuthor, err := blacklistService.IsUserBlocked(ctx, postData.UserID, userID)
+	if err != nil {
+		s.logger.Error("检查是否被楼主拉黑失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("检查拉黑状态失败: %w", err)
+	}
+	if isBlockedByAuthor {
+		return nil, errors.New("您已被楼主拉黑，无法评论该帖子")
 	}
 
 	// 如果是回复评论，检查父评论是否存在
@@ -81,8 +92,18 @@ func (s *CommentService) CreateComment(ctx context.Context, userID int, req sche
 		req.ReplyToUserID = &parentComment.UserID
 	}
 
-	// 如果指定了回复目标用户，获取用户名
+	// 如果指定了回复目标用户，获取用户名并检查拉黑状态
 	if req.ReplyToUserID != nil {
+		// 检查是否被回复目标用户拉黑
+		isBlockedByTarget, err := blacklistService.IsUserBlocked(ctx, *req.ReplyToUserID, userID)
+		if err != nil {
+			s.logger.Error("检查是否被回复目标用户拉黑失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			return nil, fmt.Errorf("检查拉黑状态失败: %w", err)
+		}
+		if isBlockedByTarget {
+			return nil, errors.New("您已被该用户拉黑，无法回复其评论")
+		}
+
 		replyToUser, err := s.db.User.Query().
 			Where(user.IDEQ(*req.ReplyToUserID)).
 			Only(ctx)
@@ -147,6 +168,26 @@ func (s *CommentService) UpdateComment(ctx context.Context, userID int, req sche
 		}
 		s.logger.Error("获取评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("获取评论失败: %w", err)
+	}
+
+	// 获取评论所属帖子信息，检查是否被楼主拉黑
+	postData, err := s.db.Post.Query().
+		Where(post.IDEQ(commentData.PostID)).
+		Only(ctx)
+	if err != nil {
+		s.logger.Error("获取评论所属帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("获取帖子信息失败: %w", err)
+	}
+
+	// 检查是否被楼主拉黑
+	blacklistService := NewBlacklistService(s.db, s.logger)
+	isBlockedByAuthor, err := blacklistService.IsUserBlocked(ctx, postData.UserID, userID)
+	if err != nil {
+		s.logger.Error("检查是否被楼主拉黑失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("检查拉黑状态失败: %w", err)
+	}
+	if isBlockedByAuthor {
+		return nil, errors.New("您已被楼主拉黑，无法编辑该评论")
 	}
 
 	// 更新评论

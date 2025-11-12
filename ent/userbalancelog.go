@@ -9,7 +9,6 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 )
 
@@ -45,31 +44,8 @@ type UserBalanceLog struct {
 	// IP地址
 	IPAddress string `json:"ip_address,omitempty"`
 	// 用户代理
-	UserAgent string `json:"user_agent,omitempty"`
-	// Edges holds the relations/edges for other nodes in the graph.
-	// The values are being populated by the UserBalanceLogQuery when eager-loading is set.
-	Edges        UserBalanceLogEdges `json:"edges"`
+	UserAgent    string `json:"user_agent,omitempty"`
 	selectValues sql.SelectValues
-}
-
-// UserBalanceLogEdges holds the relations/edges for other nodes in the graph.
-type UserBalanceLogEdges struct {
-	// User holds the value of the user edge.
-	User *User `json:"user,omitempty"`
-	// loadedTypes holds the information for reporting if a
-	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
-}
-
-// UserOrErr returns the User value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e UserBalanceLogEdges) UserOrErr() (*User, error) {
-	if e.User != nil {
-		return e.User, nil
-	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: user.Label}
-	}
-	return nil, &NotLoadedError{edge: "user"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -199,11 +175,6 @@ func (_m *UserBalanceLog) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (_m *UserBalanceLog) Value(name string) (ent.Value, error) {
 	return _m.selectValues.Get(name)
-}
-
-// QueryUser queries the "user" edge of the UserBalanceLog entity.
-func (_m *UserBalanceLog) QueryUser() *UserQuery {
-	return NewUserBalanceLogClient(_m.config).QueryUser(_m)
 }
 
 // Update returns a builder for updating this UserBalanceLog.
