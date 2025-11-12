@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -30,10 +31,15 @@ func (r *RedisCacheService) getConn() redis.Conn {
 // Get 获取缓存值
 func (r *RedisCacheService) Get(key string) (string, error) {
 	conn := r.getConn()
-	defer conn.Close()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
 
 	value, err := redis.String(conn.Do("GET", key))
-	if err != nil && err != redis.ErrNil {
+	if err != nil && !errors.Is(err, redis.ErrNil) {
 		r.logger.Error("获取缓存失败", zap.String("key", key), zap.Error(err))
 		return "", fmt.Errorf("获取缓存失败: %w", err)
 	}
@@ -43,7 +49,12 @@ func (r *RedisCacheService) Get(key string) (string, error) {
 // Set 设置缓存值（永久有效）
 func (r *RedisCacheService) Set(key string, value interface{}) error {
 	conn := r.getConn()
-	defer conn.Close()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
 
 	_, err := conn.Do("SET", key, value)
 	if err != nil {
@@ -56,7 +67,12 @@ func (r *RedisCacheService) Set(key string, value interface{}) error {
 // SetEx 设置缓存值并指定过期时间（秒）
 func (r *RedisCacheService) SetEx(key string, value interface{}, expiration int) error {
 	conn := r.getConn()
-	defer conn.Close()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
 
 	_, err := conn.Do("SETEX", key, expiration, value)
 	if err != nil {
@@ -78,7 +94,12 @@ func (r *RedisCacheService) Del(keys ...string) (int, error) {
 	}
 
 	conn := r.getConn()
-	defer conn.Close()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
 
 	// 将keys转换为interface{}切片
 	args := make([]interface{}, len(keys))
@@ -97,7 +118,12 @@ func (r *RedisCacheService) Del(keys ...string) (int, error) {
 // Exists 检查缓存是否存在
 func (r *RedisCacheService) Exists(key string) (bool, error) {
 	conn := r.getConn()
-	defer conn.Close()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
 
 	exists, err := redis.Bool(conn.Do("EXISTS", key))
 	if err != nil {
@@ -110,7 +136,12 @@ func (r *RedisCacheService) Exists(key string) (bool, error) {
 // Expire 设置缓存过期时间
 func (r *RedisCacheService) Expire(key string, expiration int) (bool, error) {
 	conn := r.getConn()
-	defer conn.Close()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
 
 	success, err := redis.Bool(conn.Do("EXPIRE", key, expiration))
 	if err != nil {
@@ -123,7 +154,12 @@ func (r *RedisCacheService) Expire(key string, expiration int) (bool, error) {
 // TTL 获取缓存剩余过期时间
 func (r *RedisCacheService) TTL(key string) (int, error) {
 	conn := r.getConn()
-	defer conn.Close()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
 
 	ttl, err := redis.Int(conn.Do("TTL", key))
 	if err != nil {
@@ -136,7 +172,12 @@ func (r *RedisCacheService) TTL(key string) (int, error) {
 // Incr 自增操作
 func (r *RedisCacheService) Incr(key string) (int64, error) {
 	conn := r.getConn()
-	defer conn.Close()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
 
 	value, err := redis.Int64(conn.Do("INCR", key))
 	if err != nil {
@@ -149,7 +190,12 @@ func (r *RedisCacheService) Incr(key string) (int64, error) {
 // Decr 自减操作
 func (r *RedisCacheService) Decr(key string) (int64, error) {
 	conn := r.getConn()
-	defer conn.Close()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
 
 	value, err := redis.Int64(conn.Do("DECR", key))
 	if err != nil {
@@ -162,10 +208,15 @@ func (r *RedisCacheService) Decr(key string) (int64, error) {
 // HGet 获取哈希表字段值
 func (r *RedisCacheService) HGet(key, field string) (string, error) {
 	conn := r.getConn()
-	defer conn.Close()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
 
 	value, err := redis.String(conn.Do("HGET", key, field))
-	if err != nil && err != redis.ErrNil {
+	if err != nil && !errors.Is(err, redis.ErrNil) {
 		r.logger.Error("获取哈希表字段值失败", zap.String("key", key), zap.String("field", field), zap.Error(err))
 		return "", fmt.Errorf("获取哈希表字段值失败: %w", err)
 	}
@@ -175,7 +226,12 @@ func (r *RedisCacheService) HGet(key, field string) (string, error) {
 // HSet 设置哈希表字段值
 func (r *RedisCacheService) HSet(key, field string, value interface{}) error {
 	conn := r.getConn()
-	defer conn.Close()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
 
 	_, err := conn.Do("HSET", key, field, value)
 	if err != nil {
@@ -192,7 +248,12 @@ func (r *RedisCacheService) HDel(key string, fields ...string) (int, error) {
 	}
 
 	conn := r.getConn()
-	defer conn.Close()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
 
 	// 构建参数列表
 	args := make([]interface{}, len(fields)+1)
@@ -212,7 +273,12 @@ func (r *RedisCacheService) HDel(key string, fields ...string) (int, error) {
 // HGetAll 获取哈希表所有字段和值
 func (r *RedisCacheService) HGetAll(key string) (map[string]string, error) {
 	conn := r.getConn()
-	defer conn.Close()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
 
 	values, err := redis.StringMap(conn.Do("HGETALL", key))
 	if err != nil {
