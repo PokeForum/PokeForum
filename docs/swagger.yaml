@@ -155,10 +155,6 @@ definitions:
         description: 版块名称
         example: 技术讨论
         type: string
-      post_count:
-        description: 帖子数量
-        example: 150
-        type: integer
       slug:
         description: 版块英文标识
         example: tech
@@ -222,10 +218,6 @@ definitions:
         description: 版块名称
         example: 技术讨论
         type: string
-      post_count:
-        description: 帖子数量
-        example: 150
-        type: integer
       slug:
         description: 版块英文标识
         example: tech

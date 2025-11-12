@@ -6016,11 +6016,6 @@ const docTemplate = `{
                     "type": "string",
                     "example": "技术讨论"
                 },
-                "post_count": {
-                    "description": "帖子数量",
-                    "type": "integer",
-                    "example": 150
-                },
                 "slug": {
                     "description": "版块英文标识",
                     "type": "string",
@@ -6101,11 +6096,6 @@ const docTemplate = `{
                     "description": "版块名称",
                     "type": "string",
                     "example": "技术讨论"
-                },
-                "post_count": {
-                    "description": "帖子数量",
-                    "type": "integer",
-                    "example": 150
                 },
                 "slug": {
                     "description": "版块英文标识",
