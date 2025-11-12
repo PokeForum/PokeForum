@@ -352,8 +352,6 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 
 	// 获取最近帖子（最近10条）
 	recentPosts, err := s.db.Post.Query().
-		WithAuthor().
-		WithCategory().
 		Order(ent.Desc(post.FieldCreatedAt)).
 		Limit(10).
 		All(ctx)
@@ -363,8 +361,6 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 
 	// 获取最近评论（最近10条）
 	recentComments, err := s.db.Comment.Query().
-		WithAuthor().
-		WithPost().
 		Order(ent.Desc(comment.FieldCreatedAt)).
 		Limit(10).
 		All(ctx)
@@ -381,36 +377,75 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 		return nil, fmt.Errorf("获取新用户失败: %w", err)
 	}
 
+	// 收集需要查询的用户ID和版块ID
+	userIDs := make(map[int]bool)
+	categoryIDs := make(map[int]bool)
+	postIDs := make(map[int]bool)
+	for _, p := range recentPosts {
+		userIDs[p.UserID] = true
+		categoryIDs[p.CategoryID] = true
+	}
+	for _, c := range recentComments {
+		userIDs[c.UserID] = true
+		postIDs[c.PostID] = true
+	}
+
+	// 批量查询用户信息
+	userIDList := make([]int, 0, len(userIDs))
+	for id := range userIDs {
+		userIDList = append(userIDList, id)
+	}
+	users, _ := s.db.User.Query().
+		Where(user.IDIn(userIDList...)).
+		Select(user.FieldID, user.FieldUsername).
+		All(ctx)
+	userMap := make(map[int]string)
+	for _, u := range users {
+		userMap[u.ID] = u.Username
+	}
+
+	// 批量查询版块信息
+	categoryIDList := make([]int, 0, len(categoryIDs))
+	for id := range categoryIDs {
+		categoryIDList = append(categoryIDList, id)
+	}
+	categories, _ := s.db.Category.Query().
+		Where(category.IDIn(categoryIDList...)).
+		Select(category.FieldID, category.FieldName).
+		All(ctx)
+	categoryMap := make(map[int]string)
+	for _, c := range categories {
+		categoryMap[c.ID] = c.Name
+	}
+
+	// 批量查询帖子信息
+	postIDList := make([]int, 0, len(postIDs))
+	for id := range postIDs {
+		postIDList = append(postIDList, id)
+	}
+	posts_data, _ := s.db.Post.Query().
+		Where(post.IDIn(postIDList...)).
+		Select(post.FieldID, post.FieldTitle).
+		All(ctx)
+	postMap := make(map[int]string)
+	for _, p := range posts_data {
+		postMap[p.ID] = p.Title
+	}
+
 	// 转换格式
 	posts := make([]schema.RecentPost, len(recentPosts))
 	for i, p := range recentPosts {
-		username := ""
-		if p.Edges.Author != nil {
-			username = p.Edges.Author.Username
-		}
-		categoryName := ""
-		if p.Edges.Category != nil {
-			categoryName = p.Edges.Category.Name
-		}
 		posts[i] = schema.RecentPost{
 			ID:           p.ID,
 			Title:        p.Title,
-			Username:     username,
-			CategoryName: categoryName,
+			Username:     userMap[p.UserID],
+			CategoryName: categoryMap[p.CategoryID],
 			CreatedAt:    p.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		}
 	}
 
 	comments := make([]schema.RecentComment, len(recentComments))
 	for i, c := range recentComments {
-		username := ""
-		if c.Edges.Author != nil {
-			username = c.Edges.Author.Username
-		}
-		postTitle := ""
-		if c.Edges.Post != nil {
-			postTitle = c.Edges.Post.Title
-		}
 		// 截取评论内容前100字符
 		content := c.Content
 		if len(content) > 100 {
@@ -419,15 +454,15 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 		comments[i] = schema.RecentComment{
 			ID:        c.ID,
 			Content:   content,
-			Username:  username,
-			PostTitle: postTitle,
+			Username:  userMap[c.UserID],
+			PostTitle: postMap[c.PostID],
 			CreatedAt: c.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		}
 	}
 
-	users := make([]schema.NewUser, len(newUsers))
+	newUserList := make([]schema.NewUser, len(newUsers))
 	for i, u := range newUsers {
-		users[i] = schema.NewUser{
+		newUserList[i] = schema.NewUser{
 			ID:        u.ID,
 			Username:  u.Username,
 			Email:     u.Email,
@@ -438,7 +473,7 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 	return &schema.RecentActivityResponse{
 		RecentPosts:    posts,
 		RecentComments: comments,
-		NewUsers:       users,
+		NewUsers:       newUserList,
 	}, nil
 }
 
@@ -448,8 +483,6 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 
 	// 按浏览量排序获取热门帖子
 	popularPosts, err := s.db.Post.Query().
-		WithAuthor().
-		WithCategory().
 		Order(ent.Desc(post.FieldViewCount)).
 		Limit(10).
 		All(ctx)
@@ -457,29 +490,65 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 		return nil, fmt.Errorf("获取热门帖子失败: %w", err)
 	}
 
+	// 收集需要查询的用户ID和版块ID
+	userIDs := make(map[int]bool)
+	categoryIDs := make(map[int]bool)
+	postIDs := make([]int, len(popularPosts))
+	for i, p := range popularPosts {
+		userIDs[p.UserID] = true
+		categoryIDs[p.CategoryID] = true
+		postIDs[i] = p.ID
+	}
+
+	// 批量查询用户信息
+	userIDList := make([]int, 0, len(userIDs))
+	for id := range userIDs {
+		userIDList = append(userIDList, id)
+	}
+	users, _ := s.db.User.Query().
+		Where(user.IDIn(userIDList...)).
+		Select(user.FieldID, user.FieldUsername).
+		All(ctx)
+	userMap := make(map[int]string)
+	for _, u := range users {
+		userMap[u.ID] = u.Username
+	}
+
+	// 批量查询版块信息
+	categoryIDList := make([]int, 0, len(categoryIDs))
+	for id := range categoryIDs {
+		categoryIDList = append(categoryIDList, id)
+	}
+	categories, _ := s.db.Category.Query().
+		Where(category.IDIn(categoryIDList...)).
+		Select(category.FieldID, category.FieldName).
+		All(ctx)
+	categoryMap := make(map[int]string)
+	for _, c := range categories {
+		categoryMap[c.ID] = c.Name
+	}
+
+	// 批量查询评论数
+	// 注意: 这里简化处理，实际应该使用GroupBy优化性能
+	commentCountMap := make(map[int]int)
+	for _, postID := range postIDs {
+		count, _ := s.db.Comment.Query().
+			Where(comment.PostIDEQ(postID)).
+			Count(ctx)
+		commentCountMap[postID] = count
+	}
+
 	// 转换格式
 	posts := make([]schema.PopularPost, len(popularPosts))
 	for i, p := range popularPosts {
-		username := ""
-		if p.Edges.Author != nil {
-			username = p.Edges.Author.Username
-		}
-		categoryName := ""
-		if p.Edges.Category != nil {
-			categoryName = p.Edges.Category.Name
-		}
-
-		// 获取评论数（这里简化处理，实际应该通过关联查询）
-		commentCount := 0 // 需要根据实际评论数统计逻辑实现
-
 		posts[i] = schema.PopularPost{
 			ID:           p.ID,
 			Title:        p.Title,
-			Username:     username,
-			CategoryName: categoryName,
+			Username:     userMap[p.UserID],
+			CategoryName: categoryMap[p.CategoryID],
 			ViewCount:    p.ViewCount,
 			LikeCount:    p.LikeCount,
-			CommentCount: commentCount,
+			CommentCount: commentCountMap[p.ID],
 			CreatedAt:    p.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		}
 	}

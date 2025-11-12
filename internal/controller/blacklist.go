@@ -61,7 +61,7 @@ func (ctrl *BlacklistController) getUserID(c *gin.Context) (int, error) {
 // GetBlacklistList 获取用户黑名单列表
 // @Summary 获取用户黑名单列表
 // @Description 获取当前用户的黑名单列表，支持分页
-// @Tags 黑名单管理
+// @Tags [用户]黑名单管理
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
@@ -112,7 +112,7 @@ func (ctrl *BlacklistController) GetBlacklistList(c *gin.Context) {
 // AddToBlacklist 添加用户到黑名单
 // @Summary 添加用户到黑名单
 // @Description 将指定用户添加到当前用户的黑名单中
-// @Tags 黑名单管理
+// @Tags [用户]黑名单管理
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
@@ -161,7 +161,7 @@ func (ctrl *BlacklistController) AddToBlacklist(c *gin.Context) {
 // RemoveFromBlacklist 从黑名单移除用户
 // @Summary 从黑名单移除用户
 // @Description 将指定用户从当前用户的黑名单中移除
-// @Tags 黑名单管理
+// @Tags [用户]黑名单管理
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth

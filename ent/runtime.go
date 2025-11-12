@@ -7,6 +7,7 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent/blacklist"
 	"github.com/PokeForum/PokeForum/ent/category"
+	"github.com/PokeForum/PokeForum/ent/categorymoderator"
 	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/commentaction"
 	"github.com/PokeForum/PokeForum/ent/post"
@@ -80,6 +81,33 @@ func init() {
 	categoryDescID := categoryFields[0].Descriptor()
 	// category.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	category.IDValidator = categoryDescID.Validators[0].(func(int) error)
+	categorymoderatorMixin := schema.CategoryModerator{}.Mixin()
+	categorymoderatorMixinFields0 := categorymoderatorMixin[0].Fields()
+	_ = categorymoderatorMixinFields0
+	categorymoderatorFields := schema.CategoryModerator{}.Fields()
+	_ = categorymoderatorFields
+	// categorymoderatorDescCreatedAt is the schema descriptor for created_at field.
+	categorymoderatorDescCreatedAt := categorymoderatorMixinFields0[0].Descriptor()
+	// categorymoderator.DefaultCreatedAt holds the default value on creation for the created_at field.
+	categorymoderator.DefaultCreatedAt = categorymoderatorDescCreatedAt.Default.(func() time.Time)
+	// categorymoderatorDescUpdatedAt is the schema descriptor for updated_at field.
+	categorymoderatorDescUpdatedAt := categorymoderatorMixinFields0[1].Descriptor()
+	// categorymoderator.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	categorymoderator.DefaultUpdatedAt = categorymoderatorDescUpdatedAt.Default.(func() time.Time)
+	// categorymoderator.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	categorymoderator.UpdateDefaultUpdatedAt = categorymoderatorDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// categorymoderatorDescCategoryID is the schema descriptor for category_id field.
+	categorymoderatorDescCategoryID := categorymoderatorFields[1].Descriptor()
+	// categorymoderator.CategoryIDValidator is a validator for the "category_id" field. It is called by the builders before save.
+	categorymoderator.CategoryIDValidator = categorymoderatorDescCategoryID.Validators[0].(func(int) error)
+	// categorymoderatorDescUserID is the schema descriptor for user_id field.
+	categorymoderatorDescUserID := categorymoderatorFields[2].Descriptor()
+	// categorymoderator.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	categorymoderator.UserIDValidator = categorymoderatorDescUserID.Validators[0].(func(int) error)
+	// categorymoderatorDescID is the schema descriptor for id field.
+	categorymoderatorDescID := categorymoderatorFields[0].Descriptor()
+	// categorymoderator.IDValidator is a validator for the "id" field. It is called by the builders before save.
+	categorymoderator.IDValidator = categorymoderatorDescID.Validators[0].(func(int) error)
 	commentMixin := schema.Comment{}.Mixin()
 	commentMixinFields0 := commentMixin[0].Fields()
 	_ = commentMixinFields0

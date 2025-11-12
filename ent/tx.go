@@ -16,6 +16,8 @@ type Tx struct {
 	Blacklist *BlacklistClient
 	// Category is the client for interacting with the Category builders.
 	Category *CategoryClient
+	// CategoryModerator is the client for interacting with the CategoryModerator builders.
+	CategoryModerator *CategoryModeratorClient
 	// Comment is the client for interacting with the Comment builders.
 	Comment *CommentClient
 	// CommentAction is the client for interacting with the CommentAction builders.
@@ -165,6 +167,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.Blacklist = NewBlacklistClient(tx.config)
 	tx.Category = NewCategoryClient(tx.config)
+	tx.CategoryModerator = NewCategoryModeratorClient(tx.config)
 	tx.Comment = NewCommentClient(tx.config)
 	tx.CommentAction = NewCommentActionClient(tx.config)
 	tx.Post = NewPostClient(tx.config)

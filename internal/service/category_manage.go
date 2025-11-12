@@ -7,6 +7,7 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/category"
+	"github.com/PokeForum/PokeForum/ent/categorymoderator"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
@@ -281,10 +282,13 @@ func (s *CategoryManageService) GetCategoryDetail(ctx context.Context, id int) (
 
 // SetCategoryModerators 设置版块版主
 func (s *CategoryManageService) SetCategoryModerators(ctx context.Context, req schema.CategoryModeratorRequest) error {
-	s.logger.Info("设置版块版主", zap.Int("category_id", req.CategoryID), zap.Ints("user_ids", req.UserIDs), tracing.WithTraceIDField(ctx))
+	s.logger.Info("设置版块版主", 
+		zap.Int("category_id", req.CategoryID), 
+		zap.Int("user_id", req.UserID),
+		tracing.WithTraceIDField(ctx))
 
 	// 检查版块是否存在
-	categories, err := s.db.Category.Get(ctx, req.CategoryID)
+	_, err := s.db.Category.Get(ctx, req.CategoryID)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return errors.New("版块不存在")
@@ -293,45 +297,122 @@ func (s *CategoryManageService) SetCategoryModerators(ctx context.Context, req s
 		return fmt.Errorf("获取版块失败: %w", err)
 	}
 
-	// 检查所有用户是否存在且是版主身份
-	users, err := s.db.User.Query().
+	// 检查用户是否存在且是版主身份
+	userExists, err := s.db.User.Query().
 		Where(
 			user.And(
-				user.IDIn(req.UserIDs...),
+				user.IDEQ(req.UserID),
 				user.RoleEQ(user.RoleModerator),
 			),
 		).
-		All(ctx)
+		Exist(ctx)
 	if err != nil {
-		s.logger.Error("获取用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return fmt.Errorf("获取用户失败: %w", err)
+		s.logger.Error("检查用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("检查用户失败: %w", err)
+	}
+	if !userExists {
+		return errors.New("用户不存在或不是版主身份")
 	}
 
-	if len(users) != len(req.UserIDs) {
-		return errors.New("部分用户不存在或不是版主身份")
-	}
-
-	// 清除现有的版主关联
-	_, err = s.db.Category.UpdateOne(categories).
-		ClearModerators().
-		Save(ctx)
+	// 使用事务确保数据一致性
+	tx, err := s.db.Tx(ctx)
 	if err != nil {
-		s.logger.Error("清除版块版主失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return fmt.Errorf("清除版块版主失败: %w", err)
+		s.logger.Error("开启事务失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("开启事务失败: %w", err)
 	}
 
-	// 添加新的版主关联
-	if len(req.UserIDs) > 0 {
-		_, err = s.db.Category.UpdateOne(categories).
-			AddModeratorIDs(req.UserIDs...).
+	// 检查该用户是否已经是该版块的版主
+	existsModerator, err := tx.CategoryModerator.Query().
+		Where(
+			categorymoderator.And(
+				categorymoderator.CategoryIDEQ(req.CategoryID),
+				categorymoderator.UserIDEQ(req.UserID),
+			),
+		).
+		Exist(ctx)
+	if err != nil {
+		tx.Rollback()
+		s.logger.Error("检查版主关联失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("检查版主关联失败: %w", err)
+	}
+
+	// 如果不是版主，则添加版主关联
+	if !existsModerator {
+		_, err = tx.CategoryModerator.Create().
+			SetCategoryID(req.CategoryID).
+			SetUserID(req.UserID).
 			Save(ctx)
 		if err != nil {
-			s.logger.Error("设置版块版主失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-			return fmt.Errorf("设置版块版主失败: %w", err)
+			tx.Rollback()
+			s.logger.Error("添加版主关联记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			return fmt.Errorf("添加版主关联记录失败: %w", err)
 		}
 	}
 
-	s.logger.Info("版块版主设置成功", zap.Int("category_id", req.CategoryID), tracing.WithTraceIDField(ctx))
+	// 提交事务
+	if err = tx.Commit(); err != nil {
+		s.logger.Error("提交事务失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("提交事务失败: %w", err)
+	}
+
+	s.logger.Info("版块版主设置成功",
+		zap.Int("category_id", req.CategoryID),
+		zap.Int("user_id", req.UserID),
+		tracing.WithTraceIDField(ctx))
+	return nil
+}
+
+// RemoveCategoryModerator 移除版块版主
+func (s *CategoryManageService) RemoveCategoryModerator(ctx context.Context, req schema.CategoryModeratorRequest) error {
+	s.logger.Info("移除版块版主", 
+		zap.Int("category_id", req.CategoryID), 
+		zap.Int("user_id", req.UserID),
+		tracing.WithTraceIDField(ctx))
+
+	// 检查版块是否存在
+	_, err := s.db.Category.Get(ctx, req.CategoryID)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return errors.New("版块不存在")
+		}
+		s.logger.Error("获取版块失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("获取版块失败: %w", err)
+	}
+
+	// 检查用户是否存在
+	userExists, err := s.db.User.Query().
+		Where(user.IDEQ(req.UserID)).
+		Exist(ctx)
+	if err != nil {
+		s.logger.Error("检查用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("检查用户失败: %w", err)
+	}
+	if !userExists {
+		return errors.New("用户不存在")
+	}
+
+	// 删除版主关联记录
+	affected, err := s.db.CategoryModerator.Delete().
+		Where(
+			categorymoderator.And(
+				categorymoderator.CategoryIDEQ(req.CategoryID),
+				categorymoderator.UserIDEQ(req.UserID),
+			),
+		).
+		Exec(ctx)
+	if err != nil {
+		s.logger.Error("删除版主关联记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("删除版主关联记录失败: %w", err)
+	}
+
+	if affected == 0 {
+		return errors.New("该用户不是该版块的版主")
+	}
+
+	s.logger.Info("版块版主移除成功",
+		zap.Int("category_id", req.CategoryID),
+		zap.Int("user_id", req.UserID),
+		tracing.WithTraceIDField(ctx))
 	return nil
 }
 

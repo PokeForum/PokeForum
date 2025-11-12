@@ -69,9 +69,6 @@ func (s *BlacklistService) GetUserBlacklist(ctx context.Context, userID int, pag
 	// 查询黑名单列表
 	blacklistItems, err := s.db.Blacklist.Query().
 		Where(blacklist.UserIDEQ(userID)).
-		WithBlockedUser(func(query *ent.UserQuery) {
-			query.Select(user.FieldID, user.FieldUsername, user.FieldAvatar)
-		}).
 		Order(ent.Desc(blacklist.FieldCreatedAt)).
 		Offset(offset).
 		Limit(pageSize).
@@ -85,10 +82,38 @@ func (s *BlacklistService) GetUserBlacklist(ctx context.Context, userID int, pag
 		return nil, fmt.Errorf("查询黑名单列表失败: %w", err)
 	}
 
+	// 收集所有被拉黑用户的ID
+	blockedUserIDs := make([]int, len(blacklistItems))
+	for i, item := range blacklistItems {
+		blockedUserIDs[i] = item.BlockedUserID
+	}
+
+	// 批量查询被拉黑用户信息
+	blockedUsers, err := s.db.User.Query().
+		Where(user.IDIn(blockedUserIDs...)).
+		Select(user.FieldID, user.FieldUsername, user.FieldAvatar).
+		All(ctx)
+	if err != nil {
+		s.logger.Error("查询被拉黑用户信息失败",
+			tracing.WithTraceIDField(ctx),
+			zap.Error(err),
+		)
+		return nil, fmt.Errorf("查询被拉黑用户信息失败: %w", err)
+	}
+
+	// 创建用户ID到用户信息的映射
+	userMap := make(map[int]*ent.User)
+	for _, u := range blockedUsers {
+		userMap[u.ID] = u
+	}
+
 	// 构建响应数据
 	list := make([]schema.UserBlacklistItem, 0, len(blacklistItems))
 	for _, item := range blacklistItems {
-		blockedUser := item.Edges.BlockedUser
+		blockedUser := userMap[item.BlockedUserID]
+		if blockedUser == nil {
+			continue // 用户不存在，跳过
+		}
 
 		listItem := schema.UserBlacklistItem{
 			ID:              item.ID,

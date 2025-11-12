@@ -8,6 +8,7 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/category"
+	"github.com/PokeForum/PokeForum/ent/categorymoderator"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
@@ -291,11 +292,11 @@ func (s *UserManageService) UpdateUserRole(ctx context.Context, req schema.UserR
 		return fmt.Errorf("更新用户身份失败: %w", err)
 	}
 
-	// 如果用户不再是版主，清除其管理的版块
+	// 如果用户不再是版主，清除其管理的版块（通过中间表）
 	if user.Role(req.Role) != user.RoleModerator {
-		_, err = s.db.User.UpdateOne(existingUser).
-			ClearManagedCategories().
-			Save(ctx)
+		_, err = s.db.CategoryModerator.Delete().
+			Where(categorymoderator.UserIDEQ(req.ID)).
+			Exec(ctx)
 		if err != nil {
 			s.logger.Error("清除用户管理版块失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 			return fmt.Errorf("清除用户管理版块失败: %w", err)
@@ -445,14 +446,44 @@ func (s *UserManageService) SetModeratorCategories(ctx context.Context, req sche
 		return errors.New("部分版块不存在")
 	}
 
-	// 更新用户管理的版块
-	_, err = s.db.User.UpdateOne(existingUser).
-		ClearManagedCategories().
-		AddManagedCategories(categories...).
-		Save(ctx)
+	// 使用事务更新版主管理的版块（通过中间表）
+	tx, err := s.db.Tx(ctx)
 	if err != nil {
-		s.logger.Error("设置版主管理版块失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return fmt.Errorf("设置版主管理版块失败: %w", err)
+		s.logger.Error("开启事务失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("开启事务失败: %w", err)
+	}
+
+	// 删除旧的版主关联记录
+	_, err = tx.CategoryModerator.Delete().
+		Where(categorymoderator.UserIDEQ(req.UserID)).
+		Exec(ctx)
+	if err != nil {
+		tx.Rollback()
+		s.logger.Error("删除旧版主关联记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("删除旧版主关联记录失败: %w", err)
+	}
+
+	// 批量插入新的版主关联记录
+	if len(req.CategoryIDs) > 0 {
+		bulk := make([]*ent.CategoryModeratorCreate, len(req.CategoryIDs))
+		for i, categoryID := range req.CategoryIDs {
+			bulk[i] = tx.CategoryModerator.Create().
+				SetCategoryID(categoryID).
+				SetUserID(req.UserID)
+		}
+
+		_, err = tx.CategoryModerator.CreateBulk(bulk...).Save(ctx)
+		if err != nil {
+			tx.Rollback()
+			s.logger.Error("批量插入版主关联记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			return fmt.Errorf("批量插入版主关联记录失败: %w", err)
+		}
+	}
+
+	// 提交事务
+	if err = tx.Commit(); err != nil {
+		s.logger.Error("提交事务失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("提交事务失败: %w", err)
 	}
 
 	s.logger.Info("版主管理版块设置成功", zap.Int("user_id", req.UserID), zap.String("reason", req.Reason), tracing.WithTraceIDField(ctx))
@@ -466,7 +497,6 @@ func (s *UserManageService) GetUserDetail(ctx context.Context, id int) (*schema.
 	// 获取用户信息
 	u, err := s.db.User.Query().
 		Where(user.ID(id)).
-		WithManagedCategories().
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -476,15 +506,33 @@ func (s *UserManageService) GetUserDetail(ctx context.Context, id int) (*schema.
 		return nil, fmt.Errorf("获取用户详情失败: %w", err)
 	}
 
-	// 构建管理的版块列表
+	// 通过中间表查询管理的版块
 	managedCategories := make([]schema.CategoryBasicInfo, 0)
-	if u.Edges.ManagedCategories != nil {
-		for _, cat := range u.Edges.ManagedCategories {
-			managedCategories = append(managedCategories, schema.CategoryBasicInfo{
-				ID:   cat.ID,
-				Name: cat.Name,
-				Slug: cat.Slug,
-			})
+	if u.Role == user.RoleModerator {
+		// 查询版主关联记录
+		moderatorRecords, err := s.db.CategoryModerator.Query().
+			Where(categorymoderator.UserIDEQ(id)).
+			All(ctx)
+		if err == nil && len(moderatorRecords) > 0 {
+			// 收集版块ID
+			categoryIDs := make([]int, len(moderatorRecords))
+			for i, record := range moderatorRecords {
+				categoryIDs[i] = record.CategoryID
+			}
+
+			// 批量查询版块信息
+			categories, err := s.db.Category.Query().
+				Where(category.IDIn(categoryIDs...)).
+				All(ctx)
+			if err == nil {
+				for _, cat := range categories {
+					managedCategories = append(managedCategories, schema.CategoryBasicInfo{
+						ID:   cat.ID,
+						Name: cat.Name,
+						Slug: cat.Slug,
+					})
+				}
+			}
 		}
 	}
 
@@ -550,8 +598,7 @@ func (s *UserManageService) GetUserBalanceLog(ctx context.Context, req schema.Us
 	s.logger.Info("获取用户余额变动记录", zap.Int("user_id", req.UserID), tracing.WithTraceIDField(ctx))
 
 	// 构建查询条件
-	query := s.db.UserBalanceLog.Query().
-		WithUser()
+	query := s.db.UserBalanceLog.Query()
 
 	// 用户ID筛选
 	if req.UserID > 0 {
@@ -606,12 +653,33 @@ func (s *UserManageService) GetUserBalanceLog(ctx context.Context, req schema.Us
 		return nil, fmt.Errorf("获取余额变动记录失败: %w", err)
 	}
 
+	// 收集用户ID
+	userIDs := make(map[int]bool)
+	for _, log := range logs {
+		userIDs[log.UserID] = true
+	}
+
+	// 批量查询用户信息
+	userIDList := make([]int, 0, len(userIDs))
+	for id := range userIDs {
+		userIDList = append(userIDList, id)
+	}
+	users, _ := s.db.User.Query().
+		Where(user.IDIn(userIDList...)).
+		Select(user.FieldID, user.FieldUsername).
+		All(ctx)
+	userMap := make(map[int]string)
+	for _, u := range users {
+		userMap[u.ID] = u.Username
+	}
+
 	// 转换响应数据
 	list := make([]schema.UserBalanceLogItem, len(logs))
 	for i, log := range logs {
 		item := schema.UserBalanceLogItem{
 			ID:           log.ID,
 			UserID:       log.UserID,
+			Username:     userMap[log.UserID],
 			Type:         log.Type.String(),
 			Amount:       log.Amount,
 			BeforeAmount: log.BeforeAmount,
@@ -623,11 +691,6 @@ func (s *UserManageService) GetUserBalanceLog(ctx context.Context, req schema.Us
 			RelatedType:  log.RelatedType,
 			IPAddress:    log.IPAddress,
 			CreatedAt:    log.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		}
-
-		// 获取用户名
-		if log.Edges.User != nil {
-			item.Username = log.Edges.User.Username
 		}
 
 		list[i] = item

@@ -75,6 +75,6 @@ type CategoryDetailResponse struct {
 // CategoryModeratorRequest 设置版块版主请求体
 type CategoryModeratorRequest struct {
 	CategoryID int    `json:"category_id" binding:"required" example:"1"` // 版块ID
-	UserIDs    []int  `json:"user_ids" binding:"required"`                // 用户ID列表
+	UserID     int    `json:"user_id" binding:"required" example:"10"`    // 版主用户ID
 	Reason     string `json:"reason" example:"版主任命"`                      // 操作原因
 }

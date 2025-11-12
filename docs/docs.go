@@ -4046,7 +4046,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "黑名单管理"
+                    "[用户]黑名单管理"
                 ],
                 "summary": "添加用户到黑名单",
                 "parameters": [
@@ -4127,7 +4127,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "黑名单管理"
+                    "[用户]黑名单管理"
                 ],
                 "summary": "获取用户黑名单列表",
                 "parameters": [
@@ -4201,7 +4201,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "黑名单管理"
+                    "[用户]黑名单管理"
                 ],
                 "summary": "从黑名单移除用户",
                 "parameters": [
@@ -5790,7 +5790,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "category_id",
-                "user_ids"
+                "user_id"
             ],
             "properties": {
                 "category_id": {
@@ -5803,12 +5803,10 @@ const docTemplate = `{
                     "type": "string",
                     "example": "版主任命"
                 },
-                "user_ids": {
-                    "description": "用户ID列表",
-                    "type": "array",
-                    "items": {
-                        "type": "integer"
-                    }
+                "user_id": {
+                    "description": "版主用户ID",
+                    "type": "integer",
+                    "example": 10
                 }
             }
         },

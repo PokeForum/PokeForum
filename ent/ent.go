@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/PokeForum/PokeForum/ent/blacklist"
 	"github.com/PokeForum/PokeForum/ent/category"
+	"github.com/PokeForum/PokeForum/ent/categorymoderator"
 	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/commentaction"
 	"github.com/PokeForum/PokeForum/ent/post"
@@ -82,16 +83,17 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			blacklist.Table:      blacklist.ValidColumn,
-			category.Table:       category.ValidColumn,
-			comment.Table:        comment.ValidColumn,
-			commentaction.Table:  commentaction.ValidColumn,
-			post.Table:           post.ValidColumn,
-			postaction.Table:     postaction.ValidColumn,
-			settings.Table:       settings.ValidColumn,
-			user.Table:           user.ValidColumn,
-			userbalancelog.Table: userbalancelog.ValidColumn,
-			userloginlog.Table:   userloginlog.ValidColumn,
+			blacklist.Table:         blacklist.ValidColumn,
+			category.Table:          category.ValidColumn,
+			categorymoderator.Table: categorymoderator.ValidColumn,
+			comment.Table:           comment.ValidColumn,
+			commentaction.Table:     commentaction.ValidColumn,
+			post.Table:              post.ValidColumn,
+			postaction.Table:        postaction.ValidColumn,
+			settings.Table:          settings.ValidColumn,
+			user.Table:              user.ValidColumn,
+			userbalancelog.Table:    userbalancelog.ValidColumn,
+			userloginlog.Table:      userloginlog.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

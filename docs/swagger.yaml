@@ -270,14 +270,13 @@ definitions:
         description: 操作原因
         example: 版主任命
         type: string
-      user_ids:
-        description: 用户ID列表
-        items:
-          type: integer
-        type: array
+      user_id:
+        description: 版主用户ID
+        example: 10
+        type: integer
     required:
     - category_id
-    - user_ids
+    - user_id
     type: object
   schema.CategoryStats:
     properties:
@@ -5794,7 +5793,7 @@ paths:
       - ApiKeyAuth: []
       summary: 添加用户到黑名单
       tags:
-      - 黑名单管理
+      - '[用户]黑名单管理'
   /profile/blacklist/list:
     get:
       consumes:
@@ -5839,7 +5838,7 @@ paths:
       - ApiKeyAuth: []
       summary: 获取用户黑名单列表
       tags:
-      - 黑名单管理
+      - '[用户]黑名单管理'
   /profile/blacklist/remove:
     delete:
       consumes:
@@ -5884,7 +5883,7 @@ paths:
       - ApiKeyAuth: []
       summary: 从黑名单移除用户
       tags:
-      - 黑名单管理
+      - '[用户]黑名单管理'
   /profile/comments:
     get:
       consumes:

@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/PokeForum/PokeForum/ent/blacklist"
 	"github.com/PokeForum/PokeForum/ent/category"
+	"github.com/PokeForum/PokeForum/ent/categorymoderator"
 	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/commentaction"
 	"github.com/PokeForum/PokeForum/ent/post"
@@ -35,6 +36,8 @@ type Client struct {
 	Blacklist *BlacklistClient
 	// Category is the client for interacting with the Category builders.
 	Category *CategoryClient
+	// CategoryModerator is the client for interacting with the CategoryModerator builders.
+	CategoryModerator *CategoryModeratorClient
 	// Comment is the client for interacting with the Comment builders.
 	Comment *CommentClient
 	// CommentAction is the client for interacting with the CommentAction builders.
@@ -64,6 +67,7 @@ func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Blacklist = NewBlacklistClient(c.config)
 	c.Category = NewCategoryClient(c.config)
+	c.CategoryModerator = NewCategoryModeratorClient(c.config)
 	c.Comment = NewCommentClient(c.config)
 	c.CommentAction = NewCommentActionClient(c.config)
 	c.Post = NewPostClient(c.config)
@@ -162,18 +166,19 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:            ctx,
-		config:         cfg,
-		Blacklist:      NewBlacklistClient(cfg),
-		Category:       NewCategoryClient(cfg),
-		Comment:        NewCommentClient(cfg),
-		CommentAction:  NewCommentActionClient(cfg),
-		Post:           NewPostClient(cfg),
-		PostAction:     NewPostActionClient(cfg),
-		Settings:       NewSettingsClient(cfg),
-		User:           NewUserClient(cfg),
-		UserBalanceLog: NewUserBalanceLogClient(cfg),
-		UserLoginLog:   NewUserLoginLogClient(cfg),
+		ctx:               ctx,
+		config:            cfg,
+		Blacklist:         NewBlacklistClient(cfg),
+		Category:          NewCategoryClient(cfg),
+		CategoryModerator: NewCategoryModeratorClient(cfg),
+		Comment:           NewCommentClient(cfg),
+		CommentAction:     NewCommentActionClient(cfg),
+		Post:              NewPostClient(cfg),
+		PostAction:        NewPostActionClient(cfg),
+		Settings:          NewSettingsClient(cfg),
+		User:              NewUserClient(cfg),
+		UserBalanceLog:    NewUserBalanceLogClient(cfg),
+		UserLoginLog:      NewUserLoginLogClient(cfg),
 	}, nil
 }
 
@@ -191,18 +196,19 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:            ctx,
-		config:         cfg,
-		Blacklist:      NewBlacklistClient(cfg),
-		Category:       NewCategoryClient(cfg),
-		Comment:        NewCommentClient(cfg),
-		CommentAction:  NewCommentActionClient(cfg),
-		Post:           NewPostClient(cfg),
-		PostAction:     NewPostActionClient(cfg),
-		Settings:       NewSettingsClient(cfg),
-		User:           NewUserClient(cfg),
-		UserBalanceLog: NewUserBalanceLogClient(cfg),
-		UserLoginLog:   NewUserLoginLogClient(cfg),
+		ctx:               ctx,
+		config:            cfg,
+		Blacklist:         NewBlacklistClient(cfg),
+		Category:          NewCategoryClient(cfg),
+		CategoryModerator: NewCategoryModeratorClient(cfg),
+		Comment:           NewCommentClient(cfg),
+		CommentAction:     NewCommentActionClient(cfg),
+		Post:              NewPostClient(cfg),
+		PostAction:        NewPostActionClient(cfg),
+		Settings:          NewSettingsClient(cfg),
+		User:              NewUserClient(cfg),
+		UserBalanceLog:    NewUserBalanceLogClient(cfg),
+		UserLoginLog:      NewUserLoginLogClient(cfg),
 	}, nil
 }
 
@@ -232,8 +238,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Blacklist, c.Category, c.Comment, c.CommentAction, c.Post, c.PostAction,
-		c.Settings, c.User, c.UserBalanceLog, c.UserLoginLog,
+		c.Blacklist, c.Category, c.CategoryModerator, c.Comment, c.CommentAction,
+		c.Post, c.PostAction, c.Settings, c.User, c.UserBalanceLog, c.UserLoginLog,
 	} {
 		n.Use(hooks...)
 	}
@@ -243,8 +249,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Blacklist, c.Category, c.Comment, c.CommentAction, c.Post, c.PostAction,
-		c.Settings, c.User, c.UserBalanceLog, c.UserLoginLog,
+		c.Blacklist, c.Category, c.CategoryModerator, c.Comment, c.CommentAction,
+		c.Post, c.PostAction, c.Settings, c.User, c.UserBalanceLog, c.UserLoginLog,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -257,6 +263,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Blacklist.mutate(ctx, m)
 	case *CategoryMutation:
 		return c.Category.mutate(ctx, m)
+	case *CategoryModeratorMutation:
+		return c.CategoryModerator.mutate(ctx, m)
 	case *CommentMutation:
 		return c.Comment.mutate(ctx, m)
 	case *CommentActionMutation:
@@ -541,6 +549,139 @@ func (c *CategoryClient) mutate(ctx context.Context, m *CategoryMutation) (Value
 		return (&CategoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Category mutation op: %q", m.Op())
+	}
+}
+
+// CategoryModeratorClient is a client for the CategoryModerator schema.
+type CategoryModeratorClient struct {
+	config
+}
+
+// NewCategoryModeratorClient returns a client for the CategoryModerator from the given config.
+func NewCategoryModeratorClient(c config) *CategoryModeratorClient {
+	return &CategoryModeratorClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `categorymoderator.Hooks(f(g(h())))`.
+func (c *CategoryModeratorClient) Use(hooks ...Hook) {
+	c.hooks.CategoryModerator = append(c.hooks.CategoryModerator, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `categorymoderator.Intercept(f(g(h())))`.
+func (c *CategoryModeratorClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CategoryModerator = append(c.inters.CategoryModerator, interceptors...)
+}
+
+// Create returns a builder for creating a CategoryModerator entity.
+func (c *CategoryModeratorClient) Create() *CategoryModeratorCreate {
+	mutation := newCategoryModeratorMutation(c.config, OpCreate)
+	return &CategoryModeratorCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CategoryModerator entities.
+func (c *CategoryModeratorClient) CreateBulk(builders ...*CategoryModeratorCreate) *CategoryModeratorCreateBulk {
+	return &CategoryModeratorCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CategoryModeratorClient) MapCreateBulk(slice any, setFunc func(*CategoryModeratorCreate, int)) *CategoryModeratorCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CategoryModeratorCreateBulk{err: fmt.Errorf("calling to CategoryModeratorClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CategoryModeratorCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CategoryModeratorCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CategoryModerator.
+func (c *CategoryModeratorClient) Update() *CategoryModeratorUpdate {
+	mutation := newCategoryModeratorMutation(c.config, OpUpdate)
+	return &CategoryModeratorUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CategoryModeratorClient) UpdateOne(_m *CategoryModerator) *CategoryModeratorUpdateOne {
+	mutation := newCategoryModeratorMutation(c.config, OpUpdateOne, withCategoryModerator(_m))
+	return &CategoryModeratorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CategoryModeratorClient) UpdateOneID(id int) *CategoryModeratorUpdateOne {
+	mutation := newCategoryModeratorMutation(c.config, OpUpdateOne, withCategoryModeratorID(id))
+	return &CategoryModeratorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CategoryModerator.
+func (c *CategoryModeratorClient) Delete() *CategoryModeratorDelete {
+	mutation := newCategoryModeratorMutation(c.config, OpDelete)
+	return &CategoryModeratorDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CategoryModeratorClient) DeleteOne(_m *CategoryModerator) *CategoryModeratorDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CategoryModeratorClient) DeleteOneID(id int) *CategoryModeratorDeleteOne {
+	builder := c.Delete().Where(categorymoderator.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CategoryModeratorDeleteOne{builder}
+}
+
+// Query returns a query builder for CategoryModerator.
+func (c *CategoryModeratorClient) Query() *CategoryModeratorQuery {
+	return &CategoryModeratorQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCategoryModerator},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CategoryModerator entity by its id.
+func (c *CategoryModeratorClient) Get(ctx context.Context, id int) (*CategoryModerator, error) {
+	return c.Query().Where(categorymoderator.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CategoryModeratorClient) GetX(ctx context.Context, id int) *CategoryModerator {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *CategoryModeratorClient) Hooks() []Hook {
+	return c.hooks.CategoryModerator
+}
+
+// Interceptors returns the client interceptors.
+func (c *CategoryModeratorClient) Interceptors() []Interceptor {
+	return c.inters.CategoryModerator
+}
+
+func (c *CategoryModeratorClient) mutate(ctx context.Context, m *CategoryModeratorMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CategoryModeratorCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CategoryModeratorUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CategoryModeratorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CategoryModeratorDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown CategoryModerator mutation op: %q", m.Op())
 	}
 }
 
@@ -1611,11 +1752,11 @@ func (c *UserLoginLogClient) mutate(ctx context.Context, m *UserLoginLogMutation
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Blacklist, Category, Comment, CommentAction, Post, PostAction, Settings, User,
-		UserBalanceLog, UserLoginLog []ent.Hook
+		Blacklist, Category, CategoryModerator, Comment, CommentAction, Post,
+		PostAction, Settings, User, UserBalanceLog, UserLoginLog []ent.Hook
 	}
 	inters struct {
-		Blacklist, Category, Comment, CommentAction, Post, PostAction, Settings, User,
-		UserBalanceLog, UserLoginLog []ent.Interceptor
+		Blacklist, Category, CategoryModerator, Comment, CommentAction, Post,
+		PostAction, Settings, User, UserBalanceLog, UserLoginLog []ent.Interceptor
 	}
 )

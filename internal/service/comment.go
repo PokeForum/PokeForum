@@ -389,8 +389,6 @@ func (s *CommentService) GetCommentList(ctx context.Context, req schema.UserComm
 
 	// 分页查询
 	comments, err := query.
-		WithAuthor().
-		WithReplyToUser().
 		Offset((req.Page - 1) * req.PageSize).
 		Limit(req.PageSize).
 		All(ctx)
@@ -399,17 +397,48 @@ func (s *CommentService) GetCommentList(ctx context.Context, req schema.UserComm
 		return nil, fmt.Errorf("获取评论列表失败: %w", err)
 	}
 
+	// 收集所有需要查询的用户ID
+	userIDs := make(map[int]bool)
+	for _, c := range comments {
+		userIDs[c.UserID] = true
+		if c.ReplyToUserID != 0 {
+			userIDs[c.ReplyToUserID] = true
+		}
+	}
+
+	// 批量查询用户信息
+	userIDList := make([]int, 0, len(userIDs))
+	for id := range userIDs {
+		userIDList = append(userIDList, id)
+	}
+	users, err := s.db.User.Query().
+		Where(user.IDIn(userIDList...)).
+		Select(user.FieldID, user.FieldUsername).
+		All(ctx)
+	if err != nil {
+		s.logger.Error("查询用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("查询用户信息失败: %w", err)
+	}
+
+	// 创建用户ID到用户名的映射
+	userMap := make(map[int]string)
+	for _, u := range users {
+		userMap[u.ID] = u.Username
+	}
+
 	// 构建响应数据
 	list := make([]schema.UserCommentListItem, len(comments))
 	for i, commentData := range comments {
 		username := "未知用户"
-		if commentData.Edges.Author != nil {
-			username = commentData.Edges.Author.Username
+		if name, ok := userMap[commentData.UserID]; ok {
+			username = name
 		}
 
 		replyToUsername := ""
-		if commentData.Edges.ReplyToUser != nil {
-			replyToUsername = commentData.Edges.ReplyToUser.Username
+		if commentData.ReplyToUserID != 0 {
+			if name, ok := userMap[commentData.ReplyToUserID]; ok {
+				replyToUsername = name
+			}
 		}
 
 		list[i] = schema.UserCommentListItem{
@@ -455,8 +484,6 @@ func (s *CommentService) GetCommentDetail(ctx context.Context, commentID int) (*
 	// 查询评论详情
 	commentData, err := s.db.Comment.Query().
 		Where(comment.IDEQ(commentID)).
-		WithAuthor().
-		WithReplyToUser().
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -466,16 +493,26 @@ func (s *CommentService) GetCommentDetail(ctx context.Context, commentID int) (*
 		return nil, fmt.Errorf("获取评论详情失败: %w", err)
 	}
 
-	// 获取用户名
+	// 查询作者信息
 	username := "未知用户"
-	if commentData.Edges.Author != nil {
-		username = commentData.Edges.Author.Username
+	author, err := s.db.User.Query().
+		Where(user.IDEQ(commentData.UserID)).
+		Select(user.FieldUsername).
+		Only(ctx)
+	if err == nil {
+		username = author.Username
 	}
 
-	// 获取回复目标用户名
+	// 查询回复目标用户名
 	replyToUsername := ""
-	if commentData.Edges.ReplyToUser != nil {
-		replyToUsername = commentData.Edges.ReplyToUser.Username
+	if commentData.ReplyToUserID != 0 {
+		replyToUser, err := s.db.User.Query().
+			Where(user.IDEQ(commentData.ReplyToUserID)).
+			Select(user.FieldUsername).
+			Only(ctx)
+		if err == nil {
+			replyToUsername = replyToUser.Username
+		}
 	}
 
 	// 构建响应数据

@@ -7,6 +7,7 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/category"
+	"github.com/PokeForum/PokeForum/ent/categorymoderator"
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
@@ -59,13 +60,28 @@ func NewModeratorService(db *ent.Client, cacheService cache.ICacheService, logge
 func (s *ModeratorService) GetModeratorCategories(ctx context.Context, userID int) (*schema.ModeratorCategoriesResponse, error) {
 	s.logger.Info("获取版主管理的版块列表", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
-	// 查询版主管理的版块
-	categories, err := s.db.Category.Query().
-		Where(category.HasModeratorsWith(user.IDEQ(userID))).
+	// 通过中间表查询版主管理的版块
+	moderatorRecords, err := s.db.CategoryModerator.Query().
+		Where(categorymoderator.UserIDEQ(userID)).
 		All(ctx)
 	if err != nil {
-		s.logger.Error("获取版主管理的版块失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取版主管理的版块失败: %w", err)
+		s.logger.Error("查询版主关联记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("查询版主关联记录失败: %w", err)
+	}
+
+	// 收集版块ID
+	categoryIDs := make([]int, len(moderatorRecords))
+	for i, record := range moderatorRecords {
+		categoryIDs[i] = record.CategoryID
+	}
+
+	// 批量查询版块信息
+	categories, err := s.db.Category.Query().
+		Where(category.IDIn(categoryIDs...)).
+		All(ctx)
+	if err != nil {
+		s.logger.Error("获取版块信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("获取版块信息失败: %w", err)
 	}
 
 	// 转换为响应格式
@@ -100,9 +116,8 @@ func (s *ModeratorService) GetModeratorCategories(ctx context.Context, userID in
 func (s *ModeratorService) BanPost(ctx context.Context, userID int, req schema.PostBanRequest) error {
 	s.logger.Info("封禁帖子", zap.Int("post_id", req.ID), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
-	// 检查帖子是否存在并获取版块信息
+	// 检查帖子是否存在
 	postData, err := s.db.Post.Query().
-		WithCategory().
 		Where(post.IDEQ(req.ID)).
 		Only(ctx)
 	if err != nil {
@@ -139,10 +154,8 @@ func (s *ModeratorService) BanPost(ctx context.Context, userID int, req schema.P
 func (s *ModeratorService) EditPost(ctx context.Context, userID int, req schema.PostEditRequest) (*schema.ModeratorPostResponse, error) {
 	s.logger.Info("编辑帖子", zap.Int("post_id", req.ID), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
-	// 检查帖子是否存在并获取版块信息
+	// 检查帖子是否存在
 	postData, err := s.db.Post.Query().
-		WithCategory().
-		WithAuthor().
 		Where(post.IDEQ(req.ID)).
 		Only(ctx)
 	if err != nil {
@@ -175,15 +188,24 @@ func (s *ModeratorService) EditPost(ctx context.Context, userID int, req schema.
 	// 获取评论数（简化处理）
 	commentCount := 0
 
-	// 转换为响应格式
+	// 查询作者信息
 	username := ""
-	if postData.Edges.Author != nil {
-		username = postData.Edges.Author.Username
+	author, err := s.db.User.Query().
+		Where(user.IDEQ(postData.UserID)).
+		Select(user.FieldUsername).
+		Only(ctx)
+	if err == nil {
+		username = author.Username
 	}
 
+	// 查询版块信息
 	categoryName := ""
-	if postData.Edges.Category != nil {
-		categoryName = postData.Edges.Category.Name
+	categoryData, err := s.db.Category.Query().
+		Where(category.IDEQ(postData.CategoryID)).
+		Select(category.FieldName).
+		Only(ctx)
+	if err == nil {
+		categoryName = categoryData.Name
 	}
 
 	result := &schema.ModeratorPostResponse{
@@ -211,9 +233,8 @@ func (s *ModeratorService) EditPost(ctx context.Context, userID int, req schema.
 func (s *ModeratorService) MovePost(ctx context.Context, userID int, req schema.PostMoveRequest) error {
 	s.logger.Info("移动帖子", zap.Int("post_id", req.ID), zap.Int("target_category_id", req.CategoryID), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
-	// 检查帖子是否存在并获取当前版块信息
+	// 检查帖子是否存在
 	postData, err := s.db.Post.Query().
-		WithCategory().
 		Where(post.IDEQ(req.ID)).
 		Only(ctx)
 	if err != nil {
@@ -259,9 +280,8 @@ func (s *ModeratorService) MovePost(ctx context.Context, userID int, req schema.
 func (s *ModeratorService) SetPostEssence(ctx context.Context, userID int, req schema.PostEssenceRequest) error {
 	s.logger.Info("设置帖子精华", zap.Int("post_id", req.ID), zap.Bool("is_essence", req.IsEssence), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
-	// 检查帖子是否存在并获取版块信息
+	// 检查帖子是否存在
 	postData, err := s.db.Post.Query().
-		WithCategory().
 		Where(post.IDEQ(req.ID)).
 		Only(ctx)
 	if err != nil {
@@ -298,9 +318,8 @@ func (s *ModeratorService) SetPostEssence(ctx context.Context, userID int, req s
 func (s *ModeratorService) LockPost(ctx context.Context, userID int, req schema.PostLockRequest) error {
 	s.logger.Info("锁定帖子", zap.Int("post_id", req.ID), zap.Bool("is_lock", req.IsLock), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
-	// 检查帖子是否存在并获取版块信息
+	// 检查帖子是否存在
 	postData, err := s.db.Post.Query().
-		WithCategory().
 		Where(post.IDEQ(req.ID)).
 		Only(ctx)
 	if err != nil {
@@ -342,9 +361,8 @@ func (s *ModeratorService) LockPost(ctx context.Context, userID int, req schema.
 func (s *ModeratorService) PinPost(ctx context.Context, userID int, req schema.PostPinRequest) error {
 	s.logger.Info("置顶帖子", zap.Int("post_id", req.ID), zap.Bool("is_pin", req.IsPin), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
-	// 检查帖子是否存在并获取版块信息
+	// 检查帖子是否存在
 	postData, err := s.db.Post.Query().
-		WithCategory().
 		Where(post.IDEQ(req.ID)).
 		Only(ctx)
 	if err != nil {
@@ -498,7 +516,7 @@ func (s *ModeratorService) GetCategoryAnnouncements(ctx context.Context, userID 
 			CategoryID: categoryID,
 			Title:      "版块公告",
 			Content:    categoryData.Announcement,
-			IsPinned:   true, // 版块公告默认置顶
+			IsPinned:   false,
 			Username:   moderatorData.Username,
 			CreatedAt:  categoryData.CreatedAt.Format("2006-01-02T15:04:05Z"),
 			UpdatedAt:  categoryData.UpdatedAt.Format("2006-01-02T15:04:05Z"),
@@ -511,10 +529,13 @@ func (s *ModeratorService) GetCategoryAnnouncements(ctx context.Context, userID 
 
 // checkModeratorPermission 检查版主是否有指定版块的管理权限（辅助函数）
 func (s *ModeratorService) checkModeratorPermission(ctx context.Context, userID, categoryID int) (bool, error) {
-	return s.db.Category.Query().
+	// 通过中间表查询版主权限
+	return s.db.CategoryModerator.Query().
 		Where(
-			category.IDEQ(categoryID),
-			category.HasModeratorsWith(user.IDEQ(userID)),
+			categorymoderator.And(
+				categorymoderator.CategoryIDEQ(categoryID),
+				categorymoderator.UserIDEQ(userID),
+			),
 		).
 		Exist(ctx)
 }

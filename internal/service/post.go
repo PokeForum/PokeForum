@@ -191,7 +191,6 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int, req schema.Use
 
 	// 检查帖子是否存在
 	postData, err := s.db.Post.Query().
-		WithCategory().
 		Where(post.IDEQ(req.ID)).
 		Only(ctx)
 	if err != nil {
@@ -236,11 +235,21 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int, req schema.Use
 		return nil, fmt.Errorf("更新帖子失败: %w", err)
 	}
 
+	// 查询版块信息
+	categoryName := ""
+	categoryData, err := s.db.Category.Query().
+		Where(category.IDEQ(updatedPost.CategoryID)).
+		Select(category.FieldName).
+		Only(ctx)
+	if err == nil {
+		categoryName = categoryData.Name
+	}
+
 	// 构建响应数据
 	result := &schema.UserPostUpdateResponse{
 		ID:             updatedPost.ID,
 		CategoryID:     updatedPost.CategoryID,
-		CategoryName:   postData.Edges.Category.Name,
+		CategoryName:   categoryName,
 		Title:          updatedPost.Title,
 		Content:        updatedPost.Content,
 		Username:       userData.Username,
@@ -561,9 +570,7 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 	}
 
 	// 构建查询条件
-	query := s.db.Post.Query().
-		WithAuthor().
-		WithCategory()
+	query := s.db.Post.Query()
 
 	// 如果指定了版块ID
 	if req.CategoryID > 0 {
@@ -597,21 +604,51 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 		Limit(req.PageSize).
 		All(ctx)
 	if err != nil {
-		s.logger.Error("获取帖子列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取帖子列表失败", zap.Error(err))
 		return nil, fmt.Errorf("获取帖子列表失败: %w", err)
+	}
+
+	// 收集用户ID和版块ID
+	userIDs := make(map[int]bool)
+	categoryIDs := make(map[int]bool)
+	for _, p := range posts {
+		userIDs[p.UserID] = true
+		categoryIDs[p.CategoryID] = true
+	}
+
+	// 批量查询用户信息
+	userIDList := make([]int, 0, len(userIDs))
+	for id := range userIDs {
+		userIDList = append(userIDList, id)
+	}
+	users, _ := s.db.User.Query().
+		Where(user.IDIn(userIDList...)).
+		Select(user.FieldID, user.FieldUsername).
+		All(ctx)
+	userMap := make(map[int]string)
+	for _, u := range users {
+		userMap[u.ID] = u.Username
+	}
+
+	// 批量查询版块信息
+	categoryIDList := make([]int, 0, len(categoryIDs))
+	for id := range categoryIDs {
+		categoryIDList = append(categoryIDList, id)
+	}
+	categories, _ := s.db.Category.Query().
+		Where(category.IDIn(categoryIDList...)).
+		Select(category.FieldID, category.FieldName).
+		All(ctx)
+	categoryMap := make(map[int]string)
+	for _, c := range categories {
+		categoryMap[c.ID] = c.Name
 	}
 
 	// 转换为响应格式
 	result := make([]schema.UserPostCreateResponse, len(posts))
 	for i, p := range posts {
-		username := ""
-		if p.Edges.Author != nil {
-			username = p.Edges.Author.Username
-		}
-		categoryName := ""
-		if p.Edges.Category != nil {
-			categoryName = p.Edges.Category.Name
-		}
+		username := userMap[p.UserID]
+		categoryName := categoryMap[p.CategoryID]
 
 		result[i] = schema.UserPostCreateResponse{
 			ID:             p.ID,
@@ -650,8 +687,6 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 
 	// 查询帖子详情
 	postData, err := s.db.Post.Query().
-		WithAuthor().
-		WithCategory().
 		Where(post.IDEQ(req.ID)).
 		Only(ctx)
 	if err != nil {
@@ -671,14 +706,24 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 		// 不影响主要流程，继续返回数据
 	}
 
-	// 构建响应数据
+	// 查询作者信息
 	username := ""
-	if postData.Edges.Author != nil {
-		username = postData.Edges.Author.Username
+	author, err := s.db.User.Query().
+		Where(user.IDEQ(postData.UserID)).
+		Select(user.FieldUsername).
+		Only(ctx)
+	if err == nil {
+		username = author.Username
 	}
+
+	// 查询版块信息
 	categoryName := ""
-	if postData.Edges.Category != nil {
-		categoryName = postData.Edges.Category.Name
+	categoryData, err := s.db.Category.Query().
+		Where(category.IDEQ(postData.CategoryID)).
+		Select(category.FieldName).
+		Only(ctx)
+	if err == nil {
+		categoryName = categoryData.Name
 	}
 
 	result := &schema.UserPostDetailResponse{

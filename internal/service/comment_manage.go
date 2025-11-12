@@ -54,11 +54,7 @@ func (s *CommentManageService) GetCommentList(ctx context.Context, req schema.Co
 	s.logger.Info("获取评论列表", tracing.WithTraceIDField(ctx))
 
 	// 构建查询条件
-	query := s.db.Comment.Query().
-		WithPost().
-		WithAuthor().
-		WithParent().
-		WithReplyToUser()
+	query := s.db.Comment.Query()
 
 	// 关键词搜索
 	if req.Keyword != "" {
@@ -113,23 +109,54 @@ func (s *CommentManageService) GetCommentList(ctx context.Context, req schema.Co
 		return nil, fmt.Errorf("获取评论列表失败: %w", err)
 	}
 
+	// 收集需要查询的ID
+	userIDs := make(map[int]bool)
+	postIDs := make(map[int]bool)
+	for _, c := range comments {
+		userIDs[c.UserID] = true
+		postIDs[c.PostID] = true
+		if c.ReplyToUserID != 0 {
+			userIDs[c.ReplyToUserID] = true
+		}
+	}
+
+	// 批量查询用户信息
+	userIDList := make([]int, 0, len(userIDs))
+	for id := range userIDs {
+		userIDList = append(userIDList, id)
+	}
+	users, _ := s.db.User.Query().
+		Where(user.IDIn(userIDList...)).
+		Select(user.FieldID, user.FieldUsername).
+		All(ctx)
+	userMap := make(map[int]string)
+	for _, u := range users {
+		userMap[u.ID] = u.Username
+	}
+
+	// 批量查询帖子信息
+	postIDList := make([]int, 0, len(postIDs))
+	for id := range postIDs {
+		postIDList = append(postIDList, id)
+	}
+	posts, _ := s.db.Post.Query().
+		Where(post.IDIn(postIDList...)).
+		Select(post.FieldID, post.FieldTitle).
+		All(ctx)
+	postMap := make(map[int]string)
+	for _, p := range posts {
+		postMap[p.ID] = p.Title
+	}
+
 	// 转换为响应格式
 	list := make([]schema.CommentListItem, len(comments))
 	for i, c := range comments {
 		// 获取关联信息
-		postTitle := ""
-		if c.Edges.Post != nil {
-			postTitle = c.Edges.Post.Title
-		}
-
-		username := ""
-		if c.Edges.Author != nil {
-			username = c.Edges.Author.Username
-		}
-
+		postTitle := postMap[c.PostID]
+		username := userMap[c.UserID]
 		var replyToUsername string
-		if c.Edges.ReplyToUser != nil {
-			replyToUsername = c.Edges.ReplyToUser.Username
+		if c.ReplyToUserID != 0 {
+			replyToUsername = userMap[c.ReplyToUserID]
 		}
 
 		list[i] = schema.CommentListItem{
@@ -269,10 +296,6 @@ func (s *CommentManageService) GetCommentDetail(ctx context.Context, id int) (*s
 
 	// 获取评论信息
 	c, err := s.db.Comment.Query().
-		WithPost().
-		WithAuthor().
-		WithParent().
-		WithReplyToUser().
 		Where(comment.IDEQ(id)).
 		Only(ctx)
 	if err != nil {
@@ -283,20 +306,36 @@ func (s *CommentManageService) GetCommentDetail(ctx context.Context, id int) (*s
 		return nil, fmt.Errorf("获取评论失败: %w", err)
 	}
 
-	// 获取关联信息
+	// 查询帖子信息
 	postTitle := ""
-	if c.Edges.Post != nil {
-		postTitle = c.Edges.Post.Title
+	postData, err := s.db.Post.Query().
+		Where(post.IDEQ(c.PostID)).
+		Select(post.FieldTitle).
+		Only(ctx)
+	if err == nil {
+		postTitle = postData.Title
 	}
 
+	// 查询作者信息
 	username := ""
-	if c.Edges.Author != nil {
-		username = c.Edges.Author.Username
+	author, err := s.db.User.Query().
+		Where(user.IDEQ(c.UserID)).
+		Select(user.FieldUsername).
+		Only(ctx)
+	if err == nil {
+		username = author.Username
 	}
 
+	// 查询回复目标用户信息
 	var replyToUsername string
-	if c.Edges.ReplyToUser != nil {
-		replyToUsername = c.Edges.ReplyToUser.Username
+	if c.ReplyToUserID != 0 {
+		replyToUser, err := s.db.User.Query().
+			Where(user.IDEQ(c.ReplyToUserID)).
+			Select(user.FieldUsername).
+			Only(ctx)
+		if err == nil {
+			replyToUsername = replyToUser.Username
+		}
 	}
 
 	// 转换为响应格式

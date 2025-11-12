@@ -33,6 +33,18 @@ func (f CategoryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CategoryMutation", m)
 }
 
+// The CategoryModeratorFunc type is an adapter to allow the use of ordinary
+// function as CategoryModerator mutator.
+type CategoryModeratorFunc func(context.Context, *ent.CategoryModeratorMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CategoryModeratorFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CategoryModeratorMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CategoryModeratorMutation", m)
+}
+
 // The CommentFunc type is an adapter to allow the use of ordinary
 // function as Comment mutator.
 type CommentFunc func(context.Context, *ent.CommentMutation) (ent.Value, error)

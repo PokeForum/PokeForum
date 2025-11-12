@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/PokeForum/PokeForum/ent"
+	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
@@ -102,7 +103,6 @@ func (s *UserProfileService) GetUserPosts(ctx context.Context, userID int, req s
 
 	// 构建查询条件
 	query := s.db.Post.Query().
-		WithCategory().
 		Where(post.UserIDEQ(userID))
 
 	// 如果指定了状态，则筛选状态
@@ -130,27 +130,44 @@ func (s *UserProfileService) GetUserPosts(ctx context.Context, userID int, req s
 		return nil, fmt.Errorf("获取用户主题帖列表失败: %w", err)
 	}
 
+	// 收集版块ID
+	categoryIDs := make(map[int]bool)
+	for _, p := range posts {
+		categoryIDs[p.CategoryID] = true
+	}
+
+	// 批量查询版块信息
+	categoryIDList := make([]int, 0, len(categoryIDs))
+	for id := range categoryIDs {
+		categoryIDList = append(categoryIDList, id)
+	}
+	categories, _ := s.db.Category.Query().
+		Where(category.IDIn(categoryIDList...)).
+		Select(category.FieldID, category.FieldName).
+		All(ctx)
+	categoryMap := make(map[int]string)
+	for _, c := range categories {
+		categoryMap[c.ID] = c.Name
+	}
+
 	// 构建响应数据
 	list := make([]schema.UserProfilePostItem, len(posts))
-	for i, postData := range posts {
-		categoryName := ""
-		if postData.Edges.Category != nil {
-			categoryName = postData.Edges.Category.Name
-		}
+	for i, p := range posts {
+		categoryName := categoryMap[p.CategoryID]
 
 		list[i] = schema.UserProfilePostItem{
-			ID:            postData.ID,
-			CategoryID:    postData.CategoryID,
+			ID:            p.ID,
+			CategoryID:    p.CategoryID,
 			CategoryName:  categoryName,
-			Title:         postData.Title,
-			ViewCount:     postData.ViewCount,
-			LikeCount:     postData.LikeCount,
-			DislikeCount:  postData.DislikeCount,
-			FavoriteCount: postData.FavoriteCount,
-			IsEssence:     postData.IsEssence,
-			IsPinned:      postData.IsPinned,
-			Status:        string(postData.Status),
-			CreatedAt:     postData.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			Title:         p.Title,
+			ViewCount:     p.ViewCount,
+			LikeCount:     p.LikeCount,
+			DislikeCount:  p.DislikeCount,
+			FavoriteCount: p.FavoriteCount,
+			IsEssence:     p.IsEssence,
+			IsPinned:      p.IsPinned,
+			Status:        string(p.Status),
+			CreatedAt:     p.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		}
 	}
 
@@ -252,9 +269,6 @@ func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, r
 			postaction.UserIDEQ(userID),
 			postaction.ActionTypeEQ(postaction.ActionTypeFavorite),
 		).
-		WithPost(func(q *ent.PostQuery) {
-			q.WithCategory().WithAuthor()
-		}).
 		Order(ent.Desc(postaction.FieldCreatedAt))
 
 	// 获取总数
@@ -274,36 +288,80 @@ func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, r
 		return nil, fmt.Errorf("获取用户收藏列表失败: %w", err)
 	}
 
+	// 收集帖子ID
+	postIDs := make([]int, len(favorites))
+	for i, fav := range favorites {
+		postIDs[i] = fav.PostID
+	}
+
+	// 批量查询帖子信息
+	posts, _ := s.db.Post.Query().
+		Where(post.IDIn(postIDs...)).
+		All(ctx)
+	postMap := make(map[int]*ent.Post)
+	for _, p := range posts {
+		postMap[p.ID] = p
+	}
+
+	// 收集用户ID和版块ID
+	userIDs := make(map[int]bool)
+	categoryIDs := make(map[int]bool)
+	for _, p := range posts {
+		userIDs[p.UserID] = true
+		categoryIDs[p.CategoryID] = true
+	}
+
+	// 批量查询用户信息
+	userIDList := make([]int, 0, len(userIDs))
+	for id := range userIDs {
+		userIDList = append(userIDList, id)
+	}
+	users, _ := s.db.User.Query().
+		Where(user.IDIn(userIDList...)).
+		Select(user.FieldID, user.FieldUsername).
+		All(ctx)
+	userMap := make(map[int]string)
+	for _, u := range users {
+		userMap[u.ID] = u.Username
+	}
+
+	// 批量查询版块信息
+	categoryIDList := make([]int, 0, len(categoryIDs))
+	for id := range categoryIDs {
+		categoryIDList = append(categoryIDList, id)
+	}
+	categories, _ := s.db.Category.Query().
+		Where(category.IDIn(categoryIDList...)).
+		Select(category.FieldID, category.FieldName).
+		All(ctx)
+	categoryMap := make(map[int]string)
+	for _, c := range categories {
+		categoryMap[c.ID] = c.Name
+	}
+
 	// 构建响应数据
-	list := make([]schema.UserProfileFavoriteItem, len(favorites))
-	for i, favorite := range favorites {
-		postData := favorite.Edges.Post
-		if postData == nil {
+	list := make([]schema.UserProfileFavoriteItem, 0, len(favorites))
+	for _, fav := range favorites {
+		p := postMap[fav.PostID]
+		if p == nil {
 			continue
 		}
 
-		categoryName := ""
-		if postData.Edges.Category != nil {
-			categoryName = postData.Edges.Category.Name
-		}
+		username := userMap[p.UserID]
+		categoryName := categoryMap[p.CategoryID]
 
-		username := ""
-		if postData.Edges.Author != nil {
-			username = postData.Edges.Author.Username
-		}
-
-		list[i] = schema.UserProfileFavoriteItem{
-			ID:            postData.ID,
-			CategoryID:    postData.CategoryID,
+		list = append(list, schema.UserProfileFavoriteItem{
+			ID:            p.ID,
+			CategoryID:    p.CategoryID,
 			CategoryName:  categoryName,
-			Title:         postData.Title,
+			Title:         p.Title,
 			Username:      username,
-			ViewCount:     postData.ViewCount,
-			LikeCount:     postData.LikeCount,
-			FavoriteCount: postData.FavoriteCount,
-			CreatedAt:     postData.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			FavoritedAt:   favorite.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		}
+			ViewCount:     p.ViewCount,
+			LikeCount:     p.LikeCount,
+			FavoriteCount: p.FavoriteCount,
+			CreatedAt:     p.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			FavoritedAt:   fav.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		})
 	}
 
 	result := &schema.UserProfileFavoritesResponse{

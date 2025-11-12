@@ -12,6 +12,9 @@ type Blacklist func(*sql.Selector)
 // Category is the predicate function for category builders.
 type Category func(*sql.Selector)
 
+// CategoryModerator is the predicate function for categorymoderator builders.
+type CategoryModerator func(*sql.Selector)
+
 // Comment is the predicate function for comment builders.
 type Comment func(*sql.Selector)
 
