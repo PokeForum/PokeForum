@@ -60,9 +60,6 @@ func (s *CategoryService) GetUserCategories(ctx context.Context) (*schema.UserCa
 	// 转换为响应格式
 	list := make([]schema.UserCategoryListItem, len(categories))
 	for i, cat := range categories {
-		// TODO: 添加帖子统计功能，暂时设为0
-		postCount := 0
-
 		list[i] = schema.UserCategoryListItem{
 			ID:          cat.ID,
 			Name:        cat.Name,
@@ -70,7 +67,6 @@ func (s *CategoryService) GetUserCategories(ctx context.Context) (*schema.UserCa
 			Description: cat.Description,
 			Icon:        cat.Icon,
 			Weight:      cat.Weight,
-			PostCount:   postCount,
 			CreatedAt:   cat.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		}
 	}
