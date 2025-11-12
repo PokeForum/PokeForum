@@ -194,9 +194,8 @@ func Routers(injector *do.Injector) *gin.Engine {
 	AuthAPIGroup := api.Group("")
 	AuthAPIGroup.Use(saPlugin.AuthMiddleware())
 
-	// 论坛接口
-	ForumGroup := AuthAPIGroup.Group("")
-	ForumGroup.Use(saGin.CheckRole(user.RoleUser.String()))
+	// 论坛接口 - 用户侧权限校验放在Controller检查
+	ForumGroup := api.Group("")
 	{
 		// 用户
 		{
@@ -207,11 +206,9 @@ func Routers(injector *do.Injector) *gin.Engine {
 				ProfileCon.UserProfileRouter(ProfileGroup)
 
 				// 拉黑用户
-				{
-					BlacklistGroup := ProfileGroup.Group("/blacklist")
-					BlacklistCon := controller.NewBlacklistController(injector)
-					BlacklistCon.BlacklistRouter(BlacklistGroup)
-				}
+				BlacklistGroup := ProfileGroup.Group("/blacklist")
+				BlacklistCon := controller.NewBlacklistController(injector)
+				BlacklistCon.BlacklistRouter(BlacklistGroup)
 
 				// TODO 举报
 
@@ -229,11 +226,9 @@ func Routers(injector *do.Injector) *gin.Engine {
 			}
 
 			// 排行榜
-			{
-				RankingGroup := ForumGroup.Group("/ranking")
-				RankingCon := controller.NewRankingController(injector)
-				RankingCon.RankingRouter(RankingGroup)
-			}
+			RankingGroup := ForumGroup.Group("/ranking")
+			RankingCon := controller.NewRankingController(injector)
+			RankingCon.RankingRouter(RankingGroup)
 
 			// 版块
 			CategoryGroup := ForumGroup.Group("/categories")

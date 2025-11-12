@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
+	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/click33/sa-token-go/stputil"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
@@ -23,6 +25,28 @@ func NewUserProfileController(injector *do.Injector) *UserProfileController {
 	return &UserProfileController{
 		injector: injector,
 	}
+}
+
+// UserProfileRouter 用户个人中心相关路由注册
+func (ctrl *UserProfileController) UserProfileRouter(router *gin.RouterGroup) {
+	router.Use(saGin.CheckRole(user.RoleUser.String()))
+
+	// 获取个人中心概览
+	router.GET("/overview", ctrl.GetProfileOverview)
+	// 获取用户主题帖列表
+	router.GET("/posts", ctrl.GetUserPosts)
+	// 获取用户评论列表
+	router.GET("/comments", ctrl.GetUserComments)
+	// 获取用户收藏列表
+	router.GET("/favorites", ctrl.GetUserFavorites)
+	// 修改密码
+	router.PUT("/password", ctrl.UpdatePassword)
+	// 修改头像
+	router.PUT("/avatar", ctrl.UpdateAvatar)
+	// 修改用户名
+	router.PUT("/username", ctrl.UpdateUsername)
+	// 修改邮箱
+	router.PUT("/email", ctrl.UpdateEmail)
 }
 
 // getUserID 从Header中获取token并解析用户ID
@@ -370,24 +394,4 @@ func (ctrl *UserProfileController) UpdateEmail(c *gin.Context) {
 
 	// 返回成功响应
 	response.ResSuccess(c, result)
-}
-
-// UserProfileRouter 用户个人中心相关路由注册
-func (ctrl *UserProfileController) UserProfileRouter(router *gin.RouterGroup) {
-	// 获取个人中心概览
-	router.GET("/overview", ctrl.GetProfileOverview)
-	// 获取用户主题帖列表
-	router.GET("/posts", ctrl.GetUserPosts)
-	// 获取用户评论列表
-	router.GET("/comments", ctrl.GetUserComments)
-	// 获取用户收藏列表
-	router.GET("/favorites", ctrl.GetUserFavorites)
-	// 修改密码
-	router.PUT("/password", ctrl.UpdatePassword)
-	// 修改头像
-	router.PUT("/avatar", ctrl.UpdateAvatar)
-	// 修改用户名
-	router.PUT("/username", ctrl.UpdateUsername)
-	// 修改邮箱
-	router.PUT("/email", ctrl.UpdateEmail)
 }

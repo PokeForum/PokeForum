@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
+	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/click33/sa-token-go/stputil"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
@@ -51,19 +53,19 @@ func (ctrl *PostController) getUserID(c *gin.Context) (int, error) {
 // PostRouter 帖子相关路由注册
 func (ctrl *PostController) PostRouter(router *gin.RouterGroup) {
 	// 发布新帖
-	router.POST("", ctrl.CreatePost)
+	router.POST("", saGin.CheckRole(user.RoleUser.String()), ctrl.CreatePost)
 	// 保存草稿
-	router.POST("/draft", ctrl.SaveDraft)
+	router.POST("/draft", saGin.CheckRole(user.RoleUser.String()), ctrl.SaveDraft)
 	// 编辑帖子
-	router.PUT("", ctrl.UpdatePost)
+	router.PUT("", saGin.CheckRole(user.RoleUser.String()), ctrl.UpdatePost)
 	// 设置帖子私有
-	router.PUT("/private", ctrl.SetPostPrivate)
+	router.PUT("/private", saGin.CheckRole(user.RoleUser.String()), ctrl.SetPostPrivate)
 	// 点赞帖子
-	router.POST("/like", ctrl.LikePost)
+	router.POST("/like", saGin.CheckRole(user.RoleUser.String()), ctrl.LikePost)
 	// 点踩帖子
-	router.POST("/dislike", ctrl.DislikePost)
+	router.POST("/dislike", saGin.CheckRole(user.RoleUser.String()), ctrl.DislikePost)
 	// 收藏帖子
-	router.POST("/favorite", ctrl.FavoritePost)
+	router.POST("/favorite", saGin.CheckRole(user.RoleUser.String()), ctrl.FavoritePost)
 	// 获取帖子列表
 	router.GET("", ctrl.GetPostList)
 	// 获取帖子详情

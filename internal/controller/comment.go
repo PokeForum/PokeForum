@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
+	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/click33/sa-token-go/stputil"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
@@ -28,17 +30,17 @@ func NewCommentController(injector *do.Injector) *CommentController {
 // CommentRouter 评论相关路由注册
 func (ctrl *CommentController) CommentRouter(router *gin.RouterGroup) {
 	// 发布评论
-	router.POST("", ctrl.CreateComment)
+	router.POST("", saGin.CheckRole(user.RoleUser.String()), ctrl.CreateComment)
 	// 编辑评论
-	router.PUT("", ctrl.UpdateComment)
+	router.PUT("", saGin.CheckRole(user.RoleUser.String()), ctrl.UpdateComment)
 	// 获取评论列表
 	router.GET("", ctrl.GetCommentList)
 	// 获取评论详情
 	router.GET("/:id", ctrl.GetCommentDetail)
 	// 点赞评论
-	router.POST("/like", ctrl.LikeComment)
+	router.POST("/like", saGin.CheckRole(user.RoleUser.String()), ctrl.LikeComment)
 	// 点踩评论
-	router.POST("/dislike", ctrl.DislikeComment)
+	router.POST("/dislike", saGin.CheckRole(user.RoleUser.String()), ctrl.DislikeComment)
 }
 
 // getUserID 从Header中获取token并解析用户ID
