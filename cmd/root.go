@@ -48,6 +48,7 @@ func init() {
 	RootCMD.PersistentFlags().StringVar(&configs.Port, "port", port, "端口号")
 	RootCMD.PersistentFlags().StringVarP(&configs.ConfigPath, "config", "c", config, "配置文件路径")
 	RootCMD.PersistentFlags().BoolVar(&configs.Debug, "debug", false, "是否开启调试模式")
+	RootCMD.PersistentFlags().BoolVar(&configs.Prometheus, "prometheus", false, "是否开启Prometheus监控")
 
 	// 将 ServerCMD 添加为 RootCMD 的子命令
 	RootCMD.AddCommand(ServerCMD)

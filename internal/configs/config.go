@@ -14,6 +14,7 @@ var (
 	Port       string
 	ConfigPath string
 	Debug      bool
+	Prometheus bool // Prometheus监控开关
 )
 
 type Configuration struct {

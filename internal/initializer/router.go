@@ -17,6 +17,7 @@ import (
 	"github.com/samber/do"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	ginprometheus "github.com/zsais/go-gin-prometheus"
 )
 
 func InjectorSrv(injector *do.Injector) {
@@ -166,6 +167,12 @@ func Routers(injector *do.Injector) *gin.Engine {
 	// 注册Swagger
 	if configs.Debug == true {
 		Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	}
+
+	// 注册 Prometheus
+	if configs.Prometheus {
+		p := ginprometheus.NewPrometheus("gin")
+		p.Use(Router)
 	}
 
 	api := Router.Group("/api/v1")
