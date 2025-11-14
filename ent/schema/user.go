@@ -43,6 +43,10 @@ func (User) Fields() []ent.Field {
 		// 邮箱是否已验证，默认false
 		field.Bool("email_verified").
 			Default(false),
+		// 经验值，默认为0
+		field.Int("experience").
+			Default(0).
+			NonNegative(),
 		// 积分，默认为0
 		field.Int("points").
 			Default(0).

@@ -128,6 +128,20 @@ func (_c *UserCreate) SetNillableEmailVerified(v *bool) *UserCreate {
 	return _c
 }
 
+// SetExperience sets the "experience" field.
+func (_c *UserCreate) SetExperience(v int) *UserCreate {
+	_c.mutation.SetExperience(v)
+	return _c
+}
+
+// SetNillableExperience sets the "experience" field if the given value is not nil.
+func (_c *UserCreate) SetNillableExperience(v *int) *UserCreate {
+	if v != nil {
+		_c.SetExperience(*v)
+	}
+	return _c
+}
+
 // SetPoints sets the "points" field.
 func (_c *UserCreate) SetPoints(v int) *UserCreate {
 	_c.mutation.SetPoints(v)
@@ -265,6 +279,10 @@ func (_c *UserCreate) defaults() {
 		v := user.DefaultEmailVerified
 		_c.mutation.SetEmailVerified(v)
 	}
+	if _, ok := _c.mutation.Experience(); !ok {
+		v := user.DefaultExperience
+		_c.mutation.SetExperience(v)
+	}
 	if _, ok := _c.mutation.Points(); !ok {
 		v := user.DefaultPoints
 		_c.mutation.SetPoints(v)
@@ -333,6 +351,14 @@ func (_c *UserCreate) check() error {
 	}
 	if _, ok := _c.mutation.EmailVerified(); !ok {
 		return &ValidationError{Name: "email_verified", err: errors.New(`ent: missing required field "User.email_verified"`)}
+	}
+	if _, ok := _c.mutation.Experience(); !ok {
+		return &ValidationError{Name: "experience", err: errors.New(`ent: missing required field "User.experience"`)}
+	}
+	if v, ok := _c.mutation.Experience(); ok {
+		if err := user.ExperienceValidator(v); err != nil {
+			return &ValidationError{Name: "experience", err: fmt.Errorf(`ent: validator failed for field "User.experience": %w`, err)}
+		}
 	}
 	if _, ok := _c.mutation.Points(); !ok {
 		return &ValidationError{Name: "points", err: errors.New(`ent: missing required field "User.points"`)}
@@ -458,6 +484,10 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.EmailVerified(); ok {
 		_spec.SetField(user.FieldEmailVerified, field.TypeBool, value)
 		_node.EmailVerified = value
+	}
+	if value, ok := _c.mutation.Experience(); ok {
+		_spec.SetField(user.FieldExperience, field.TypeInt, value)
+		_node.Experience = value
 	}
 	if value, ok := _c.mutation.Points(); ok {
 		_spec.SetField(user.FieldPoints, field.TypeInt, value)

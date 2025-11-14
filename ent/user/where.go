@@ -104,6 +104,11 @@ func EmailVerified(v bool) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldEmailVerified, v))
 }
 
+// Experience applies equality check predicate on the "experience" field. It's identical to ExperienceEQ.
+func Experience(v int) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldExperience, v))
+}
+
 // Points applies equality check predicate on the "points" field. It's identical to PointsEQ.
 func Points(v int) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldPoints, v))
@@ -697,6 +702,46 @@ func EmailVerifiedEQ(v bool) predicate.User {
 // EmailVerifiedNEQ applies the NEQ predicate on the "email_verified" field.
 func EmailVerifiedNEQ(v bool) predicate.User {
 	return predicate.User(sql.FieldNEQ(FieldEmailVerified, v))
+}
+
+// ExperienceEQ applies the EQ predicate on the "experience" field.
+func ExperienceEQ(v int) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldExperience, v))
+}
+
+// ExperienceNEQ applies the NEQ predicate on the "experience" field.
+func ExperienceNEQ(v int) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldExperience, v))
+}
+
+// ExperienceIn applies the In predicate on the "experience" field.
+func ExperienceIn(vs ...int) predicate.User {
+	return predicate.User(sql.FieldIn(FieldExperience, vs...))
+}
+
+// ExperienceNotIn applies the NotIn predicate on the "experience" field.
+func ExperienceNotIn(vs ...int) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldExperience, vs...))
+}
+
+// ExperienceGT applies the GT predicate on the "experience" field.
+func ExperienceGT(v int) predicate.User {
+	return predicate.User(sql.FieldGT(FieldExperience, v))
+}
+
+// ExperienceGTE applies the GTE predicate on the "experience" field.
+func ExperienceGTE(v int) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldExperience, v))
+}
+
+// ExperienceLT applies the LT predicate on the "experience" field.
+func ExperienceLT(v int) predicate.User {
+	return predicate.User(sql.FieldLT(FieldExperience, v))
+}
+
+// ExperienceLTE applies the LTE predicate on the "experience" field.
+func ExperienceLTE(v int) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldExperience, v))
 }
 
 // PointsEQ applies the EQ predicate on the "points" field.

@@ -369,26 +369,32 @@ func init() {
 	userDescEmailVerified := userFields[8].Descriptor()
 	// user.DefaultEmailVerified holds the default value on creation for the email_verified field.
 	user.DefaultEmailVerified = userDescEmailVerified.Default.(bool)
+	// userDescExperience is the schema descriptor for experience field.
+	userDescExperience := userFields[9].Descriptor()
+	// user.DefaultExperience holds the default value on creation for the experience field.
+	user.DefaultExperience = userDescExperience.Default.(int)
+	// user.ExperienceValidator is a validator for the "experience" field. It is called by the builders before save.
+	user.ExperienceValidator = userDescExperience.Validators[0].(func(int) error)
 	// userDescPoints is the schema descriptor for points field.
-	userDescPoints := userFields[9].Descriptor()
+	userDescPoints := userFields[10].Descriptor()
 	// user.DefaultPoints holds the default value on creation for the points field.
 	user.DefaultPoints = userDescPoints.Default.(int)
 	// user.PointsValidator is a validator for the "points" field. It is called by the builders before save.
 	user.PointsValidator = userDescPoints.Validators[0].(func(int) error)
 	// userDescCurrency is the schema descriptor for currency field.
-	userDescCurrency := userFields[10].Descriptor()
+	userDescCurrency := userFields[11].Descriptor()
 	// user.DefaultCurrency holds the default value on creation for the currency field.
 	user.DefaultCurrency = userDescCurrency.Default.(int)
 	// user.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	user.CurrencyValidator = userDescCurrency.Validators[0].(func(int) error)
 	// userDescPostCount is the schema descriptor for post_count field.
-	userDescPostCount := userFields[11].Descriptor()
+	userDescPostCount := userFields[12].Descriptor()
 	// user.DefaultPostCount holds the default value on creation for the post_count field.
 	user.DefaultPostCount = userDescPostCount.Default.(int)
 	// user.PostCountValidator is a validator for the "post_count" field. It is called by the builders before save.
 	user.PostCountValidator = userDescPostCount.Validators[0].(func(int) error)
 	// userDescCommentCount is the schema descriptor for comment_count field.
-	userDescCommentCount := userFields[12].Descriptor()
+	userDescCommentCount := userFields[13].Descriptor()
 	// user.DefaultCommentCount holds the default value on creation for the comment_count field.
 	user.DefaultCommentCount = userDescCommentCount.Default.(int)
 	// user.CommentCountValidator is a validator for the "comment_count" field. It is called by the builders before save.

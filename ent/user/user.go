@@ -34,6 +34,8 @@ const (
 	FieldReadme = "readme"
 	// FieldEmailVerified holds the string denoting the email_verified field in the database.
 	FieldEmailVerified = "email_verified"
+	// FieldExperience holds the string denoting the experience field in the database.
+	FieldExperience = "experience"
 	// FieldPoints holds the string denoting the points field in the database.
 	FieldPoints = "points"
 	// FieldCurrency holds the string denoting the currency field in the database.
@@ -63,6 +65,7 @@ var Columns = []string{
 	FieldSignature,
 	FieldReadme,
 	FieldEmailVerified,
+	FieldExperience,
 	FieldPoints,
 	FieldCurrency,
 	FieldPostCount,
@@ -98,6 +101,10 @@ var (
 	UsernameValidator func(string) error
 	// DefaultEmailVerified holds the default value on creation for the "email_verified" field.
 	DefaultEmailVerified bool
+	// DefaultExperience holds the default value on creation for the "experience" field.
+	DefaultExperience int
+	// ExperienceValidator is a validator for the "experience" field. It is called by the builders before save.
+	ExperienceValidator func(int) error
 	// DefaultPoints holds the default value on creation for the "points" field.
 	DefaultPoints int
 	// PointsValidator is a validator for the "points" field. It is called by the builders before save.
@@ -231,6 +238,11 @@ func ByReadme(opts ...sql.OrderTermOption) OrderOption {
 // ByEmailVerified orders the results by the email_verified field.
 func ByEmailVerified(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldEmailVerified, opts...).ToFunc()
+}
+
+// ByExperience orders the results by the experience field.
+func ByExperience(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldExperience, opts...).ToFunc()
 }
 
 // ByPoints orders the results by the points field.

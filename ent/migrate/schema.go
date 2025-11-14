@@ -349,6 +349,7 @@ var (
 		{Name: "signature", Type: field.TypeString, Nullable: true},
 		{Name: "readme", Type: field.TypeString, Nullable: true},
 		{Name: "email_verified", Type: field.TypeBool, Default: false},
+		{Name: "experience", Type: field.TypeInt, Default: 0},
 		{Name: "points", Type: field.TypeInt, Default: 0},
 		{Name: "currency", Type: field.TypeInt, Default: 0},
 		{Name: "post_count", Type: field.TypeInt, Default: 0},
@@ -365,12 +366,12 @@ var (
 			{
 				Name:    "user_status",
 				Unique:  false,
-				Columns: []*schema.Column{UsersColumns[15]},
+				Columns: []*schema.Column{UsersColumns[16]},
 			},
 			{
 				Name:    "user_role",
 				Unique:  false,
-				Columns: []*schema.Column{UsersColumns[16]},
+				Columns: []*schema.Column{UsersColumns[17]},
 			},
 			{
 				Name:    "user_email_verified",

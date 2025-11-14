@@ -164,6 +164,27 @@ func (_u *UserUpdate) SetNillableEmailVerified(v *bool) *UserUpdate {
 	return _u
 }
 
+// SetExperience sets the "experience" field.
+func (_u *UserUpdate) SetExperience(v int) *UserUpdate {
+	_u.mutation.ResetExperience()
+	_u.mutation.SetExperience(v)
+	return _u
+}
+
+// SetNillableExperience sets the "experience" field if the given value is not nil.
+func (_u *UserUpdate) SetNillableExperience(v *int) *UserUpdate {
+	if v != nil {
+		_u.SetExperience(*v)
+	}
+	return _u
+}
+
+// AddExperience adds value to the "experience" field.
+func (_u *UserUpdate) AddExperience(v int) *UserUpdate {
+	_u.mutation.AddExperience(v)
+	return _u
+}
+
 // SetPoints sets the "points" field.
 func (_u *UserUpdate) SetPoints(v int) *UserUpdate {
 	_u.mutation.ResetPoints()
@@ -339,6 +360,11 @@ func (_u *UserUpdate) check() error {
 			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Experience(); ok {
+		if err := user.ExperienceValidator(v); err != nil {
+			return &ValidationError{Name: "experience", err: fmt.Errorf(`ent: validator failed for field "User.experience": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Points(); ok {
 		if err := user.PointsValidator(v); err != nil {
 			return &ValidationError{Name: "points", err: fmt.Errorf(`ent: validator failed for field "User.points": %w`, err)}
@@ -419,6 +445,12 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.EmailVerified(); ok {
 		_spec.SetField(user.FieldEmailVerified, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Experience(); ok {
+		_spec.SetField(user.FieldExperience, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedExperience(); ok {
+		_spec.AddField(user.FieldExperience, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Points(); ok {
 		_spec.SetField(user.FieldPoints, field.TypeInt, value)
@@ -603,6 +635,27 @@ func (_u *UserUpdateOne) SetNillableEmailVerified(v *bool) *UserUpdateOne {
 	if v != nil {
 		_u.SetEmailVerified(*v)
 	}
+	return _u
+}
+
+// SetExperience sets the "experience" field.
+func (_u *UserUpdateOne) SetExperience(v int) *UserUpdateOne {
+	_u.mutation.ResetExperience()
+	_u.mutation.SetExperience(v)
+	return _u
+}
+
+// SetNillableExperience sets the "experience" field if the given value is not nil.
+func (_u *UserUpdateOne) SetNillableExperience(v *int) *UserUpdateOne {
+	if v != nil {
+		_u.SetExperience(*v)
+	}
+	return _u
+}
+
+// AddExperience adds value to the "experience" field.
+func (_u *UserUpdateOne) AddExperience(v int) *UserUpdateOne {
+	_u.mutation.AddExperience(v)
 	return _u
 }
 
@@ -794,6 +847,11 @@ func (_u *UserUpdateOne) check() error {
 			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.Experience(); ok {
+		if err := user.ExperienceValidator(v); err != nil {
+			return &ValidationError{Name: "experience", err: fmt.Errorf(`ent: validator failed for field "User.experience": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Points(); ok {
 		if err := user.PointsValidator(v); err != nil {
 			return &ValidationError{Name: "points", err: fmt.Errorf(`ent: validator failed for field "User.points": %w`, err)}
@@ -891,6 +949,12 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.EmailVerified(); ok {
 		_spec.SetField(user.FieldEmailVerified, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Experience(); ok {
+		_spec.SetField(user.FieldExperience, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedExperience(); ok {
+		_spec.AddField(user.FieldExperience, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Points(); ok {
 		_spec.SetField(user.FieldPoints, field.TypeInt, value)

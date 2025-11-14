@@ -37,6 +37,8 @@ type User struct {
 	Readme string `json:"readme,omitempty"`
 	// EmailVerified holds the value of the "email_verified" field.
 	EmailVerified bool `json:"email_verified,omitempty"`
+	// Experience holds the value of the "experience" field.
+	Experience int `json:"experience,omitempty"`
 	// Points holds the value of the "points" field.
 	Points int `json:"points,omitempty"`
 	// Currency holds the value of the "currency" field.
@@ -59,7 +61,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldEmailVerified:
 			values[i] = new(sql.NullBool)
-		case user.FieldID, user.FieldPoints, user.FieldCurrency, user.FieldPostCount, user.FieldCommentCount:
+		case user.FieldID, user.FieldExperience, user.FieldPoints, user.FieldCurrency, user.FieldPostCount, user.FieldCommentCount:
 			values[i] = new(sql.NullInt64)
 		case user.FieldEmail, user.FieldPassword, user.FieldPasswordSalt, user.FieldUsername, user.FieldAvatar, user.FieldSignature, user.FieldReadme, user.FieldStatus, user.FieldRole:
 			values[i] = new(sql.NullString)
@@ -145,6 +147,12 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field email_verified", values[i])
 			} else if value.Valid {
 				_m.EmailVerified = value.Bool
+			}
+		case user.FieldExperience:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field experience", values[i])
+			} else if value.Valid {
+				_m.Experience = int(value.Int64)
 			}
 		case user.FieldPoints:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -247,6 +255,9 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("email_verified=")
 	builder.WriteString(fmt.Sprintf("%v", _m.EmailVerified))
+	builder.WriteString(", ")
+	builder.WriteString("experience=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Experience))
 	builder.WriteString(", ")
 	builder.WriteString("points=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Points))

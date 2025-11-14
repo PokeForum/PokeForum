@@ -7764,6 +7764,8 @@ type UserMutation struct {
 	signature        *string
 	readme           *string
 	email_verified   *bool
+	experience       *int
+	addexperience    *int
 	points           *int
 	addpoints        *int
 	currency         *int
@@ -8283,6 +8285,62 @@ func (m *UserMutation) ResetEmailVerified() {
 	m.email_verified = nil
 }
 
+// SetExperience sets the "experience" field.
+func (m *UserMutation) SetExperience(i int) {
+	m.experience = &i
+	m.addexperience = nil
+}
+
+// Experience returns the value of the "experience" field in the mutation.
+func (m *UserMutation) Experience() (r int, exists bool) {
+	v := m.experience
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldExperience returns the old "experience" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldExperience(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldExperience is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldExperience requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldExperience: %w", err)
+	}
+	return oldValue.Experience, nil
+}
+
+// AddExperience adds i to the "experience" field.
+func (m *UserMutation) AddExperience(i int) {
+	if m.addexperience != nil {
+		*m.addexperience += i
+	} else {
+		m.addexperience = &i
+	}
+}
+
+// AddedExperience returns the value that was added to the "experience" field in this mutation.
+func (m *UserMutation) AddedExperience() (r int, exists bool) {
+	v := m.addexperience
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetExperience resets all changes to the "experience" field.
+func (m *UserMutation) ResetExperience() {
+	m.experience = nil
+	m.addexperience = nil
+}
+
 // SetPoints sets the "points" field.
 func (m *UserMutation) SetPoints(i int) {
 	m.points = &i
@@ -8613,7 +8671,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 17)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -8643,6 +8701,9 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.email_verified != nil {
 		fields = append(fields, user.FieldEmailVerified)
+	}
+	if m.experience != nil {
+		fields = append(fields, user.FieldExperience)
 	}
 	if m.points != nil {
 		fields = append(fields, user.FieldPoints)
@@ -8690,6 +8751,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Readme()
 	case user.FieldEmailVerified:
 		return m.EmailVerified()
+	case user.FieldExperience:
+		return m.Experience()
 	case user.FieldPoints:
 		return m.Points()
 	case user.FieldCurrency:
@@ -8731,6 +8794,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldReadme(ctx)
 	case user.FieldEmailVerified:
 		return m.OldEmailVerified(ctx)
+	case user.FieldExperience:
+		return m.OldExperience(ctx)
 	case user.FieldPoints:
 		return m.OldPoints(ctx)
 	case user.FieldCurrency:
@@ -8822,6 +8887,13 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetEmailVerified(v)
 		return nil
+	case user.FieldExperience:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExperience(v)
+		return nil
 	case user.FieldPoints:
 		v, ok := value.(int)
 		if !ok {
@@ -8872,6 +8944,9 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *UserMutation) AddedFields() []string {
 	var fields []string
+	if m.addexperience != nil {
+		fields = append(fields, user.FieldExperience)
+	}
 	if m.addpoints != nil {
 		fields = append(fields, user.FieldPoints)
 	}
@@ -8892,6 +8967,8 @@ func (m *UserMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
+	case user.FieldExperience:
+		return m.AddedExperience()
 	case user.FieldPoints:
 		return m.AddedPoints()
 	case user.FieldCurrency:
@@ -8909,6 +8986,13 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *UserMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case user.FieldExperience:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddExperience(v)
+		return nil
 	case user.FieldPoints:
 		v, ok := value.(int)
 		if !ok {
@@ -9014,6 +9098,9 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldEmailVerified:
 		m.ResetEmailVerified()
+		return nil
+	case user.FieldExperience:
+		m.ResetExperience()
 		return nil
 	case user.FieldPoints:
 		m.ResetPoints()
