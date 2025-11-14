@@ -138,4 +138,49 @@ type ICacheService interface {
 	// score: 分数
 	// 返回: 错误信息
 	ZAdd(key string, member string, score float64) error
+
+	// XAdd 向Stream添加消息
+	// stream: Stream键名
+	// values: 消息字段和值的映射
+	// 返回: 消息ID和错误信息
+	XAdd(stream string, values map[string]interface{}) (string, error)
+
+	// XReadGroup 从消费者组读取消息
+	// group: 消费者组名
+	// consumer: 消费者名
+	// streams: Stream键名和ID的映射
+	// count: 每次读取的最大消息数量
+	// 返回: 消息列表和错误信息
+	XReadGroup(group, consumer string, streams map[string]string, count int64) ([]map[string]interface{}, error)
+
+	// XAck 确认消息已处理
+	// stream: Stream键名
+	// group: 消费者组名
+	// ids: 要确认的消息ID列表
+	// 返回: 确认的消息数量和错误信息
+	XAck(stream, group string, ids ...string) (int64, error)
+
+	// XPending 查看待处理消息
+	// stream: Stream键名
+	// group: 消费者组名
+	// 返回: 待处理消息信息和错误信息
+	XPending(stream, group string) (map[string]interface{}, error)
+
+	// XDel 删除Stream中的消息
+	// stream: Stream键名
+	// ids: 要删除的消息ID列表
+	// 返回: 删除的消息数量和错误信息
+	XDel(stream string, ids ...string) (int64, error)
+
+	// XGroupCreate 创建消费者组
+	// stream: Stream键名
+	// group: 消费者组名
+	// id: 起始ID（"$"表示从最新开始，"0"表示从最开始）
+	// 返回: 错误信息
+	XGroupCreate(stream, group, id string) error
+
+	// XLen 获取Stream长度
+	// stream: Stream键名
+	// 返回: Stream长度和错误信息
+	XLen(stream string) (int64, error)
 }

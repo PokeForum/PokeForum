@@ -492,3 +492,245 @@ func (r *RedisCacheService) ZAdd(key string, member string, score float64) error
 	}
 	return nil
 }
+
+// XAdd 向Stream添加消息
+func (r *RedisCacheService) XAdd(stream string, values map[string]interface{}) (string, error) {
+	conn := r.getConn()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
+
+	// 构建XADD命令参数
+	args := []interface{}{stream, "*"}
+	for k, v := range values {
+		args = append(args, k, v)
+	}
+
+	messageID, err := redis.String(conn.Do("XADD", args...))
+	if err != nil {
+		r.logger.Error("向Stream添加消息失败", zap.String("stream", stream), zap.Error(err))
+		return "", fmt.Errorf("向Stream添加消息失败: %w", err)
+	}
+
+	r.logger.Debug("向Stream添加消息成功", zap.String("stream", stream), zap.String("message_id", messageID))
+	return messageID, nil
+}
+
+// XReadGroup 从消费者组读取消息
+func (r *RedisCacheService) XReadGroup(group, consumer string, streams map[string]string, count int64) ([]map[string]interface{}, error) {
+	conn := r.getConn()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
+
+	// 构建XREADGROUP命令参数
+	args := []interface{}{"GROUP", group, consumer, "COUNT", count}
+	for stream, id := range streams {
+		args = append(args, "STREAMS", stream, id)
+	}
+
+	result, err := redis.Values(conn.Do("XREADGROUP", args...))
+	if err != nil && !errors.Is(err, redis.ErrNil) {
+		r.logger.Error("从消费者组读取消息失败", zap.String("group", group), zap.String("consumer", consumer), zap.Error(err))
+		return nil, fmt.Errorf("从消费者组读取消息失败: %w", err)
+	}
+
+	if len(result) == 0 {
+		return []map[string]interface{}{}, nil
+	}
+
+	var messages []map[string]interface{}
+	// 解析返回结果: [[stream1, [message1, message2, ...]]]
+	for _, streamData := range result {
+		streamResult, _ := redis.Values(streamData, nil)
+		if len(streamResult) < 2 {
+			continue
+		}
+
+		// streamResult[1] 是消息列表
+		messageList, _ := redis.Values(streamResult[1], nil)
+		for _, messageData := range messageList {
+			msgValues, _ := redis.Values(messageData, nil)
+			if len(msgValues) < 2 {
+				continue
+			}
+
+			// msgValues[0] 是消息ID，msgValues[1] 是消息字段
+			messageID, _ := redis.String(msgValues[0], nil)
+			fields, _ := redis.StringMap(msgValues[1], nil)
+
+			// 将map[string]string转换为map[string]interface{}
+			fieldsInterface := make(map[string]interface{})
+			for k, v := range fields {
+				fieldsInterface[k] = v
+			}
+			fieldsInterface["message_id"] = messageID
+			messages = append(messages, fieldsInterface)
+		}
+	}
+
+	r.logger.Debug("从消费者组读取消息成功",
+		zap.String("group", group),
+		zap.String("consumer", consumer),
+		zap.Int("message_count", len(messages)))
+
+	return messages, nil
+}
+
+// XAck 确认消息已处理
+func (r *RedisCacheService) XAck(stream, group string, ids ...string) (int64, error) {
+	conn := r.getConn()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
+
+	// 构建XACK命令参数
+	args := []interface{}{stream, group}
+	for _, id := range ids {
+		args = append(args, id)
+	}
+
+	count, err := redis.Int64(conn.Do("XACK", args...))
+	if err != nil {
+		r.logger.Error("确认消息失败", zap.String("stream", stream), zap.String("group", group), zap.Error(err))
+		return 0, fmt.Errorf("确认消息失败: %w", err)
+	}
+
+	r.logger.Debug("确认消息成功",
+		zap.String("stream", stream),
+		zap.String("group", group),
+		zap.Int64("ack_count", count))
+
+	return count, nil
+}
+
+// XPending 查看待处理消息
+func (r *RedisCacheService) XPending(stream, group string) (map[string]interface{}, error) {
+	conn := r.getConn()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
+
+	result, err := redis.Values(conn.Do("XPENDING", stream, group))
+	if err != nil {
+		r.logger.Error("查询待处理消息失败", zap.String("stream", stream), zap.String("group", group), zap.Error(err))
+		return nil, fmt.Errorf("查询待处理消息失败: %w", err)
+	}
+
+	if len(result) == 0 {
+		return map[string]interface{}{
+			"total":     int64(0),
+			"min_id":    "",
+			"max_id":    "",
+			"consumers": []map[string]interface{}{},
+		}, nil
+	}
+
+	// 解析XPENDING返回结果: [total, min_id, max_id, [[consumer1, pending_count1], [consumer2, pending_count2], ...]]
+	total, _ := redis.Int64(result[0], nil)
+	minID, _ := redis.String(result[1], nil)
+	maxID, _ := redis.String(result[2], nil)
+
+	consumers := []map[string]interface{}{}
+	if len(result) > 3 {
+		consumerList, _ := redis.Values(result[3], nil)
+		for _, consumerData := range consumerList {
+			consumerInfo, _ := redis.Values(consumerData, nil)
+			if len(consumerInfo) >= 2 {
+				consumerName, _ := redis.String(consumerInfo[0], nil)
+				pendingCount, _ := redis.Int64(consumerInfo[1], nil)
+				consumers = append(consumers, map[string]interface{}{
+					"consumer":      consumerName,
+					"pending_count": pendingCount,
+				})
+			}
+		}
+	}
+
+	return map[string]interface{}{
+		"total":     total,
+		"min_id":    minID,
+		"max_id":    maxID,
+		"consumers": consumers,
+	}, nil
+}
+
+// XDel 删除Stream中的消息
+func (r *RedisCacheService) XDel(stream string, ids ...string) (int64, error) {
+	conn := r.getConn()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
+
+	// 构建XDEL命令参数
+	args := []interface{}{stream}
+	for _, id := range ids {
+		args = append(args, id)
+	}
+
+	count, err := redis.Int64(conn.Do("XDEL", args...))
+	if err != nil {
+		r.logger.Error("删除Stream消息失败", zap.String("stream", stream), zap.Error(err))
+		return 0, fmt.Errorf("删除Stream消息失败: %w", err)
+	}
+
+	r.logger.Debug("删除Stream消息成功",
+		zap.String("stream", stream),
+		zap.Int64("deleted_count", count))
+
+	return count, nil
+}
+
+// XGroupCreate 创建消费者组
+func (r *RedisCacheService) XGroupCreate(stream, group, id string) error {
+	conn := r.getConn()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
+
+	_, err := conn.Do("XGROUP", "CREATE", stream, group, id, "MKSTREAM")
+	if err != nil {
+		r.logger.Error("创建消费者组失败", zap.String("stream", stream), zap.String("group", group), zap.Error(err))
+		return fmt.Errorf("创建消费者组失败: %w", err)
+	}
+
+	r.logger.Info("创建消费者组成功", zap.String("stream", stream), zap.String("group", group))
+	return nil
+}
+
+// XLen 获取Stream长度
+func (r *RedisCacheService) XLen(stream string) (int64, error) {
+	conn := r.getConn()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
+
+	length, err := redis.Int64(conn.Do("XLEN", stream))
+	if err != nil {
+		r.logger.Error("获取Stream长度失败", zap.String("stream", stream), zap.Error(err))
+		return 0, fmt.Errorf("获取Stream长度失败: %w", err)
+	}
+
+	return length, nil
+}
