@@ -109,3 +109,25 @@ const (
 	// SafeVerifyEmail 是否验证邮箱
 	SafeVerifyEmail = "safe:verify_email"
 )
+
+// 签到设置
+const (
+	// SigninIsEnable 是否启用签到功能
+	SigninIsEnable = "signin:is_enable"
+	// SigninMode 签到模式：fixed、increment、random
+	SigninMode = "signin:mode"
+	// SigninFixedReward 固定模式奖励积分
+	SigninFixedReward = "signin:fixed_reward"
+	// SigninIncrementBase 递增模式基础奖励
+	SigninIncrementBase = "signin:increment_base"
+	// SigninIncrementStep 递增模式步长
+	SigninIncrementStep = "signin:increment_step"
+	// SigninIncrementCycle 递增周期（天数），超过此周期后重新开始递增
+	SigninIncrementCycle = "signin:increment_cycle"
+	// SigninRandomMin 随机模式最小奖励
+	SigninRandomMin = "signin:random_min"
+	// SigninRandomMax 随机模式最大奖励
+	SigninRandomMax = "signin:random_max"
+	// SigninExperienceReward 经验值奖励
+	SigninExperienceReward = "signin:experience_reward"
+)

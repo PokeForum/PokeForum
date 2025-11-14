@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	_ "github.com/PokeForum/PokeForum/docs"
+	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/configs"
 	"github.com/PokeForum/PokeForum/internal/controller"
@@ -142,6 +143,45 @@ func InjectorSrv(injector *do.Injector) {
 		}
 		return service.NewOAuthProviderService(configs.DB, cacheService, configs.Log), nil
 	})
+
+	// 注册 RedisLock
+	do.Provide(injector, func(i *do.Injector) (*cache.RedisLock, error) {
+		return cache.NewRedisLock(configs.Cache, configs.Log), nil
+	})
+
+	// 注册 SigninAsyncTask
+	do.Provide(injector, func(i *do.Injector) (*service.SigninAsyncTask, error) {
+		db, err := do.Invoke[*ent.Client](injector)
+		if err != nil {
+			return nil, err
+		}
+		cacheService, err := do.Invoke[cache.ICacheService](injector)
+		if err != nil {
+			return nil, err
+		}
+		return service.NewSigninAsyncTask(db, cacheService, configs.Log), nil
+	})
+
+	// 注册 SigninService
+	do.Provide(injector, func(i *do.Injector) (service.ISigninService, error) {
+		cacheService, err := do.Invoke[cache.ICacheService](injector)
+		if err != nil {
+			return nil, err
+		}
+		redisLock, err := do.Invoke[*cache.RedisLock](injector)
+		if err != nil {
+			return nil, err
+		}
+		settingsService, err := do.Invoke[service.ISettingsService](injector)
+		if err != nil {
+			return nil, err
+		}
+		asyncTask, err := do.Invoke[*service.SigninAsyncTask](injector)
+		if err != nil {
+			return nil, err
+		}
+		return service.NewSigninService(configs.DB, cacheService, redisLock, configs.Log, settingsService, asyncTask), nil
+	})
 }
 
 func Routers(injector *do.Injector) *gin.Engine {
@@ -244,6 +284,11 @@ func Routers(injector *do.Injector) *gin.Engine {
 			CommentGroup := ForumGroup.Group("/comments")
 			CommentCon := controller.NewCommentController(injector)
 			CommentCon.CommentRouter(CommentGroup)
+
+			// 签到系统
+			SigninGroup := ForumGroup.Group("/signin")
+			SigninCon := controller.NewSigninController(injector)
+			SigninCon.SigninRouter(SigninGroup)
 		}
 
 		// 版主接口
