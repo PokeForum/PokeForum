@@ -25,6 +25,8 @@ import (
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 	"github.com/PokeForum/PokeForum/ent/userloginlog"
 	"github.com/PokeForum/PokeForum/ent/useroauth"
+	"github.com/PokeForum/PokeForum/ent/usersigninlogs"
+	"github.com/PokeForum/PokeForum/ent/usersigninstatus"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -98,6 +100,8 @@ func checkColumn(t, c string) error {
 			userbalancelog.Table:    userbalancelog.ValidColumn,
 			userloginlog.Table:      userloginlog.ValidColumn,
 			useroauth.Table:         useroauth.ValidColumn,
+			usersigninlogs.Table:    usersigninlogs.ValidColumn,
+			usersigninstatus.Table:  usersigninstatus.ValidColumn,
 		})
 	})
 	return columnCheck(t, c)

@@ -23,7 +23,7 @@ type UserBalanceLog struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// 用户ID，关联到用户表
 	UserID int `json:"user_id,omitempty"`
-	// 变动类型：points（积分）、currency（货币）
+	// 变动类型：points（积分）、currency（货币）、experience（经验值）
 	Type userbalancelog.Type `json:"type,omitempty"`
 	// 变动数量：正数为增加，负数为减少
 	Amount int `json:"amount,omitempty"`

@@ -318,7 +318,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "module", Type: field.TypeEnum, Enums: []string{"Site", "HomePage", "Comment", "Seo", "Security", "Function"}},
+		{Name: "module", Type: field.TypeEnum, Enums: []string{"Site", "HomePage", "Comment", "Seo", "Security", "Function", "Signin"}},
 		{Name: "key", Type: field.TypeString},
 		{Name: "value", Type: field.TypeString, Nullable: true},
 		{Name: "value_type", Type: field.TypeEnum, Enums: []string{"string", "number", "boolean", "json", "text"}, Default: "string"},
@@ -386,7 +386,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeInt},
-		{Name: "type", Type: field.TypeEnum, Enums: []string{"points", "currency"}},
+		{Name: "type", Type: field.TypeEnum, Enums: []string{"points", "currency", "experience"}},
 		{Name: "amount", Type: field.TypeInt},
 		{Name: "before_amount", Type: field.TypeInt},
 		{Name: "after_amount", Type: field.TypeInt},
@@ -502,6 +502,60 @@ var (
 			},
 		},
 	}
+	// UserSigninLogsColumns holds the columns for the "user_signin_logs" table.
+	UserSigninLogsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt64},
+		{Name: "sign_date", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "date", "postgres": "date"}},
+	}
+	// UserSigninLogsTable holds the schema information for the "user_signin_logs" table.
+	UserSigninLogsTable = &schema.Table{
+		Name:       "user_signin_logs",
+		Columns:    UserSigninLogsColumns,
+		PrimaryKey: []*schema.Column{UserSigninLogsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "usersigninlogs_user_id_sign_date",
+				Unique:  false,
+				Columns: []*schema.Column{UserSigninLogsColumns[3], UserSigninLogsColumns[4]},
+			},
+			{
+				Name:    "usersigninlogs_sign_date",
+				Unique:  false,
+				Columns: []*schema.Column{UserSigninLogsColumns[4]},
+			},
+		},
+	}
+	// UserSigninStatusColumns holds the columns for the "user_signin_status" table.
+	UserSigninStatusColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt64},
+		{Name: "last_signin_date", Type: field.TypeTime, SchemaType: map[string]string{"mysql": "date", "postgres": "date"}},
+		{Name: "continuous_days", Type: field.TypeInt, Default: 0},
+		{Name: "total_days", Type: field.TypeInt, Default: 0},
+	}
+	// UserSigninStatusTable holds the schema information for the "user_signin_status" table.
+	UserSigninStatusTable = &schema.Table{
+		Name:       "user_signin_status",
+		Columns:    UserSigninStatusColumns,
+		PrimaryKey: []*schema.Column{UserSigninStatusColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "usersigninstatus_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{UserSigninStatusColumns[3]},
+			},
+			{
+				Name:    "usersigninstatus_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{UserSigninStatusColumns[2]},
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		BlacklistsTable,
@@ -517,6 +571,8 @@ var (
 		UserBalanceLogsTable,
 		UserLoginLogsTable,
 		UserOauthsTable,
+		UserSigninLogsTable,
+		UserSigninStatusTable,
 	}
 )
 

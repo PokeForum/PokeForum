@@ -25,6 +25,8 @@ import (
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 	"github.com/PokeForum/PokeForum/ent/userloginlog"
 	"github.com/PokeForum/PokeForum/ent/useroauth"
+	"github.com/PokeForum/PokeForum/ent/usersigninlogs"
+	"github.com/PokeForum/PokeForum/ent/usersigninstatus"
 )
 
 const (
@@ -49,6 +51,8 @@ const (
 	TypeUserBalanceLog    = "UserBalanceLog"
 	TypeUserLoginLog      = "UserLoginLog"
 	TypeUserOAuth         = "UserOAuth"
+	TypeUserSigninLogs    = "UserSigninLogs"
+	TypeUserSigninStatus  = "UserSigninStatus"
 )
 
 // BlacklistMutation represents an operation that mutates the Blacklist nodes in the graph.
@@ -12209,4 +12213,1226 @@ func (m *UserOAuthMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *UserOAuthMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown UserOAuth edge %s", name)
+}
+
+// UserSigninLogsMutation represents an operation that mutates the UserSigninLogs nodes in the graph.
+type UserSigninLogsMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	created_at    *time.Time
+	updated_at    *time.Time
+	user_id       *int64
+	adduser_id    *int64
+	sign_date     *time.Time
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*UserSigninLogs, error)
+	predicates    []predicate.UserSigninLogs
+}
+
+var _ ent.Mutation = (*UserSigninLogsMutation)(nil)
+
+// usersigninlogsOption allows management of the mutation configuration using functional options.
+type usersigninlogsOption func(*UserSigninLogsMutation)
+
+// newUserSigninLogsMutation creates new mutation for the UserSigninLogs entity.
+func newUserSigninLogsMutation(c config, op Op, opts ...usersigninlogsOption) *UserSigninLogsMutation {
+	m := &UserSigninLogsMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeUserSigninLogs,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withUserSigninLogsID sets the ID field of the mutation.
+func withUserSigninLogsID(id int) usersigninlogsOption {
+	return func(m *UserSigninLogsMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *UserSigninLogs
+		)
+		m.oldValue = func(ctx context.Context) (*UserSigninLogs, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().UserSigninLogs.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withUserSigninLogs sets the old UserSigninLogs of the mutation.
+func withUserSigninLogs(node *UserSigninLogs) usersigninlogsOption {
+	return func(m *UserSigninLogsMutation) {
+		m.oldValue = func(context.Context) (*UserSigninLogs, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m UserSigninLogsMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m UserSigninLogsMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *UserSigninLogsMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *UserSigninLogsMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().UserSigninLogs.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *UserSigninLogsMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *UserSigninLogsMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the UserSigninLogs entity.
+// If the UserSigninLogs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserSigninLogsMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *UserSigninLogsMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *UserSigninLogsMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *UserSigninLogsMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the UserSigninLogs entity.
+// If the UserSigninLogs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserSigninLogsMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *UserSigninLogsMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *UserSigninLogsMutation) SetUserID(i int64) {
+	m.user_id = &i
+	m.adduser_id = nil
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *UserSigninLogsMutation) UserID() (r int64, exists bool) {
+	v := m.user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the UserSigninLogs entity.
+// If the UserSigninLogs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserSigninLogsMutation) OldUserID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// AddUserID adds i to the "user_id" field.
+func (m *UserSigninLogsMutation) AddUserID(i int64) {
+	if m.adduser_id != nil {
+		*m.adduser_id += i
+	} else {
+		m.adduser_id = &i
+	}
+}
+
+// AddedUserID returns the value that was added to the "user_id" field in this mutation.
+func (m *UserSigninLogsMutation) AddedUserID() (r int64, exists bool) {
+	v := m.adduser_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *UserSigninLogsMutation) ResetUserID() {
+	m.user_id = nil
+	m.adduser_id = nil
+}
+
+// SetSignDate sets the "sign_date" field.
+func (m *UserSigninLogsMutation) SetSignDate(t time.Time) {
+	m.sign_date = &t
+}
+
+// SignDate returns the value of the "sign_date" field in the mutation.
+func (m *UserSigninLogsMutation) SignDate() (r time.Time, exists bool) {
+	v := m.sign_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSignDate returns the old "sign_date" field's value of the UserSigninLogs entity.
+// If the UserSigninLogs object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserSigninLogsMutation) OldSignDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSignDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSignDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSignDate: %w", err)
+	}
+	return oldValue.SignDate, nil
+}
+
+// ResetSignDate resets all changes to the "sign_date" field.
+func (m *UserSigninLogsMutation) ResetSignDate() {
+	m.sign_date = nil
+}
+
+// Where appends a list predicates to the UserSigninLogsMutation builder.
+func (m *UserSigninLogsMutation) Where(ps ...predicate.UserSigninLogs) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the UserSigninLogsMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *UserSigninLogsMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.UserSigninLogs, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *UserSigninLogsMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *UserSigninLogsMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (UserSigninLogs).
+func (m *UserSigninLogsMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *UserSigninLogsMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.created_at != nil {
+		fields = append(fields, usersigninlogs.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, usersigninlogs.FieldUpdatedAt)
+	}
+	if m.user_id != nil {
+		fields = append(fields, usersigninlogs.FieldUserID)
+	}
+	if m.sign_date != nil {
+		fields = append(fields, usersigninlogs.FieldSignDate)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *UserSigninLogsMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case usersigninlogs.FieldCreatedAt:
+		return m.CreatedAt()
+	case usersigninlogs.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case usersigninlogs.FieldUserID:
+		return m.UserID()
+	case usersigninlogs.FieldSignDate:
+		return m.SignDate()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *UserSigninLogsMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case usersigninlogs.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case usersigninlogs.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case usersigninlogs.FieldUserID:
+		return m.OldUserID(ctx)
+	case usersigninlogs.FieldSignDate:
+		return m.OldSignDate(ctx)
+	}
+	return nil, fmt.Errorf("unknown UserSigninLogs field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UserSigninLogsMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case usersigninlogs.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case usersigninlogs.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case usersigninlogs.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case usersigninlogs.FieldSignDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSignDate(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UserSigninLogs field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *UserSigninLogsMutation) AddedFields() []string {
+	var fields []string
+	if m.adduser_id != nil {
+		fields = append(fields, usersigninlogs.FieldUserID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *UserSigninLogsMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case usersigninlogs.FieldUserID:
+		return m.AddedUserID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UserSigninLogsMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case usersigninlogs.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUserID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UserSigninLogs numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *UserSigninLogsMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *UserSigninLogsMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *UserSigninLogsMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown UserSigninLogs nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *UserSigninLogsMutation) ResetField(name string) error {
+	switch name {
+	case usersigninlogs.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case usersigninlogs.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case usersigninlogs.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case usersigninlogs.FieldSignDate:
+		m.ResetSignDate()
+		return nil
+	}
+	return fmt.Errorf("unknown UserSigninLogs field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *UserSigninLogsMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *UserSigninLogsMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *UserSigninLogsMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *UserSigninLogsMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *UserSigninLogsMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *UserSigninLogsMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *UserSigninLogsMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown UserSigninLogs unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *UserSigninLogsMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown UserSigninLogs edge %s", name)
+}
+
+// UserSigninStatusMutation represents an operation that mutates the UserSigninStatus nodes in the graph.
+type UserSigninStatusMutation struct {
+	config
+	op                 Op
+	typ                string
+	id                 *int
+	created_at         *time.Time
+	updated_at         *time.Time
+	user_id            *int64
+	adduser_id         *int64
+	last_signin_date   *time.Time
+	continuous_days    *int
+	addcontinuous_days *int
+	total_days         *int
+	addtotal_days      *int
+	clearedFields      map[string]struct{}
+	done               bool
+	oldValue           func(context.Context) (*UserSigninStatus, error)
+	predicates         []predicate.UserSigninStatus
+}
+
+var _ ent.Mutation = (*UserSigninStatusMutation)(nil)
+
+// usersigninstatusOption allows management of the mutation configuration using functional options.
+type usersigninstatusOption func(*UserSigninStatusMutation)
+
+// newUserSigninStatusMutation creates new mutation for the UserSigninStatus entity.
+func newUserSigninStatusMutation(c config, op Op, opts ...usersigninstatusOption) *UserSigninStatusMutation {
+	m := &UserSigninStatusMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeUserSigninStatus,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withUserSigninStatusID sets the ID field of the mutation.
+func withUserSigninStatusID(id int) usersigninstatusOption {
+	return func(m *UserSigninStatusMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *UserSigninStatus
+		)
+		m.oldValue = func(ctx context.Context) (*UserSigninStatus, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().UserSigninStatus.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withUserSigninStatus sets the old UserSigninStatus of the mutation.
+func withUserSigninStatus(node *UserSigninStatus) usersigninstatusOption {
+	return func(m *UserSigninStatusMutation) {
+		m.oldValue = func(context.Context) (*UserSigninStatus, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m UserSigninStatusMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m UserSigninStatusMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *UserSigninStatusMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *UserSigninStatusMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().UserSigninStatus.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *UserSigninStatusMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *UserSigninStatusMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the UserSigninStatus entity.
+// If the UserSigninStatus object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserSigninStatusMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *UserSigninStatusMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *UserSigninStatusMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *UserSigninStatusMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the UserSigninStatus entity.
+// If the UserSigninStatus object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserSigninStatusMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *UserSigninStatusMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetUserID sets the "user_id" field.
+func (m *UserSigninStatusMutation) SetUserID(i int64) {
+	m.user_id = &i
+	m.adduser_id = nil
+}
+
+// UserID returns the value of the "user_id" field in the mutation.
+func (m *UserSigninStatusMutation) UserID() (r int64, exists bool) {
+	v := m.user_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserID returns the old "user_id" field's value of the UserSigninStatus entity.
+// If the UserSigninStatus object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserSigninStatusMutation) OldUserID(ctx context.Context) (v int64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// AddUserID adds i to the "user_id" field.
+func (m *UserSigninStatusMutation) AddUserID(i int64) {
+	if m.adduser_id != nil {
+		*m.adduser_id += i
+	} else {
+		m.adduser_id = &i
+	}
+}
+
+// AddedUserID returns the value that was added to the "user_id" field in this mutation.
+func (m *UserSigninStatusMutation) AddedUserID() (r int64, exists bool) {
+	v := m.adduser_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUserID resets all changes to the "user_id" field.
+func (m *UserSigninStatusMutation) ResetUserID() {
+	m.user_id = nil
+	m.adduser_id = nil
+}
+
+// SetLastSigninDate sets the "last_signin_date" field.
+func (m *UserSigninStatusMutation) SetLastSigninDate(t time.Time) {
+	m.last_signin_date = &t
+}
+
+// LastSigninDate returns the value of the "last_signin_date" field in the mutation.
+func (m *UserSigninStatusMutation) LastSigninDate() (r time.Time, exists bool) {
+	v := m.last_signin_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastSigninDate returns the old "last_signin_date" field's value of the UserSigninStatus entity.
+// If the UserSigninStatus object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserSigninStatusMutation) OldLastSigninDate(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastSigninDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastSigninDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastSigninDate: %w", err)
+	}
+	return oldValue.LastSigninDate, nil
+}
+
+// ResetLastSigninDate resets all changes to the "last_signin_date" field.
+func (m *UserSigninStatusMutation) ResetLastSigninDate() {
+	m.last_signin_date = nil
+}
+
+// SetContinuousDays sets the "continuous_days" field.
+func (m *UserSigninStatusMutation) SetContinuousDays(i int) {
+	m.continuous_days = &i
+	m.addcontinuous_days = nil
+}
+
+// ContinuousDays returns the value of the "continuous_days" field in the mutation.
+func (m *UserSigninStatusMutation) ContinuousDays() (r int, exists bool) {
+	v := m.continuous_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContinuousDays returns the old "continuous_days" field's value of the UserSigninStatus entity.
+// If the UserSigninStatus object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserSigninStatusMutation) OldContinuousDays(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContinuousDays is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContinuousDays requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContinuousDays: %w", err)
+	}
+	return oldValue.ContinuousDays, nil
+}
+
+// AddContinuousDays adds i to the "continuous_days" field.
+func (m *UserSigninStatusMutation) AddContinuousDays(i int) {
+	if m.addcontinuous_days != nil {
+		*m.addcontinuous_days += i
+	} else {
+		m.addcontinuous_days = &i
+	}
+}
+
+// AddedContinuousDays returns the value that was added to the "continuous_days" field in this mutation.
+func (m *UserSigninStatusMutation) AddedContinuousDays() (r int, exists bool) {
+	v := m.addcontinuous_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetContinuousDays resets all changes to the "continuous_days" field.
+func (m *UserSigninStatusMutation) ResetContinuousDays() {
+	m.continuous_days = nil
+	m.addcontinuous_days = nil
+}
+
+// SetTotalDays sets the "total_days" field.
+func (m *UserSigninStatusMutation) SetTotalDays(i int) {
+	m.total_days = &i
+	m.addtotal_days = nil
+}
+
+// TotalDays returns the value of the "total_days" field in the mutation.
+func (m *UserSigninStatusMutation) TotalDays() (r int, exists bool) {
+	v := m.total_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotalDays returns the old "total_days" field's value of the UserSigninStatus entity.
+// If the UserSigninStatus object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserSigninStatusMutation) OldTotalDays(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotalDays is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotalDays requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotalDays: %w", err)
+	}
+	return oldValue.TotalDays, nil
+}
+
+// AddTotalDays adds i to the "total_days" field.
+func (m *UserSigninStatusMutation) AddTotalDays(i int) {
+	if m.addtotal_days != nil {
+		*m.addtotal_days += i
+	} else {
+		m.addtotal_days = &i
+	}
+}
+
+// AddedTotalDays returns the value that was added to the "total_days" field in this mutation.
+func (m *UserSigninStatusMutation) AddedTotalDays() (r int, exists bool) {
+	v := m.addtotal_days
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTotalDays resets all changes to the "total_days" field.
+func (m *UserSigninStatusMutation) ResetTotalDays() {
+	m.total_days = nil
+	m.addtotal_days = nil
+}
+
+// Where appends a list predicates to the UserSigninStatusMutation builder.
+func (m *UserSigninStatusMutation) Where(ps ...predicate.UserSigninStatus) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the UserSigninStatusMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *UserSigninStatusMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.UserSigninStatus, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *UserSigninStatusMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *UserSigninStatusMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (UserSigninStatus).
+func (m *UserSigninStatusMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *UserSigninStatusMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.created_at != nil {
+		fields = append(fields, usersigninstatus.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, usersigninstatus.FieldUpdatedAt)
+	}
+	if m.user_id != nil {
+		fields = append(fields, usersigninstatus.FieldUserID)
+	}
+	if m.last_signin_date != nil {
+		fields = append(fields, usersigninstatus.FieldLastSigninDate)
+	}
+	if m.continuous_days != nil {
+		fields = append(fields, usersigninstatus.FieldContinuousDays)
+	}
+	if m.total_days != nil {
+		fields = append(fields, usersigninstatus.FieldTotalDays)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *UserSigninStatusMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case usersigninstatus.FieldCreatedAt:
+		return m.CreatedAt()
+	case usersigninstatus.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case usersigninstatus.FieldUserID:
+		return m.UserID()
+	case usersigninstatus.FieldLastSigninDate:
+		return m.LastSigninDate()
+	case usersigninstatus.FieldContinuousDays:
+		return m.ContinuousDays()
+	case usersigninstatus.FieldTotalDays:
+		return m.TotalDays()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *UserSigninStatusMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case usersigninstatus.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case usersigninstatus.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case usersigninstatus.FieldUserID:
+		return m.OldUserID(ctx)
+	case usersigninstatus.FieldLastSigninDate:
+		return m.OldLastSigninDate(ctx)
+	case usersigninstatus.FieldContinuousDays:
+		return m.OldContinuousDays(ctx)
+	case usersigninstatus.FieldTotalDays:
+		return m.OldTotalDays(ctx)
+	}
+	return nil, fmt.Errorf("unknown UserSigninStatus field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UserSigninStatusMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case usersigninstatus.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case usersigninstatus.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case usersigninstatus.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserID(v)
+		return nil
+	case usersigninstatus.FieldLastSigninDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastSigninDate(v)
+		return nil
+	case usersigninstatus.FieldContinuousDays:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContinuousDays(v)
+		return nil
+	case usersigninstatus.FieldTotalDays:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotalDays(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UserSigninStatus field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *UserSigninStatusMutation) AddedFields() []string {
+	var fields []string
+	if m.adduser_id != nil {
+		fields = append(fields, usersigninstatus.FieldUserID)
+	}
+	if m.addcontinuous_days != nil {
+		fields = append(fields, usersigninstatus.FieldContinuousDays)
+	}
+	if m.addtotal_days != nil {
+		fields = append(fields, usersigninstatus.FieldTotalDays)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *UserSigninStatusMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case usersigninstatus.FieldUserID:
+		return m.AddedUserID()
+	case usersigninstatus.FieldContinuousDays:
+		return m.AddedContinuousDays()
+	case usersigninstatus.FieldTotalDays:
+		return m.AddedTotalDays()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *UserSigninStatusMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case usersigninstatus.FieldUserID:
+		v, ok := value.(int64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddUserID(v)
+		return nil
+	case usersigninstatus.FieldContinuousDays:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddContinuousDays(v)
+		return nil
+	case usersigninstatus.FieldTotalDays:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTotalDays(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UserSigninStatus numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *UserSigninStatusMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *UserSigninStatusMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *UserSigninStatusMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown UserSigninStatus nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *UserSigninStatusMutation) ResetField(name string) error {
+	switch name {
+	case usersigninstatus.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case usersigninstatus.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case usersigninstatus.FieldUserID:
+		m.ResetUserID()
+		return nil
+	case usersigninstatus.FieldLastSigninDate:
+		m.ResetLastSigninDate()
+		return nil
+	case usersigninstatus.FieldContinuousDays:
+		m.ResetContinuousDays()
+		return nil
+	case usersigninstatus.FieldTotalDays:
+		m.ResetTotalDays()
+		return nil
+	}
+	return fmt.Errorf("unknown UserSigninStatus field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *UserSigninStatusMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *UserSigninStatusMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *UserSigninStatusMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *UserSigninStatusMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *UserSigninStatusMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *UserSigninStatusMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *UserSigninStatusMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown UserSigninStatus unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *UserSigninStatusMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown UserSigninStatus edge %s", name)
 }

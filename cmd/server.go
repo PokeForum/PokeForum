@@ -111,6 +111,10 @@ func RunServer() {
 	syncTask := service.NewStatsSyncTask(configs.DB, cacheService, configs.Log)
 	syncTask.Start(5 * time.Minute)
 
+	// 启动签到异步任务(3个worker处理签到数据落库)
+	signinAsyncTask := service.NewSigninAsyncTask(configs.DB, cacheService, configs.Log)
+	signinAsyncTask.Start(3)
+
 	// 启动服务
 	sDSN := fmt.Sprintf("%s:%s", configs.Host, configs.Port)
 	fmt.Printf("Server Run: %s \n", sDSN)
@@ -135,6 +139,9 @@ func RunServer() {
 
 	// 停止统计数据同步任务
 	syncTask.Stop()
+
+	// 停止签到异步任务
+	signinAsyncTask.Stop()
 
 	// 创建10秒超时的Context
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

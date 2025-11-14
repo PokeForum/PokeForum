@@ -44,3 +44,9 @@ type UserLoginLog func(*sql.Selector)
 
 // UserOAuth is the predicate function for useroauth builders.
 type UserOAuth func(*sql.Selector)
+
+// UserSigninLogs is the predicate function for usersigninlogs builders.
+type UserSigninLogs func(*sql.Selector)
+
+// UserSigninStatus is the predicate function for usersigninstatus builders.
+type UserSigninStatus func(*sql.Selector)

@@ -75,6 +75,7 @@ const (
 	ModuleSeo      Module = "Seo"
 	ModuleSecurity Module = "Security"
 	ModuleFunction Module = "Function"
+	ModuleSignin   Module = "Signin"
 )
 
 func (m Module) String() string {
@@ -84,7 +85,7 @@ func (m Module) String() string {
 // ModuleValidator is a validator for the "module" field enum values. It is called by the builders before save.
 func ModuleValidator(m Module) error {
 	switch m {
-	case ModuleSite, ModuleHomePage, ModuleComment, ModuleSeo, ModuleSecurity, ModuleFunction:
+	case ModuleSite, ModuleHomePage, ModuleComment, ModuleSeo, ModuleSecurity, ModuleFunction, ModuleSignin:
 		return nil
 	default:
 		return fmt.Errorf("settings: invalid enum value for module field: %q", m)

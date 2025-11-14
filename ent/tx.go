@@ -38,6 +38,10 @@ type Tx struct {
 	UserLoginLog *UserLoginLogClient
 	// UserOAuth is the client for interacting with the UserOAuth builders.
 	UserOAuth *UserOAuthClient
+	// UserSigninLogs is the client for interacting with the UserSigninLogs builders.
+	UserSigninLogs *UserSigninLogsClient
+	// UserSigninStatus is the client for interacting with the UserSigninStatus builders.
+	UserSigninStatus *UserSigninStatusClient
 
 	// lazily loaded.
 	client     *Client
@@ -182,6 +186,8 @@ func (tx *Tx) init() {
 	tx.UserBalanceLog = NewUserBalanceLogClient(tx.config)
 	tx.UserLoginLog = NewUserLoginLogClient(tx.config)
 	tx.UserOAuth = NewUserOAuthClient(tx.config)
+	tx.UserSigninLogs = NewUserSigninLogsClient(tx.config)
+	tx.UserSigninStatus = NewUserSigninStatusClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

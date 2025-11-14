@@ -27,6 +27,8 @@ import (
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 	"github.com/PokeForum/PokeForum/ent/userloginlog"
 	"github.com/PokeForum/PokeForum/ent/useroauth"
+	"github.com/PokeForum/PokeForum/ent/usersigninlogs"
+	"github.com/PokeForum/PokeForum/ent/usersigninstatus"
 )
 
 // Client is the client that holds all ent builders.
@@ -60,6 +62,10 @@ type Client struct {
 	UserLoginLog *UserLoginLogClient
 	// UserOAuth is the client for interacting with the UserOAuth builders.
 	UserOAuth *UserOAuthClient
+	// UserSigninLogs is the client for interacting with the UserSigninLogs builders.
+	UserSigninLogs *UserSigninLogsClient
+	// UserSigninStatus is the client for interacting with the UserSigninStatus builders.
+	UserSigninStatus *UserSigninStatusClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -84,6 +90,8 @@ func (c *Client) init() {
 	c.UserBalanceLog = NewUserBalanceLogClient(c.config)
 	c.UserLoginLog = NewUserLoginLogClient(c.config)
 	c.UserOAuth = NewUserOAuthClient(c.config)
+	c.UserSigninLogs = NewUserSigninLogsClient(c.config)
+	c.UserSigninStatus = NewUserSigninStatusClient(c.config)
 }
 
 type (
@@ -189,6 +197,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		UserBalanceLog:    NewUserBalanceLogClient(cfg),
 		UserLoginLog:      NewUserLoginLogClient(cfg),
 		UserOAuth:         NewUserOAuthClient(cfg),
+		UserSigninLogs:    NewUserSigninLogsClient(cfg),
+		UserSigninStatus:  NewUserSigninStatusClient(cfg),
 	}, nil
 }
 
@@ -221,6 +231,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		UserBalanceLog:    NewUserBalanceLogClient(cfg),
 		UserLoginLog:      NewUserLoginLogClient(cfg),
 		UserOAuth:         NewUserOAuthClient(cfg),
+		UserSigninLogs:    NewUserSigninLogsClient(cfg),
+		UserSigninStatus:  NewUserSigninStatusClient(cfg),
 	}, nil
 }
 
@@ -252,7 +264,7 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Blacklist, c.Category, c.CategoryModerator, c.Comment, c.CommentAction,
 		c.OAuthProvider, c.Post, c.PostAction, c.Settings, c.User, c.UserBalanceLog,
-		c.UserLoginLog, c.UserOAuth,
+		c.UserLoginLog, c.UserOAuth, c.UserSigninLogs, c.UserSigninStatus,
 	} {
 		n.Use(hooks...)
 	}
@@ -264,7 +276,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Blacklist, c.Category, c.CategoryModerator, c.Comment, c.CommentAction,
 		c.OAuthProvider, c.Post, c.PostAction, c.Settings, c.User, c.UserBalanceLog,
-		c.UserLoginLog, c.UserOAuth,
+		c.UserLoginLog, c.UserOAuth, c.UserSigninLogs, c.UserSigninStatus,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -299,6 +311,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.UserLoginLog.mutate(ctx, m)
 	case *UserOAuthMutation:
 		return c.UserOAuth.mutate(ctx, m)
+	case *UserSigninLogsMutation:
+		return c.UserSigninLogs.mutate(ctx, m)
+	case *UserSigninStatusMutation:
+		return c.UserSigninStatus.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
@@ -2033,16 +2049,282 @@ func (c *UserOAuthClient) mutate(ctx context.Context, m *UserOAuthMutation) (Val
 	}
 }
 
+// UserSigninLogsClient is a client for the UserSigninLogs schema.
+type UserSigninLogsClient struct {
+	config
+}
+
+// NewUserSigninLogsClient returns a client for the UserSigninLogs from the given config.
+func NewUserSigninLogsClient(c config) *UserSigninLogsClient {
+	return &UserSigninLogsClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `usersigninlogs.Hooks(f(g(h())))`.
+func (c *UserSigninLogsClient) Use(hooks ...Hook) {
+	c.hooks.UserSigninLogs = append(c.hooks.UserSigninLogs, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `usersigninlogs.Intercept(f(g(h())))`.
+func (c *UserSigninLogsClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserSigninLogs = append(c.inters.UserSigninLogs, interceptors...)
+}
+
+// Create returns a builder for creating a UserSigninLogs entity.
+func (c *UserSigninLogsClient) Create() *UserSigninLogsCreate {
+	mutation := newUserSigninLogsMutation(c.config, OpCreate)
+	return &UserSigninLogsCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserSigninLogs entities.
+func (c *UserSigninLogsClient) CreateBulk(builders ...*UserSigninLogsCreate) *UserSigninLogsCreateBulk {
+	return &UserSigninLogsCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UserSigninLogsClient) MapCreateBulk(slice any, setFunc func(*UserSigninLogsCreate, int)) *UserSigninLogsCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UserSigninLogsCreateBulk{err: fmt.Errorf("calling to UserSigninLogsClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UserSigninLogsCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UserSigninLogsCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserSigninLogs.
+func (c *UserSigninLogsClient) Update() *UserSigninLogsUpdate {
+	mutation := newUserSigninLogsMutation(c.config, OpUpdate)
+	return &UserSigninLogsUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserSigninLogsClient) UpdateOne(_m *UserSigninLogs) *UserSigninLogsUpdateOne {
+	mutation := newUserSigninLogsMutation(c.config, OpUpdateOne, withUserSigninLogs(_m))
+	return &UserSigninLogsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserSigninLogsClient) UpdateOneID(id int) *UserSigninLogsUpdateOne {
+	mutation := newUserSigninLogsMutation(c.config, OpUpdateOne, withUserSigninLogsID(id))
+	return &UserSigninLogsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserSigninLogs.
+func (c *UserSigninLogsClient) Delete() *UserSigninLogsDelete {
+	mutation := newUserSigninLogsMutation(c.config, OpDelete)
+	return &UserSigninLogsDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserSigninLogsClient) DeleteOne(_m *UserSigninLogs) *UserSigninLogsDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserSigninLogsClient) DeleteOneID(id int) *UserSigninLogsDeleteOne {
+	builder := c.Delete().Where(usersigninlogs.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserSigninLogsDeleteOne{builder}
+}
+
+// Query returns a query builder for UserSigninLogs.
+func (c *UserSigninLogsClient) Query() *UserSigninLogsQuery {
+	return &UserSigninLogsQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserSigninLogs},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserSigninLogs entity by its id.
+func (c *UserSigninLogsClient) Get(ctx context.Context, id int) (*UserSigninLogs, error) {
+	return c.Query().Where(usersigninlogs.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserSigninLogsClient) GetX(ctx context.Context, id int) *UserSigninLogs {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *UserSigninLogsClient) Hooks() []Hook {
+	return c.hooks.UserSigninLogs
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserSigninLogsClient) Interceptors() []Interceptor {
+	return c.inters.UserSigninLogs
+}
+
+func (c *UserSigninLogsClient) mutate(ctx context.Context, m *UserSigninLogsMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserSigninLogsCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserSigninLogsUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserSigninLogsUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserSigninLogsDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UserSigninLogs mutation op: %q", m.Op())
+	}
+}
+
+// UserSigninStatusClient is a client for the UserSigninStatus schema.
+type UserSigninStatusClient struct {
+	config
+}
+
+// NewUserSigninStatusClient returns a client for the UserSigninStatus from the given config.
+func NewUserSigninStatusClient(c config) *UserSigninStatusClient {
+	return &UserSigninStatusClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `usersigninstatus.Hooks(f(g(h())))`.
+func (c *UserSigninStatusClient) Use(hooks ...Hook) {
+	c.hooks.UserSigninStatus = append(c.hooks.UserSigninStatus, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `usersigninstatus.Intercept(f(g(h())))`.
+func (c *UserSigninStatusClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserSigninStatus = append(c.inters.UserSigninStatus, interceptors...)
+}
+
+// Create returns a builder for creating a UserSigninStatus entity.
+func (c *UserSigninStatusClient) Create() *UserSigninStatusCreate {
+	mutation := newUserSigninStatusMutation(c.config, OpCreate)
+	return &UserSigninStatusCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserSigninStatus entities.
+func (c *UserSigninStatusClient) CreateBulk(builders ...*UserSigninStatusCreate) *UserSigninStatusCreateBulk {
+	return &UserSigninStatusCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UserSigninStatusClient) MapCreateBulk(slice any, setFunc func(*UserSigninStatusCreate, int)) *UserSigninStatusCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UserSigninStatusCreateBulk{err: fmt.Errorf("calling to UserSigninStatusClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UserSigninStatusCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UserSigninStatusCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserSigninStatus.
+func (c *UserSigninStatusClient) Update() *UserSigninStatusUpdate {
+	mutation := newUserSigninStatusMutation(c.config, OpUpdate)
+	return &UserSigninStatusUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserSigninStatusClient) UpdateOne(_m *UserSigninStatus) *UserSigninStatusUpdateOne {
+	mutation := newUserSigninStatusMutation(c.config, OpUpdateOne, withUserSigninStatus(_m))
+	return &UserSigninStatusUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserSigninStatusClient) UpdateOneID(id int) *UserSigninStatusUpdateOne {
+	mutation := newUserSigninStatusMutation(c.config, OpUpdateOne, withUserSigninStatusID(id))
+	return &UserSigninStatusUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserSigninStatus.
+func (c *UserSigninStatusClient) Delete() *UserSigninStatusDelete {
+	mutation := newUserSigninStatusMutation(c.config, OpDelete)
+	return &UserSigninStatusDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserSigninStatusClient) DeleteOne(_m *UserSigninStatus) *UserSigninStatusDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserSigninStatusClient) DeleteOneID(id int) *UserSigninStatusDeleteOne {
+	builder := c.Delete().Where(usersigninstatus.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserSigninStatusDeleteOne{builder}
+}
+
+// Query returns a query builder for UserSigninStatus.
+func (c *UserSigninStatusClient) Query() *UserSigninStatusQuery {
+	return &UserSigninStatusQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserSigninStatus},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserSigninStatus entity by its id.
+func (c *UserSigninStatusClient) Get(ctx context.Context, id int) (*UserSigninStatus, error) {
+	return c.Query().Where(usersigninstatus.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserSigninStatusClient) GetX(ctx context.Context, id int) *UserSigninStatus {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *UserSigninStatusClient) Hooks() []Hook {
+	return c.hooks.UserSigninStatus
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserSigninStatusClient) Interceptors() []Interceptor {
+	return c.inters.UserSigninStatus
+}
+
+func (c *UserSigninStatusClient) mutate(ctx context.Context, m *UserSigninStatusMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserSigninStatusCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserSigninStatusUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserSigninStatusUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserSigninStatusDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UserSigninStatus mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
 		Blacklist, Category, CategoryModerator, Comment, CommentAction, OAuthProvider,
-		Post, PostAction, Settings, User, UserBalanceLog, UserLoginLog,
-		UserOAuth []ent.Hook
+		Post, PostAction, Settings, User, UserBalanceLog, UserLoginLog, UserOAuth,
+		UserSigninLogs, UserSigninStatus []ent.Hook
 	}
 	inters struct {
 		Blacklist, Category, CategoryModerator, Comment, CommentAction, OAuthProvider,
-		Post, PostAction, Settings, User, UserBalanceLog, UserLoginLog,
-		UserOAuth []ent.Interceptor
+		Post, PostAction, Settings, User, UserBalanceLog, UserLoginLog, UserOAuth,
+		UserSigninLogs, UserSigninStatus []ent.Interceptor
 	}
 )

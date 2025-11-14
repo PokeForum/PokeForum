@@ -17,9 +17,9 @@ func (Settings) Fields() []ent.Field {
 		// 系统设置ID，数据库主键自增
 		field.Int("id").
 			Positive(),
-		// 模块枚举：Site、HomePage、Comment、Seo、Security、Function
+		// 模块枚举：Site、HomePage、Comment、Seo、Security、Function、Signin
 		field.Enum("module").
-			Values("Site", "HomePage", "Comment", "Seo", "Security", "Function"),
+			Values("Site", "HomePage", "Comment", "Seo", "Security", "Function", "Signin"),
 		// 配置键，唯一标识
 		field.String("key").
 			NotEmpty(),

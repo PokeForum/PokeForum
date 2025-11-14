@@ -165,6 +165,30 @@ func (f UserOAuthFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, e
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserOAuthMutation", m)
 }
 
+// The UserSigninLogsFunc type is an adapter to allow the use of ordinary
+// function as UserSigninLogs mutator.
+type UserSigninLogsFunc func(context.Context, *ent.UserSigninLogsMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserSigninLogsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserSigninLogsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserSigninLogsMutation", m)
+}
+
+// The UserSigninStatusFunc type is an adapter to allow the use of ordinary
+// function as UserSigninStatus mutator.
+type UserSigninStatusFunc func(context.Context, *ent.UserSigninStatusMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f UserSigninStatusFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.UserSigninStatusMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserSigninStatusMutation", m)
+}
+
 // Condition is a hook condition function.
 type Condition func(context.Context, ent.Mutation) bool
 

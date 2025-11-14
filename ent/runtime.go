@@ -19,6 +19,8 @@ import (
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 	"github.com/PokeForum/PokeForum/ent/userloginlog"
 	"github.com/PokeForum/PokeForum/ent/useroauth"
+	"github.com/PokeForum/PokeForum/ent/usersigninlogs"
+	"github.com/PokeForum/PokeForum/ent/usersigninstatus"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -488,4 +490,54 @@ func init() {
 	useroauthDescID := useroauthFields[0].Descriptor()
 	// useroauth.IDValidator is a validator for the "id" field. It is called by the builders before save.
 	useroauth.IDValidator = useroauthDescID.Validators[0].(func(int) error)
+	usersigninlogsMixin := schema.UserSigninLogs{}.Mixin()
+	usersigninlogsMixinFields0 := usersigninlogsMixin[0].Fields()
+	_ = usersigninlogsMixinFields0
+	usersigninlogsFields := schema.UserSigninLogs{}.Fields()
+	_ = usersigninlogsFields
+	// usersigninlogsDescCreatedAt is the schema descriptor for created_at field.
+	usersigninlogsDescCreatedAt := usersigninlogsMixinFields0[0].Descriptor()
+	// usersigninlogs.DefaultCreatedAt holds the default value on creation for the created_at field.
+	usersigninlogs.DefaultCreatedAt = usersigninlogsDescCreatedAt.Default.(func() time.Time)
+	// usersigninlogsDescUpdatedAt is the schema descriptor for updated_at field.
+	usersigninlogsDescUpdatedAt := usersigninlogsMixinFields0[1].Descriptor()
+	// usersigninlogs.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	usersigninlogs.DefaultUpdatedAt = usersigninlogsDescUpdatedAt.Default.(func() time.Time)
+	// usersigninlogs.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	usersigninlogs.UpdateDefaultUpdatedAt = usersigninlogsDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// usersigninlogsDescUserID is the schema descriptor for user_id field.
+	usersigninlogsDescUserID := usersigninlogsFields[0].Descriptor()
+	// usersigninlogs.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	usersigninlogs.UserIDValidator = usersigninlogsDescUserID.Validators[0].(func(int64) error)
+	usersigninstatusMixin := schema.UserSigninStatus{}.Mixin()
+	usersigninstatusMixinFields0 := usersigninstatusMixin[0].Fields()
+	_ = usersigninstatusMixinFields0
+	usersigninstatusFields := schema.UserSigninStatus{}.Fields()
+	_ = usersigninstatusFields
+	// usersigninstatusDescCreatedAt is the schema descriptor for created_at field.
+	usersigninstatusDescCreatedAt := usersigninstatusMixinFields0[0].Descriptor()
+	// usersigninstatus.DefaultCreatedAt holds the default value on creation for the created_at field.
+	usersigninstatus.DefaultCreatedAt = usersigninstatusDescCreatedAt.Default.(func() time.Time)
+	// usersigninstatusDescUpdatedAt is the schema descriptor for updated_at field.
+	usersigninstatusDescUpdatedAt := usersigninstatusMixinFields0[1].Descriptor()
+	// usersigninstatus.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	usersigninstatus.DefaultUpdatedAt = usersigninstatusDescUpdatedAt.Default.(func() time.Time)
+	// usersigninstatus.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	usersigninstatus.UpdateDefaultUpdatedAt = usersigninstatusDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// usersigninstatusDescUserID is the schema descriptor for user_id field.
+	usersigninstatusDescUserID := usersigninstatusFields[0].Descriptor()
+	// usersigninstatus.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
+	usersigninstatus.UserIDValidator = usersigninstatusDescUserID.Validators[0].(func(int64) error)
+	// usersigninstatusDescContinuousDays is the schema descriptor for continuous_days field.
+	usersigninstatusDescContinuousDays := usersigninstatusFields[2].Descriptor()
+	// usersigninstatus.DefaultContinuousDays holds the default value on creation for the continuous_days field.
+	usersigninstatus.DefaultContinuousDays = usersigninstatusDescContinuousDays.Default.(int)
+	// usersigninstatus.ContinuousDaysValidator is a validator for the "continuous_days" field. It is called by the builders before save.
+	usersigninstatus.ContinuousDaysValidator = usersigninstatusDescContinuousDays.Validators[0].(func(int) error)
+	// usersigninstatusDescTotalDays is the schema descriptor for total_days field.
+	usersigninstatusDescTotalDays := usersigninstatusFields[3].Descriptor()
+	// usersigninstatus.DefaultTotalDays holds the default value on creation for the total_days field.
+	usersigninstatus.DefaultTotalDays = usersigninstatusDescTotalDays.Default.(int)
+	// usersigninstatus.TotalDaysValidator is a validator for the "total_days" field. It is called by the builders before save.
+	usersigninstatus.TotalDaysValidator = usersigninstatusDescTotalDays.Validators[0].(func(int) error)
 }
