@@ -474,3 +474,21 @@ func (r *RedisCacheService) SIsMember(key string, member interface{}) (bool, err
 	}
 	return exists, nil
 }
+
+// ZAdd 向有序集合添加成员
+func (r *RedisCacheService) ZAdd(key string, member string, score float64) error {
+	conn := r.getConn()
+	defer func(conn redis.Conn) {
+		err := conn.Close()
+		if err != nil {
+			r.logger.Error("关闭Redis连接失败", zap.Error(err))
+		}
+	}(conn)
+
+	_, err := conn.Do("ZADD", key, score, member)
+	if err != nil {
+		r.logger.Error("向有序集合添加成员失败", zap.String("key", key), zap.Error(err))
+		return fmt.Errorf("向有序集合添加成员失败: %w", err)
+	}
+	return nil
+}

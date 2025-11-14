@@ -131,4 +131,11 @@ type ICacheService interface {
 	// member: 要判断的成员
 	// 返回: 是否存在和错误信息
 	SIsMember(key string, member interface{}) (bool, error)
+
+	// ZAdd 向有序集合添加成员
+	// key: 有序集合键名
+	// member: 成员值
+	// score: 分数
+	// 返回: 错误信息
+	ZAdd(key string, member string, score float64) error
 }
