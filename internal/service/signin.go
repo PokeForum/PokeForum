@@ -20,6 +20,16 @@ import (
 	"github.com/PokeForum/PokeForum/internal/schema"
 )
 
+// SigninService 签到服务实现
+type SigninService struct {
+	db              *ent.Client
+	cache           cache.ICacheService
+	redisLock       *cache.RedisLock
+	logger          *zap.Logger
+	settingsService ISettingsService
+	asyncTask       *SigninAsyncTask
+}
+
 // ISigninService 签到服务接口
 type ISigninService interface {
 	// Signin 执行签到
@@ -30,16 +40,6 @@ type ISigninService interface {
 	GetDailyRanking(ctx context.Context, date string, limit int) ([]*schema.SigninRankingItem, error)
 	// GetContinuousRanking 获取连续签到排行榜
 	GetContinuousRanking(ctx context.Context, limit int) ([]*schema.SigninRankingItem, error)
-}
-
-// SigninService 签到服务实现
-type SigninService struct {
-	db              *ent.Client
-	cache           cache.ICacheService
-	redisLock       *cache.RedisLock
-	logger          *zap.Logger
-	settingsService ISettingsService
-	asyncTask       *SigninAsyncTask
 }
 
 // NewSigninService 创建签到服务实例
@@ -68,7 +68,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 		zap.Int64("user_id", userID),
 		tracing.WithTraceIDField(ctx))
 
-	// 1. 检查签到功能是否启用
+	// 检查签到功能是否启用
 	enabled, err := s.isSigninEnabled(ctx)
 	if err != nil {
 		s.logger.Error("检查签到功能状态失败",
@@ -85,7 +85,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 		return nil, errors.New("签到功能未启用")
 	}
 
-	// 2. 检查用户是否存在
+	// 检查用户是否存在
 	userExists, err := s.db.User.Query().Where(user.ID(int(userID))).Exist(ctx)
 	if err != nil {
 		s.logger.Error("检查用户存在性失败",
@@ -102,7 +102,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 		return nil, errors.New("用户不存在")
 	}
 
-	// 3. 获取分布式锁，防止重复签到
+	// 获取分布式锁，防止重复签到
 	lockKey := fmt.Sprintf("signin:lock:%d", userID)
 	lockValue := fmt.Sprintf("%s:%d", traceID, time.Now().Unix())
 
@@ -128,7 +128,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 
 	// 确保释放锁
 	defer func() {
-		err := s.redisLock.Unlock(ctx, lockKey, lockValue)
+		err = s.redisLock.Unlock(ctx, lockKey, lockValue)
 		if err != nil {
 			s.logger.Error("释放签到锁失败",
 				zap.Int64("user_id", userID),
@@ -137,7 +137,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 		}
 	}()
 
-	// 4. 检查今日是否已签到
+	// 检查今日是否已签到
 	today := time.Now().Format("2006-01-02")
 	todaySigned, err := s.isTodaySigned(ctx, userID, today)
 	if err != nil {
@@ -155,7 +155,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 		return nil, errors.New("今日已签到")
 	}
 
-	// 5. 获取用户签到状态并计算连续签到天数
+	// 获取用户签到状态并计算连续签到天数
 	status, err := s.getUserSigninStatus(ctx, userID)
 	if err != nil {
 		s.logger.Error("获取用户签到状态失败",
@@ -165,7 +165,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 		return nil, err
 	}
 
-	// 6. 计算连续签到天数和奖励
+	// 计算连续签到天数和奖励
 	continuousDays, totalDays := s.calculateContinuousDays(status, today)
 	rewardPoints, rewardExperience, err := s.calculateReward(ctx, continuousDays)
 	if err != nil {
@@ -176,7 +176,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 		return nil, err
 	}
 
-	// 7. 更新Redis中的签到状态
+	// 更新Redis中的签到状态
 	err = s.updateRedisSigninStatus(ctx, userID, today, continuousDays, totalDays)
 	if err != nil {
 		s.logger.Error("更新Redis签到状态失败",
@@ -186,7 +186,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 		return nil, errors.New("操作失败")
 	}
 
-	// 8. 更新排行榜
+	// 更新排行榜
 	err = s.updateRanking(ctx, userID, today, rewardPoints)
 	if err != nil {
 		s.logger.Error("更新排行榜失败",
@@ -196,7 +196,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 		// 排行榜更新失败不影响签到流程
 	}
 
-	// 9. 异步写入数据库
+	// 异步写入数据库
 	signDate, _ := time.Parse("2006-01-02", today)
 	task := &SigninTask{
 		UserID:         userID,
@@ -222,7 +222,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 		return nil, errors.New("系统繁忙，请稍后重试")
 	}
 
-	// 10. 更新用户积分和经验（同步操作，确保用户立即看到变化）
+	// 更新用户积分和经验（同步操作）
 	err = s.updateUserBalance(ctx, userID, rewardPoints, rewardExperience)
 	if err != nil {
 		s.logger.Error("更新用户积分失败",
@@ -232,7 +232,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 		return nil, errors.New("操作失败")
 	}
 
-	// 11. 构建返回结果
+	// 构建返回结果
 	result := &schema.SigninResult{
 		IsSuccess:        true,
 		RewardPoints:     rewardPoints,
