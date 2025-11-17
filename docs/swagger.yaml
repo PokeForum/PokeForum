@@ -3620,156 +3620,6 @@ info:
   title: PokeForum API
   version: "1.0"
 paths:
-  /api/v1/signin:
-    post:
-      consumes:
-      - application/json
-      description: 用户执行每日签到，获得积分和经验值奖励
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 签到成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.SigninResponse'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "403":
-          description: 签到功能未启用
-          schema:
-            $ref: '#/definitions/response.Data'
-        "409":
-          description: 今日已签到
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      security:
-      - ApiKeyAuth: []
-      summary: 执行签到
-      tags:
-      - 签到系统
-  /api/v1/signin/ranking/continuous:
-    get:
-      consumes:
-      - application/json
-      description: 获取连续签到天数排行榜，按连续签到天数排序
-      parameters:
-      - description: 返回数量限制，默认10，最大100
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 获取成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/schema.SigninRankingItem'
-                  type: array
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 获取连续签到排行榜
-      tags:
-      - 签到系统
-  /api/v1/signin/ranking/daily:
-    get:
-      consumes:
-      - application/json
-      description: 获取指定日期的签到排行榜，按奖励积分排序
-      parameters:
-      - description: 查询日期，格式：YYYY-MM-DD，不传则查询今日
-        in: query
-        name: date
-        type: string
-      - description: 返回数量限制，默认10，最大100
-        in: query
-        name: limit
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 获取成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/schema.SigninRankingItem'
-                  type: array
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: 获取每日签到排行榜
-      tags:
-      - 签到系统
-  /api/v1/signin/status:
-    get:
-      consumes:
-      - application/json
-      description: 获取用户的签到状态，包括连续签到天数、总签到天数等信息
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 获取成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.SigninStatus'
-              type: object
-        "400":
-          description: 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "401":
-          description: 未授权
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: 服务器内部错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      security:
-      - ApiKeyAuth: []
-      summary: 获取签到状态
-      tags:
-      - 签到系统
   /auth/login:
     post:
       consumes:
@@ -6325,8 +6175,6 @@ paths:
           description: 服务器内部错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - ApiKeyAuth: []
       summary: 添加用户到黑名单
       tags:
       - '[用户]黑名单管理'
@@ -6370,8 +6218,6 @@ paths:
           description: 服务器内部错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - ApiKeyAuth: []
       summary: 获取用户黑名单列表
       tags:
       - '[用户]黑名单管理'
@@ -6415,8 +6261,6 @@ paths:
           description: 服务器内部错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - ApiKeyAuth: []
       summary: 从黑名单移除用户
       tags:
       - '[用户]黑名单管理'
@@ -6754,6 +6598,152 @@ paths:
       summary: 获取排行榜列表
       tags:
       - '[用户]排行榜'
+  /signin:
+    post:
+      consumes:
+      - application/json
+      description: 用户执行每日签到，获得积分和经验值奖励
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 签到成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.SigninResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "403":
+          description: 签到功能未启用
+          schema:
+            $ref: '#/definitions/response.Data'
+        "409":
+          description: 今日已签到
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 执行签到
+      tags:
+      - '[用户]签到'
+  /signin/ranking/continuous:
+    get:
+      consumes:
+      - application/json
+      description: 获取连续签到天数排行榜，按连续签到天数排序
+      parameters:
+      - description: 返回数量限制，默认10，最大100
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.SigninRankingItem'
+                  type: array
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取连续签到排行榜
+      tags:
+      - '[用户]签到'
+  /signin/ranking/daily:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定日期的签到排行榜，按奖励积分排序
+      parameters:
+      - description: 查询日期，格式：YYYY-MM-DD，不传则查询今日
+        in: query
+        name: date
+        type: string
+      - description: 返回数量限制，默认10，最大100
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/schema.SigninRankingItem'
+                  type: array
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取每日签到排行榜
+      tags:
+      - '[用户]签到'
+  /signin/status:
+    get:
+      consumes:
+      - application/json
+      description: 获取用户的签到状态，包括连续签到天数、总签到天数等信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.SigninStatus'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取签到状态
+      tags:
+      - '[用户]签到'
   /super/manage/settings/code:
     get:
       consumes:
