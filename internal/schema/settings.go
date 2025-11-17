@@ -149,3 +149,47 @@ type SafeSettingsResponse struct {
 	// 是否需要验证邮箱
 	VerifyEmail bool `json:"verify_email" example:"true"`
 }
+
+// SigninSettingsRequest 签到设置请求体
+type SigninSettingsRequest struct {
+	// 是否启用签到功能
+	IsEnable bool `json:"is_enable" example:"true"`
+	// 签到模式：fixed、increment、random
+	Mode string `json:"mode" binding:"required,oneof=fixed increment random" example:"fixed"`
+	// 固定模式奖励积分
+	FixedReward int `json:"fixed_reward" binding:"omitempty,min=1,max=1000" example:"10"`
+	// 递增模式基础奖励
+	IncrementBase int `json:"increment_base" binding:"omitempty,min=1,max=1000" example:"5"`
+	// 递增模式步长
+	IncrementStep int `json:"increment_step" binding:"omitempty,min=1,max=100" example:"1"`
+	// 递增周期（天数），超过此周期后重新开始递增
+	IncrementCycle int `json:"increment_cycle" binding:"omitempty,min=1,max=365" example:"7"`
+	// 随机模式最小奖励
+	RandomMin int `json:"random_min" binding:"omitempty,min=1,max=1000" example:"5"`
+	// 随机模式最大奖励
+	RandomMax int `json:"random_max" binding:"omitempty,min=1,max=1000" example:"20"`
+	// 经验值奖励比例
+	ExperienceReward float64 `json:"experience_reward" binding:"omitempty,min=0,max=10" example:"1.0"`
+}
+
+// SigninSettingsResponse 签到设置响应体
+type SigninSettingsResponse struct {
+	// 是否启用签到功能
+	IsEnable bool `json:"is_enable" example:"true"`
+	// 签到模式：fixed、increment、random
+	Mode string `json:"mode" example:"fixed"`
+	// 固定模式奖励积分
+	FixedReward int `json:"fixed_reward" example:"10"`
+	// 递增模式基础奖励
+	IncrementBase int `json:"increment_base" example:"5"`
+	// 递增模式步长
+	IncrementStep int `json:"increment_step" example:"1"`
+	// 递增周期（天数），超过此周期后重新开始递增
+	IncrementCycle int `json:"increment_cycle" example:"7"`
+	// 随机模式最小奖励
+	RandomMin int `json:"random_min" example:"5"`
+	// 随机模式最大奖励
+	RandomMax int `json:"random_max" example:"20"`
+	// 经验值奖励比例
+	ExperienceReward float64 `json:"experience_reward" example:"1.0"`
+}

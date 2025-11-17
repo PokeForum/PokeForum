@@ -74,6 +74,13 @@ func (ctrl *SettingsController) SettingsRouter(router *gin.RouterGroup) {
 		emailGroup.POST("", ctrl.UpdateEmailSettings)
 		emailGroup.POST("/test", ctrl.SendTestEmail)
 	}
+
+	// 签到设置
+	signinGroup := router.Group("/signin")
+	{
+		signinGroup.GET("", ctrl.GetSigninSettings)
+		signinGroup.POST("", ctrl.UpdateSigninSettings)
+	}
 }
 
 // GetRoutineSettings 获取常规设置
@@ -526,4 +533,63 @@ func (ctrl *SettingsController) SendTestEmail(c *gin.Context) {
 		Success: true,
 		Message: "测试邮件已发送",
 	})
+}
+
+// GetSigninSettings 获取签到设置
+// @Summary 获取签到设置
+// @Description 获取签到功能相关配置，包括奖励规则、模式等
+// @Tags [超级管理员]系统设置
+// @Accept json
+// @Produce json
+// @Success 200 {object} response.Data{data=schema.SigninSettingsResponse} "获取成功"
+// @Failure 500 {object} response.Data "服务器错误"
+// @Router /super/manage/settings/signin [get]
+// @Security Bearer
+func (ctrl *SettingsController) GetSigninSettings(c *gin.Context) {
+	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
+	if err != nil {
+		response.ResError(c, response.CodeServerBusy)
+		return
+	}
+
+	config, err := settingsService.GetSigninSettings(c.Request.Context())
+	if err != nil {
+		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
+		return
+	}
+
+	response.ResSuccess(c, config)
+}
+
+// UpdateSigninSettings 更新签到设置
+// @Summary 更新签到设置
+// @Description 更新签到功能相关配置
+// @Tags [超级管理员]系统设置
+// @Accept json
+// @Produce json
+// @Param request body schema.SigninSettingsRequest true "签到设置信息"
+// @Success 200 {object} response.Data "更新成功"
+// @Failure 400 {object} response.Data "请求参数错误"
+// @Failure 500 {object} response.Data "服务器错误"
+// @Router /super/manage/settings/signin [post]
+// @Security Bearer
+func (ctrl *SettingsController) UpdateSigninSettings(c *gin.Context) {
+	var req schema.SigninSettingsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, err.Error())
+		return
+	}
+
+	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
+	if err != nil {
+		response.ResError(c, response.CodeServerBusy)
+		return
+	}
+
+	if err = settingsService.UpdateSigninSettings(c.Request.Context(), req); err != nil {
+		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
+		return
+	}
+
+	response.ResSuccess(c, nil)
 }

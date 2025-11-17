@@ -44,6 +44,10 @@ type ISettingsService interface {
 	GetSafeSettings(ctx context.Context) (*schema.SafeSettingsResponse, error)
 	UpdateSafeSettings(ctx context.Context, req schema.SafeSettingsRequest) error
 
+	// GetSigninSettings 签到设置
+	GetSigninSettings(ctx context.Context) (*schema.SigninSettingsResponse, error)
+	UpdateSigninSettings(ctx context.Context, req schema.SigninSettingsRequest) error
+
 	// GetSMTPConfig 邮箱设置
 	GetSMTPConfig(ctx context.Context) (*schema.EmailSMTPConfigResponse, error)
 	UpdateSMTPConfig(ctx context.Context, req schema.EmailSMTPConfigRequest) error
@@ -545,6 +549,64 @@ func (s *SettingsService) GetSettingByKey(ctx context.Context, key string, defau
 	}
 
 	return setting.Value, nil
+}
+
+// GetSigninSettings 获取签到设置
+func (s *SettingsService) GetSigninSettings(ctx context.Context) (*schema.SigninSettingsResponse, error) {
+	configMap, err := s.getSettingsByModule(ctx, settings.ModuleSignin)
+	if err != nil {
+		return nil, err
+	}
+
+	// 解析经验值奖励比例
+	experienceReward, _ := strconv.ParseFloat(configMap[_const.SigninExperienceReward], 64)
+	if experienceReward == 0 {
+		experienceReward = 1.0 // 默认1:1
+	}
+
+	resp := &schema.SigninSettingsResponse{
+		IsEnable:         configMap[_const.SigninIsEnable] == _const.SettingBoolTrue.String(),
+		Mode:             configMap[_const.SigninMode],
+		FixedReward:      s.parseIntWithDefault(configMap[_const.SigninFixedReward], 10),
+		IncrementBase:    s.parseIntWithDefault(configMap[_const.SigninIncrementBase], 5),
+		IncrementStep:    s.parseIntWithDefault(configMap[_const.SigninIncrementStep], 1),
+		IncrementCycle:   s.parseIntWithDefault(configMap[_const.SigninIncrementCycle], 7),
+		RandomMin:        s.parseIntWithDefault(configMap[_const.SigninRandomMin], 5),
+		RandomMax:        s.parseIntWithDefault(configMap[_const.SigninRandomMax], 20),
+		ExperienceReward: experienceReward,
+	}
+
+	return resp, nil
+}
+
+// UpdateSigninSettings 更新签到设置
+func (s *SettingsService) UpdateSigninSettings(ctx context.Context, req schema.SigninSettingsRequest) error {
+	// 验证随机模式的最小值和最大值
+	if req.Mode == "random" && req.RandomMin >= req.RandomMax {
+		return errors.New("随机模式的最小值必须小于最大值")
+	}
+
+	configItems := map[string]string{
+		_const.SigninIsEnable:         strconv.FormatBool(req.IsEnable),
+		_const.SigninMode:             req.Mode,
+		_const.SigninFixedReward:      strconv.Itoa(req.FixedReward),
+		_const.SigninIncrementBase:    strconv.Itoa(req.IncrementBase),
+		_const.SigninIncrementStep:    strconv.Itoa(req.IncrementStep),
+		_const.SigninIncrementCycle:   strconv.Itoa(req.IncrementCycle),
+		_const.SigninRandomMin:        strconv.Itoa(req.RandomMin),
+		_const.SigninRandomMax:        strconv.Itoa(req.RandomMax),
+		_const.SigninExperienceReward: strconv.FormatFloat(req.ExperienceReward, 'f', 2, 64),
+	}
+
+	return s.batchUpsertSettings(ctx, settings.ModuleSignin, configItems)
+}
+
+// parseIntWithDefault 解析整数字符串，失败时返回默认值
+func (s *SettingsService) parseIntWithDefault(str string, defaultValue int) int {
+	if value, err := strconv.Atoi(str); err == nil {
+		return value
+	}
+	return defaultValue
 }
 
 // ClearSettingCache 清理指定设置的Redis缓存 - 公共方法
