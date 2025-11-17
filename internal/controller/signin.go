@@ -75,7 +75,7 @@ func (ctrl *SigninController) Signin(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security ApiKeyAuth
-// @Success 200 {object} response.Data{data=schema.SigninStatusData} "获取成功"
+// @Success 200 {object} response.Data{data=schema.SigninStatus} "获取成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 500 {object} response.Data "服务器内部错误"
@@ -119,7 +119,7 @@ func (ctrl *SigninController) GetSigninStatus(c *gin.Context) {
 // @Produce json
 // @Param date query string false "查询日期，格式：YYYY-MM-DD，不传则查询今日"
 // @Param limit query int false "返回数量限制，默认10，最大100"
-// @Success 200 {object} response.Data{data=[]schema.DailyRankingItem} "获取成功"
+// @Success 200 {object} response.Data{data=[]schema.SigninRankingItem} "获取成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 500 {object} response.Data "服务器内部错误"
 // @Router /api/v1/signin/ranking/daily [get]
@@ -162,7 +162,7 @@ func (ctrl *SigninController) GetDailyRanking(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param limit query int false "返回数量限制，默认10，最大100"
-// @Success 200 {object} response.Data{data=[]schema.ContinuousRankingItem} "获取成功"
+// @Success 200 {object} response.Data{data=[]schema.SigninRankingItem} "获取成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 500 {object} response.Data "服务器内部错误"
 // @Router /api/v1/signin/ranking/continuous [get]

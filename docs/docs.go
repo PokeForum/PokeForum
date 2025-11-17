@@ -24,6 +24,256 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/signin": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "用户执行每日签到，获得积分和经验值奖励",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "签到系统"
+                ],
+                "summary": "执行签到",
+                "responses": {
+                    "200": {
+                        "description": "签到成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.SigninResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "签到功能未启用",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "409": {
+                        "description": "今日已签到",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/signin/ranking/continuous": {
+            "get": {
+                "description": "获取连续签到天数排行榜，按连续签到天数排序",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "签到系统"
+                ],
+                "summary": "获取连续签到排行榜",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "返回数量限制，默认10，最大100",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/schema.SigninRankingItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/signin/ranking/daily": {
+            "get": {
+                "description": "获取指定日期的签到排行榜，按奖励积分排序",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "签到系统"
+                ],
+                "summary": "获取每日签到排行榜",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "查询日期，格式：YYYY-MM-DD，不传则查询今日",
+                        "name": "date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "返回数量限制，默认10，最大100",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/schema.SigninRankingItem"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/signin/status": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "获取用户的签到状态，包括连续签到天数、总签到天数等信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "签到系统"
+                ],
+                "summary": "获取签到状态",
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.SigninStatus"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "用户登录获取认证信息",
@@ -8539,6 +8789,134 @@ const docTemplate = `{
                     "description": "网站名称",
                     "type": "string",
                     "example": "PokeForum"
+                }
+            }
+        },
+        "schema.SigninRankingItem": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "头像",
+                    "type": "string",
+                    "example": "https://example.com/avatar.jpg"
+                },
+                "continuous_days": {
+                    "description": "连续签到天数",
+                    "type": "integer",
+                    "example": 30
+                },
+                "rank": {
+                    "description": "排名",
+                    "type": "integer",
+                    "example": 1
+                },
+                "reward_points": {
+                    "description": "奖励积分（仅每日排行榜有此字段）",
+                    "type": "integer",
+                    "example": 50
+                },
+                "total_days": {
+                    "description": "总签到天数",
+                    "type": "integer",
+                    "example": 100
+                },
+                "user_id": {
+                    "description": "用户ID",
+                    "type": "integer",
+                    "example": 1001
+                },
+                "username": {
+                    "description": "用户名",
+                    "type": "string",
+                    "example": "张三"
+                }
+            }
+        },
+        "schema.SigninResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "响应状态码",
+                    "type": "integer",
+                    "example": 200
+                },
+                "data": {
+                    "description": "响应数据",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/schema.SigninResult"
+                        }
+                    ]
+                },
+                "message": {
+                    "description": "响应消息",
+                    "type": "string",
+                    "example": "签到成功"
+                }
+            }
+        },
+        "schema.SigninResult": {
+            "type": "object",
+            "properties": {
+                "continuous_days": {
+                    "description": "连续签到天数",
+                    "type": "integer",
+                    "example": 5
+                },
+                "is_success": {
+                    "description": "是否签到成功",
+                    "type": "boolean",
+                    "example": true
+                },
+                "message": {
+                    "description": "提示信息",
+                    "type": "string",
+                    "example": "签到成功！获得10积分，连续签到5天，继续加油！"
+                },
+                "reward_experience": {
+                    "description": "获得的经验值奖励",
+                    "type": "integer",
+                    "example": 10
+                },
+                "reward_points": {
+                    "description": "获得的积分奖励",
+                    "type": "integer",
+                    "example": 10
+                },
+                "total_days": {
+                    "description": "总签到天数",
+                    "type": "integer",
+                    "example": 30
+                }
+            }
+        },
+        "schema.SigninStatus": {
+            "type": "object",
+            "properties": {
+                "continuous_days": {
+                    "description": "连续签到天数",
+                    "type": "integer",
+                    "example": 4
+                },
+                "is_today_signed": {
+                    "description": "今日是否已签到",
+                    "type": "boolean",
+                    "example": false
+                },
+                "last_signin_date": {
+                    "description": "最近签到日期",
+                    "type": "string",
+                    "example": "2025-11-13T10:30:00Z"
+                },
+                "tomorrow_reward": {
+                    "description": "明日预计奖励",
+                    "type": "integer",
+                    "example": 10
+                },
+                "total_days": {
+                    "description": "总签到天数",
+                    "type": "integer",
+                    "example": 29
                 }
             }
         },
