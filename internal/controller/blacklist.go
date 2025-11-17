@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
+	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/click33/sa-token-go/stputil"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
@@ -27,6 +29,8 @@ func NewBlacklistController(injector *do.Injector) *BlacklistController {
 
 // BlacklistRouter 黑名单相关路由注册
 func (ctrl *BlacklistController) BlacklistRouter(router *gin.RouterGroup) {
+	router.Use(saGin.CheckRole(user.RoleUser.String()))
+
 	// 获取黑名单列表
 	router.GET("/list", ctrl.GetBlacklistList)
 	// 添加用户到黑名单
@@ -64,7 +68,6 @@ func (ctrl *BlacklistController) getUserID(c *gin.Context) (int, error) {
 // @Tags [用户]黑名单管理
 // @Accept json
 // @Produce json
-// @Security ApiKeyAuth
 // @Param page query int false "页码" default(1)
 // @Param page_size query int false "每页数量" default(20)
 // @Success 200 {object} response.Data{data=schema.UserBlacklistListResponse} "获取成功"
@@ -115,7 +118,6 @@ func (ctrl *BlacklistController) GetBlacklistList(c *gin.Context) {
 // @Tags [用户]黑名单管理
 // @Accept json
 // @Produce json
-// @Security ApiKeyAuth
 // @Param request body schema.UserBlacklistAddRequest true "添加黑名单请求"
 // @Success 200 {object} response.Data{data=schema.UserBlacklistAddResponse} "添加成功"
 // @Failure 400 {object} response.Data "请求参数错误"
@@ -164,7 +166,6 @@ func (ctrl *BlacklistController) AddToBlacklist(c *gin.Context) {
 // @Tags [用户]黑名单管理
 // @Accept json
 // @Produce json
-// @Security ApiKeyAuth
 // @Param request body schema.UserBlacklistRemoveRequest true "移除黑名单请求"
 // @Success 200 {object} response.Data{data=schema.UserBlacklistRemoveResponse} "移除成功"
 // @Failure 400 {object} response.Data "请求参数错误"

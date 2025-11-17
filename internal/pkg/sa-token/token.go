@@ -20,7 +20,7 @@ func NewSaToken() *saGin.Manager {
 
 	// 创建SaToken配置
 	saCfg := &saGin.Config{
-		TokenName:              "forum",
+		TokenName:              "Authorization",
 		Timeout:                2592000, // 30天（秒）
 		ActiveTimeout:          259200,  // 3天（秒）活跃阈值
 		IsConcurrent:           true,    // 允许多设备登录

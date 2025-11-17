@@ -22,12 +22,17 @@ import (
 )
 
 func InjectorSrv(injector *do.Injector) {
-	// 注册 CacheService - 最先注册，方便所有Service使用
+	// 注册 ent.Client 数据库客户端
+	do.Provide(injector, func(i *do.Injector) (*ent.Client, error) {
+		return configs.DB, nil
+	})
+
+	// 注册 CacheService
 	do.Provide(injector, func(i *do.Injector) (cache.ICacheService, error) {
 		return cache.NewRedisCacheService(configs.Cache, configs.Log), nil
 	})
 
-	// 注册 SettingsService - 需要先注册，方便其他Service依赖它
+	// 注册 SettingsService
 	do.Provide(injector, func(i *do.Injector) (service.ISettingsService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
 		if err != nil {
@@ -35,7 +40,7 @@ func InjectorSrv(injector *do.Injector) {
 		}
 		return service.NewSettingsService(configs.DB, cacheService, configs.Log), nil
 	})
-	// 注册 AuthService - 现在依赖SettingsService
+	// 注册 AuthService
 	do.Provide(injector, func(i *do.Injector) (service.IAuthService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
 		if err != nil {
@@ -164,6 +169,10 @@ func InjectorSrv(injector *do.Injector) {
 
 	// 注册 SigninService
 	do.Provide(injector, func(i *do.Injector) (service.ISigninService, error) {
+		db, err := do.Invoke[*ent.Client](injector)
+		if err != nil {
+			return nil, err
+		}
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
 		if err != nil {
 			return nil, err
@@ -180,7 +189,7 @@ func InjectorSrv(injector *do.Injector) {
 		if err != nil {
 			return nil, err
 		}
-		return service.NewSigninService(configs.DB, cacheService, redisLock, configs.Log, settingsService, asyncTask), nil
+		return service.NewSigninService(db, cacheService, redisLock, configs.Log, settingsService, asyncTask), nil
 	})
 }
 
@@ -246,7 +255,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 				ProfileCon.UserProfileRouter(ProfileGroup)
 
 				// 拉黑用户
-				BlacklistGroup := ProfileGroup.Group("/blacklist")
+				BlacklistGroup := ForumGroup.Group("/profile/blacklist")
 				BlacklistCon := controller.NewBlacklistController(injector)
 				BlacklistCon.BlacklistRouter(BlacklistGroup)
 
