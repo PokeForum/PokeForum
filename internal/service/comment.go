@@ -33,18 +33,18 @@ type ICommentService interface {
 
 // CommentService 评论服务实现
 type CommentService struct {
-	db               *ent.Client
-	cache            cache.ICacheService
-	logger           *zap.Logger
+	db                  *ent.Client
+	cache               cache.ICacheService
+	logger              *zap.Logger
 	commentStatsService ICommentStatsService
 }
 
 // NewCommentService 创建评论服务实例
 func NewCommentService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) ICommentService {
 	return &CommentService{
-		db:               db,
-		cache:            cacheService,
-		logger:           logger,
+		db:                  db,
+		cache:               cacheService,
+		logger:              logger,
 		commentStatsService: NewCommentStatsService(db, cacheService, logger),
 	}
 }
@@ -122,7 +122,7 @@ func (s *CommentService) CreateComment(ctx context.Context, userID int, clientIP
 		SetContent(req.Content).
 		SetNillableParentID(req.ParentID).
 		SetNillableReplyToUserID(req.ReplyToUserID).
-		SetCommenterIP(clientIP).   // 从请求中获取真实IP
+		SetCommenterIP(clientIP).  // 从请求中获取真实IP
 		SetDeviceInfo(deviceInfo). // 从请求中获取设备信息
 		Save(ctx)
 	if err != nil {
@@ -171,7 +171,7 @@ func (s *CommentService) UpdateComment(ctx context.Context, userID int, req sche
 		return nil, fmt.Errorf("获取评论失败: %w", err)
 	}
 
-	// 获取评论所属帖子信息，检查是否被楼主拉黑
+	// 获取评论所属帖子信息
 	postData, err := s.db.Post.Query().
 		Where(post.IDEQ(commentData.PostID)).
 		Only(ctx)
