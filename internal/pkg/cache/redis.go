@@ -643,7 +643,7 @@ func (r *RedisCacheService) XPending(stream, group string) (map[string]interface
 	minID, _ := redis.String(result[1], nil)
 	maxID, _ := redis.String(result[2], nil)
 
-	consumers := []map[string]interface{}{}
+	var consumers []map[string]interface{}
 	if len(result) > 3 {
 		consumerList, _ := redis.Values(result[3], nil)
 		for _, consumerData := range consumerList {

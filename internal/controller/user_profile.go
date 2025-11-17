@@ -47,6 +47,10 @@ func (ctrl *UserProfileController) UserProfileRouter(router *gin.RouterGroup) {
 	router.PUT("/username", ctrl.UpdateUsername)
 	// 修改邮箱
 	router.PUT("/email", ctrl.UpdateEmail)
+	// 发送邮箱验证码
+	router.POST("/email/verify-code", ctrl.SendEmailVerifyCode)
+	// 验证邮箱
+	router.POST("/email/verify", ctrl.VerifyEmail)
 }
 
 // getUserID 从Header中获取token并解析用户ID
@@ -357,41 +361,134 @@ func (ctrl *UserProfileController) UpdateUsername(c *gin.Context) {
 
 // UpdateEmail 修改邮箱
 // @Summary 修改邮箱
-// @Description 修改当前登录用户的邮箱地址
+// @Description 修改用户邮箱，需要验证码验证
 // @Tags [用户]个人中心
 // @Accept json
 // @Produce json
 // @Param request body schema.UserUpdateEmailRequest true "修改邮箱请求"
-// @Success 200 {object} response.Data{data=schema.UserUpdateEmailResponse} "修改成功"
+// @Success 200 {object} response.Data{data=schema.UserEmailUpdateResponse} "修改成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 500 {object} response.Data "服务器内部错误"
 // @Router /profile/email [put]
 func (ctrl *UserProfileController) UpdateEmail(c *gin.Context) {
-	// 获取用户ID
+	// 获取当前用户ID
 	userID, err := ctrl.getUserID(c)
 	if err != nil {
-		response.ResErrorWithMsg(c, 401, "获取用户信息失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeNeedLogin, "获取用户信息失败", err.Error())
 		return
 	}
 
 	// 解析请求参数
 	var req schema.UserUpdateEmailRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "请求参数错误", err.Error())
 		return
 	}
 
-	// 获取服务实例
-	profileService := do.MustInvoke[service.IUserProfileService](ctrl.injector)
+	// 获取用户个人中心服务
+	userProfileService := do.MustInvoke[service.IUserProfileService](ctrl.injector)
 
 	// 调用服务修改邮箱
-	result, err := profileService.UpdateEmail(c.Request.Context(), userID, req)
+	result, err := userProfileService.UpdateEmail(c.Request.Context(), userID, req)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "修改邮箱失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "修改邮箱失败", err.Error())
 		return
 	}
 
-	// 返回成功响应
+	response.ResSuccess(c, result)
+}
+
+// SendEmailVerifyCode 发送邮箱验证码
+// @Summary 发送邮箱验证码
+// @Description 向用户邮箱发送验证码，用于邮箱验证
+// @Tags [用户]个人中心
+// @Accept json
+// @Produce json
+// @Param request body schema.EmailVerifyCodeRequest true "发送验证码请求"
+// @Success 200 {object} response.Data{data=schema.EmailVerifyCodeResponse} "发送成功"
+// @Failure 400 {object} response.Data "请求参数错误"
+// @Failure 401 {object} response.Data "未授权"
+// @Failure 429 {object} response.Data "发送频率过高"
+// @Failure 500 {object} response.Data "服务器内部错误"
+// @Router /profile/email/verify-code [post]
+func (ctrl *UserProfileController) SendEmailVerifyCode(c *gin.Context) {
+	// 获取当前用户ID
+	userID, err := ctrl.getUserID(c)
+	if err != nil {
+		response.ResErrorWithMsg(c, response.CodeNeedLogin, "获取用户信息失败", err.Error())
+		return
+	}
+
+	// 解析请求参数
+	var req schema.EmailVerifyCodeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "请求参数错误", err.Error())
+		return
+	}
+
+	// 获取用户个人中心服务
+	userProfileService := do.MustInvoke[service.IUserProfileService](ctrl.injector)
+
+	// 调用服务发送验证码
+	result, err := userProfileService.SendEmailVerifyCode(c.Request.Context(), userID, req)
+	if err != nil {
+		// 根据错误类型返回不同的状态码
+		if err.Error() == "发送次数过多，请1小时后再试" {
+			response.ResErrorWithMsg(c, response.CodeTooManyRequests, "发送频率过高", err.Error())
+		} else {
+			response.ResErrorWithMsg(c, response.CodeGenericError, "发送验证码失败", err.Error())
+		}
+		return
+	}
+
+	response.ResSuccess(c, result)
+}
+
+// VerifyEmail 验证邮箱
+// @Summary 验证邮箱
+// @Description 通过验证码验证用户邮箱真实性
+// @Tags [用户]个人中心
+// @Accept json
+// @Produce json
+// @Param request body schema.EmailVerifyRequest true "验证邮箱请求"
+// @Success 200 {object} response.Data{data=schema.EmailVerifyResponse} "验证成功"
+// @Failure 400 {object} response.Data "请求参数错误"
+// @Failure 401 {object} response.Data "未授权"
+// @Failure 404 {object} response.Data "验证码不存在或已过期"
+// @Failure 500 {object} response.Data "服务器内部错误"
+// @Router /profile/email/verify [post]
+func (ctrl *UserProfileController) VerifyEmail(c *gin.Context) {
+	// 获取当前用户ID
+	userID, err := ctrl.getUserID(c)
+	if err != nil {
+		response.ResErrorWithMsg(c, response.CodeNeedLogin, "获取用户信息失败", err.Error())
+		return
+	}
+
+	// 解析请求参数
+	var req schema.EmailVerifyRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "请求参数错误", err.Error())
+		return
+	}
+
+	// 获取用户个人中心服务
+	userProfileService := do.MustInvoke[service.IUserProfileService](ctrl.injector)
+
+	// 调用服务验证邮箱
+	result, err := userProfileService.VerifyEmail(c.Request.Context(), userID, req)
+	if err != nil {
+		// 根据错误类型返回不同的状态码
+		if err.Error() == "验证码不存在或已过期" ||
+			err.Error() == "验证码错误" ||
+			err.Error() == "邮箱地址不匹配" {
+			response.ResErrorWithMsg(c, response.CodeInvalidParam, "验证失败", err.Error())
+		} else {
+			response.ResErrorWithMsg(c, response.CodeGenericError, "验证邮箱失败", err.Error())
+		}
+		return
+	}
+
 	response.ResSuccess(c, result)
 }

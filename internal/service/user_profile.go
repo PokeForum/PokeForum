@@ -2,10 +2,13 @@ package service
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math/big"
+	"strconv"
 	"time"
 
 	"github.com/PokeForum/PokeForum/ent"
@@ -14,7 +17,9 @@ import (
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
 	"github.com/PokeForum/PokeForum/ent/user"
+	_const "github.com/PokeForum/PokeForum/internal/const"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
+	smtp "github.com/PokeForum/PokeForum/internal/pkg/email"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"go.uber.org/zap"
@@ -37,7 +42,11 @@ type IUserProfileService interface {
 	// UpdateUsername 修改用户名(每七日可操作一次)
 	UpdateUsername(ctx context.Context, userID int, req schema.UserUpdateUsernameRequest) (*schema.UserUpdateUsernameResponse, error)
 	// UpdateEmail 修改邮箱
-	UpdateEmail(ctx context.Context, userID int, req schema.UserUpdateEmailRequest) (*schema.UserUpdateEmailResponse, error)
+	UpdateEmail(ctx context.Context, userID int, req schema.UserUpdateEmailRequest) (*schema.UserEmailUpdateResponse, error)
+	// SendEmailVerifyCode 发送邮箱验证码
+	SendEmailVerifyCode(ctx context.Context, userID int, req schema.EmailVerifyCodeRequest) (*schema.EmailVerifyCodeResponse, error)
+	// VerifyEmail 验证邮箱
+	VerifyEmail(ctx context.Context, userID int, req schema.EmailVerifyRequest) (*schema.EmailVerifyResponse, error)
 	// CheckUsernameUpdatePermission 检查用户名修改权限(每七日可操作一次)
 	CheckUsernameUpdatePermission(ctx context.Context, userID int) (bool, error)
 	// TODO 粉丝列表
@@ -45,17 +54,19 @@ type IUserProfileService interface {
 
 // UserProfileService 用户个人中心服务实现
 type UserProfileService struct {
-	db     *ent.Client
-	cache  cache.ICacheService
-	logger *zap.Logger
+	db       *ent.Client
+	cache    cache.ICacheService
+	logger   *zap.Logger
+	settings ISettingsService
 }
 
 // NewUserProfileService 创建用户个人中心服务实例
-func NewUserProfileService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) IUserProfileService {
+func NewUserProfileService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger, settingsService ISettingsService) IUserProfileService {
 	return &UserProfileService{
-		db:     db,
-		cache:  cacheService,
-		logger: logger,
+		db:       db,
+		cache:    cacheService,
+		logger:   logger,
+		settings: settingsService,
 	}
 }
 
@@ -484,7 +495,7 @@ func (s *UserProfileService) UpdateUsername(ctx context.Context, userID int, req
 }
 
 // UpdateEmail 修改邮箱
-func (s *UserProfileService) UpdateEmail(ctx context.Context, userID int, req schema.UserUpdateEmailRequest) (*schema.UserUpdateEmailResponse, error) {
+func (s *UserProfileService) UpdateEmail(ctx context.Context, userID int, req schema.UserUpdateEmailRequest) (*schema.UserEmailUpdateResponse, error) {
 	s.logger.Info("修改邮箱", zap.Int("user_id", userID), zap.String("new_email", req.NewEmail), tracing.WithTraceIDField(ctx))
 
 	// 查询用户信息
@@ -530,10 +541,10 @@ func (s *UserProfileService) UpdateEmail(ctx context.Context, userID int, req sc
 		return nil, fmt.Errorf("更新邮箱失败: %w", err)
 	}
 
-	result := &schema.UserUpdateEmailResponse{
-		Success: true,
-		Email:   req.NewEmail,
-		Message: "邮箱修改成功，请重新验证邮箱",
+	result := &schema.UserEmailUpdateResponse{
+		NewEmail:   req.NewEmail,
+		NeedVerify: true,
+		Message:    "邮箱修改成功，请重新验证邮箱",
 	}
 
 	s.logger.Info("邮箱修改成功", zap.Int("user_id", userID), zap.String("new_email", req.NewEmail), tracing.WithTraceIDField(ctx))
@@ -578,6 +589,192 @@ func (s *UserProfileService) CheckUsernameUpdatePermission(ctx context.Context, 
 	}
 
 	return true, nil
+}
+
+// SendEmailVerifyCode 发送邮箱验证码
+func (s *UserProfileService) SendEmailVerifyCode(ctx context.Context, userID int, req schema.EmailVerifyCodeRequest) (*schema.EmailVerifyCodeResponse, error) {
+	s.logger.Info("发送邮箱验证码", zap.Int("user_id", userID), zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
+
+	// 检查用户是否存在
+	userData, err := s.db.User.Query().
+		Where(user.IDEQ(userID)).
+		Select(user.FieldEmail).
+		Only(ctx)
+	if err != nil {
+		s.logger.Error("查询用户失败", zap.Int("user_id", userID), zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("查询用户失败: %w", err)
+	}
+
+	// 检查邮箱是否属于当前用户
+	if userData.Email != req.Email {
+		return nil, errors.New("邮箱地址与用户邮箱不匹配")
+	}
+
+	// 检查发送频率限制
+	limitKey := fmt.Sprintf("email:verify:limit:%d", userID)
+	limitValue, err := s.cache.Get(limitKey)
+	if err == nil && limitValue != "" {
+		// 解析发送次数
+		sendCount := 0
+		if _, parseErr := fmt.Sscanf(limitValue, "%d", &sendCount); parseErr == nil && sendCount >= 3 {
+			return nil, errors.New("发送次数过多，请1小时后再试")
+		}
+	}
+
+	// 生成6位随机验证码
+	code, err := s.generateVerifyCode()
+	if err != nil {
+		s.logger.Error("生成验证码失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("生成验证码失败: %w", err)
+	}
+
+	// 存储验证码到Redis（10分钟有效期）
+	codeKey := fmt.Sprintf("email:verify:code:%d", userID)
+	codeData := fmt.Sprintf("%s:%s", req.Email, code)
+	err = s.cache.SetEx(codeKey, codeData, 600) // 600秒 = 10分钟
+	if err != nil {
+		s.logger.Error("存储验证码失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("存储验证码失败: %w", err)
+	}
+
+	// 更新发送频率限制
+	newCount := 1
+	if limitValue != "" {
+		if val, err := strconv.Atoi(limitValue); err == nil {
+			newCount = val + 1
+		}
+	}
+
+	_ = s.cache.SetEx(limitKey, fmt.Sprintf("%d", newCount), 3600) // 1小时有效期
+
+	// 发送验证邮件
+	err = s.sendVerificationEmail(ctx, req.Email, code)
+	if err != nil {
+		s.logger.Error("发送验证邮件失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("发送验证邮件失败: %w", err)
+	}
+
+	s.logger.Info("邮箱验证码发送成功", zap.Int("user_id", userID), zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
+
+	return &schema.EmailVerifyCodeResponse{
+		Sent:      true,
+		Message:   "验证码已发送到您的邮箱，请查收",
+		ExpiresIn: 600,
+	}, nil
+}
+
+// VerifyEmail 验证邮箱
+func (s *UserProfileService) VerifyEmail(ctx context.Context, userID int, req schema.EmailVerifyRequest) (*schema.EmailVerifyResponse, error) {
+	s.logger.Info("验证邮箱", zap.Int("user_id", userID), zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
+
+	// 获取存储的验证码数据
+	codeKey := fmt.Sprintf("email:verify:code:%d", userID)
+	codeData, err := s.cache.Get(codeKey)
+	if err != nil || codeData == "" {
+		return nil, errors.New("验证码不存在或已过期")
+	}
+
+	// 解析存储的数据
+	storedEmail, storedCode := "", ""
+	if _, parseErr := fmt.Sscanf(codeData, "%s:%s", &storedEmail, &storedCode); parseErr != nil {
+		return nil, errors.New("验证码格式错误")
+	}
+
+	// 验证邮箱和验证码
+	if storedEmail != req.Email {
+		return nil, errors.New("邮箱地址不匹配")
+	}
+	if storedCode != req.Code {
+		return nil, errors.New("验证码错误")
+	}
+
+	// 更新用户邮箱验证状态
+	_, err = s.db.User.UpdateOneID(userID).
+		SetEmailVerified(true).
+		Save(ctx)
+	if err != nil {
+		s.logger.Error("更新邮箱验证状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("更新邮箱验证状态失败: %w", err)
+	}
+
+	// 清除验证码缓存
+	count, _ := s.cache.Del(codeKey)
+	s.logger.Debug("清楚验证码缓存", zap.Int("count", count), tracing.WithTraceIDField(ctx))
+
+	s.logger.Info("邮箱验证成功", zap.Int("user_id", userID), zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
+
+	return &schema.EmailVerifyResponse{
+		Verified: true,
+		Message:  "邮箱验证成功",
+	}, nil
+}
+
+// generateVerifyCode 生成6位随机验证码
+func (s *UserProfileService) generateVerifyCode() (string, error) {
+	code := ""
+	for i := 0; i < 6; i++ {
+		num, err := rand.Int(rand.Reader, big.NewInt(10))
+		if err != nil {
+			return "", err
+		}
+		code += num.String()
+	}
+	return code, nil
+}
+
+// sendVerificationEmail 发送验证邮件
+func (s *UserProfileService) sendVerificationEmail(ctx context.Context, email, code string) error {
+	// 检查是否启用了邮箱验证
+	isVerifyEmail, err := s.settings.GetSettingByKey(ctx, _const.SafeVerifyEmail, _const.SettingBoolTrue.String())
+	if err != nil {
+		s.logger.Error("查询邮箱验证设置失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("查询邮箱验证设置失败: %w", err)
+	}
+
+	if isVerifyEmail != _const.SettingBoolTrue.String() {
+		return errors.New("邮箱验证功能未启用")
+	}
+
+	// 获取网站设置
+	siteConfig, err := s.settings.GetSeoSettings(ctx)
+	if err != nil {
+		s.logger.Error("获取网站配置失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("获取网站配置失败: %w", err)
+	}
+
+	// 获取SMTP配置
+	smtpConfig, err := s.settings.GetSMTPConfig(ctx)
+	if err != nil {
+		s.logger.Error("获取SMTP配置失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("获取SMTP配置失败: %w", err)
+	}
+
+	// 创建邮件模板渲染器
+	emailTemplate := smtp.NewEmailTemplate(s.settings, s.logger)
+
+	// 渲染邮件模板
+	htmlBody, err := emailTemplate.RenderEmailVerificationTemplate(ctx, code, siteConfig.WebSiteName)
+	if err != nil {
+		s.logger.Error("渲染邮件模板失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("渲染邮件模板失败: %w", err)
+	}
+
+	// 发送邮件
+	sp := smtp.NewSMTPPool(smtp.SMTPConfig{
+		Name:       siteConfig.WebSiteName,
+		Address:    smtpConfig.Address,
+		Host:       smtpConfig.Host,
+		Port:       smtpConfig.Port,
+		User:       smtpConfig.Username,
+		Password:   smtpConfig.Password,
+		Encryption: smtpConfig.ForcedSSL,
+		Keepalive:  smtpConfig.ConnectionValidity,
+	}, s.logger)
+	if err = sp.Send(ctx, email, fmt.Sprintf("【%s】邮箱验证码", siteConfig.WebSiteName), htmlBody); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // hashPassword 生成密码哈希值

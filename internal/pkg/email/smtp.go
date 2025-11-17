@@ -17,7 +17,7 @@ type SMTPPool struct {
 	config SMTPConfig
 	ch     chan *message // 队列
 	chOpen bool          // 队列状态
-	l      zap.Logger    // 日志
+	l      *zap.Logger   // 日志
 }
 
 // SMTPConfig SMTP发送配置
@@ -41,7 +41,7 @@ type message struct {
 }
 
 // NewSMTPPool 初始化一个新的基于 SMTP 的电子邮件发送队列。
-func NewSMTPPool(config SMTPConfig, logger zap.Logger) *SMTPPool {
+func NewSMTPPool(config SMTPConfig, logger *zap.Logger) *SMTPPool {
 	client := &SMTPPool{
 		config: config,
 		ch:     make(chan *message, 30),
@@ -74,11 +74,11 @@ func (client *SMTPPool) Send(ctx context.Context, to, title, body string) error 
 	m.Subject(title)
 	m.SetMessageID()
 	m.SetBodyString(mail.TypeTextHTML, body)
-	
+
 	// 从context中获取链路ID和用户ID
 	cid := tracing.GetTraceID(ctx)
 	userID := tracing.GetUserID(ctx)
-	
+
 	client.ch <- &message{
 		msg:     m,
 		subject: title,
@@ -155,14 +155,14 @@ func (client *SMTPPool) Init() {
 						continue // 邮件已发送，不视为发送失败
 					}
 
-					client.l.Warn("邮件发送失败", 
-						zap.String("to", m.to), 
-						zap.String("cid", m.cid), 
+					client.l.Warn("邮件发送失败",
+						zap.String("to", m.to),
+						zap.String("cid", m.cid),
 						zap.Int("userID", m.userID),
 						zap.Error(err))
 				} else {
-					client.l.Info("邮件发送成功", 
-						zap.String("to", m.to), 
+					client.l.Info("邮件发送成功",
+						zap.String("to", m.to),
 						zap.String("subject", m.subject),
 						zap.String("cid", m.cid),
 						zap.Int("userID", m.userID))
