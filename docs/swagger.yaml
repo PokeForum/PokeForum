@@ -2098,6 +2098,104 @@ definitions:
         example: 30
         type: integer
     type: object
+  schema.SigninSettingsRequest:
+    properties:
+      experience_reward:
+        description: 经验值奖励比例
+        example: 1
+        maximum: 10
+        minimum: 0
+        type: number
+      fixed_reward:
+        description: 固定模式奖励积分
+        example: 10
+        maximum: 1000
+        minimum: 1
+        type: integer
+      increment_base:
+        description: 递增模式基础奖励
+        example: 5
+        maximum: 1000
+        minimum: 1
+        type: integer
+      increment_cycle:
+        description: 递增周期（天数），超过此周期后重新开始递增
+        example: 7
+        maximum: 365
+        minimum: 1
+        type: integer
+      increment_step:
+        description: 递增模式步长
+        example: 1
+        maximum: 100
+        minimum: 1
+        type: integer
+      is_enable:
+        description: 是否启用签到功能
+        example: true
+        type: boolean
+      mode:
+        description: 签到模式：fixed、increment、random
+        enum:
+        - fixed
+        - increment
+        - random
+        example: fixed
+        type: string
+      random_max:
+        description: 随机模式最大奖励
+        example: 20
+        maximum: 1000
+        minimum: 1
+        type: integer
+      random_min:
+        description: 随机模式最小奖励
+        example: 5
+        maximum: 1000
+        minimum: 1
+        type: integer
+    required:
+    - mode
+    type: object
+  schema.SigninSettingsResponse:
+    properties:
+      experience_reward:
+        description: 经验值奖励比例
+        example: 1
+        type: number
+      fixed_reward:
+        description: 固定模式奖励积分
+        example: 10
+        type: integer
+      increment_base:
+        description: 递增模式基础奖励
+        example: 5
+        type: integer
+      increment_cycle:
+        description: 递增周期（天数），超过此周期后重新开始递增
+        example: 7
+        type: integer
+      increment_step:
+        description: 递增模式步长
+        example: 1
+        type: integer
+      is_enable:
+        description: 是否启用签到功能
+        example: true
+        type: boolean
+      mode:
+        description: 签到模式：fixed、increment、random
+        example: fixed
+        type: string
+      random_max:
+        description: 随机模式最大奖励
+        example: 20
+        type: integer
+      random_min:
+        description: 随机模式最小奖励
+        example: 5
+        type: integer
+    type: object
   schema.SigninStatus:
     properties:
       continuous_days:
@@ -7401,6 +7499,63 @@ paths:
       security:
       - Bearer: []
       summary: 更新SEO设置
+      tags:
+      - '[超级管理员]系统设置'
+  /super/manage/settings/signin:
+    get:
+      consumes:
+      - application/json
+      description: 获取签到功能相关配置，包括奖励规则、模式等
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.SigninSettingsResponse'
+              type: object
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 获取签到设置
+      tags:
+      - '[超级管理员]系统设置'
+    post:
+      consumes:
+      - application/json
+      description: 更新签到功能相关配置
+      parameters:
+      - description: 签到设置信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.SigninSettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 更新成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: 更新签到设置
       tags:
       - '[超级管理员]系统设置'
 schemes:
