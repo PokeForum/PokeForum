@@ -144,6 +144,11 @@ func InjectorSrv(injector *do.Injector) {
 		return service.NewSigninAsyncTask(configs.DB, cacheService, configs.Log), nil
 	})
 
+	// 注册 BlacklistService
+	do.Provide(injector, func(i *do.Injector) (service.IBlacklistService, error) {
+		return service.NewBlacklistService(configs.DB, configs.Log), nil
+	})
+
 	// 注册 SigninService
 	do.Provide(injector, func(i *do.Injector) (service.ISigninService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
