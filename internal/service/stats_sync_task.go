@@ -35,7 +35,7 @@ func NewStatsSyncTask(db *ent.Client, cacheService cache.ICacheService, logger *
 // Start 启动同步任务
 // interval: 同步间隔时间
 func (t *StatsSyncTask) Start(interval time.Duration) {
-	t.logger.Info("启动统计数据同步任务", zap.Duration("interval", interval))
+	t.logger.Debug("启动统计数据同步任务", zap.Duration("interval", interval))
 
 	t.ticker = time.NewTicker(interval)
 
@@ -49,18 +49,18 @@ func (t *StatsSyncTask) Start(interval time.Duration) {
 			case <-t.ticker.C:
 				t.syncAll()
 			case <-t.stopChan:
-				t.logger.Info("统计数据同步任务已停止")
+				t.logger.Debug("统计数据同步任务已停止")
 				return
 			}
 		}
 	}()
 
-	t.logger.Info("统计数据同步任务已启动")
+	t.logger.Debug("统计数据同步任务已启动")
 }
 
 // Stop 停止同步任务
 func (t *StatsSyncTask) Stop() {
-	t.logger.Info("正在停止统计数据同步任务")
+	t.logger.Debug("正在停止统计数据同步任务")
 
 	if t.ticker != nil {
 		t.ticker.Stop()
@@ -71,14 +71,14 @@ func (t *StatsSyncTask) Stop() {
 	// 最后执行一次同步,确保数据完整性
 	t.syncAll()
 
-	t.logger.Info("统计数据同步任务已停止")
+	t.logger.Debug("统计数据同步任务已停止")
 }
 
 // syncAll 同步所有统计数据
 func (t *StatsSyncTask) syncAll() {
 	ctx := context.Background()
 
-	t.logger.Info("开始执行统计数据同步")
+	t.logger.Debug("开始执行统计数据同步")
 	startTime := time.Now()
 
 	// 同步帖子统计数据
@@ -86,7 +86,7 @@ func (t *StatsSyncTask) syncAll() {
 	if err != nil {
 		t.logger.Error("同步帖子统计数据失败", zap.Error(err))
 	} else {
-		t.logger.Info("同步帖子统计数据完成", zap.Int("count", postCount))
+		t.logger.Debug("同步帖子统计数据完成", zap.Int("count", postCount))
 	}
 
 	// 同步评论统计数据
@@ -94,11 +94,11 @@ func (t *StatsSyncTask) syncAll() {
 	if err != nil {
 		t.logger.Error("同步评论统计数据失败", zap.Error(err))
 	} else {
-		t.logger.Info("同步评论统计数据完成", zap.Int("count", commentCount))
+		t.logger.Debug("同步评论统计数据完成", zap.Int("count", commentCount))
 	}
 
 	duration := time.Since(startTime)
-	t.logger.Info("统计数据同步完成",
+	t.logger.Debug("统计数据同步完成",
 		zap.Int("post_count", postCount),
 		zap.Int("comment_count", commentCount),
 		zap.Duration("duration", duration))

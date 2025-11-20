@@ -228,7 +228,7 @@ func (s *CommentStatsService) GetStats(ctx context.Context, commentID int) (*sta
 	// 优先从Redis读取
 	statsKey := stats.GetCommentStatsKey(commentID)
 	fields := []string{"like_count", "dislike_count"}
-	
+
 	statData, err := s.statsHelper.GetStats(ctx, statsKey, fields)
 	if err == nil && len(statData) > 0 {
 		// 检查是否有有效数据
@@ -318,7 +318,7 @@ func (s *CommentStatsService) GetUserActionStatus(ctx context.Context, userID, c
 
 // SyncStatsToDatabase 同步统计数据到数据库
 func (s *CommentStatsService) SyncStatsToDatabase(ctx context.Context) (int, error) {
-	s.logger.Info("开始同步评论统计数据到数据库", tracing.WithTraceIDField(ctx))
+	s.logger.Debug("开始同步评论统计数据到数据库", tracing.WithTraceIDField(ctx))
 
 	// 获取所有脏数据ID
 	dirtyIDs, err := s.statsHelper.GetDirtyIDs(ctx, stats.CommentDirtySetKey)
@@ -328,7 +328,7 @@ func (s *CommentStatsService) SyncStatsToDatabase(ctx context.Context) (int, err
 	}
 
 	if len(dirtyIDs) == 0 {
-		s.logger.Info("没有需要同步的评论数据", tracing.WithTraceIDField(ctx))
+		s.logger.Debug("没有需要同步的评论数据", tracing.WithTraceIDField(ctx))
 		return 0, nil
 	}
 

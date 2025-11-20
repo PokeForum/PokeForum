@@ -235,7 +235,7 @@ func (s *PostStatsService) GetStats(ctx context.Context, postID int) (*stats.Sta
 	// 优先从Redis读取
 	statsKey := stats.GetPostStatsKey(postID)
 	fields := []string{"like_count", "dislike_count", "favorite_count", "view_count"}
-	
+
 	statData, err := s.statsHelper.GetStats(ctx, statsKey, fields)
 	if err == nil && len(statData) > 0 {
 		// 检查是否有有效数据
@@ -348,7 +348,7 @@ func (s *PostStatsService) IncrViewCount(ctx context.Context, postID int) error 
 
 // SyncStatsToDatabase 同步统计数据到数据库
 func (s *PostStatsService) SyncStatsToDatabase(ctx context.Context) (int, error) {
-	s.logger.Info("开始同步帖子统计数据到数据库", tracing.WithTraceIDField(ctx))
+	s.logger.Debug("开始同步帖子统计数据到数据库", tracing.WithTraceIDField(ctx))
 
 	// 获取所有脏数据ID
 	dirtyIDs, err := s.statsHelper.GetDirtyIDs(ctx, stats.PostDirtySetKey)
@@ -358,7 +358,7 @@ func (s *PostStatsService) SyncStatsToDatabase(ctx context.Context) (int, error)
 	}
 
 	if len(dirtyIDs) == 0 {
-		s.logger.Info("没有需要同步的帖子数据", tracing.WithTraceIDField(ctx))
+		s.logger.Debug("没有需要同步的帖子数据", tracing.WithTraceIDField(ctx))
 		return 0, nil
 	}
 

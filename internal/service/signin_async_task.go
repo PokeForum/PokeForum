@@ -62,7 +62,7 @@ func (s *SigninAsyncTask) Start(workerCount int) {
 		return
 	}
 
-	s.logger.Info("启动签到异步任务处理器", zap.Int("worker_count", workerCount))
+	s.logger.Debug("启动签到异步任务处理器", zap.Int("worker_count", workerCount))
 
 	// 初始化Stream和消费者组
 	err := s.initializeStream()
@@ -78,7 +78,7 @@ func (s *SigninAsyncTask) Start(workerCount int) {
 	}
 
 	s.isStarted = true
-	s.logger.Info("签到异步任务处理器已启动")
+	s.logger.Debug("签到异步任务处理器已启动")
 }
 
 // initializeStream 初始化Stream和消费者组
@@ -90,9 +90,9 @@ func (s *SigninAsyncTask) initializeStream() error {
 		if !strings.Contains(err.Error(), "BUSYGROUP") {
 			return fmt.Errorf("创建消费者组失败: %w", err)
 		}
-		s.logger.Info("消费者组已存在", zap.String("group", s.groupName))
+		s.logger.Debug("消费者组已存在", zap.String("group", s.groupName))
 	} else {
-		s.logger.Info("创建消费者组成功", zap.String("group", s.groupName))
+		s.logger.Debug("创建消费者组成功", zap.String("group", s.groupName))
 	}
 
 	// 检查Stream长度
@@ -101,7 +101,7 @@ func (s *SigninAsyncTask) initializeStream() error {
 		return fmt.Errorf("获取Stream长度失败: %w", err)
 	}
 
-	s.logger.Info("Stream初始化完成",
+	s.logger.Debug("Stream初始化完成",
 		zap.String("stream", s.streamName),
 		zap.String("group", s.groupName),
 		zap.Int64("pending_messages", length))
@@ -118,16 +118,16 @@ func (s *SigninAsyncTask) Stop() {
 		return
 	}
 
-	s.logger.Info("正在停止签到异步任务处理器")
+	s.logger.Debug("正在停止签到异步任务处理器")
 
 	close(s.stopChan)
 	s.wg.Wait()
 
 	// Redis Streams会自动处理未确认的消息，重启后会重新投递
-	s.logger.Info("所有worker已停止，未处理的消息将保留在Stream中")
+	s.logger.Debug("所有worker已停止，未处理的消息将保留在Stream中")
 
 	s.isStarted = false
-	s.logger.Info("签到异步任务处理器已停止")
+	s.logger.Debug("签到异步任务处理器已停止")
 }
 
 // SubmitTask 提交签到任务
@@ -191,13 +191,13 @@ func (s *SigninAsyncTask) SubmitTask(task *SigninTask) error {
 func (s *SigninAsyncTask) worker(workerID int) {
 	defer s.wg.Done()
 
-	s.logger.Info("签到异步任务worker启动", zap.Int("worker_id", workerID))
+	s.logger.Debug("签到异步任务worker启动", zap.Int("worker_id", workerID))
 	consumerName := fmt.Sprintf("worker-%d", workerID)
 
 	for {
 		select {
 		case <-s.stopChan:
-			s.logger.Info("签到异步任务worker停止", zap.Int("worker_id", workerID))
+			s.logger.Debug("签到异步任务worker停止", zap.Int("worker_id", workerID))
 			return
 		default:
 			// 从消费者组读取消息
