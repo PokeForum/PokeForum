@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/comment"
@@ -37,6 +38,7 @@ type CommentService struct {
 	cache               cache.ICacheService
 	logger              *zap.Logger
 	commentStatsService ICommentStatsService
+	settingsService     ISettingsService
 }
 
 // NewCommentService 创建评论服务实例
@@ -46,12 +48,18 @@ func NewCommentService(db *ent.Client, cacheService cache.ICacheService, logger 
 		cache:               cacheService,
 		logger:              logger,
 		commentStatsService: NewCommentStatsService(db, cacheService, logger),
+		settingsService:     NewSettingsService(db, cacheService, logger),
 	}
 }
 
 // CreateComment 创建评论
 func (s *CommentService) CreateComment(ctx context.Context, userID int, clientIP, deviceInfo string, req schema.UserCommentCreateRequest) (*schema.UserCommentCreateResponse, error) {
 	s.logger.Info("创建评论", zap.Int("user_id", userID), zap.Int("post_id", req.PostID), zap.String("client_ip", clientIP), zap.String("device_info", deviceInfo), tracing.WithTraceIDField(ctx))
+
+	// 检查内容安全
+	if err := s.checkContentSafety(ctx, req.Content); err != nil {
+		return nil, err
+	}
 
 	// 检查帖子是否存在且状态正常
 	postData, err := s.db.Post.Query().
@@ -158,6 +166,11 @@ func (s *CommentService) CreateComment(ctx context.Context, userID int, clientIP
 // UpdateComment 更新评论
 func (s *CommentService) UpdateComment(ctx context.Context, userID int, req schema.UserCommentUpdateRequest) (*schema.UserCommentUpdateResponse, error) {
 	s.logger.Info("更新评论", zap.Int("user_id", userID), zap.Int("comment_id", req.ID), tracing.WithTraceIDField(ctx))
+
+	// 检查内容安全
+	if err := s.checkContentSafety(ctx, req.Content); err != nil {
+		return nil, err
+	}
 
 	// 检查评论是否存在且属于当前用户
 	commentData, err := s.db.Comment.Query().
@@ -448,4 +461,35 @@ func (s *CommentService) GetCommentDetail(ctx context.Context, commentID int) (*
 
 	s.logger.Info("获取评论详情成功", zap.Int("comment_id", result.ID), tracing.WithTraceIDField(ctx))
 	return result, nil
+}
+
+// checkContentSafety 检查评论内容是否安全
+func (s *CommentService) checkContentSafety(ctx context.Context, content string) error {
+	// 获取评论设置
+	settings, err := s.settingsService.GetCommentSettings(ctx)
+	if err != nil {
+		s.logger.Error("获取评论设置失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("检查内容安全失败: %w", err)
+	}
+
+	// 如果未开启审核，直接通过
+	if !settings.RequireApproval {
+		return nil
+	}
+
+	// 检查关键词黑名单
+	if settings.KeywordBlacklist != "" {
+		keywords := strings.Split(settings.KeywordBlacklist, ",")
+		for _, keyword := range keywords {
+			keyword = strings.TrimSpace(keyword)
+			if keyword == "" {
+				continue
+			}
+			if strings.Contains(content, keyword) {
+				return errors.New("评论内容包含违禁词")
+			}
+		}
+	}
+
+	return nil
 }
