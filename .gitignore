@@ -32,6 +32,7 @@ config.yaml
 # Editor/IDE
 .idea/
 .vscode/
+.agent/
 
 # Log File
 logs/*
