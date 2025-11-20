@@ -3,6 +3,7 @@ package cache
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gomodule/redigo/redis"
@@ -708,6 +709,11 @@ func (r *RedisCacheService) XGroupCreate(stream, group, id string) error {
 
 	_, err := conn.Do("XGROUP", "CREATE", stream, group, id, "MKSTREAM")
 	if err != nil {
+		// 如果消费者组已存在，则忽略错误
+		if strings.Contains(err.Error(), "BUSYGROUP Consumer Group name already exists") {
+			r.logger.Info("消费者组已存在", zap.String("stream", stream), zap.String("group", group))
+			return nil
+		}
 		r.logger.Error("创建消费者组失败", zap.String("stream", stream), zap.String("group", group), zap.Error(err))
 		return fmt.Errorf("创建消费者组失败: %w", err)
 	}
