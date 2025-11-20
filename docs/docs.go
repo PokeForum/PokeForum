@@ -4317,7 +4317,7 @@ const docTemplate = `{
         },
         "/profile/email": {
             "put": {
-                "description": "修改当前登录用户的邮箱地址",
+                "description": "修改用户邮箱，需要验证码验证",
                 "consumes": [
                     "application/json"
                 ],
@@ -4351,7 +4351,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/schema.UserUpdateEmailResponse"
+                                            "$ref": "#/definitions/schema.UserEmailUpdateResponse"
                                         }
                                     }
                                 }
@@ -4366,6 +4366,146 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/email/verify": {
+            "post": {
+                "description": "通过验证码验证用户邮箱真实性",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]个人中心"
+                ],
+                "summary": "验证邮箱",
+                "parameters": [
+                    {
+                        "description": "验证邮箱请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.EmailVerifyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "验证成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.EmailVerifyResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "404": {
+                        "description": "验证码不存在或已过期",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/email/verify-code": {
+            "post": {
+                "description": "向用户邮箱发送验证码，用于邮箱验证",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[用户]个人中心"
+                ],
+                "summary": "发送邮箱验证码",
+                "parameters": [
+                    {
+                        "description": "发送验证码请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.EmailVerifyCodeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "发送成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.EmailVerifyCodeResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "429": {
+                        "description": "发送频率过高",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -7289,6 +7429,73 @@ const docTemplate = `{
                 }
             }
         },
+        "schema.EmailVerifyCodeRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "description": "邮箱地址",
+                    "type": "string",
+                    "example": "user@example.com"
+                }
+            }
+        },
+        "schema.EmailVerifyCodeResponse": {
+            "type": "object",
+            "properties": {
+                "expires_in": {
+                    "description": "验证码有效期（秒）",
+                    "type": "integer",
+                    "example": 600
+                },
+                "message": {
+                    "description": "提示信息",
+                    "type": "string",
+                    "example": "验证码已发送到您的邮箱，请查收"
+                },
+                "sent": {
+                    "description": "验证码发送状态",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "schema.EmailVerifyRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "email"
+            ],
+            "properties": {
+                "code": {
+                    "description": "验证码",
+                    "type": "string",
+                    "example": "123456"
+                },
+                "email": {
+                    "description": "邮箱地址",
+                    "type": "string",
+                    "example": "user@example.com"
+                }
+            }
+        },
+        "schema.EmailVerifyResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "description": "提示信息",
+                    "type": "string",
+                    "example": "邮箱验证成功"
+                },
+                "verified": {
+                    "description": "验证状态",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "schema.HomeSettingsRequest": {
             "type": "object",
             "properties": {
@@ -9976,6 +10183,26 @@ const docTemplate = `{
                 }
             }
         },
+        "schema.UserEmailUpdateResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "description": "提示信息",
+                    "type": "string",
+                    "example": "邮箱修改成功，请验证新邮箱"
+                },
+                "need_verify": {
+                    "description": "是否需要验证",
+                    "type": "boolean",
+                    "example": true
+                },
+                "new_email": {
+                    "description": "新邮箱",
+                    "type": "string",
+                    "example": "new@example.com"
+                }
+            }
+        },
         "schema.UserListItem": {
             "type": "object",
             "properties": {
@@ -10932,26 +11159,6 @@ const docTemplate = `{
                     "description": "验证码",
                     "type": "string",
                     "example": "123456"
-                }
-            }
-        },
-        "schema.UserUpdateEmailResponse": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "description": "新邮箱",
-                    "type": "string",
-                    "example": "newemail@example.com"
-                },
-                "message": {
-                    "description": "提示信息",
-                    "type": "string",
-                    "example": "邮箱修改成功，请重新验证邮箱"
-                },
-                "success": {
-                    "description": "是否成功",
-                    "type": "boolean",
-                    "example": true
                 }
             }
         },

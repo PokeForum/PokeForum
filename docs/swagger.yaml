@@ -818,6 +818,55 @@ definitions:
         example: true
         type: boolean
     type: object
+  schema.EmailVerifyCodeRequest:
+    properties:
+      email:
+        description: 邮箱地址
+        example: user@example.com
+        type: string
+    required:
+    - email
+    type: object
+  schema.EmailVerifyCodeResponse:
+    properties:
+      expires_in:
+        description: 验证码有效期（秒）
+        example: 600
+        type: integer
+      message:
+        description: 提示信息
+        example: 验证码已发送到您的邮箱，请查收
+        type: string
+      sent:
+        description: 验证码发送状态
+        example: true
+        type: boolean
+    type: object
+  schema.EmailVerifyRequest:
+    properties:
+      code:
+        description: 验证码
+        example: "123456"
+        type: string
+      email:
+        description: 邮箱地址
+        example: user@example.com
+        type: string
+    required:
+    - code
+    - email
+    type: object
+  schema.EmailVerifyResponse:
+    properties:
+      message:
+        description: 提示信息
+        example: 邮箱验证成功
+        type: string
+      verified:
+        description: 验证状态
+        example: true
+        type: boolean
+    type: object
   schema.HomeSettingsRequest:
     properties:
       links:
@@ -2883,6 +2932,21 @@ definitions:
         example: testuser
         type: string
     type: object
+  schema.UserEmailUpdateResponse:
+    properties:
+      message:
+        description: 提示信息
+        example: 邮箱修改成功，请验证新邮箱
+        type: string
+      need_verify:
+        description: 是否需要验证
+        example: true
+        type: boolean
+      new_email:
+        description: 新邮箱
+        example: new@example.com
+        type: string
+    type: object
   schema.UserListItem:
     properties:
       avatar:
@@ -3604,21 +3668,6 @@ definitions:
     - new_email
     - password
     - verify_code
-    type: object
-  schema.UserUpdateEmailResponse:
-    properties:
-      email:
-        description: 新邮箱
-        example: newemail@example.com
-        type: string
-      message:
-        description: 提示信息
-        example: 邮箱修改成功，请重新验证邮箱
-        type: string
-      success:
-        description: 是否成功
-        example: true
-        type: boolean
     type: object
   schema.UserUpdatePasswordRequest:
     properties:
@@ -6409,7 +6458,7 @@ paths:
     put:
       consumes:
       - application/json
-      description: 修改当前登录用户的邮箱地址
+      description: 修改用户邮箱，需要验证码验证
       parameters:
       - description: 修改邮箱请求
         in: body
@@ -6427,7 +6476,7 @@ paths:
             - $ref: '#/definitions/response.Data'
             - properties:
                 data:
-                  $ref: '#/definitions/schema.UserUpdateEmailResponse'
+                  $ref: '#/definitions/schema.UserEmailUpdateResponse'
               type: object
         "400":
           description: 请求参数错误
@@ -6442,6 +6491,92 @@ paths:
           schema:
             $ref: '#/definitions/response.Data'
       summary: 修改邮箱
+      tags:
+      - '[用户]个人中心'
+  /profile/email/verify:
+    post:
+      consumes:
+      - application/json
+      description: 通过验证码验证用户邮箱真实性
+      parameters:
+      - description: 验证邮箱请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.EmailVerifyRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 验证成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.EmailVerifyResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "404":
+          description: 验证码不存在或已过期
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 验证邮箱
+      tags:
+      - '[用户]个人中心'
+  /profile/email/verify-code:
+    post:
+      consumes:
+      - application/json
+      description: 向用户邮箱发送验证码，用于邮箱验证
+      parameters:
+      - description: 发送验证码请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.EmailVerifyCodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 发送成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.EmailVerifyCodeResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "429":
+          description: 发送频率过高
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 发送邮箱验证码
       tags:
       - '[用户]个人中心'
   /profile/favorites:
