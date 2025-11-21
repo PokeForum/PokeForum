@@ -9900,6 +9900,11 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
+                "floor_number": {
+                    "description": "楼号",
+                    "type": "integer",
+                    "example": 1
+                },
                 "id": {
                     "description": "评论ID",
                     "type": "integer",

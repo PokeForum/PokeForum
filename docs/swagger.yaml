@@ -2709,6 +2709,10 @@ definitions:
         description: 点踩数
         example: 1
         type: integer
+      floor_number:
+        description: 楼号
+        example: 1
+        type: integer
       id:
         description: 评论ID
         example: 1
