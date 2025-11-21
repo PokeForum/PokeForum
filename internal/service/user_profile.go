@@ -557,7 +557,7 @@ func (s *UserProfileService) CheckUsernameUpdatePermission(ctx context.Context, 
 	redisKey := fmt.Sprintf("user:username:update:limit:%d", userID)
 
 	// 检查是否在限制期内
-	lastUpdateTime, err := s.cache.Get(redisKey)
+	lastUpdateTime, err := s.cache.Get(ctx, redisKey)
 	if err != nil {
 		s.logger.Error("获取用户名修改限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return false, fmt.Errorf("获取用户名修改限制失败: %w", err)
@@ -581,7 +581,7 @@ func (s *UserProfileService) CheckUsernameUpdatePermission(ctx context.Context, 
 
 	// 设置新的修改时间限制
 	currentTime := time.Now().Format(time.RFC3339)
-	err = s.cache.SetEx(redisKey, currentTime, 604800) // 604800秒 = 7天
+	err = s.cache.SetEx(ctx, redisKey, currentTime, 604800) // 604800秒 = 7天
 	if err != nil {
 		s.logger.Error("设置用户名修改限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		// 设置失败，但允许操作
@@ -612,7 +612,7 @@ func (s *UserProfileService) SendEmailVerifyCode(ctx context.Context, userID int
 
 	// 检查发送频率限制
 	limitKey := fmt.Sprintf("email:verify:limit:%d", userID)
-	limitValue, err := s.cache.Get(limitKey)
+	limitValue, err := s.cache.Get(ctx, limitKey)
 	if err == nil && limitValue != "" {
 		// 解析发送次数
 		sendCount := 0
@@ -631,7 +631,7 @@ func (s *UserProfileService) SendEmailVerifyCode(ctx context.Context, userID int
 	// 存储验证码到Redis（10分钟有效期）
 	codeKey := fmt.Sprintf("email:verify:code:%d", userID)
 	codeData := fmt.Sprintf("%s:%s", req.Email, code)
-	err = s.cache.SetEx(codeKey, codeData, 600) // 600秒 = 10分钟
+	err = s.cache.SetEx(ctx, codeKey, codeData, 600) // 600秒 = 10分钟
 	if err != nil {
 		s.logger.Error("存储验证码失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("存储验证码失败: %w", err)
@@ -645,7 +645,7 @@ func (s *UserProfileService) SendEmailVerifyCode(ctx context.Context, userID int
 		}
 	}
 
-	_ = s.cache.SetEx(limitKey, fmt.Sprintf("%d", newCount), 3600) // 1小时有效期
+	_ = s.cache.SetEx(ctx, limitKey, fmt.Sprintf("%d", newCount), 3600) // 1小时有效期
 
 	// 发送验证邮件
 	err = s.sendVerificationEmail(ctx, req.Email, code)
@@ -669,7 +669,7 @@ func (s *UserProfileService) VerifyEmail(ctx context.Context, userID int, req sc
 
 	// 获取存储的验证码数据
 	codeKey := fmt.Sprintf("email:verify:code:%d", userID)
-	codeData, err := s.cache.Get(codeKey)
+	codeData, err := s.cache.Get(ctx, codeKey)
 	if err != nil || codeData == "" {
 		return nil, errors.New("验证码不存在或已过期")
 	}
@@ -698,7 +698,7 @@ func (s *UserProfileService) VerifyEmail(ctx context.Context, userID int, req sc
 	}
 
 	// 清除验证码缓存
-	count, _ := s.cache.Del(codeKey)
+	count, _ := s.cache.Del(ctx, codeKey)
 	s.logger.Debug("清楚验证码缓存", zap.Int("count", count), tracing.WithTraceIDField(ctx))
 
 	s.logger.Info("邮箱验证成功", zap.Int("user_id", userID), zap.String("email", req.Email), tracing.WithTraceIDField(ctx))

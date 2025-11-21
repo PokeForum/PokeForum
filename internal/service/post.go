@@ -334,7 +334,7 @@ func (s *PostService) LikePost(ctx context.Context, userID int, req schema.UserP
 	s.logger.Info("点赞帖子", zap.Int("user_id", userID), zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
 
 	// 使用统计服务执行点赞操作
-	stats, err := s.postStatsService.PerformAction(ctx, userID, req.ID, "Like")
+	action, err := s.postStatsService.PerformAction(ctx, userID, req.ID, "Like")
 	if err != nil {
 		s.logger.Error("点赞帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, err
@@ -343,9 +343,9 @@ func (s *PostService) LikePost(ctx context.Context, userID int, req schema.UserP
 	// 构建响应数据
 	result := &schema.UserPostActionResponse{
 		Success:       true,
-		LikeCount:     stats.LikeCount,
-		DislikeCount:  stats.DislikeCount,
-		FavoriteCount: stats.FavoriteCount,
+		LikeCount:     action.LikeCount,
+		DislikeCount:  action.DislikeCount,
+		FavoriteCount: action.FavoriteCount,
 		ActionType:    "like",
 	}
 
@@ -358,7 +358,7 @@ func (s *PostService) DislikePost(ctx context.Context, userID int, req schema.Us
 	s.logger.Info("点踩帖子", zap.Int("user_id", userID), zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
 
 	// 使用统计服务执行点踩操作
-	stats, err := s.postStatsService.PerformAction(ctx, userID, req.ID, "Dislike")
+	action, err := s.postStatsService.PerformAction(ctx, userID, req.ID, "Dislike")
 	if err != nil {
 		s.logger.Error("点踩帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, err
@@ -367,9 +367,9 @@ func (s *PostService) DislikePost(ctx context.Context, userID int, req schema.Us
 	// 构建响应数据
 	result := &schema.UserPostActionResponse{
 		Success:       true,
-		LikeCount:     stats.LikeCount,
-		DislikeCount:  stats.DislikeCount,
-		FavoriteCount: stats.FavoriteCount,
+		LikeCount:     action.LikeCount,
+		DislikeCount:  action.DislikeCount,
+		FavoriteCount: action.FavoriteCount,
 		ActionType:    "dislike",
 	}
 
@@ -624,7 +624,7 @@ func (s *PostService) CheckEditPermission(ctx context.Context, userID, postID in
 	redisKey := fmt.Sprintf("post:edit:limit:%d:%d", userID, postID)
 
 	// 检查是否在限制期内
-	lastEditTime, err := s.cache.Get(redisKey)
+	lastEditTime, err := s.cache.Get(ctx, redisKey)
 	if err != nil {
 		s.logger.Error("获取编辑限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return false, fmt.Errorf("获取编辑限制失败: %w", err)
@@ -648,7 +648,7 @@ func (s *PostService) CheckEditPermission(ctx context.Context, userID, postID in
 
 	// 设置新的编辑时间限制
 	currentTime := time.Now().Format(time.RFC3339)
-	err = s.cache.SetEx(redisKey, currentTime, 180) // 180秒 = 3分钟
+	err = s.cache.SetEx(ctx, redisKey, currentTime, 180) // 180秒 = 3分钟
 	if err != nil {
 		s.logger.Error("设置编辑限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		// 设置失败，但允许操作
@@ -664,7 +664,7 @@ func (s *PostService) CheckPrivatePermission(ctx context.Context, userID, postID
 	redisKey := fmt.Sprintf("post:private:limit:%d:%d", userID, postID)
 
 	// 检查是否在限制期内
-	lastPrivateTime, err := s.cache.Get(redisKey)
+	lastPrivateTime, err := s.cache.Get(ctx, redisKey)
 	if err != nil {
 		s.logger.Error("获取私有设置限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return false, fmt.Errorf("获取私有设置限制失败: %w", err)
@@ -688,7 +688,7 @@ func (s *PostService) CheckPrivatePermission(ctx context.Context, userID, postID
 
 	// 设置新的私有设置时间限制
 	currentTime := time.Now().Format(time.RFC3339)
-	err = s.cache.SetEx(redisKey, currentTime, 259200) // 259200秒 = 3天
+	err = s.cache.SetEx(ctx, redisKey, currentTime, 259200) // 259200秒 = 3天
 	if err != nil {
 		s.logger.Error("设置私有限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		// 设置失败，但允许操作

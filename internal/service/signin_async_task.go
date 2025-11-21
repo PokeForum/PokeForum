@@ -56,6 +56,7 @@ func NewSigninAsyncTask(db *ent.Client, cacheService cache.ICacheService, logger
 func (s *SigninAsyncTask) Start(workerCount int) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	ctx := context.Background()
 
 	if s.isStarted {
 		s.logger.Warn("签到异步任务处理器已经启动")
@@ -65,7 +66,7 @@ func (s *SigninAsyncTask) Start(workerCount int) {
 	s.logger.Debug("启动签到异步任务处理器", zap.Int("worker_count", workerCount))
 
 	// 初始化Stream和消费者组
-	err := s.initializeStream()
+	err := s.initializeStream(ctx)
 	if err != nil {
 		s.logger.Error("初始化Redis Stream失败", zap.Error(err))
 		return
@@ -82,9 +83,9 @@ func (s *SigninAsyncTask) Start(workerCount int) {
 }
 
 // initializeStream 初始化Stream和消费者组
-func (s *SigninAsyncTask) initializeStream() error {
+func (s *SigninAsyncTask) initializeStream(ctx context.Context) error {
 	// 创建消费者组，如果已存在会返回错误但不影响使用
-	err := s.cache.XGroupCreate(s.streamName, s.groupName, "0")
+	err := s.cache.XGroupCreate(ctx, s.streamName, s.groupName, "0")
 	if err != nil {
 		// 如果消费者组已存在，忽略错误
 		if !strings.Contains(err.Error(), "BUSYGROUP") {
@@ -96,7 +97,7 @@ func (s *SigninAsyncTask) initializeStream() error {
 	}
 
 	// 检查Stream长度
-	length, err := s.cache.XLen(s.streamName)
+	length, err := s.cache.XLen(ctx, s.streamName)
 	if err != nil {
 		return fmt.Errorf("获取Stream长度失败: %w", err)
 	}
@@ -131,10 +132,9 @@ func (s *SigninAsyncTask) Stop() {
 }
 
 // SubmitTask 提交签到任务
-func (s *SigninAsyncTask) SubmitTask(task *SigninTask) error {
+func (s *SigninAsyncTask) SubmitTask(ctx context.Context, task *SigninTask) error {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-
 	if !s.isStarted {
 		return errors.New("异步任务未启动")
 	}
@@ -162,7 +162,7 @@ func (s *SigninAsyncTask) SubmitTask(task *SigninTask) error {
 	}
 
 	// 发送消息到Stream
-	messageID, err := s.cache.XAdd(s.streamName, values)
+	messageID, err := s.cache.XAdd(ctx, s.streamName, values)
 	if err != nil {
 		s.logger.Error("提交签到任务到Stream失败",
 			zap.Int64("user_id", task.UserID),
@@ -190,6 +190,7 @@ func (s *SigninAsyncTask) SubmitTask(task *SigninTask) error {
 // worker 工作协程
 func (s *SigninAsyncTask) worker(workerID int) {
 	defer s.wg.Done()
+	ctx := context.Background()
 
 	s.logger.Debug("签到异步任务worker启动", zap.Int("worker_id", workerID))
 	consumerName := fmt.Sprintf("worker-%d", workerID)
@@ -202,7 +203,7 @@ func (s *SigninAsyncTask) worker(workerID int) {
 		default:
 			// 从消费者组读取消息
 			streams := map[string]string{s.streamName: ">"} // ">"表示读取新消息
-			messages, err := s.cache.XReadGroup(s.groupName, consumerName, streams, 1)
+			messages, err := s.cache.XReadGroup(ctx, s.groupName, consumerName, streams, 1)
 
 			if err != nil {
 				s.logger.Error("从Stream读取消息失败",
@@ -220,14 +221,14 @@ func (s *SigninAsyncTask) worker(workerID int) {
 
 			// 处理消息
 			for _, message := range messages {
-				s.processStreamMessage(message, workerID)
+				s.processStreamMessage(ctx, message, workerID)
 			}
 		}
 	}
 }
 
 // processStreamMessage 处理Stream消息
-func (s *SigninAsyncTask) processStreamMessage(message map[string]interface{}, workerID int) {
+func (s *SigninAsyncTask) processStreamMessage(ctx context.Context, message map[string]interface{}, workerID int) {
 	messageID, ok := message["message_id"].(string)
 	if !ok {
 		s.logger.Error("消息ID缺失", zap.Int("worker_id", workerID))
@@ -241,7 +242,7 @@ func (s *SigninAsyncTask) processStreamMessage(message map[string]interface{}, w
 			zap.String("message_id", messageID),
 			zap.Int("worker_id", workerID))
 		// 确认消息避免重复处理
-		s.ackMessage(messageID)
+		s.ackMessage(ctx, messageID)
 		return
 	}
 
@@ -253,7 +254,7 @@ func (s *SigninAsyncTask) processStreamMessage(message map[string]interface{}, w
 			zap.Int("worker_id", workerID),
 			zap.Error(err))
 		// 确认消息避免重复处理
-		s.ackMessage(messageID)
+		s.ackMessage(ctx, messageID)
 		return
 	}
 
@@ -277,16 +278,16 @@ func (s *SigninAsyncTask) processStreamMessage(message map[string]interface{}, w
 
 	if success {
 		// 任务成功，确认消息
-		s.ackMessage(messageID)
+		s.ackMessage(ctx, messageID)
 	} else {
 		// 任务失败，检查重试次数
 		if retryCount >= 3 { // 最大重试3次
-			s.moveToDeadLetterQueue(messageID, message, &task)
-			s.ackMessage(messageID)
+			s.moveToDeadLetterQueue(ctx, messageID, message, &task)
+			s.ackMessage(ctx, messageID)
 		} else {
 			// 重新投递消息增加重试次数
-			s.requeueMessage(messageID, message, &task, retryCount+1)
-			s.ackMessage(messageID)
+			s.requeueMessage(ctx, messageID, message, &task, retryCount+1)
+			s.ackMessage(ctx, messageID)
 		}
 	}
 }
@@ -340,8 +341,8 @@ func (s *SigninAsyncTask) processTaskWithRetry(task *SigninTask, workerID int, m
 }
 
 // ackMessage 确认消息已处理
-func (s *SigninAsyncTask) ackMessage(messageID string) {
-	_, err := s.cache.XAck(s.streamName, s.groupName, messageID)
+func (s *SigninAsyncTask) ackMessage(ctx context.Context, messageID string) {
+	_, err := s.cache.XAck(ctx, s.streamName, s.groupName, messageID)
 	if err != nil {
 		s.logger.Error("确认消息失败",
 			zap.String("message_id", messageID),
@@ -350,7 +351,7 @@ func (s *SigninAsyncTask) ackMessage(messageID string) {
 }
 
 // moveToDeadLetterQueue 移动消息到死信队列
-func (s *SigninAsyncTask) moveToDeadLetterQueue(messageID string, message map[string]interface{}, task *SigninTask) {
+func (s *SigninAsyncTask) moveToDeadLetterQueue(ctx context.Context, messageID string, message map[string]interface{}, task *SigninTask) {
 	// 构建死信队列消息
 	dlqValues := map[string]interface{}{
 		"original_message_id": messageID,
@@ -363,7 +364,7 @@ func (s *SigninAsyncTask) moveToDeadLetterQueue(messageID string, message map[st
 
 	// 发送到死信队列Stream
 	dlqStream := "signin:task:dlq"
-	_, err := s.cache.XAdd(dlqStream, dlqValues)
+	_, err := s.cache.XAdd(ctx, dlqStream, dlqValues)
 	if err != nil {
 		s.logger.Error("移动消息到死信队列失败",
 			zap.String("message_id", messageID),
@@ -378,7 +379,7 @@ func (s *SigninAsyncTask) moveToDeadLetterQueue(messageID string, message map[st
 }
 
 // requeueMessage 重新投递消息增加重试次数
-func (s *SigninAsyncTask) requeueMessage(messageID string, message map[string]interface{}, task *SigninTask, newRetryCount int64) {
+func (s *SigninAsyncTask) requeueMessage(ctx context.Context, messageID string, message map[string]interface{}, task *SigninTask, newRetryCount int64) {
 	// 重新序列化任务数据
 	taskJSON, err := json.Marshal(task)
 	if err != nil {
@@ -401,7 +402,7 @@ func (s *SigninAsyncTask) requeueMessage(messageID string, message map[string]in
 	}
 
 	// 重新投递消息
-	newMessageID, err := s.cache.XAdd(s.streamName, newValues)
+	newMessageID, err := s.cache.XAdd(ctx, s.streamName, newValues)
 	if err != nil {
 		s.logger.Error("重新投递消息失败",
 			zap.String("original_message_id", messageID),
@@ -499,8 +500,8 @@ func (s *SigninAsyncTask) insertSigninLog(ctx context.Context, task *SigninTask)
 }
 
 // GetQueueSize 获取队列大小（Stream中的消息数量）
-func (s *SigninAsyncTask) GetQueueSize() int {
-	length, err := s.cache.XLen(s.streamName)
+func (s *SigninAsyncTask) GetQueueSize(ctx context.Context) int {
+	length, err := s.cache.XLen(ctx, s.streamName)
 	if err != nil {
 		s.logger.Error("获取Stream长度失败", zap.Error(err))
 		return 0
@@ -509,8 +510,8 @@ func (s *SigninAsyncTask) GetQueueSize() int {
 }
 
 // GetPendingCount 获取待处理消息数量
-func (s *SigninAsyncTask) GetPendingCount() (int64, error) {
-	pending, err := s.cache.XPending(s.streamName, s.groupName)
+func (s *SigninAsyncTask) GetPendingCount(ctx context.Context) (int64, error) {
+	pending, err := s.cache.XPending(ctx, s.streamName, s.groupName)
 	if err != nil {
 		return 0, fmt.Errorf("获取待处理消息失败: %w", err)
 	}

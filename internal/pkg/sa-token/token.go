@@ -4,20 +4,10 @@ import (
 	"github.com/PokeForum/PokeForum/internal/configs"
 	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/click33/sa-token-go/storage/redis"
-	"go.uber.org/zap"
 )
 
 // NewSaToken 创建 SaToken
 func NewSaToken() *saGin.Manager {
-	// 从 configs 中获取 redis 配置
-	rdbCfg := &redis.Config{
-		Host:     configs.Config.Cache.Host,
-		Port:     configs.Config.Cache.Port,
-		Password: configs.Config.Cache.Password,
-		Database: configs.Config.Cache.DB,
-		PoolSize: 10,
-	}
-
 	// 创建SaToken配置
 	saCfg := &saGin.Config{
 		TokenName:              "Authorization",
@@ -45,11 +35,6 @@ func NewSaToken() *saGin.Manager {
 	}
 
 	// 创建存储
-	storage, err := redis.NewStorageFromConfig(rdbCfg)
-	if err != nil {
-		configs.Log.Panic("Failed to create Redis storage: ", zap.Error(err))
-		return nil
-	}
-
+	storage := redis.NewStorageFromClient(configs.Cache)
 	return saGin.NewManager(storage, saCfg)
 }

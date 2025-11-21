@@ -1,46 +1,34 @@
 package cache
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/gomodule/redigo/redis"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
 // RedisCacheService Redis缓存服务实现
 type RedisCacheService struct {
-	pool   *redis.Pool // Redis连接池
-	logger *zap.Logger // 日志记录器
+	client *redis.Client // Redis客户端
+	logger *zap.Logger   // 日志记录器
 }
 
 // NewRedisCacheService 创建Redis缓存服务实例
-func NewRedisCacheService(pool *redis.Pool, logger *zap.Logger) ICacheService {
+func NewRedisCacheService(client *redis.Client, logger *zap.Logger) ICacheService {
 	return &RedisCacheService{
-		pool:   pool,
+		client: client,
 		logger: logger,
 	}
 }
 
-// getConn 获取Redis连接
-func (r *RedisCacheService) getConn() redis.Conn {
-	return r.pool.Get()
-}
-
 // Get 获取缓存值
-func (r *RedisCacheService) Get(key string) (string, error) {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	value, err := redis.String(conn.Do("GET", key))
-	if err != nil && !errors.Is(err, redis.ErrNil) {
+func (r *RedisCacheService) Get(ctx context.Context, key string) (string, error) {
+	value, err := r.client.Get(ctx, key).Result()
+	if err != nil && !errors.Is(err, redis.Nil) {
 		r.logger.Error("获取缓存失败", zap.String("key", key), zap.Error(err))
 		return "", fmt.Errorf("获取缓存失败: %w", err)
 	}
@@ -48,16 +36,8 @@ func (r *RedisCacheService) Get(key string) (string, error) {
 }
 
 // Set 设置缓存值（永久有效）
-func (r *RedisCacheService) Set(key string, value interface{}) error {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	_, err := conn.Do("SET", key, value)
+func (r *RedisCacheService) Set(ctx context.Context, key string, value interface{}) error {
+	err := r.client.Set(ctx, key, value, 0).Err()
 	if err != nil {
 		r.logger.Error("设置缓存失败", zap.String("key", key), zap.Error(err))
 		return fmt.Errorf("设置缓存失败: %w", err)
@@ -66,16 +46,8 @@ func (r *RedisCacheService) Set(key string, value interface{}) error {
 }
 
 // SetEx 设置缓存值并指定过期时间（秒）
-func (r *RedisCacheService) SetEx(key string, value interface{}, expiration int) error {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	_, err := conn.Do("SETEX", key, expiration, value)
+func (r *RedisCacheService) SetEx(ctx context.Context, key string, value interface{}, expiration int) error {
+	err := r.client.Set(ctx, key, value, time.Duration(expiration)*time.Second).Err()
 	if err != nil {
 		r.logger.Error("设置缓存失败", zap.String("key", key), zap.Int("expiration", expiration), zap.Error(err))
 		return fmt.Errorf("设置缓存失败: %w", err)
@@ -84,67 +56,37 @@ func (r *RedisCacheService) SetEx(key string, value interface{}, expiration int)
 }
 
 // SetExDuration 设置缓存值并指定过期时间（使用Duration）
-func (r *RedisCacheService) SetExDuration(key string, value interface{}, expiration time.Duration) error {
-	return r.SetEx(key, value, int(expiration.Seconds()))
+func (r *RedisCacheService) SetExDuration(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
+	return r.SetEx(ctx, key, value, int(expiration.Seconds()))
 }
 
 // Del 删除缓存
-func (r *RedisCacheService) Del(keys ...string) (int, error) {
+func (r *RedisCacheService) Del(ctx context.Context, keys ...string) (int, error) {
 	if len(keys) == 0 {
 		return 0, nil
 	}
 
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	// 将keys转换为interface{}切片
-	args := make([]interface{}, len(keys))
-	for i, key := range keys {
-		args[i] = key
-	}
-
-	count, err := redis.Int(conn.Do("DEL", args...))
+	count, err := r.client.Del(ctx, keys...).Result()
 	if err != nil {
 		r.logger.Error("删除缓存失败", zap.Strings("keys", keys), zap.Error(err))
 		return 0, fmt.Errorf("删除缓存失败: %w", err)
 	}
-	return count, nil
+	return int(count), nil
 }
 
 // Exists 检查缓存是否存在
-func (r *RedisCacheService) Exists(key string) (bool, error) {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	exists, err := redis.Bool(conn.Do("EXISTS", key))
+func (r *RedisCacheService) Exists(ctx context.Context, key string) (bool, error) {
+	count, err := r.client.Exists(ctx, key).Result()
 	if err != nil {
 		r.logger.Error("检查缓存是否存在失败", zap.String("key", key), zap.Error(err))
 		return false, fmt.Errorf("检查缓存是否存在失败: %w", err)
 	}
-	return exists, nil
+	return count > 0, nil
 }
 
 // Expire 设置缓存过期时间
-func (r *RedisCacheService) Expire(key string, expiration int) (bool, error) {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	success, err := redis.Bool(conn.Do("EXPIRE", key, expiration))
+func (r *RedisCacheService) Expire(ctx context.Context, key string, expiration int) (bool, error) {
+	success, err := r.client.Expire(ctx, key, time.Duration(expiration)*time.Second).Result()
 	if err != nil {
 		r.logger.Error("设置缓存过期时间失败", zap.String("key", key), zap.Int("expiration", expiration), zap.Error(err))
 		return false, fmt.Errorf("设置缓存过期时间失败: %w", err)
@@ -153,34 +95,18 @@ func (r *RedisCacheService) Expire(key string, expiration int) (bool, error) {
 }
 
 // TTL 获取缓存剩余过期时间
-func (r *RedisCacheService) TTL(key string) (int, error) {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	ttl, err := redis.Int(conn.Do("TTL", key))
+func (r *RedisCacheService) TTL(ctx context.Context, key string) (int, error) {
+	ttl, err := r.client.TTL(ctx, key).Result()
 	if err != nil {
 		r.logger.Error("获取缓存过期时间失败", zap.String("key", key), zap.Error(err))
 		return 0, fmt.Errorf("获取缓存过期时间失败: %w", err)
 	}
-	return ttl, nil
+	return int(ttl.Seconds()), nil
 }
 
 // Incr 自增操作
-func (r *RedisCacheService) Incr(key string) (int64, error) {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	value, err := redis.Int64(conn.Do("INCR", key))
+func (r *RedisCacheService) Incr(ctx context.Context, key string) (int64, error) {
+	value, err := r.client.Incr(ctx, key).Result()
 	if err != nil {
 		r.logger.Error("自增操作失败", zap.String("key", key), zap.Error(err))
 		return 0, fmt.Errorf("自增操作失败: %w", err)
@@ -189,16 +115,8 @@ func (r *RedisCacheService) Incr(key string) (int64, error) {
 }
 
 // Decr 自减操作
-func (r *RedisCacheService) Decr(key string) (int64, error) {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	value, err := redis.Int64(conn.Do("DECR", key))
+func (r *RedisCacheService) Decr(ctx context.Context, key string) (int64, error) {
+	value, err := r.client.Decr(ctx, key).Result()
 	if err != nil {
 		r.logger.Error("自减操作失败", zap.String("key", key), zap.Error(err))
 		return 0, fmt.Errorf("自减操作失败: %w", err)
@@ -207,17 +125,9 @@ func (r *RedisCacheService) Decr(key string) (int64, error) {
 }
 
 // HGet 获取哈希表字段值
-func (r *RedisCacheService) HGet(key, field string) (string, error) {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	value, err := redis.String(conn.Do("HGET", key, field))
-	if err != nil && !errors.Is(err, redis.ErrNil) {
+func (r *RedisCacheService) HGet(ctx context.Context, key, field string) (string, error) {
+	value, err := r.client.HGet(ctx, key, field).Result()
+	if err != nil && !errors.Is(err, redis.Nil) {
 		r.logger.Error("获取哈希表字段值失败", zap.String("key", key), zap.String("field", field), zap.Error(err))
 		return "", fmt.Errorf("获取哈希表字段值失败: %w", err)
 	}
@@ -225,16 +135,8 @@ func (r *RedisCacheService) HGet(key, field string) (string, error) {
 }
 
 // HSet 设置哈希表字段值
-func (r *RedisCacheService) HSet(key, field string, value interface{}) error {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	_, err := conn.Do("HSET", key, field, value)
+func (r *RedisCacheService) HSet(ctx context.Context, key, field string, value interface{}) error {
+	err := r.client.HSet(ctx, key, field, value).Err()
 	if err != nil {
 		r.logger.Error("设置哈希表字段值失败", zap.String("key", key), zap.String("field", field), zap.Error(err))
 		return fmt.Errorf("设置哈希表字段值失败: %w", err)
@@ -243,45 +145,22 @@ func (r *RedisCacheService) HSet(key, field string, value interface{}) error {
 }
 
 // HDel 删除哈希表字段
-func (r *RedisCacheService) HDel(key string, fields ...string) (int, error) {
+func (r *RedisCacheService) HDel(ctx context.Context, key string, fields ...string) (int, error) {
 	if len(fields) == 0 {
 		return 0, nil
 	}
 
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	// 构建参数列表
-	args := make([]interface{}, len(fields)+1)
-	args[0] = key
-	for i, field := range fields {
-		args[i+1] = field
-	}
-
-	count, err := redis.Int(conn.Do("HDEL", args...))
+	count, err := r.client.HDel(ctx, key, fields...).Result()
 	if err != nil {
 		r.logger.Error("删除哈希表字段失败", zap.String("key", key), zap.Strings("fields", fields), zap.Error(err))
 		return 0, fmt.Errorf("删除哈希表字段失败: %w", err)
 	}
-	return count, nil
+	return int(count), nil
 }
 
 // HGetAll 获取哈希表所有字段和值
-func (r *RedisCacheService) HGetAll(key string) (map[string]string, error) {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	values, err := redis.StringMap(conn.Do("HGETALL", key))
+func (r *RedisCacheService) HGetAll(ctx context.Context, key string) (map[string]string, error) {
+	values, err := r.client.HGetAll(ctx, key).Result()
 	if err != nil {
 		r.logger.Error("获取哈希表所有字段失败", zap.String("key", key), zap.Error(err))
 		return nil, fmt.Errorf("获取哈希表所有字段失败: %w", err)
@@ -290,16 +169,8 @@ func (r *RedisCacheService) HGetAll(key string) (map[string]string, error) {
 }
 
 // HIncrBy 哈希表字段自增
-func (r *RedisCacheService) HIncrBy(key, field string, increment int64) (int64, error) {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	value, err := redis.Int64(conn.Do("HINCRBY", key, field, increment))
+func (r *RedisCacheService) HIncrBy(ctx context.Context, key, field string, increment int64) (int64, error) {
+	value, err := r.client.HIncrBy(ctx, key, field, increment).Result()
 	if err != nil {
 		r.logger.Error("哈希表字段自增失败", zap.String("key", key), zap.String("field", field), zap.Int64("increment", increment), zap.Error(err))
 		return 0, fmt.Errorf("哈希表字段自增失败: %w", err)
@@ -308,59 +179,34 @@ func (r *RedisCacheService) HIncrBy(key, field string, increment int64) (int64, 
 }
 
 // HMGet 批量获取哈希表字段值
-func (r *RedisCacheService) HMGet(key string, fields ...string) ([]string, error) {
+func (r *RedisCacheService) HMGet(ctx context.Context, key string, fields ...string) ([]string, error) {
 	if len(fields) == 0 {
 		return []string{}, nil
 	}
 
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	// 构建参数列表
-	args := make([]interface{}, len(fields)+1)
-	args[0] = key
-	for i, field := range fields {
-		args[i+1] = field
-	}
-
-	values, err := redis.Strings(conn.Do("HMGET", args...))
+	values, err := r.client.HMGet(ctx, key, fields...).Result()
 	if err != nil {
 		r.logger.Error("批量获取哈希表字段值失败", zap.String("key", key), zap.Strings("fields", fields), zap.Error(err))
 		return nil, fmt.Errorf("批量获取哈希表字段值失败: %w", err)
 	}
-	return values, nil
+
+	// 转换为[]string
+	result := make([]string, len(values))
+	for i, v := range values {
+		if v != nil {
+			result[i] = v.(string)
+		}
+	}
+	return result, nil
 }
 
 // HMSet 批量设置哈希表字段值
-func (r *RedisCacheService) HMSet(key string, fieldValues map[string]interface{}) error {
+func (r *RedisCacheService) HMSet(ctx context.Context, key string, fieldValues map[string]interface{}) error {
 	if len(fieldValues) == 0 {
 		return nil
 	}
 
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	// 构建参数列表
-	args := make([]interface{}, len(fieldValues)*2+1)
-	args[0] = key
-	i := 1
-	for field, value := range fieldValues {
-		args[i] = field
-		args[i+1] = value
-		i += 2
-	}
-
-	_, err := conn.Do("HMSET", args...)
+	err := r.client.HMSet(ctx, key, fieldValues).Err()
 	if err != nil {
 		r.logger.Error("批量设置哈希表字段值失败", zap.String("key", key), zap.Error(err))
 		return fmt.Errorf("批量设置哈希表字段值失败: %w", err)
@@ -369,43 +215,22 @@ func (r *RedisCacheService) HMSet(key string, fieldValues map[string]interface{}
 }
 
 // SAdd 向集合添加成员
-func (r *RedisCacheService) SAdd(key string, members ...interface{}) (int, error) {
+func (r *RedisCacheService) SAdd(ctx context.Context, key string, members ...interface{}) (int, error) {
 	if len(members) == 0 {
 		return 0, nil
 	}
 
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	// 构建参数列表
-	args := make([]interface{}, len(members)+1)
-	args[0] = key
-	copy(args[1:], members)
-
-	count, err := redis.Int(conn.Do("SADD", args...))
+	count, err := r.client.SAdd(ctx, key, members...).Result()
 	if err != nil {
 		r.logger.Error("向集合添加成员失败", zap.String("key", key), zap.Error(err))
 		return 0, fmt.Errorf("向集合添加成员失败: %w", err)
 	}
-	return count, nil
+	return int(count), nil
 }
 
 // SMembers 获取集合所有成员
-func (r *RedisCacheService) SMembers(key string) ([]string, error) {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	members, err := redis.Strings(conn.Do("SMEMBERS", key))
+func (r *RedisCacheService) SMembers(ctx context.Context, key string) ([]string, error) {
+	members, err := r.client.SMembers(ctx, key).Result()
 	if err != nil {
 		r.logger.Error("获取集合成员失败", zap.String("key", key), zap.Error(err))
 		return nil, fmt.Errorf("获取集合成员失败: %w", err)
@@ -414,43 +239,22 @@ func (r *RedisCacheService) SMembers(key string) ([]string, error) {
 }
 
 // SRem 从集合移除成员
-func (r *RedisCacheService) SRem(key string, members ...interface{}) (int, error) {
+func (r *RedisCacheService) SRem(ctx context.Context, key string, members ...interface{}) (int, error) {
 	if len(members) == 0 {
 		return 0, nil
 	}
 
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	// 构建参数列表
-	args := make([]interface{}, len(members)+1)
-	args[0] = key
-	copy(args[1:], members)
-
-	count, err := redis.Int(conn.Do("SREM", args...))
+	count, err := r.client.SRem(ctx, key, members...).Result()
 	if err != nil {
 		r.logger.Error("从集合移除成员失败", zap.String("key", key), zap.Error(err))
 		return 0, fmt.Errorf("从集合移除成员失败: %w", err)
 	}
-	return count, nil
+	return int(count), nil
 }
 
 // SCard 获取集合成员数量
-func (r *RedisCacheService) SCard(key string) (int64, error) {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	count, err := redis.Int64(conn.Do("SCARD", key))
+func (r *RedisCacheService) SCard(ctx context.Context, key string) (int64, error) {
+	count, err := r.client.SCard(ctx, key).Result()
 	if err != nil {
 		r.logger.Error("获取集合成员数量失败", zap.String("key", key), zap.Error(err))
 		return 0, fmt.Errorf("获取集合成员数量失败: %w", err)
@@ -459,16 +263,8 @@ func (r *RedisCacheService) SCard(key string) (int64, error) {
 }
 
 // SIsMember 判断成员是否在集合中
-func (r *RedisCacheService) SIsMember(key string, member interface{}) (bool, error) {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	exists, err := redis.Bool(conn.Do("SISMEMBER", key, member))
+func (r *RedisCacheService) SIsMember(ctx context.Context, key string, member interface{}) (bool, error) {
+	exists, err := r.client.SIsMember(ctx, key, member).Result()
 	if err != nil {
 		r.logger.Error("判断成员是否在集合中失败", zap.String("key", key), zap.Error(err))
 		return false, fmt.Errorf("判断成员是否在集合中失败: %w", err)
@@ -477,16 +273,8 @@ func (r *RedisCacheService) SIsMember(key string, member interface{}) (bool, err
 }
 
 // ZAdd 向有序集合添加成员
-func (r *RedisCacheService) ZAdd(key string, member string, score float64) error {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	_, err := conn.Do("ZADD", key, score, member)
+func (r *RedisCacheService) ZAdd(ctx context.Context, key string, member string, score float64) error {
+	err := r.client.ZAdd(ctx, key, redis.Z{Score: score, Member: member}).Err()
 	if err != nil {
 		r.logger.Error("向有序集合添加成员失败", zap.String("key", key), zap.Error(err))
 		return fmt.Errorf("向有序集合添加成员失败: %w", err)
@@ -495,22 +283,11 @@ func (r *RedisCacheService) ZAdd(key string, member string, score float64) error
 }
 
 // XAdd 向Stream添加消息
-func (r *RedisCacheService) XAdd(stream string, values map[string]interface{}) (string, error) {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	// 构建XADD命令参数
-	args := []interface{}{stream, "*"}
-	for k, v := range values {
-		args = append(args, k, v)
-	}
-
-	messageID, err := redis.String(conn.Do("XADD", args...))
+func (r *RedisCacheService) XAdd(ctx context.Context, stream string, values map[string]interface{}) (string, error) {
+	messageID, err := r.client.XAdd(ctx, &redis.XAddArgs{
+		Stream: stream,
+		Values: values,
+	}).Result()
 	if err != nil {
 		r.logger.Error("向Stream添加消息失败", zap.String("stream", stream), zap.Error(err))
 		return "", fmt.Errorf("向Stream添加消息失败: %w", err)
@@ -521,57 +298,32 @@ func (r *RedisCacheService) XAdd(stream string, values map[string]interface{}) (
 }
 
 // XReadGroup 从消费者组读取消息
-func (r *RedisCacheService) XReadGroup(group, consumer string, streams map[string]string, count int64) ([]map[string]interface{}, error) {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	// 构建XREADGROUP命令参数
-	args := []interface{}{"GROUP", group, consumer, "COUNT", count}
-	for stream, id := range streams {
-		args = append(args, "STREAMS", stream, id)
+func (r *RedisCacheService) XReadGroup(ctx context.Context, group, consumer string, streams map[string]string, count int64) ([]map[string]interface{}, error) {
+	// 构建streams参数
+	streamKeys := make([]string, 0, len(streams))
+	for key := range streams {
+		streamKeys = append(streamKeys, key)
 	}
 
-	result, err := redis.Values(conn.Do("XREADGROUP", args...))
-	if err != nil && !errors.Is(err, redis.ErrNil) {
+	result, err := r.client.XReadGroup(ctx, &redis.XReadGroupArgs{
+		Group:    group,
+		Consumer: consumer,
+		Streams:  append(streamKeys, ">"),
+		Count:    count,
+	}).Result()
+	if err != nil && !errors.Is(err, redis.Nil) {
 		r.logger.Error("从消费者组读取消息失败", zap.String("group", group), zap.String("consumer", consumer), zap.Error(err))
 		return nil, fmt.Errorf("从消费者组读取消息失败: %w", err)
 	}
 
-	if len(result) == 0 {
-		return []map[string]interface{}{}, nil
-	}
-
 	var messages []map[string]interface{}
-	// 解析返回结果: [[stream1, [message1, message2, ...]]]
-	for _, streamData := range result {
-		streamResult, _ := redis.Values(streamData, nil)
-		if len(streamResult) < 2 {
-			continue
-		}
-
-		// streamResult[1] 是消息列表
-		messageList, _ := redis.Values(streamResult[1], nil)
-		for _, messageData := range messageList {
-			msgValues, _ := redis.Values(messageData, nil)
-			if len(msgValues) < 2 {
-				continue
-			}
-
-			// msgValues[0] 是消息ID，msgValues[1] 是消息字段
-			messageID, _ := redis.String(msgValues[0], nil)
-			fields, _ := redis.StringMap(msgValues[1], nil)
-
-			// 将map[string]string转换为map[string]interface{}
+	for _, stream := range result {
+		for _, message := range stream.Messages {
 			fieldsInterface := make(map[string]interface{})
-			for k, v := range fields {
+			for k, v := range message.Values {
 				fieldsInterface[k] = v
 			}
-			fieldsInterface["message_id"] = messageID
+			fieldsInterface["message_id"] = message.ID
 			messages = append(messages, fieldsInterface)
 		}
 	}
@@ -585,22 +337,8 @@ func (r *RedisCacheService) XReadGroup(group, consumer string, streams map[strin
 }
 
 // XAck 确认消息已处理
-func (r *RedisCacheService) XAck(stream, group string, ids ...string) (int64, error) {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	// 构建XACK命令参数
-	args := []interface{}{stream, group}
-	for _, id := range ids {
-		args = append(args, id)
-	}
-
-	count, err := redis.Int64(conn.Do("XACK", args...))
+func (r *RedisCacheService) XAck(ctx context.Context, stream, group string, ids ...string) (int64, error) {
+	count, err := r.client.XAck(ctx, stream, group, ids...).Result()
 	if err != nil {
 		r.logger.Error("确认消息失败", zap.String("stream", stream), zap.String("group", group), zap.Error(err))
 		return 0, fmt.Errorf("确认消息失败: %w", err)
@@ -615,76 +353,32 @@ func (r *RedisCacheService) XAck(stream, group string, ids ...string) (int64, er
 }
 
 // XPending 查看待处理消息
-func (r *RedisCacheService) XPending(stream, group string) (map[string]interface{}, error) {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	result, err := redis.Values(conn.Do("XPENDING", stream, group))
+func (r *RedisCacheService) XPending(ctx context.Context, stream, group string) (map[string]interface{}, error) {
+	result, err := r.client.XPending(ctx, stream, group).Result()
 	if err != nil {
 		r.logger.Error("查询待处理消息失败", zap.String("stream", stream), zap.String("group", group), zap.Error(err))
 		return nil, fmt.Errorf("查询待处理消息失败: %w", err)
 	}
 
-	if len(result) == 0 {
-		return map[string]interface{}{
-			"total":     int64(0),
-			"min_id":    "",
-			"max_id":    "",
-			"consumers": []map[string]interface{}{},
-		}, nil
-	}
-
-	// 解析XPENDING返回结果: [total, min_id, max_id, [[consumer1, pending_count1], [consumer2, pending_count2], ...]]
-	total, _ := redis.Int64(result[0], nil)
-	minID, _ := redis.String(result[1], nil)
-	maxID, _ := redis.String(result[2], nil)
-
 	var consumers []map[string]interface{}
-	if len(result) > 3 {
-		consumerList, _ := redis.Values(result[3], nil)
-		for _, consumerData := range consumerList {
-			consumerInfo, _ := redis.Values(consumerData, nil)
-			if len(consumerInfo) >= 2 {
-				consumerName, _ := redis.String(consumerInfo[0], nil)
-				pendingCount, _ := redis.Int64(consumerInfo[1], nil)
-				consumers = append(consumers, map[string]interface{}{
-					"consumer":      consumerName,
-					"pending_count": pendingCount,
-				})
-			}
-		}
+	for consumerName, count := range result.Consumers {
+		consumers = append(consumers, map[string]interface{}{
+			"consumer":      consumerName,
+			"pending_count": count,
+		})
 	}
 
 	return map[string]interface{}{
-		"total":     total,
-		"min_id":    minID,
-		"max_id":    maxID,
+		"total":     result.Count,
+		"min_id":    result.Lower,
+		"max_id":    result.Higher,
 		"consumers": consumers,
 	}, nil
 }
 
 // XDel 删除Stream中的消息
-func (r *RedisCacheService) XDel(stream string, ids ...string) (int64, error) {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	// 构建XDEL命令参数
-	args := []interface{}{stream}
-	for _, id := range ids {
-		args = append(args, id)
-	}
-
-	count, err := redis.Int64(conn.Do("XDEL", args...))
+func (r *RedisCacheService) XDel(ctx context.Context, stream string, ids ...string) (int64, error) {
+	count, err := r.client.XDel(ctx, stream, ids...).Result()
 	if err != nil {
 		r.logger.Error("删除Stream消息失败", zap.String("stream", stream), zap.Error(err))
 		return 0, fmt.Errorf("删除Stream消息失败: %w", err)
@@ -698,16 +392,8 @@ func (r *RedisCacheService) XDel(stream string, ids ...string) (int64, error) {
 }
 
 // XGroupCreate 创建消费者组
-func (r *RedisCacheService) XGroupCreate(stream, group, id string) error {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	_, err := conn.Do("XGROUP", "CREATE", stream, group, id, "MKSTREAM")
+func (r *RedisCacheService) XGroupCreate(ctx context.Context, stream, group, id string) error {
+	err := r.client.XGroupCreateMkStream(ctx, stream, group, id).Err()
 	if err != nil {
 		// 如果消费者组已存在，则忽略错误
 		if strings.Contains(err.Error(), "BUSYGROUP Consumer Group name already exists") {
@@ -723,16 +409,8 @@ func (r *RedisCacheService) XGroupCreate(stream, group, id string) error {
 }
 
 // XLen 获取Stream长度
-func (r *RedisCacheService) XLen(stream string) (int64, error) {
-	conn := r.getConn()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-			r.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}(conn)
-
-	length, err := redis.Int64(conn.Do("XLEN", stream))
+func (r *RedisCacheService) XLen(ctx context.Context, stream string) (int64, error) {
+	length, err := r.client.XLen(ctx, stream).Result()
 	if err != nil {
 		r.logger.Error("获取Stream长度失败", zap.String("stream", stream), zap.Error(err))
 		return 0, fmt.Errorf("获取Stream长度失败: %w", err)

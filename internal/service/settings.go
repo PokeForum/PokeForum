@@ -57,7 +57,7 @@ type ISettingsService interface {
 	GetSettingByKey(ctx context.Context, key string, defaultValue string) (string, error)
 
 	// ClearSettingCache 清理指定设置的缓存 - 公共方法
-	ClearSettingCache(key string)
+	ClearSettingCache(ctx context.Context, key string)
 }
 
 // SettingsService 设置服务实现
@@ -131,7 +131,7 @@ func (s *SettingsService) upsertSetting(ctx context.Context, module settings.Mod
 	}
 
 	// 清理对应的Redis缓存
-	s.ClearSettingCache(key)
+	s.ClearSettingCache(ctx, key)
 
 	return nil
 }
@@ -521,7 +521,7 @@ func (s *SettingsService) SendTestEmail(ctx context.Context, toEmail string) err
 func (s *SettingsService) GetSettingByKey(ctx context.Context, key string, defaultValue string) (string, error) {
 	// 先从Redis缓存中查询
 	cacheKey := _const.GetSettingKey(key)
-	cachedValue, err := s.cache.Get(cacheKey)
+	cachedValue, err := s.cache.Get(ctx, cacheKey)
 	if err == nil && cachedValue != "" {
 		// 缓存命中，直接返回
 		return cachedValue, nil
@@ -534,7 +534,7 @@ func (s *SettingsService) GetSettingByKey(ctx context.Context, key string, defau
 	if err != nil {
 		if ent.IsNotFound(err) {
 			// 如果设置不存在，缓存默认值并返回默认值
-			if err = s.cache.SetEx(cacheKey, defaultValue, 300); err != nil {
+			if err = s.cache.SetEx(ctx, cacheKey, defaultValue, 300); err != nil {
 				s.logger.Warn("设置缓存默认值失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			} // 缓存5分钟
 			return defaultValue, nil
@@ -544,7 +544,7 @@ func (s *SettingsService) GetSettingByKey(ctx context.Context, key string, defau
 	}
 
 	// 将查询结果缓存到Redis，设置1天过期时间
-	if err = s.cache.SetEx(cacheKey, setting.Value, 86400); err != nil {
+	if err = s.cache.SetEx(ctx, cacheKey, setting.Value, 86400); err != nil {
 		s.logger.Warn("缓存设置值失败", tracing.WithTraceIDField(ctx), zap.String("key", key), zap.Error(err))
 	}
 
@@ -610,9 +610,9 @@ func (s *SettingsService) parseIntWithDefault(str string, defaultValue int) int 
 }
 
 // ClearSettingCache 清理指定设置的Redis缓存 - 公共方法
-func (s *SettingsService) ClearSettingCache(key string) {
+func (s *SettingsService) ClearSettingCache(ctx context.Context, key string) {
 	cacheKey := _const.GetSettingKey(key)
-	if _, err := s.cache.Del(cacheKey); err != nil {
+	if _, err := s.cache.Del(ctx, cacheKey); err != nil {
 		s.logger.Warn("清理设置缓存失败", zap.String("key", key), zap.Error(err))
 	}
 }

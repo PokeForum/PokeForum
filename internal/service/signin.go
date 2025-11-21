@@ -166,7 +166,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 	}
 
 	// 计算连续签到天数和奖励
-	continuousDays, totalDays := s.calculateContinuousDays(status, today)
+	continuousDays, totalDays := s.calculateContinuousDays(status)
 	rewardPoints, rewardExperience, err := s.calculateReward(ctx, continuousDays)
 	if err != nil {
 		s.logger.Error("计算签到奖励失败",
@@ -206,7 +206,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 		TraceID:        traceID,
 	}
 
-	err = s.asyncTask.SubmitTask(task)
+	err = s.asyncTask.SubmitTask(ctx, task)
 	if err != nil {
 		s.logger.Error("提交异步任务失败",
 			zap.Int64("user_id", userID),
@@ -263,7 +263,7 @@ func (s *SigninService) isSigninEnabled(ctx context.Context) (bool, error) {
 // isTodaySigned 检查今日是否已签到
 func (s *SigninService) isTodaySigned(ctx context.Context, userID int64, today string) (bool, error) {
 	statusKey := fmt.Sprintf("signin:status:%d", userID)
-	lastSign, err := s.cache.HGet(statusKey, "last_sign")
+	lastSign, err := s.cache.HGet(ctx, statusKey, "last_sign")
 	if err != nil {
 		return false, err
 	}
@@ -275,7 +275,7 @@ func (s *SigninService) getUserSigninStatus(ctx context.Context, userID int64) (
 	statusKey := fmt.Sprintf("signin:status:%d", userID)
 
 	// 尝试从Redis获取
-	statusMap, err := s.cache.HGetAll(statusKey)
+	statusMap, err := s.cache.HGetAll(ctx, statusKey)
 	if err != nil {
 		s.logger.Error("从Redis获取签到状态失败",
 			zap.Int64("user_id", userID),
@@ -346,7 +346,7 @@ func (s *SigninService) getSigninStatusFromDB(ctx context.Context, userID int64)
 		ContinuousDays: status.ContinuousDays,
 		TotalDays:      status.TotalDays,
 		TomorrowReward: 0,
-	}, today)
+	})
 
 	// 计算明日预计奖励
 	tomorrowReward := s.calculateTomorrowReward(ctx, continuousDays+1)
@@ -361,7 +361,7 @@ func (s *SigninService) getSigninStatusFromDB(ctx context.Context, userID int64)
 }
 
 // calculateContinuousDays 计算连续签到天数
-func (s *SigninService) calculateContinuousDays(status *schema.SigninStatus, today string) (continuousDays, totalDays int) {
+func (s *SigninService) calculateContinuousDays(status *schema.SigninStatus) (continuousDays, totalDays int) {
 	if status.LastSigninDate == nil {
 		// 首次签到
 		return 1, 1
@@ -497,19 +497,19 @@ func (s *SigninService) calculateRandomReward(ctx context.Context) (points, expe
 		return 0, 0, err
 	}
 
-	min, err := strconv.Atoi(minStr)
-	if err != nil || min < 1 {
+	minNum, err := strconv.Atoi(minStr)
+	if err != nil || minNum < 1 {
 		return 0, 0, errors.New("签到配置无效")
 	}
 
-	max, err := strconv.Atoi(maxStr)
-	if err != nil || max < min {
+	maxNum, err := strconv.Atoi(maxStr)
+	if err != nil || maxNum < minNum {
 		return 0, 0, errors.New("签到配置无效")
 	}
 
 	// 使用当前时间作为随机种子，确保随机性
-	rand.Seed(time.Now().UnixNano())
-	points = rand.Intn(max-min+1) + min
+	rand.New(rand.NewSource(time.Now().UnixNano()))
+	points = rand.Intn(maxNum-minNum+1) + minNum
 
 	// 计算经验值奖励
 	experienceRatioStr, err := s.settingsService.GetSettingByKey(ctx, _const.SigninExperienceReward, "1")
@@ -577,15 +577,15 @@ func (s *SigninService) calculateTomorrowReward(ctx context.Context, continuousD
 		if err != nil {
 			return 1
 		}
-		min, err := strconv.Atoi(minStr)
-		if err != nil || min < 1 {
+		minNum, err := strconv.Atoi(minStr)
+		if err != nil || minNum < 1 {
 			return 1
 		}
-		max, err := strconv.Atoi(maxStr)
-		if err != nil || max < min {
+		maxNum, err := strconv.Atoi(maxStr)
+		if err != nil || maxNum < minNum {
 			return 1
 		}
-		return max // 返回最大值作为明日预计
+		return maxNum // 返回最大值作为明日预计
 	default:
 		return 1
 	}
@@ -602,27 +602,27 @@ func (s *SigninService) updateRedisSigninStatus(ctx context.Context, userID int6
 		"total":      totalDays,
 	}
 
-	return s.cache.HMSet(statusKey, fieldValues)
+	return s.cache.HMSet(ctx, statusKey, fieldValues)
 }
 
 // updateRanking 更新排行榜
 func (s *SigninService) updateRanking(ctx context.Context, userID int64, today string, rewardPoints int) error {
 	// 更新每日奖励排行榜
 	dailyRankingKey := fmt.Sprintf("signin:reward:%s", today)
-	err := s.cache.ZAdd(dailyRankingKey, fmt.Sprintf("%d", userID), float64(rewardPoints))
+	err := s.cache.ZAdd(ctx, dailyRankingKey, fmt.Sprintf("%d", userID), float64(rewardPoints))
 	if err != nil {
 		return err
 	}
 
 	// 设置过期时间（30天）
-	_, err = s.cache.Expire(dailyRankingKey, 30*24*3600)
+	_, err = s.cache.Expire(ctx, dailyRankingKey, 30*24*3600)
 	if err != nil {
 		return err
 	}
 
 	// 更新连续签到排行榜
 	continuousRankingKey := "signin:continuous:ranking"
-	err = s.cache.ZAdd(continuousRankingKey, fmt.Sprintf("%d", userID), float64(rewardPoints))
+	err = s.cache.ZAdd(ctx, continuousRankingKey, fmt.Sprintf("%d", userID), float64(rewardPoints))
 	if err != nil {
 		return err
 	}
@@ -674,7 +674,7 @@ func (s *SigninService) updateUserBalance(ctx context.Context, userID int64, poi
 // createBalanceLog 创建余额变动日志
 func (s *SigninService) createBalanceLog(ctx context.Context, userID int64, logType string, amount int, reason string) error {
 	// 获取用户当前余额
-	user, err := s.db.User.Get(ctx, int(userID))
+	u, err := s.db.User.Get(ctx, int(userID))
 	if err != nil {
 		return err
 	}
@@ -683,12 +683,12 @@ func (s *SigninService) createBalanceLog(ctx context.Context, userID int64, logT
 	var enumType userbalancelog.Type
 	switch logType {
 	case "points":
-		beforeAmount = user.Points
-		afterAmount = user.Points + amount
+		beforeAmount = u.Points
+		afterAmount = u.Points + amount
 		enumType = userbalancelog.TypePoints
 	case "experience":
-		beforeAmount = user.Experience
-		afterAmount = user.Experience + amount
+		beforeAmount = u.Experience
+		afterAmount = u.Experience + amount
 		enumType = userbalancelog.TypeExperience
 	default:
 		return errors.New("无效的日志类型")

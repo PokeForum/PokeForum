@@ -2,31 +2,25 @@ package cache
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
-	"github.com/gomodule/redigo/redis"
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 )
 
 // RedisLock Redis分布式锁实现
 type RedisLock struct {
-	pool   *redis.Pool
+	client *redis.Client
 	logger *zap.Logger
 }
 
 // NewRedisLock 创建Redis分布式锁实例
-func NewRedisLock(pool *redis.Pool, logger *zap.Logger) *RedisLock {
+func NewRedisLock(client *redis.Client, logger *zap.Logger) *RedisLock {
 	return &RedisLock{
-		pool:   pool,
+		client: client,
 		logger: logger,
 	}
-}
-
-// getConn 获取Redis连接
-func (l *RedisLock) getConn() redis.Conn {
-	return l.pool.Get()
 }
 
 // LockOptions 锁选项
@@ -58,30 +52,19 @@ func (l *RedisLock) Lock(ctx context.Context, key string, value string, options 
 		options = DefaultLockOptions()
 	}
 
-	conn := l.getConn()
-	defer func() {
-		if err := conn.Close(); err != nil {
-			l.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}()
-
-	// 使用SET命令的NX和EX选项实现分布式锁
-	// SET key value NX EX seconds
-	expirationSeconds := int(options.Expiration.Seconds())
-
 	// 如果设置了超时时间，则进行重试
 	if options.Timeout > 0 {
 		startTime := time.Now()
 		for {
 			// 尝试获取锁
-			result, err := redis.String(conn.Do("SET", key, value, "NX", "EX", expirationSeconds))
-			if err != nil && !errors.Is(err, redis.ErrNil) {
+			success, err := l.client.SetNX(ctx, key, value, options.Expiration).Result()
+			if err != nil {
 				l.logger.Error("获取分布式锁失败", zap.String("key", key), zap.Error(err))
 				return false, fmt.Errorf("获取分布式锁失败: %w", err)
 			}
 
 			// 如果获取成功
-			if result == "OK" {
+			if success {
 				l.logger.Debug("获取分布式锁成功", zap.String("key", key), zap.String("value", value))
 				return true, nil
 			}
@@ -103,13 +86,13 @@ func (l *RedisLock) Lock(ctx context.Context, key string, value string, options 
 		}
 	} else {
 		// 不重试，只尝试一次
-		result, err := redis.String(conn.Do("SET", key, value, "NX", "EX", expirationSeconds))
-		if err != nil && !errors.Is(err, redis.ErrNil) {
+		success, err := l.client.SetNX(ctx, key, value, options.Expiration).Result()
+		if err != nil {
 			l.logger.Error("获取分布式锁失败", zap.String("key", key), zap.Error(err))
 			return false, fmt.Errorf("获取分布式锁失败: %w", err)
 		}
 
-		if result == "OK" {
+		if success {
 			l.logger.Debug("获取分布式锁成功", zap.String("key", key), zap.String("value", value))
 			return true, nil
 		}
@@ -121,13 +104,6 @@ func (l *RedisLock) Lock(ctx context.Context, key string, value string, options 
 // Unlock 释放分布式锁
 // 使用Lua脚本确保只有锁的持有者才能释放锁
 func (l *RedisLock) Unlock(ctx context.Context, key string, value string) error {
-	conn := l.getConn()
-	defer func() {
-		if err := conn.Close(); err != nil {
-			l.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}()
-
 	// Lua脚本：只有当锁的值匹配时才删除
 	// 这样可以确保只有锁的持有者才能释放锁
 	luaScript := `
@@ -138,7 +114,7 @@ func (l *RedisLock) Unlock(ctx context.Context, key string, value string) error 
 		end
 	`
 
-	result, err := redis.Int(conn.Do("EVAL", luaScript, 1, key, value))
+	result, err := l.client.Eval(ctx, luaScript, []string{key}, value).Int()
 	if err != nil {
 		l.logger.Error("释放分布式锁失败", zap.String("key", key), zap.Error(err))
 		return fmt.Errorf("释放分布式锁失败: %w", err)
@@ -165,18 +141,11 @@ func (l *RedisLock) TryLock(ctx context.Context, key string, value string, expir
 
 // IsLocked 检查锁是否存在
 func (l *RedisLock) IsLocked(ctx context.Context, key string) (bool, error) {
-	conn := l.getConn()
-	defer func() {
-		if err := conn.Close(); err != nil {
-			l.logger.Error("关闭Redis连接失败", zap.Error(err))
-		}
-	}()
-
-	exists, err := redis.Bool(conn.Do("EXISTS", key))
+	count, err := l.client.Exists(ctx, key).Result()
 	if err != nil {
 		l.logger.Error("检查锁状态失败", zap.String("key", key), zap.Error(err))
 		return false, fmt.Errorf("检查锁状态失败: %w", err)
 	}
 
-	return exists, nil
+	return count > 0, nil
 }

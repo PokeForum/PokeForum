@@ -3,8 +3,8 @@ package configs
 import (
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/internal/configs/autoload"
-	"github.com/gomodule/redigo/redis"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
@@ -27,7 +27,7 @@ var (
 	Config Configuration
 	Log    *zap.Logger
 	DB     *ent.Client
-	Cache  *redis.Pool
+	Cache  *redis.Client
 	Json   jsoniter.API
 	VP     *viper.Viper
 )

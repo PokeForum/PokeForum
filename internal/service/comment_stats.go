@@ -51,7 +51,7 @@ type ICommentStatsService interface {
 type CommentStatsService struct {
 	db          *ent.Client
 	cache       cache.ICacheService
-	statsHelper *stats.StatsHelper
+	statsHelper *stats.Helper
 	logger      *zap.Logger
 }
 

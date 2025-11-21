@@ -56,7 +56,7 @@ type IPostStatsService interface {
 type PostStatsService struct {
 	db          *ent.Client
 	cache       cache.ICacheService
-	statsHelper *stats.StatsHelper
+	statsHelper *stats.Helper
 	logger      *zap.Logger
 }
 
@@ -437,7 +437,7 @@ func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) (int, e
 
 		// 从Redis获取浏览数(浏览数只在Redis中维护)
 		statsKey := stats.GetPostStatsKey(postID)
-		viewCountStr, _ := s.cache.HGet(statsKey, "view_count")
+		viewCountStr, _ := s.cache.HGet(ctx, statsKey, "view_count")
 		viewCount := 0
 		if viewCountStr != "" {
 			fmt.Sscanf(viewCountStr, "%d", &viewCount)
