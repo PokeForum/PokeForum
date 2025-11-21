@@ -58,6 +58,7 @@ type UserCommentListRequest struct {
 // UserCommentListItem 用户评论列表项响应体
 type UserCommentListItem struct {
 	ID              int    `json:"id" example:"1"`                            // 评论ID
+	FloorNumber     int    `json:"floor_number" example:"1"`                  // 楼号
 	UserID          int    `json:"user_id" example:"1"`                       // 用户ID
 	Username        string `json:"username" example:"testuser"`               // 用户名
 	ParentID        *int   `json:"parent_id" example:"1"`                     // 父评论ID

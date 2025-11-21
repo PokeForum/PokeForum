@@ -272,31 +272,10 @@ func (s *CommentService) DislikeComment(ctx context.Context, userID int, req sch
 func (s *CommentService) GetCommentList(ctx context.Context, req schema.UserCommentListRequest) (*schema.UserCommentListResponse, error) {
 	s.logger.Info("获取评论列表", zap.Int("post_id", req.PostID), zap.Int("page", req.Page), tracing.WithTraceIDField(ctx))
 
-	// 设置默认排序
-	if req.SortBy == "" {
-		req.SortBy = "created_at"
-		req.SortDesc = true
-	}
-
-	// 构建查询条件
+	// 构建查询条件，固定按创建时间升序排序（盖楼形式：最早的在最前面）
 	query := s.db.Comment.Query().
-		Where(comment.PostIDEQ(req.PostID))
-
-	// 根据排序字段和方向排序
-	switch req.SortBy {
-	case "created_at":
-		if req.SortDesc {
-			query = query.Order(ent.Desc(comment.FieldCreatedAt))
-		} else {
-			query = query.Order(ent.Asc(comment.FieldCreatedAt))
-		}
-	case "like_count":
-		if req.SortDesc {
-			query = query.Order(ent.Desc(comment.FieldLikeCount))
-		} else {
-			query = query.Order(ent.Asc(comment.FieldLikeCount))
-		}
-	}
+		Where(comment.PostIDEQ(req.PostID)).
+		Order(ent.Asc(comment.FieldCreatedAt))
 
 	// 获取总数
 	total, err := query.Count(ctx)
@@ -344,6 +323,9 @@ func (s *CommentService) GetCommentList(ctx context.Context, req schema.UserComm
 		userMap[u.ID] = u.Username
 	}
 
+	// 计算起始楼号
+	startFloorNumber := (req.Page-1)*req.PageSize + 1
+
 	// 构建响应数据
 	list := make([]schema.UserCommentListItem, len(comments))
 	for i, commentData := range comments {
@@ -361,6 +343,7 @@ func (s *CommentService) GetCommentList(ctx context.Context, req schema.UserComm
 
 		list[i] = schema.UserCommentListItem{
 			ID:           commentData.ID,
+			FloorNumber:  startFloorNumber + i, // 计算楼号
 			UserID:       commentData.UserID,
 			Username:     username,
 			Content:      commentData.Content,
