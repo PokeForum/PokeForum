@@ -201,9 +201,9 @@ func (s *SigninAsyncTask) worker(workerID int) {
 			s.logger.Debug("签到异步任务worker停止", zap.Int("worker_id", workerID))
 			return
 		default:
-			// 从消费者组读取消息
+			// 从消费者组读取消息，设置1秒超时避免关闭时阻塞
 			streams := map[string]string{s.streamName: ">"} // ">"表示读取新消息
-			messages, err := s.cache.XReadGroup(ctx, s.groupName, consumerName, streams, 1)
+			messages, err := s.cache.XReadGroup(ctx, s.groupName, consumerName, streams, 1, 1*time.Second)
 
 			if err != nil {
 				s.logger.Error("从Stream读取消息失败",
@@ -213,9 +213,8 @@ func (s *SigninAsyncTask) worker(workerID int) {
 				continue
 			}
 
-			// 如果没有消息，短暂休眠
+			// 如果没有消息，继续循环（不需要额外休眠，因为XReadGroup已经阻塞了1秒）
 			if len(messages) == 0 {
-				time.Sleep(100 * time.Millisecond)
 				continue
 			}
 
