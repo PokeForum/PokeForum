@@ -298,7 +298,7 @@ func (r *RedisCacheService) XAdd(ctx context.Context, stream string, values map[
 }
 
 // XReadGroup 从消费者组读取消息
-func (r *RedisCacheService) XReadGroup(ctx context.Context, group, consumer string, streams map[string]string, count int64) ([]map[string]interface{}, error) {
+func (r *RedisCacheService) XReadGroup(ctx context.Context, group, consumer string, streams map[string]string, count int64, block time.Duration) ([]map[string]interface{}, error) {
 	// 构建streams参数
 	streamKeys := make([]string, 0, len(streams))
 	for key := range streams {
@@ -310,6 +310,7 @@ func (r *RedisCacheService) XReadGroup(ctx context.Context, group, consumer stri
 		Consumer: consumer,
 		Streams:  append(streamKeys, ">"),
 		Count:    count,
+		Block:    block,
 	}).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
 		r.logger.Error("从消费者组读取消息失败", zap.String("group", group), zap.String("consumer", consumer), zap.Error(err))

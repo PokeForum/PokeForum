@@ -178,8 +178,9 @@ type ICacheService interface {
 	// consumer: 消费者名
 	// streams: Stream键名和ID的映射
 	// count: 每次读取的最大消息数量
+	// block: 阻塞超时时间，0表示不阻塞
 	// 返回: 消息列表和错误信息
-	XReadGroup(ctx context.Context, group, consumer string, streams map[string]string, count int64) ([]map[string]interface{}, error)
+	XReadGroup(ctx context.Context, group, consumer string, streams map[string]string, count int64, block time.Duration) ([]map[string]interface{}, error)
 
 	// XAck 确认消息已处理
 	// ctx: 上下文
