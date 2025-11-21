@@ -11,6 +11,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
+	"github.com/PokeForum/PokeForum/internal/pkg/stats"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"go.uber.org/zap"
@@ -317,6 +318,20 @@ func (s *CommentService) GetCommentList(ctx context.Context, req schema.UserComm
 		return nil, fmt.Errorf("查询用户信息失败: %w", err)
 	}
 
+	// 获取评论ID列表
+	commentIDs := make([]int, len(comments))
+	for i, c := range comments {
+		commentIDs[i] = c.ID
+	}
+
+	// 批量获取实时统计数据
+	statsMap, err := s.commentStatsService.GetStatsMap(ctx, commentIDs)
+	if err != nil {
+		s.logger.Warn("获取实时统计数据失败，将使用数据库中的旧数据", zap.Error(err), tracing.WithTraceIDField(ctx))
+		// 失败时不阻断流程，降级使用数据库数据
+		statsMap = make(map[int]*stats.Stats)
+	}
+
 	// 创建用户ID到用户名的映射
 	userMap := make(map[int]string)
 	for _, u := range users {
@@ -341,14 +356,22 @@ func (s *CommentService) GetCommentList(ctx context.Context, req schema.UserComm
 			}
 		}
 
+		// 优先使用实时统计数据
+		likeCount := commentData.LikeCount
+		dislikeCount := commentData.DislikeCount
+		if statsData, ok := statsMap[commentData.ID]; ok {
+			likeCount = statsData.LikeCount
+			dislikeCount = statsData.DislikeCount
+		}
+
 		list[i] = schema.UserCommentListItem{
 			ID:           commentData.ID,
 			FloorNumber:  startFloorNumber + i, // 计算楼号
 			UserID:       commentData.UserID,
 			Username:     username,
 			Content:      commentData.Content,
-			LikeCount:    commentData.LikeCount,
-			DislikeCount: commentData.DislikeCount,
+			LikeCount:    likeCount,
+			DislikeCount: dislikeCount,
 			IsSelected:   commentData.IsSelected,
 			IsPinned:     commentData.IsPinned,
 			CreatedAt:    commentData.CreatedAt.Format("2006-01-02T15:04:05Z"),
@@ -416,6 +439,17 @@ func (s *CommentService) GetCommentDetail(ctx context.Context, commentID int) (*
 		}
 	}
 
+	// 获取实时统计数据
+	statsData, err := s.commentStatsService.GetStats(ctx, commentID)
+	likeCount := commentData.LikeCount
+	dislikeCount := commentData.DislikeCount
+	if err != nil {
+		s.logger.Warn("获取实时统计数据失败，将使用数据库中的旧数据", zap.Error(err), tracing.WithTraceIDField(ctx))
+	} else {
+		likeCount = statsData.LikeCount
+		dislikeCount = statsData.DislikeCount
+	}
+
 	// 构建响应数据
 	result := &schema.UserCommentDetailResponse{
 		ID:           commentData.ID,
@@ -423,8 +457,8 @@ func (s *CommentService) GetCommentDetail(ctx context.Context, commentID int) (*
 		UserID:       commentData.UserID,
 		Username:     username,
 		Content:      commentData.Content,
-		LikeCount:    commentData.LikeCount,
-		DislikeCount: commentData.DislikeCount,
+		LikeCount:    likeCount,
+		DislikeCount: dislikeCount,
 		IsSelected:   commentData.IsSelected,
 		IsPinned:     commentData.IsPinned,
 		CreatedAt:    commentData.CreatedAt.Format("2006-01-02T15:04:05Z"),

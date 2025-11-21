@@ -41,6 +41,11 @@ type IPostStatsService interface {
 	// 返回: 用户操作状态和错误
 	GetUserActionStatus(ctx context.Context, userID, postID int) (*stats.UserActionStatus, error)
 
+	// GetStatsMap 批量获取帖子统计数据
+	// postIDs: 帖子ID列表
+	// 返回: 帖子ID到统计数据的映射和错误
+	GetStatsMap(ctx context.Context, postIDs []int) (map[int]*stats.Stats, error)
+
 	// IncrViewCount 增加帖子浏览数
 	// postID: 帖子ID
 	// 返回: 错误
@@ -331,6 +336,20 @@ func (s *PostStatsService) GetUserActionStatus(ctx context.Context, userID, post
 		}
 	}
 
+	return result, nil
+}
+
+// GetStatsMap 批量获取帖子统计数据
+func (s *PostStatsService) GetStatsMap(ctx context.Context, postIDs []int) (map[int]*stats.Stats, error) {
+	result := make(map[int]*stats.Stats)
+	for _, id := range postIDs {
+		statsData, err := s.GetStats(ctx, id)
+		if err != nil {
+			s.logger.Warn("获取帖子统计失败", zap.Int("post_id", id), zap.Error(err))
+			continue
+		}
+		result[id] = statsData
+	}
 	return result, nil
 }
 

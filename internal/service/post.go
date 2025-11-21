@@ -513,11 +513,37 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 		categoryMap[c.ID] = c.Name
 	}
 
+	// 获取帖子ID列表
+	postIDs := make([]int, len(posts))
+	for i, p := range posts {
+		postIDs[i] = p.ID
+	}
+
+	// 批量获取实时统计数据
+	statsMap, err := s.postStatsService.GetStatsMap(ctx, postIDs)
+	if err != nil {
+		s.logger.Warn("获取实时统计数据失败，将使用数据库中的旧数据", zap.Error(err), tracing.WithTraceIDField(ctx))
+		// 失败时不阻断流程，降级使用数据库数据
+		statsMap = make(map[int]*stats.Stats)
+	}
+
 	// 转换为响应格式
 	result := make([]schema.UserPostCreateResponse, len(posts))
 	for i, p := range posts {
 		username := userMap[p.UserID]
 		categoryName := categoryMap[p.CategoryID]
+
+		// 优先使用实时统计数据
+		likeCount := p.LikeCount
+		dislikeCount := p.DislikeCount
+		favoriteCount := p.FavoriteCount
+		viewCount := p.ViewCount
+		if statsData, ok := statsMap[p.ID]; ok {
+			likeCount = statsData.LikeCount
+			dislikeCount = statsData.DislikeCount
+			favoriteCount = statsData.FavoriteCount
+			viewCount = statsData.ViewCount
+		}
 
 		result[i] = schema.UserPostCreateResponse{
 			ID:             p.ID,
@@ -527,10 +553,10 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 			Content:        p.Content,
 			Username:       username,
 			ReadPermission: p.ReadPermission,
-			ViewCount:      p.ViewCount,
-			LikeCount:      p.LikeCount,
-			DislikeCount:   p.DislikeCount,
-			FavoriteCount:  p.FavoriteCount,
+			ViewCount:      viewCount,
+			LikeCount:      likeCount,
+			DislikeCount:   dislikeCount,
+			FavoriteCount:  favoriteCount,
 			IsEssence:      p.IsEssence,
 			IsPinned:       p.IsPinned,
 			Status:         string(p.Status),
@@ -566,13 +592,25 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 		return nil, fmt.Errorf("获取帖子详情失败: %w", err)
 	}
 
-	// 更新浏览数
-	_, err = s.db.Post.UpdateOneID(req.ID).
-		SetViewCount(postData.ViewCount + 1).
-		Save(ctx)
+	// 更新浏览数(使用统计服务,减少数据库压力)
+	if err := s.postStatsService.IncrViewCount(ctx, req.ID); err != nil {
+		s.logger.Warn("增加帖子浏览数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		// 不影响主要流程
+	}
+
+	// 获取实时统计数据
+	statsData, err := s.postStatsService.GetStats(ctx, req.ID)
+	likeCount := postData.LikeCount
+	dislikeCount := postData.DislikeCount
+	favoriteCount := postData.FavoriteCount
+	viewCount := postData.ViewCount
 	if err != nil {
-		s.logger.Error("更新浏览数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		// 不影响主要流程，继续返回数据
+		s.logger.Warn("获取实时统计数据失败，将使用数据库中的旧数据", zap.Error(err), tracing.WithTraceIDField(ctx))
+	} else {
+		likeCount = statsData.LikeCount
+		dislikeCount = statsData.DislikeCount
+		favoriteCount = statsData.FavoriteCount
+		viewCount = statsData.ViewCount
 	}
 
 	// 查询作者信息
@@ -603,10 +641,10 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 		Content:        postData.Content,
 		Username:       username,
 		ReadPermission: postData.ReadPermission,
-		ViewCount:      postData.ViewCount + 1, // 返回更新后的浏览数
-		LikeCount:      postData.LikeCount,
-		DislikeCount:   postData.DislikeCount,
-		FavoriteCount:  postData.FavoriteCount,
+		ViewCount:      viewCount,
+		LikeCount:      likeCount,
+		DislikeCount:   dislikeCount,
+		FavoriteCount:  favoriteCount,
 		IsEssence:      postData.IsEssence,
 		IsPinned:       postData.IsPinned,
 		Status:         string(postData.Status),

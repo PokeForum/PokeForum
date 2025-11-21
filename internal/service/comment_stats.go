@@ -41,6 +41,11 @@ type ICommentStatsService interface {
 	// 返回: 用户操作状态和错误
 	GetUserActionStatus(ctx context.Context, userID, commentID int) (*stats.UserActionStatus, error)
 
+	// GetStatsMap 批量获取评论统计数据
+	// commentIDs: 评论ID列表
+	// 返回: 评论ID到统计数据的映射和错误
+	GetStatsMap(ctx context.Context, commentIDs []int) (map[int]*stats.Stats, error)
+
 	// SyncStatsToDatabase 同步统计数据到数据库
 	// 从Redis的dirty集合获取需要同步的评论ID,批量聚合CommentAction表统计真实数据,更新Comment表
 	// 返回: 同步数量和错误
@@ -313,6 +318,20 @@ func (s *CommentStatsService) GetUserActionStatus(ctx context.Context, userID, c
 		}
 	}
 
+	return result, nil
+}
+
+// GetStatsMap 批量获取评论统计数据
+func (s *CommentStatsService) GetStatsMap(ctx context.Context, commentIDs []int) (map[int]*stats.Stats, error) {
+	result := make(map[int]*stats.Stats)
+	for _, id := range commentIDs {
+		statsData, err := s.GetStats(ctx, id)
+		if err != nil {
+			s.logger.Warn("获取评论统计失败", zap.Int("comment_id", id), zap.Error(err))
+			continue
+		}
+		result[id] = statsData
+	}
 	return result, nil
 }
 
