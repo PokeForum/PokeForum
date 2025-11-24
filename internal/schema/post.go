@@ -36,6 +36,10 @@ type UserPostCreateResponse struct {
 	DislikeCount int `json:"dislike_count"`
 	// 收藏数
 	FavoriteCount int `json:"favorite_count"`
+	// 当前用户是否已点赞
+	UserLiked bool `json:"user_liked"`
+	// 当前用户是否已点踩
+	UserDisliked bool `json:"user_disliked"`
 	// 是否精华帖
 	IsEssence bool `json:"is_essence"`
 	// 是否置顶
@@ -84,6 +88,10 @@ type UserPostUpdateResponse struct {
 	DislikeCount int `json:"dislike_count"`
 	// 收藏数
 	FavoriteCount int `json:"favorite_count"`
+	// 当前用户是否已点赞
+	UserLiked bool `json:"user_liked"`
+	// 当前用户是否已点踩
+	UserDisliked bool `json:"user_disliked"`
 	// 是否精华帖
 	IsEssence bool `json:"is_essence"`
 	// 是否置顶
@@ -172,6 +180,10 @@ type UserPostDetailResponse struct {
 	DislikeCount int `json:"dislike_count"`
 	// 收藏数
 	FavoriteCount int `json:"favorite_count"`
+	// 当前用户是否已点赞
+	UserLiked bool `json:"user_liked"`
+	// 当前用户是否已点踩
+	UserDisliked bool `json:"user_disliked"`
 	// 是否精华帖
 	IsEssence bool `json:"is_essence"`
 	// 是否置顶

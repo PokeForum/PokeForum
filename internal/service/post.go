@@ -9,6 +9,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/post"
+	"github.com/PokeForum/PokeForum/ent/postaction"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/stats"
@@ -513,10 +514,47 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 		categoryMap[c.ID] = c.Name
 	}
 
+	// 获取当前用户ID，如果未登录则为0
+	currentUserID := tracing.GetUserID(ctx)
+
 	// 获取帖子ID列表
 	postIDs := make([]int, len(posts))
 	for i, p := range posts {
 		postIDs[i] = p.ID
+	}
+
+	// 批量查询用户点赞状态（仅当用户已登录时）
+	var userLikeStatus map[int]map[string]bool // postID -> {like: bool, dislike: bool}
+	if currentUserID != 0 {
+		// 批量查询用户对这些帖子的点赞记录
+		actions, err := s.db.PostAction.Query().
+			Where(
+				postaction.UserIDEQ(currentUserID),
+				postaction.PostIDIn(postIDs...),
+			).
+			Select(postaction.FieldPostID, postaction.FieldActionType).
+			All(ctx)
+		if err != nil {
+			s.logger.Warn("查询用户点赞状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			// 失败时不阻断流程，使用默认状态
+			userLikeStatus = make(map[int]map[string]bool)
+		} else {
+			// 构建点赞状态映射
+			userLikeStatus = make(map[int]map[string]bool)
+			for _, action := range actions {
+				if _, exists := userLikeStatus[action.PostID]; !exists {
+					userLikeStatus[action.PostID] = map[string]bool{"like": false, "dislike": false}
+				}
+				if action.ActionType == postaction.ActionTypeLike {
+					userLikeStatus[action.PostID]["like"] = true
+				} else if action.ActionType == postaction.ActionTypeDislike {
+					userLikeStatus[action.PostID]["dislike"] = true
+				}
+			}
+		}
+	} else {
+		// 未登录用户，所有状态为false
+		userLikeStatus = make(map[int]map[string]bool)
 	}
 
 	// 批量获取实时统计数据
@@ -545,6 +583,14 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 			viewCount = statsData.ViewCount
 		}
 
+		// 获取用户点赞状态
+		userLiked := false
+		userDisliked := false
+		if status, exists := userLikeStatus[p.ID]; exists {
+			userLiked = status["like"]
+			userDisliked = status["dislike"]
+		}
+
 		result[i] = schema.UserPostCreateResponse{
 			ID:             p.ID,
 			CategoryID:     p.CategoryID,
@@ -557,6 +603,8 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 			LikeCount:      likeCount,
 			DislikeCount:   dislikeCount,
 			FavoriteCount:  favoriteCount,
+			UserLiked:      userLiked,
+			UserDisliked:   userDisliked,
 			IsEssence:      p.IsEssence,
 			IsPinned:       p.IsPinned,
 			Status:         string(p.Status),
@@ -633,6 +681,32 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 		categoryName = categoryData.Name
 	}
 
+	// 获取当前用户ID，如果未登录则为0
+	currentUserID := tracing.GetUserID(ctx)
+
+	// 查询用户点赞状态（仅当用户已登录时）
+	userLiked := false
+	userDisliked := false
+	if currentUserID != 0 {
+		action, err := s.db.PostAction.Query().
+			Where(
+				postaction.UserIDEQ(currentUserID),
+				postaction.PostIDEQ(req.ID),
+			).
+			Select(postaction.FieldActionType).
+			Only(ctx)
+		if err != nil {
+			// 没有记录或查询失败，保持默认状态
+			s.logger.Debug("查询用户点赞状态失败或无记录", zap.Error(err), tracing.WithTraceIDField(ctx))
+		} else {
+			if action.ActionType == postaction.ActionTypeLike {
+				userLiked = true
+			} else if action.ActionType == postaction.ActionTypeDislike {
+				userDisliked = true
+			}
+		}
+	}
+
 	result := &schema.UserPostDetailResponse{
 		ID:             postData.ID,
 		CategoryID:     postData.CategoryID,
@@ -645,6 +719,8 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 		LikeCount:      likeCount,
 		DislikeCount:   dislikeCount,
 		FavoriteCount:  favoriteCount,
+		UserLiked:      userLiked,
+		UserDisliked:   userDisliked,
 		IsEssence:      postData.IsEssence,
 		IsPinned:       postData.IsPinned,
 		Status:         string(postData.Status),

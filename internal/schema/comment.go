@@ -67,6 +67,8 @@ type UserCommentListItem struct {
 	Content         string `json:"content" example:"很有见地的评论"`                 // 评论内容
 	LikeCount       int    `json:"like_count" example:"10"`                   // 点赞数
 	DislikeCount    int    `json:"dislike_count" example:"1"`                 // 点踩数
+	UserLiked       bool   `json:"user_liked" example:"false"`                // 当前用户是否已点赞
+	UserDisliked    bool   `json:"user_disliked" example:"false"`             // 当前用户是否已点踩
 	IsSelected      bool   `json:"is_selected" example:"true"`                // 是否精选
 	IsPinned        bool   `json:"is_pinned" example:"false"`                 // 是否置顶
 	CreatedAt       string `json:"created_at" example:"2024-01-01T00:00:00Z"` // 创建时间
@@ -93,6 +95,8 @@ type UserCommentDetailResponse struct {
 	Content         string `json:"content" example:"很有见地的评论"`                 // 评论内容
 	LikeCount       int    `json:"like_count" example:"10"`                   // 点赞数
 	DislikeCount    int    `json:"dislike_count" example:"1"`                 // 点踩数
+	UserLiked       bool   `json:"user_liked" example:"false"`                // 当前用户是否已点赞
+	UserDisliked    bool   `json:"user_disliked" example:"false"`             // 当前用户是否已点踩
 	IsSelected      bool   `json:"is_selected" example:"true"`                // 是否精选
 	IsPinned        bool   `json:"is_pinned" example:"false"`                 // 是否置顶
 	CreatedAt       string `json:"created_at" example:"2024-01-01T00:00:00Z"` // 创建时间

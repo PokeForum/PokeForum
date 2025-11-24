@@ -8,6 +8,7 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/comment"
+	"github.com/PokeForum/PokeForum/ent/commentaction"
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
@@ -131,7 +132,7 @@ func (s *CommentService) CreateComment(ctx context.Context, userID int, clientIP
 		SetContent(req.Content).
 		SetNillableParentID(req.ParentID).
 		SetNillableReplyToUserID(req.ReplyToUserID).
-		SetCommenterIP(clientIP).  // 从请求中获取真实IP
+		SetCommenterIP(clientIP). // 从请求中获取真实IP
 		SetDeviceInfo(deviceInfo). // 从请求中获取设备信息
 		Save(ctx)
 	if err != nil {
@@ -230,7 +231,7 @@ func (s *CommentService) LikeComment(ctx context.Context, userID int, req schema
 	s.logger.Info("点赞评论", zap.Int("user_id", userID), zap.Int("comment_id", req.ID), tracing.WithTraceIDField(ctx))
 
 	// 使用统计服务执行点赞操作
-	stats, err := s.commentStatsService.PerformAction(ctx, userID, req.ID, "Like")
+	action, err := s.commentStatsService.PerformAction(ctx, userID, req.ID, "Like")
 	if err != nil {
 		s.logger.Error("点赞评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, err
@@ -238,9 +239,9 @@ func (s *CommentService) LikeComment(ctx context.Context, userID int, req schema
 
 	// 构建响应数据
 	result := &schema.UserCommentActionResponse{
-		ID:           stats.ID,
-		LikeCount:    stats.LikeCount,
-		DislikeCount: stats.DislikeCount,
+		ID:           action.ID,
+		LikeCount:    action.LikeCount,
+		DislikeCount: action.DislikeCount,
 	}
 
 	s.logger.Info("点赞评论成功", zap.Int("comment_id", result.ID), tracing.WithTraceIDField(ctx))
@@ -252,7 +253,7 @@ func (s *CommentService) DislikeComment(ctx context.Context, userID int, req sch
 	s.logger.Info("点踩评论", zap.Int("user_id", userID), zap.Int("comment_id", req.ID), tracing.WithTraceIDField(ctx))
 
 	// 使用统计服务执行点踩操作
-	stats, err := s.commentStatsService.PerformAction(ctx, userID, req.ID, "Dislike")
+	action, err := s.commentStatsService.PerformAction(ctx, userID, req.ID, "Dislike")
 	if err != nil {
 		s.logger.Error("点踩评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, err
@@ -260,9 +261,9 @@ func (s *CommentService) DislikeComment(ctx context.Context, userID int, req sch
 
 	// 构建响应数据
 	result := &schema.UserCommentActionResponse{
-		ID:           stats.ID,
-		LikeCount:    stats.LikeCount,
-		DislikeCount: stats.DislikeCount,
+		ID:           action.ID,
+		LikeCount:    action.LikeCount,
+		DislikeCount: action.DislikeCount,
 	}
 
 	s.logger.Info("点踩评论成功", zap.Int("comment_id", result.ID), tracing.WithTraceIDField(ctx))
@@ -318,6 +319,49 @@ func (s *CommentService) GetCommentList(ctx context.Context, req schema.UserComm
 		return nil, fmt.Errorf("查询用户信息失败: %w", err)
 	}
 
+	// 获取当前用户ID，如果未登录则为0
+	currentUserID := tracing.GetUserID(ctx)
+
+	// 批量查询用户点赞状态（仅当用户已登录时）
+	var userLikeStatus map[int]map[string]bool // commentID -> {like: bool, dislike: bool}
+	if currentUserID != 0 {
+		// 获取评论ID列表
+		commentIDs := make([]int, len(comments))
+		for i, c := range comments {
+			commentIDs[i] = c.ID
+		}
+
+		// 批量查询用户对这些评论的点赞记录
+		actions, err := s.db.CommentAction.Query().
+			Where(
+				commentaction.UserIDEQ(currentUserID),
+				commentaction.CommentIDIn(commentIDs...),
+			).
+			Select(commentaction.FieldCommentID, commentaction.FieldActionType).
+			All(ctx)
+		if err != nil {
+			s.logger.Warn("查询用户点赞状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			// 失败时不阻断流程，使用默认状态
+			userLikeStatus = make(map[int]map[string]bool)
+		} else {
+			// 构建点赞状态映射
+			userLikeStatus = make(map[int]map[string]bool)
+			for _, action := range actions {
+				if _, exists := userLikeStatus[action.CommentID]; !exists {
+					userLikeStatus[action.CommentID] = map[string]bool{"like": false, "dislike": false}
+				}
+				if action.ActionType == commentaction.ActionTypeLike {
+					userLikeStatus[action.CommentID]["like"] = true
+				} else if action.ActionType == commentaction.ActionTypeDislike {
+					userLikeStatus[action.CommentID]["dislike"] = true
+				}
+			}
+		}
+	} else {
+		// 未登录用户，所有状态为false
+		userLikeStatus = make(map[int]map[string]bool)
+	}
+
 	// 获取评论ID列表
 	commentIDs := make([]int, len(comments))
 	for i, c := range comments {
@@ -364,6 +408,14 @@ func (s *CommentService) GetCommentList(ctx context.Context, req schema.UserComm
 			dislikeCount = statsData.DislikeCount
 		}
 
+		// 获取用户点赞状态
+		userLiked := false
+		userDisliked := false
+		if status, exists := userLikeStatus[commentData.ID]; exists {
+			userLiked = status["like"]
+			userDisliked = status["dislike"]
+		}
+
 		list[i] = schema.UserCommentListItem{
 			ID:           commentData.ID,
 			FloorNumber:  startFloorNumber + i, // 计算楼号
@@ -372,6 +424,8 @@ func (s *CommentService) GetCommentList(ctx context.Context, req schema.UserComm
 			Content:      commentData.Content,
 			LikeCount:    likeCount,
 			DislikeCount: dislikeCount,
+			UserLiked:    userLiked,
+			UserDisliked: userDisliked,
 			IsSelected:   commentData.IsSelected,
 			IsPinned:     commentData.IsPinned,
 			CreatedAt:    commentData.CreatedAt.Format("2006-01-02T15:04:05Z"),
@@ -450,6 +504,32 @@ func (s *CommentService) GetCommentDetail(ctx context.Context, commentID int) (*
 		dislikeCount = statsData.DislikeCount
 	}
 
+	// 获取当前用户ID，如果未登录则为0
+	currentUserID := tracing.GetUserID(ctx)
+
+	// 查询用户点赞状态（仅当用户已登录时）
+	userLiked := false
+	userDisliked := false
+	if currentUserID != 0 {
+		action, err := s.db.CommentAction.Query().
+			Where(
+				commentaction.UserIDEQ(currentUserID),
+				commentaction.CommentIDEQ(commentID),
+			).
+			Select(commentaction.FieldActionType).
+			Only(ctx)
+		if err != nil {
+			// 没有记录或查询失败，保持默认状态
+			s.logger.Debug("查询用户点赞状态失败或无记录", zap.Error(err), tracing.WithTraceIDField(ctx))
+		} else {
+			if action.ActionType == commentaction.ActionTypeLike {
+				userLiked = true
+			} else if action.ActionType == commentaction.ActionTypeDislike {
+				userDisliked = true
+			}
+		}
+	}
+
 	// 构建响应数据
 	result := &schema.UserCommentDetailResponse{
 		ID:           commentData.ID,
@@ -459,6 +539,8 @@ func (s *CommentService) GetCommentDetail(ctx context.Context, commentID int) (*
 		Content:      commentData.Content,
 		LikeCount:    likeCount,
 		DislikeCount: dislikeCount,
+		UserLiked:    userLiked,
+		UserDisliked: userDisliked,
 		IsSelected:   commentData.IsSelected,
 		IsPinned:     commentData.IsPinned,
 		CreatedAt:    commentData.CreatedAt.Format("2006-01-02T15:04:05Z"),
