@@ -78,27 +78,44 @@ func (ctrl *UserProfileController) getUserID(c *gin.Context) (int, error) {
 
 // GetProfileOverview 获取用户个人中心概览
 // @Summary 获取用户个人中心概览
-// @Description 获取当前登录用户的个人信息和统计数据
+// @Description 获取指定用户的个人信息和统计数据，不传user_id则获取当前登录用户信息
 // @Tags [用户]个人中心
 // @Accept json
 // @Produce json
+// @Param user_id query int false "用户ID，不传则查询当前登录用户" example("1")
 // @Success 200 {object} response.Data{data=schema.UserProfileOverviewResponse} "获取成功"
 // @Failure 401 {object} response.Data "未授权"
 // @Failure 500 {object} response.Data "服务器内部错误"
 // @Router /profile/overview [get]
 func (ctrl *UserProfileController) GetProfileOverview(c *gin.Context) {
-	// 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	// 获取当前登录用户ID
+	currentUserID, err := ctrl.getUserID(c)
 	if err != nil {
 		response.ResErrorWithMsg(c, 401, "获取用户信息失败", err.Error())
 		return
 	}
 
+	// 解析查询参数中的用户ID
+	var req schema.UserProfileOverviewRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		return
+	}
+
+	// 确定要查询的用户ID
+	targetUserID := currentUserID
+	if req.UserID > 0 {
+		targetUserID = req.UserID
+	}
+
+	// 判断是否为本人
+	isOwner := targetUserID == currentUserID
+
 	// 获取服务实例
 	profileService := do.MustInvoke[service.IUserProfileService](ctrl.injector)
 
 	// 调用服务获取个人中心概览
-	result, err := profileService.GetProfileOverview(c.Request.Context(), userID)
+	result, err := profileService.GetProfileOverview(c.Request.Context(), targetUserID, isOwner)
 	if err != nil {
 		response.ResErrorWithMsg(c, 500, "获取个人中心概览失败", err.Error())
 		return
@@ -110,10 +127,11 @@ func (ctrl *UserProfileController) GetProfileOverview(c *gin.Context) {
 
 // GetUserPosts 获取用户主题帖列表
 // @Summary 获取用户主题帖列表
-// @Description 获取当前登录用户发布的主题帖列表，支持分页和状态筛选
+// @Description 获取指定用户发布的主题帖列表，支持分页和状态筛选，不传user_id则获取当前登录用户的帖子
 // @Tags [用户]个人中心
 // @Accept json
 // @Produce json
+// @Param user_id query int false "用户ID，不传则查询当前登录用户" example("1")
 // @Param page query int true "页码" example("1")
 // @Param page_size query int true "每页数量" example("20")
 // @Param status query string false "帖子状态筛选：Normal、Draft、Private" example("Normal")
@@ -123,8 +141,8 @@ func (ctrl *UserProfileController) GetProfileOverview(c *gin.Context) {
 // @Failure 500 {object} response.Data "服务器内部错误"
 // @Router /profile/posts [get]
 func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
-	// 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	// 获取当前登录用户ID
+	currentUserID, err := ctrl.getUserID(c)
 	if err != nil {
 		response.ResErrorWithMsg(c, 401, "获取用户信息失败", err.Error())
 		return
@@ -137,11 +155,20 @@ func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
 		return
 	}
 
+	// 确定要查询的用户ID
+	targetUserID := currentUserID
+	if req.UserID > 0 {
+		targetUserID = req.UserID
+	}
+
+	// 判断是否为本人
+	isOwner := targetUserID == currentUserID
+
 	// 获取服务实例
 	profileService := do.MustInvoke[service.IUserProfileService](ctrl.injector)
 
 	// 调用服务获取用户主题帖列表
-	result, err := profileService.GetUserPosts(c.Request.Context(), userID, req)
+	result, err := profileService.GetUserPosts(c.Request.Context(), targetUserID, req, isOwner)
 	if err != nil {
 		response.ResErrorWithMsg(c, 500, "获取用户主题帖列表失败", err.Error())
 		return
@@ -153,10 +180,11 @@ func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
 
 // GetUserComments 获取用户评论列表
 // @Summary 获取用户评论列表
-// @Description 获取当前登录用户发布的评论列表，支持分页
+// @Description 获取指定用户发布的评论列表，支持分页，不传user_id则获取当前登录用户的评论
 // @Tags [用户]个人中心
 // @Accept json
 // @Produce json
+// @Param user_id query int false "用户ID，不传则查询当前登录用户" example("1")
 // @Param page query int true "页码" example("1")
 // @Param page_size query int true "每页数量" example("20")
 // @Success 200 {object} response.Data{data=schema.UserProfileCommentsResponse} "获取成功"
@@ -165,8 +193,8 @@ func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
 // @Failure 500 {object} response.Data "服务器内部错误"
 // @Router /profile/comments [get]
 func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
-	// 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	// 获取当前登录用户ID
+	currentUserID, err := ctrl.getUserID(c)
 	if err != nil {
 		response.ResErrorWithMsg(c, 401, "获取用户信息失败", err.Error())
 		return
@@ -179,11 +207,20 @@ func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
 		return
 	}
 
+	// 确定要查询的用户ID
+	targetUserID := currentUserID
+	if req.UserID > 0 {
+		targetUserID = req.UserID
+	}
+
+	// 判断是否为本人
+	isOwner := targetUserID == currentUserID
+
 	// 获取服务实例
 	profileService := do.MustInvoke[service.IUserProfileService](ctrl.injector)
 
 	// 调用服务获取用户评论列表
-	result, err := profileService.GetUserComments(c.Request.Context(), userID, req)
+	result, err := profileService.GetUserComments(c.Request.Context(), targetUserID, req, isOwner)
 	if err != nil {
 		response.ResErrorWithMsg(c, 500, "获取用户评论列表失败", err.Error())
 		return
@@ -195,10 +232,11 @@ func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
 
 // GetUserFavorites 获取用户收藏列表
 // @Summary 获取用户收藏列表
-// @Description 获取当前登录用户收藏的帖子列表，支持分页
+// @Description 获取指定用户收藏的帖子列表，支持分页，不传user_id则获取当前登录用户的收藏
 // @Tags [用户]个人中心
 // @Accept json
 // @Produce json
+// @Param user_id query int false "用户ID，不传则查询当前登录用户" example("1")
 // @Param page query int true "页码" example("1")
 // @Param page_size query int true "每页数量" example("20")
 // @Success 200 {object} response.Data{data=schema.UserProfileFavoritesResponse} "获取成功"
@@ -207,8 +245,8 @@ func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
 // @Failure 500 {object} response.Data "服务器内部错误"
 // @Router /profile/favorites [get]
 func (ctrl *UserProfileController) GetUserFavorites(c *gin.Context) {
-	// 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	// 获取当前登录用户ID
+	currentUserID, err := ctrl.getUserID(c)
 	if err != nil {
 		response.ResErrorWithMsg(c, 401, "获取用户信息失败", err.Error())
 		return
@@ -221,11 +259,20 @@ func (ctrl *UserProfileController) GetUserFavorites(c *gin.Context) {
 		return
 	}
 
+	// 确定要查询的用户ID
+	targetUserID := currentUserID
+	if req.UserID > 0 {
+		targetUserID = req.UserID
+	}
+
+	// 判断是否为本人
+	isOwner := targetUserID == currentUserID
+
 	// 获取服务实例
 	profileService := do.MustInvoke[service.IUserProfileService](ctrl.injector)
 
 	// 调用服务获取用户收藏列表
-	result, err := profileService.GetUserFavorites(c.Request.Context(), userID, req)
+	result, err := profileService.GetUserFavorites(c.Request.Context(), targetUserID, req, isOwner)
 	if err != nil {
 		response.ResErrorWithMsg(c, 500, "获取用户收藏列表失败", err.Error())
 		return

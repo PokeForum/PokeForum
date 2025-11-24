@@ -18,11 +18,17 @@ type UserProfileOverviewResponse struct {
 	CreatedAt     string `json:"created_at" example:"2024-01-01T00:00:00Z"`       // 创建时间
 }
 
+// UserProfileOverviewRequest 用户个人中心概览请求体
+type UserProfileOverviewRequest struct {
+	UserID int `form:"user_id" example:"1"` // 用户ID，不传则查询当前登录用户
+}
+
 // UserProfilePostsRequest 用户主题帖列表请求体
 type UserProfilePostsRequest struct {
 	Page     int    `form:"page" binding:"required,min=1" example:"1"`              // 页码
 	PageSize int    `form:"page_size" binding:"required,min=1,max=50" example:"20"` // 每页数量
 	Status   string `form:"status" example:"Normal"`                                // 帖子状态筛选：Normal、Draft、Private
+	UserID   int    `form:"user_id" example:"1"`                                    // 用户ID，不传则查询当前登录用户
 }
 
 // UserProfilePostItem 用户主题帖列表项
@@ -53,6 +59,7 @@ type UserProfilePostsResponse struct {
 type UserProfileCommentsRequest struct {
 	Page     int `form:"page" binding:"required,min=1" example:"1"`              // 页码
 	PageSize int `form:"page_size" binding:"required,min=1,max=50" example:"20"` // 每页数量
+	UserID   int `form:"user_id" example:"1"`                                    // 用户ID，不传则查询当前登录用户
 }
 
 // UserProfileCommentItem 用户评论列表项
@@ -78,6 +85,7 @@ type UserProfileCommentsResponse struct {
 type UserProfileFavoritesRequest struct {
 	Page     int `form:"page" binding:"required,min=1" example:"1"`              // 页码
 	PageSize int `form:"page_size" binding:"required,min=1,max=50" example:"20"` // 每页数量
+	UserID   int `form:"user_id" example:"1"`                                    // 用户ID，不传则查询当前登录用户
 }
 
 // UserProfileFavoriteItem 用户收藏列表项

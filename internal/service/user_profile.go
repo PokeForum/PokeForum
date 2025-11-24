@@ -28,13 +28,13 @@ import (
 // IUserProfileService 用户个人中心服务接口
 type IUserProfileService interface {
 	// GetProfileOverview 获取用户个人中心概览
-	GetProfileOverview(ctx context.Context, userID int) (*schema.UserProfileOverviewResponse, error)
+	GetProfileOverview(ctx context.Context, userID int, isOwner bool) (*schema.UserProfileOverviewResponse, error)
 	// GetUserPosts 获取用户主题帖列表
-	GetUserPosts(ctx context.Context, userID int, req schema.UserProfilePostsRequest) (*schema.UserProfilePostsResponse, error)
+	GetUserPosts(ctx context.Context, userID int, req schema.UserProfilePostsRequest, isOwner bool) (*schema.UserProfilePostsResponse, error)
 	// GetUserComments 获取用户评论列表
-	GetUserComments(ctx context.Context, userID int, req schema.UserProfileCommentsRequest) (*schema.UserProfileCommentsResponse, error)
+	GetUserComments(ctx context.Context, userID int, req schema.UserProfileCommentsRequest, isOwner bool) (*schema.UserProfileCommentsResponse, error)
 	// GetUserFavorites 获取用户收藏列表
-	GetUserFavorites(ctx context.Context, userID int, req schema.UserProfileFavoritesRequest) (*schema.UserProfileFavoritesResponse, error)
+	GetUserFavorites(ctx context.Context, userID int, req schema.UserProfileFavoritesRequest, isOwner bool) (*schema.UserProfileFavoritesResponse, error)
 	// UpdatePassword 修改密码
 	UpdatePassword(ctx context.Context, userID int, req schema.UserUpdatePasswordRequest) (*schema.UserUpdatePasswordResponse, error)
 	// UpdateAvatar 修改头像
@@ -73,8 +73,8 @@ func NewUserProfileService(db *ent.Client, cacheService cache.ICacheService, log
 }
 
 // GetProfileOverview 获取用户个人中心概览
-func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int) (*schema.UserProfileOverviewResponse, error) {
-	s.logger.Info("获取用户个人中心概览", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int, isOwner bool) (*schema.UserProfileOverviewResponse, error) {
+	s.logger.Info("获取用户个人中心概览", zap.Int("user_id", userID), zap.Bool("is_owner", isOwner), tracing.WithTraceIDField(ctx))
 
 	// 查询用户信息
 	userData, err := s.db.User.Query().
@@ -103,20 +103,30 @@ func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int)
 
 	// 构建响应数据
 	result := &schema.UserProfileOverviewResponse{
-		ID:            userData.ID,
-		Username:      userData.Username,
-		Email:         userData.Email,
-		Avatar:        userData.Avatar,
-		Signature:     userData.Signature,
-		Readme:        userData.Readme,
-		EmailVerified: userData.EmailVerified,
-		Points:        userData.Points,
-		Currency:      userData.Currency,
-		PostCount:     postCount,
-		CommentCount:  commentCount,
-		Status:        string(userData.Status),
-		Role:          string(userData.Role),
-		CreatedAt:     userData.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		ID:           userData.ID,
+		Username:     userData.Username,
+		Avatar:       userData.Avatar,
+		Signature:    userData.Signature,
+		Readme:       userData.Readme,
+		PostCount:    postCount,
+		CommentCount: commentCount,
+		Status:       string(userData.Status),
+		Role:         string(userData.Role),
+		CreatedAt:    userData.CreatedAt.Format("2006-01-02T15:04:05Z"),
+	}
+
+	// 只有本人才能看到敏感数据
+	if isOwner {
+		result.Email = userData.Email
+		result.EmailVerified = userData.EmailVerified
+		result.Points = userData.Points
+		result.Currency = userData.Currency
+	} else {
+		// 他人查看时屏蔽敏感数据
+		result.Email = ""
+		result.EmailVerified = false
+		result.Points = 0
+		result.Currency = 0
 	}
 
 	s.logger.Info("获取用户个人中心概览成功", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
@@ -124,8 +134,8 @@ func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int)
 }
 
 // GetUserPosts 获取用户主题帖列表
-func (s *UserProfileService) GetUserPosts(ctx context.Context, userID int, req schema.UserProfilePostsRequest) (*schema.UserProfilePostsResponse, error) {
-	s.logger.Info("获取用户主题帖列表", zap.Int("user_id", userID), zap.Int("page", req.Page), tracing.WithTraceIDField(ctx))
+func (s *UserProfileService) GetUserPosts(ctx context.Context, userID int, req schema.UserProfilePostsRequest, isOwner bool) (*schema.UserProfilePostsResponse, error) {
+	s.logger.Info("获取用户主题帖列表", zap.Int("user_id", userID), zap.Int("page", req.Page), zap.Bool("is_owner", isOwner), tracing.WithTraceIDField(ctx))
 
 	// 构建查询条件
 	query := s.db.Post.Query().
@@ -134,6 +144,9 @@ func (s *UserProfileService) GetUserPosts(ctx context.Context, userID int, req s
 	// 如果指定了状态，则筛选状态
 	if req.Status != "" {
 		query = query.Where(post.StatusEQ(post.Status(req.Status)))
+	} else if !isOwner {
+		// 他人查看时，只显示正常状态的帖子
+		query = query.Where(post.StatusEQ(post.StatusNormal))
 	}
 
 	// 按创建时间倒序排序
@@ -209,23 +222,72 @@ func (s *UserProfileService) GetUserPosts(ctx context.Context, userID int, req s
 }
 
 // GetUserComments 获取用户评论列表
-func (s *UserProfileService) GetUserComments(ctx context.Context, userID int, req schema.UserProfileCommentsRequest) (*schema.UserProfileCommentsResponse, error) {
-	s.logger.Info("获取用户评论列表", zap.Int("user_id", userID), zap.Int("page", req.Page), tracing.WithTraceIDField(ctx))
+func (s *UserProfileService) GetUserComments(ctx context.Context, userID int, req schema.UserProfileCommentsRequest, isOwner bool) (*schema.UserProfileCommentsResponse, error) {
+	s.logger.Info("获取用户评论列表", zap.Int("user_id", userID), zap.Int("page", req.Page), zap.Bool("is_owner", isOwner), tracing.WithTraceIDField(ctx))
 
-	// 构建查询条件
-	query := s.db.Comment.Query().
-		Where(comment.UserIDEQ(userID)).
-		Order(ent.Desc(comment.FieldCreatedAt))
+	// 构建基础查询条件
+	baseQuery := s.db.Comment.Query().
+		Where(comment.UserIDEQ(userID))
 
-	// 获取总数
-	total, err := query.Count(ctx)
+	// 获取过滤后的总数
+	totalQuery := s.db.Comment.Query().Where(comment.UserIDEQ(userID))
+	if !isOwner {
+		// 他人查看时，需要过滤掉私有/封禁帖子的评论
+		// 先获取该用户所有评论关联的帖子ID
+		allCommentPostIDs, err := baseQuery.Select(comment.FieldPostID).Strings(ctx)
+		if err != nil {
+			s.logger.Error("获取用户评论帖子ID失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			return nil, fmt.Errorf("获取用户评论帖子ID失败: %w", err)
+		}
+
+		// 转换为int数组
+		postIDs := make([]int, 0, len(allCommentPostIDs))
+		for _, idStr := range allCommentPostIDs {
+			if id, err := strconv.Atoi(idStr); err == nil {
+				postIDs = append(postIDs, id)
+			}
+		}
+
+		// 批量查询帖子状态
+		if len(postIDs) > 0 {
+			posts, err := s.db.Post.Query().
+				Where(post.IDIn(postIDs...)).
+				Select(post.FieldID, post.FieldStatus).
+				All(ctx)
+			if err != nil {
+				s.logger.Error("获取帖子状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+				return nil, fmt.Errorf("获取帖子状态失败: %w", err)
+			}
+
+			// 筛选公开帖子的ID
+			publicPostIDs := make([]int, 0)
+			for _, postData := range posts {
+				if postData.Status != post.StatusPrivate && postData.Status != post.StatusBan {
+					publicPostIDs = append(publicPostIDs, postData.ID)
+				}
+			}
+
+			// 只统计公开帖子的评论
+			if len(publicPostIDs) > 0 {
+				totalQuery = totalQuery.Where(comment.PostIDIn(publicPostIDs...))
+			} else {
+				// 没有公开帖子，总数为0
+				totalQuery = totalQuery.Where(comment.PostIDIn(-1))
+			}
+		} else {
+			// 没有评论，总数为0
+			totalQuery = totalQuery.Where(comment.PostIDIn(-1))
+		}
+	}
+	total, err := totalQuery.Count(ctx)
 	if err != nil {
 		s.logger.Error("获取用户评论总数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("获取用户评论总数失败: %w", err)
 	}
 
 	// 分页查询
-	comments, err := query.
+	comments, err := baseQuery.
+		Order(ent.Desc(comment.FieldCreatedAt)).
 		Offset((req.Page - 1) * req.PageSize).
 		Limit(req.PageSize).
 		All(ctx)
@@ -250,28 +312,34 @@ func (s *UserProfileService) GetUserComments(ctx context.Context, userID int, re
 	}
 
 	// 构建帖子ID到帖子标题的映射
-	postTitleMap := make(map[int]string)
+	postTitleMap := make(map[int]*ent.Post)
 	for _, postData := range posts {
-		postTitleMap[postData.ID] = postData.Title
+		postTitleMap[postData.ID] = postData
 	}
 
 	// 构建响应数据
-	list := make([]schema.UserProfileCommentItem, len(comments))
-	for i, commentData := range comments {
-		postTitle := ""
-		if title, ok := postTitleMap[commentData.PostID]; ok {
-			postTitle = title
+	list := make([]schema.UserProfileCommentItem, 0, len(comments))
+	for _, commentData := range comments {
+		postData, ok := postTitleMap[commentData.PostID]
+		if !ok {
+			// 帖子不存在，跳过
+			continue
 		}
 
-		list[i] = schema.UserProfileCommentItem{
+		// 他人查看时，过滤掉私有或封禁帖子的评论
+		if !isOwner && (postData.Status == post.StatusPrivate || postData.Status == post.StatusBan) {
+			continue
+		}
+
+		list = append(list, schema.UserProfileCommentItem{
 			ID:           commentData.ID,
 			PostID:       commentData.PostID,
-			PostTitle:    postTitle,
+			PostTitle:    postData.Title,
 			Content:      commentData.Content,
 			LikeCount:    commentData.LikeCount,
 			DislikeCount: commentData.DislikeCount,
 			CreatedAt:    commentData.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		}
+		})
 	}
 
 	result := &schema.UserProfileCommentsResponse{
@@ -286,26 +354,79 @@ func (s *UserProfileService) GetUserComments(ctx context.Context, userID int, re
 }
 
 // GetUserFavorites 获取用户收藏列表
-func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, req schema.UserProfileFavoritesRequest) (*schema.UserProfileFavoritesResponse, error) {
-	s.logger.Info("获取用户收藏列表", zap.Int("user_id", userID), zap.Int("page", req.Page), tracing.WithTraceIDField(ctx))
+func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, req schema.UserProfileFavoritesRequest, isOwner bool) (*schema.UserProfileFavoritesResponse, error) {
+	s.logger.Info("获取用户收藏列表", zap.Int("user_id", userID), zap.Int("page", req.Page), zap.Bool("is_owner", isOwner), tracing.WithTraceIDField(ctx))
 
-	// 构建查询条件
-	query := s.db.PostAction.Query().
+	// 构建基础查询条件
+	baseQuery := s.db.PostAction.Query().
 		Where(
 			postaction.UserIDEQ(userID),
 			postaction.ActionTypeEQ(postaction.ActionTypeFavorite),
-		).
-		Order(ent.Desc(postaction.FieldCreatedAt))
+		)
 
-	// 获取总数
-	total, err := query.Count(ctx)
+	// 获取过滤后的总数
+	totalQuery := s.db.PostAction.Query().
+		Where(
+			postaction.UserIDEQ(userID),
+			postaction.ActionTypeEQ(postaction.ActionTypeFavorite),
+		)
+	if !isOwner {
+		// 他人查看时，需要过滤掉私有/封禁帖子的收藏
+		// 先获取该用户所有收藏关联的帖子ID
+		allFavoritePostIDs, err := baseQuery.Select(postaction.FieldPostID).Strings(ctx)
+		if err != nil {
+			s.logger.Error("获取用户收藏帖子ID失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			return nil, fmt.Errorf("获取用户收藏帖子ID失败: %w", err)
+		}
+
+		// 转换为int数组
+		postIDs := make([]int, 0, len(allFavoritePostIDs))
+		for _, idStr := range allFavoritePostIDs {
+			if id, err := strconv.Atoi(idStr); err == nil {
+				postIDs = append(postIDs, id)
+			}
+		}
+
+		// 批量查询帖子状态
+		if len(postIDs) > 0 {
+			posts, err := s.db.Post.Query().
+				Where(post.IDIn(postIDs...)).
+				Select(post.FieldID, post.FieldStatus).
+				All(ctx)
+			if err != nil {
+				s.logger.Error("获取帖子状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+				return nil, fmt.Errorf("获取帖子状态失败: %w", err)
+			}
+
+			// 筛选公开帖子的ID
+			publicPostIDs := make([]int, 0)
+			for _, postData := range posts {
+				if postData.Status != post.StatusPrivate && postData.Status != post.StatusBan {
+					publicPostIDs = append(publicPostIDs, postData.ID)
+				}
+			}
+
+			// 只统计公开帖子的收藏
+			if len(publicPostIDs) > 0 {
+				totalQuery = totalQuery.Where(postaction.PostIDIn(publicPostIDs...))
+			} else {
+				// 没有公开帖子，总数为0
+				totalQuery = totalQuery.Where(postaction.PostIDIn(-1))
+			}
+		} else {
+			// 没有收藏，总数为0
+			totalQuery = totalQuery.Where(postaction.PostIDIn(-1))
+		}
+	}
+	total, err := totalQuery.Count(ctx)
 	if err != nil {
 		s.logger.Error("获取用户收藏总数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("获取用户收藏总数失败: %w", err)
 	}
 
 	// 分页查询
-	favorites, err := query.
+	favorites, err := baseQuery.
+		Order(ent.Desc(postaction.FieldCreatedAt)).
 		Offset((req.Page - 1) * req.PageSize).
 		Limit(req.PageSize).
 		All(ctx)
@@ -325,16 +446,20 @@ func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, r
 		Where(post.IDIn(postIDs...)).
 		All(ctx)
 	postMap := make(map[int]*ent.Post)
-	for _, p := range posts {
-		postMap[p.ID] = p
+	for _, postData := range posts {
+		// 他人查看时，过滤掉私有或封禁帖子
+		if !isOwner && (postData.Status == post.StatusPrivate || postData.Status == post.StatusBan) {
+			continue
+		}
+		postMap[postData.ID] = postData
 	}
 
 	// 收集用户ID和版块ID
 	userIDs := make(map[int]bool)
 	categoryIDs := make(map[int]bool)
-	for _, p := range posts {
-		userIDs[p.UserID] = true
-		categoryIDs[p.CategoryID] = true
+	for _, postData := range postMap {
+		userIDs[postData.UserID] = true
+		categoryIDs[postData.CategoryID] = true
 	}
 
 	// 批量查询用户信息
@@ -368,24 +493,24 @@ func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, r
 	// 构建响应数据
 	list := make([]schema.UserProfileFavoriteItem, 0, len(favorites))
 	for _, fav := range favorites {
-		p := postMap[fav.PostID]
-		if p == nil {
+		postData := postMap[fav.PostID]
+		if postData == nil {
 			continue
 		}
 
-		username := userMap[p.UserID]
-		categoryName := categoryMap[p.CategoryID]
+		username := userMap[postData.UserID]
+		categoryName := categoryMap[postData.CategoryID]
 
 		list = append(list, schema.UserProfileFavoriteItem{
-			ID:            p.ID,
-			CategoryID:    p.CategoryID,
+			ID:            postData.ID,
+			CategoryID:    postData.CategoryID,
 			CategoryName:  categoryName,
-			Title:         p.Title,
+			Title:         postData.Title,
 			Username:      username,
-			ViewCount:     p.ViewCount,
-			LikeCount:     p.LikeCount,
-			FavoriteCount: p.FavoriteCount,
-			CreatedAt:     p.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			ViewCount:     postData.ViewCount,
+			LikeCount:     postData.LikeCount,
+			FavoriteCount: postData.FavoriteCount,
+			CreatedAt:     postData.CreatedAt.Format("2006-01-02T15:04:05Z"),
 			FavoritedAt:   fav.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		})
 	}
