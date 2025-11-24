@@ -4248,7 +4248,7 @@ const docTemplate = `{
         },
         "/profile/comments": {
             "get": {
-                "description": "获取当前登录用户发布的评论列表，支持分页",
+                "description": "获取指定用户发布的评论列表，支持分页，不传user_id则获取当前登录用户的评论",
                 "consumes": [
                     "application/json"
                 ],
@@ -4260,6 +4260,12 @@ const docTemplate = `{
                 ],
                 "summary": "获取用户评论列表",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户ID，不传则查询当前登录用户",
+                        "name": "user_id",
+                        "in": "query"
+                    },
                     {
                         "type": "integer",
                         "description": "页码",
@@ -4521,7 +4527,7 @@ const docTemplate = `{
         },
         "/profile/favorites": {
             "get": {
-                "description": "获取当前登录用户收藏的帖子列表，支持分页",
+                "description": "获取指定用户收藏的帖子列表，支持分页，不传user_id则获取当前登录用户的收藏",
                 "consumes": [
                     "application/json"
                 ],
@@ -4533,6 +4539,12 @@ const docTemplate = `{
                 ],
                 "summary": "获取用户收藏列表",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户ID，不传则查询当前登录用户",
+                        "name": "user_id",
+                        "in": "query"
+                    },
                     {
                         "type": "integer",
                         "description": "页码",
@@ -4590,7 +4602,7 @@ const docTemplate = `{
         },
         "/profile/overview": {
             "get": {
-                "description": "获取当前登录用户的个人信息和统计数据",
+                "description": "获取指定用户的个人信息和统计数据，不传user_id则获取当前登录用户信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -4601,6 +4613,14 @@ const docTemplate = `{
                     "[用户]个人中心"
                 ],
                 "summary": "获取用户个人中心概览",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户ID，不传则查询当前登录用户",
+                        "name": "user_id",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "获取成功",
@@ -4701,7 +4721,7 @@ const docTemplate = `{
         },
         "/profile/posts": {
             "get": {
-                "description": "获取当前登录用户发布的主题帖列表，支持分页和状态筛选",
+                "description": "获取指定用户发布的主题帖列表，支持分页和状态筛选，不传user_id则获取当前登录用户的帖子",
                 "consumes": [
                     "application/json"
                 ],
@@ -4713,6 +4733,12 @@ const docTemplate = `{
                 ],
                 "summary": "获取用户主题帖列表",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "用户ID，不传则查询当前登录用户",
+                        "name": "user_id",
+                        "in": "query"
+                    },
                     {
                         "type": "integer",
                         "description": "页码",
