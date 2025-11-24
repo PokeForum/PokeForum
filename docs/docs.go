@@ -9870,10 +9870,20 @@ const docTemplate = `{
                     "type": "string",
                     "example": "2024-01-01T00:00:00Z"
                 },
+                "user_disliked": {
+                    "description": "当前用户是否已点踩",
+                    "type": "boolean",
+                    "example": false
+                },
                 "user_id": {
                     "description": "用户ID",
                     "type": "integer",
                     "example": 1
+                },
+                "user_liked": {
+                    "description": "当前用户是否已点赞",
+                    "type": "boolean",
+                    "example": false
                 },
                 "username": {
                     "description": "用户名",
@@ -9945,10 +9955,20 @@ const docTemplate = `{
                     "type": "string",
                     "example": "2024-01-01T00:00:00Z"
                 },
+                "user_disliked": {
+                    "description": "当前用户是否已点踩",
+                    "type": "boolean",
+                    "example": false
+                },
                 "user_id": {
                     "description": "用户ID",
                     "type": "integer",
                     "example": 1
+                },
+                "user_liked": {
+                    "description": "当前用户是否已点赞",
+                    "type": "boolean",
+                    "example": false
                 },
                 "username": {
                     "description": "用户名",
@@ -10456,6 +10476,14 @@ const docTemplate = `{
                     "description": "更新时间",
                     "type": "string"
                 },
+                "user_disliked": {
+                    "description": "当前用户是否已点踩",
+                    "type": "boolean"
+                },
+                "user_liked": {
+                    "description": "当前用户是否已点赞",
+                    "type": "boolean"
+                },
                 "username": {
                     "description": "作者用户名",
                     "type": "string"
@@ -10524,6 +10552,14 @@ const docTemplate = `{
                 "updated_at": {
                     "description": "更新时间",
                     "type": "string"
+                },
+                "user_disliked": {
+                    "description": "当前用户是否已点踩",
+                    "type": "boolean"
+                },
+                "user_liked": {
+                    "description": "当前用户是否已点赞",
+                    "type": "boolean"
                 },
                 "username": {
                     "description": "作者用户名",
@@ -10650,6 +10686,14 @@ const docTemplate = `{
                 "updated_at": {
                     "description": "更新时间",
                     "type": "string"
+                },
+                "user_disliked": {
+                    "description": "当前用户是否已点踩",
+                    "type": "boolean"
+                },
+                "user_liked": {
+                    "description": "当前用户是否已点赞",
+                    "type": "boolean"
                 },
                 "username": {
                     "description": "作者用户名",

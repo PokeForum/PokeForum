@@ -2686,10 +2686,18 @@ definitions:
         description: 更新时间
         example: "2024-01-01T00:00:00Z"
         type: string
+      user_disliked:
+        description: 当前用户是否已点踩
+        example: false
+        type: boolean
       user_id:
         description: 用户ID
         example: 1
         type: integer
+      user_liked:
+        description: 当前用户是否已点赞
+        example: false
+        type: boolean
       username:
         description: 用户名
         example: testuser
@@ -2745,10 +2753,18 @@ definitions:
         description: 更新时间
         example: "2024-01-01T00:00:00Z"
         type: string
+      user_disliked:
+        description: 当前用户是否已点踩
+        example: false
+        type: boolean
       user_id:
         description: 用户ID
         example: 1
         type: integer
+      user_liked:
+        description: 当前用户是否已点赞
+        example: false
+        type: boolean
       username:
         description: 用户名
         example: testuser
@@ -3137,6 +3153,12 @@ definitions:
       updated_at:
         description: 更新时间
         type: string
+      user_disliked:
+        description: 当前用户是否已点踩
+        type: boolean
+      user_liked:
+        description: 当前用户是否已点赞
+        type: boolean
       username:
         description: 作者用户名
         type: string
@@ -3188,6 +3210,12 @@ definitions:
       updated_at:
         description: 更新时间
         type: string
+      user_disliked:
+        description: 当前用户是否已点踩
+        type: boolean
+      user_liked:
+        description: 当前用户是否已点赞
+        type: boolean
       username:
         description: 作者用户名
         type: string
@@ -3281,6 +3309,12 @@ definitions:
       updated_at:
         description: 更新时间
         type: string
+      user_disliked:
+        description: 当前用户是否已点踩
+        type: boolean
+      user_liked:
+        description: 当前用户是否已点赞
+        type: boolean
       username:
         description: 作者用户名
         type: string

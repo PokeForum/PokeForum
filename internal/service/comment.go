@@ -132,7 +132,7 @@ func (s *CommentService) CreateComment(ctx context.Context, userID int, clientIP
 		SetContent(req.Content).
 		SetNillableParentID(req.ParentID).
 		SetNillableReplyToUserID(req.ReplyToUserID).
-		SetCommenterIP(clientIP). // 从请求中获取真实IP
+		SetCommenterIP(clientIP).  // 从请求中获取真实IP
 		SetDeviceInfo(deviceInfo). // 从请求中获取设备信息
 		Save(ctx)
 	if err != nil {
