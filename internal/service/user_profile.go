@@ -54,19 +54,21 @@ type IUserProfileService interface {
 
 // UserProfileService 用户个人中心服务实现
 type UserProfileService struct {
-	db       *ent.Client
-	cache    cache.ICacheService
-	logger   *zap.Logger
-	settings ISettingsService
+	db                *ent.Client
+	cache             cache.ICacheService
+	logger            *zap.Logger
+	settings          ISettingsService
+	userManageService IUserManageService
 }
 
 // NewUserProfileService 创建用户个人中心服务实例
-func NewUserProfileService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger, settingsService ISettingsService) IUserProfileService {
+func NewUserProfileService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger, settingsService ISettingsService, userManageService IUserManageService) IUserProfileService {
 	return &UserProfileService{
-		db:       db,
-		cache:    cacheService,
-		logger:   logger,
-		settings: settingsService,
+		db:                db,
+		cache:             cacheService,
+		logger:            logger,
+		settings:          settingsService,
+		userManageService: userManageService,
 	}
 }
 
@@ -86,6 +88,19 @@ func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int)
 		return nil, fmt.Errorf("获取用户信息失败: %w", err)
 	}
 
+	// 实时查询用户的发帖数和评论数
+	postCount, err := s.userManageService.GetUserPostCount(ctx, userData.ID)
+	if err != nil {
+		s.logger.Error("查询用户发帖数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		postCount = 0
+	}
+
+	commentCount, err := s.userManageService.GetUserCommentCount(ctx, userData.ID)
+	if err != nil {
+		s.logger.Error("查询用户评论数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		commentCount = 0
+	}
+
 	// 构建响应数据
 	result := &schema.UserProfileOverviewResponse{
 		ID:            userData.ID,
@@ -97,8 +112,8 @@ func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int)
 		EmailVerified: userData.EmailVerified,
 		Points:        userData.Points,
 		Currency:      userData.Currency,
-		PostCount:     userData.PostCount,
-		CommentCount:  userData.CommentCount,
+		PostCount:     postCount,
+		CommentCount:  commentCount,
 		Status:        string(userData.Status),
 		Role:          string(userData.Role),
 		CreatedAt:     userData.CreatedAt.Format("2006-01-02T15:04:05Z"),

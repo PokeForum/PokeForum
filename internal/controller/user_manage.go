@@ -123,6 +123,19 @@ func (ctrl *UserManageController) CreateUser(c *gin.Context) {
 		return
 	}
 
+	// 实时查询用户的发帖数和评论数
+	postCount, err := userManageService.GetUserPostCount(c.Request.Context(), u.ID)
+	if err != nil {
+		// 新创建用户的发帖数应该是0，查询失败时使用默认值
+		postCount = 0
+	}
+
+	commentCount, err := userManageService.GetUserCommentCount(c.Request.Context(), u.ID)
+	if err != nil {
+		// 新创建用户的评论数应该是0，查询失败时使用默认值
+		commentCount = 0
+	}
+
 	// 转换为响应格式
 	result := &schema.UserDetailResponse{
 		ID:            u.ID,
@@ -134,8 +147,8 @@ func (ctrl *UserManageController) CreateUser(c *gin.Context) {
 		EmailVerified: u.EmailVerified,
 		Points:        u.Points,
 		Currency:      u.Currency,
-		PostCount:     u.PostCount,
-		CommentCount:  u.CommentCount,
+		PostCount:     postCount,
+		CommentCount:  commentCount,
 		Status:        u.Status.String(),
 		Role:          u.Role.String(),
 		CreatedAt:     u.CreatedAt.Format("2006-01-02T15:04:05Z"),
@@ -177,6 +190,19 @@ func (ctrl *UserManageController) UpdateUser(c *gin.Context) {
 		return
 	}
 
+	// 实时查询用户的发帖数和评论数
+	postCount, err := userManageService.GetUserPostCount(c.Request.Context(), u.ID)
+	if err != nil {
+		// 查询失败时使用默认值0
+		postCount = 0
+	}
+
+	commentCount, err := userManageService.GetUserCommentCount(c.Request.Context(), u.ID)
+	if err != nil {
+		// 查询失败时使用默认值0
+		commentCount = 0
+	}
+
 	// 转换为响应格式
 	result := &schema.UserDetailResponse{
 		ID:            u.ID,
@@ -188,8 +214,8 @@ func (ctrl *UserManageController) UpdateUser(c *gin.Context) {
 		EmailVerified: u.EmailVerified,
 		Points:        u.Points,
 		Currency:      u.Currency,
-		PostCount:     u.PostCount,
-		CommentCount:  u.CommentCount,
+		PostCount:     postCount,
+		CommentCount:  commentCount,
 		Status:        u.Status.String(),
 		Role:          u.Role.String(),
 		CreatedAt:     u.CreatedAt.Format("2006-01-02T15:04:05Z"),

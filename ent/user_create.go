@@ -170,34 +170,6 @@ func (_c *UserCreate) SetNillableCurrency(v *int) *UserCreate {
 	return _c
 }
 
-// SetPostCount sets the "post_count" field.
-func (_c *UserCreate) SetPostCount(v int) *UserCreate {
-	_c.mutation.SetPostCount(v)
-	return _c
-}
-
-// SetNillablePostCount sets the "post_count" field if the given value is not nil.
-func (_c *UserCreate) SetNillablePostCount(v *int) *UserCreate {
-	if v != nil {
-		_c.SetPostCount(*v)
-	}
-	return _c
-}
-
-// SetCommentCount sets the "comment_count" field.
-func (_c *UserCreate) SetCommentCount(v int) *UserCreate {
-	_c.mutation.SetCommentCount(v)
-	return _c
-}
-
-// SetNillableCommentCount sets the "comment_count" field if the given value is not nil.
-func (_c *UserCreate) SetNillableCommentCount(v *int) *UserCreate {
-	if v != nil {
-		_c.SetCommentCount(*v)
-	}
-	return _c
-}
-
 // SetStatus sets the "status" field.
 func (_c *UserCreate) SetStatus(v user.Status) *UserCreate {
 	_c.mutation.SetStatus(v)
@@ -291,14 +263,6 @@ func (_c *UserCreate) defaults() {
 		v := user.DefaultCurrency
 		_c.mutation.SetCurrency(v)
 	}
-	if _, ok := _c.mutation.PostCount(); !ok {
-		v := user.DefaultPostCount
-		_c.mutation.SetPostCount(v)
-	}
-	if _, ok := _c.mutation.CommentCount(); !ok {
-		v := user.DefaultCommentCount
-		_c.mutation.SetCommentCount(v)
-	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := user.DefaultStatus
 		_c.mutation.SetStatus(v)
@@ -374,22 +338,6 @@ func (_c *UserCreate) check() error {
 	if v, ok := _c.mutation.Currency(); ok {
 		if err := user.CurrencyValidator(v); err != nil {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "User.currency": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.PostCount(); !ok {
-		return &ValidationError{Name: "post_count", err: errors.New(`ent: missing required field "User.post_count"`)}
-	}
-	if v, ok := _c.mutation.PostCount(); ok {
-		if err := user.PostCountValidator(v); err != nil {
-			return &ValidationError{Name: "post_count", err: fmt.Errorf(`ent: validator failed for field "User.post_count": %w`, err)}
-		}
-	}
-	if _, ok := _c.mutation.CommentCount(); !ok {
-		return &ValidationError{Name: "comment_count", err: errors.New(`ent: missing required field "User.comment_count"`)}
-	}
-	if v, ok := _c.mutation.CommentCount(); ok {
-		if err := user.CommentCountValidator(v); err != nil {
-			return &ValidationError{Name: "comment_count", err: fmt.Errorf(`ent: validator failed for field "User.comment_count": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.Status(); !ok {
@@ -496,14 +444,6 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Currency(); ok {
 		_spec.SetField(user.FieldCurrency, field.TypeInt, value)
 		_node.Currency = value
-	}
-	if value, ok := _c.mutation.PostCount(); ok {
-		_spec.SetField(user.FieldPostCount, field.TypeInt, value)
-		_node.PostCount = value
-	}
-	if value, ok := _c.mutation.CommentCount(); ok {
-		_spec.SetField(user.FieldCommentCount, field.TypeInt, value)
-		_node.CommentCount = value
 	}
 	if value, ok := _c.mutation.Status(); ok {
 		_spec.SetField(user.FieldStatus, field.TypeEnum, value)

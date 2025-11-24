@@ -40,10 +40,6 @@ const (
 	FieldPoints = "points"
 	// FieldCurrency holds the string denoting the currency field in the database.
 	FieldCurrency = "currency"
-	// FieldPostCount holds the string denoting the post_count field in the database.
-	FieldPostCount = "post_count"
-	// FieldCommentCount holds the string denoting the comment_count field in the database.
-	FieldCommentCount = "comment_count"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldRole holds the string denoting the role field in the database.
@@ -68,8 +64,6 @@ var Columns = []string{
 	FieldExperience,
 	FieldPoints,
 	FieldCurrency,
-	FieldPostCount,
-	FieldCommentCount,
 	FieldStatus,
 	FieldRole,
 }
@@ -113,14 +107,6 @@ var (
 	DefaultCurrency int
 	// CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	CurrencyValidator func(int) error
-	// DefaultPostCount holds the default value on creation for the "post_count" field.
-	DefaultPostCount int
-	// PostCountValidator is a validator for the "post_count" field. It is called by the builders before save.
-	PostCountValidator func(int) error
-	// DefaultCommentCount holds the default value on creation for the "comment_count" field.
-	DefaultCommentCount int
-	// CommentCountValidator is a validator for the "comment_count" field. It is called by the builders before save.
-	CommentCountValidator func(int) error
 	// IDValidator is a validator for the "id" field. It is called by the builders before save.
 	IDValidator func(int) error
 )
@@ -253,16 +239,6 @@ func ByPoints(opts ...sql.OrderTermOption) OrderOption {
 // ByCurrency orders the results by the currency field.
 func ByCurrency(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldCurrency, opts...).ToFunc()
-}
-
-// ByPostCount orders the results by the post_count field.
-func ByPostCount(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPostCount, opts...).ToFunc()
-}
-
-// ByCommentCount orders the results by the comment_count field.
-func ByCommentCount(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldCommentCount, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.

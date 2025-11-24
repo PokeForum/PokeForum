@@ -55,14 +55,6 @@ func (User) Fields() []ent.Field {
 		field.Int("currency").
 			Default(0).
 			NonNegative(),
-		// 帖子数，默认为0
-		field.Int("post_count").
-			Default(0).
-			NonNegative(),
-		// 评论数，默认为0
-		field.Int("comment_count").
-			Default(0).
-			NonNegative(),
 		// 用户状态：Normal、Mute、Blocked、Activation pending、Risk control
 		field.Enum("status").
 			Values("Normal", "Mute", "Blocked", "ActivationPending", "RiskControl").

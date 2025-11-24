@@ -43,10 +43,6 @@ type User struct {
 	Points int `json:"points,omitempty"`
 	// Currency holds the value of the "currency" field.
 	Currency int `json:"currency,omitempty"`
-	// PostCount holds the value of the "post_count" field.
-	PostCount int `json:"post_count,omitempty"`
-	// CommentCount holds the value of the "comment_count" field.
-	CommentCount int `json:"comment_count,omitempty"`
 	// Status holds the value of the "status" field.
 	Status user.Status `json:"status,omitempty"`
 	// Role holds the value of the "role" field.
@@ -61,7 +57,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case user.FieldEmailVerified:
 			values[i] = new(sql.NullBool)
-		case user.FieldID, user.FieldExperience, user.FieldPoints, user.FieldCurrency, user.FieldPostCount, user.FieldCommentCount:
+		case user.FieldID, user.FieldExperience, user.FieldPoints, user.FieldCurrency:
 			values[i] = new(sql.NullInt64)
 		case user.FieldEmail, user.FieldPassword, user.FieldPasswordSalt, user.FieldUsername, user.FieldAvatar, user.FieldSignature, user.FieldReadme, user.FieldStatus, user.FieldRole:
 			values[i] = new(sql.NullString)
@@ -166,18 +162,6 @@ func (_m *User) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Currency = int(value.Int64)
 			}
-		case user.FieldPostCount:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field post_count", values[i])
-			} else if value.Valid {
-				_m.PostCount = int(value.Int64)
-			}
-		case user.FieldCommentCount:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field comment_count", values[i])
-			} else if value.Valid {
-				_m.CommentCount = int(value.Int64)
-			}
 		case user.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
@@ -264,12 +248,6 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("currency=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Currency))
-	builder.WriteString(", ")
-	builder.WriteString("post_count=")
-	builder.WriteString(fmt.Sprintf("%v", _m.PostCount))
-	builder.WriteString(", ")
-	builder.WriteString("comment_count=")
-	builder.WriteString(fmt.Sprintf("%v", _m.CommentCount))
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Status))

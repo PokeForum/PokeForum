@@ -227,48 +227,6 @@ func (_u *UserUpdate) AddCurrency(v int) *UserUpdate {
 	return _u
 }
 
-// SetPostCount sets the "post_count" field.
-func (_u *UserUpdate) SetPostCount(v int) *UserUpdate {
-	_u.mutation.ResetPostCount()
-	_u.mutation.SetPostCount(v)
-	return _u
-}
-
-// SetNillablePostCount sets the "post_count" field if the given value is not nil.
-func (_u *UserUpdate) SetNillablePostCount(v *int) *UserUpdate {
-	if v != nil {
-		_u.SetPostCount(*v)
-	}
-	return _u
-}
-
-// AddPostCount adds value to the "post_count" field.
-func (_u *UserUpdate) AddPostCount(v int) *UserUpdate {
-	_u.mutation.AddPostCount(v)
-	return _u
-}
-
-// SetCommentCount sets the "comment_count" field.
-func (_u *UserUpdate) SetCommentCount(v int) *UserUpdate {
-	_u.mutation.ResetCommentCount()
-	_u.mutation.SetCommentCount(v)
-	return _u
-}
-
-// SetNillableCommentCount sets the "comment_count" field if the given value is not nil.
-func (_u *UserUpdate) SetNillableCommentCount(v *int) *UserUpdate {
-	if v != nil {
-		_u.SetCommentCount(*v)
-	}
-	return _u
-}
-
-// AddCommentCount adds value to the "comment_count" field.
-func (_u *UserUpdate) AddCommentCount(v int) *UserUpdate {
-	_u.mutation.AddCommentCount(v)
-	return _u
-}
-
 // SetStatus sets the "status" field.
 func (_u *UserUpdate) SetStatus(v user.Status) *UserUpdate {
 	_u.mutation.SetStatus(v)
@@ -375,16 +333,6 @@ func (_u *UserUpdate) check() error {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "User.currency": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.PostCount(); ok {
-		if err := user.PostCountValidator(v); err != nil {
-			return &ValidationError{Name: "post_count", err: fmt.Errorf(`ent: validator failed for field "User.post_count": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.CommentCount(); ok {
-		if err := user.CommentCountValidator(v); err != nil {
-			return &ValidationError{Name: "comment_count", err: fmt.Errorf(`ent: validator failed for field "User.comment_count": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Status(); ok {
 		if err := user.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
@@ -463,18 +411,6 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.AddedCurrency(); ok {
 		_spec.AddField(user.FieldCurrency, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.PostCount(); ok {
-		_spec.SetField(user.FieldPostCount, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.AddedPostCount(); ok {
-		_spec.AddField(user.FieldPostCount, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.CommentCount(); ok {
-		_spec.SetField(user.FieldCommentCount, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.AddedCommentCount(); ok {
-		_spec.AddField(user.FieldCommentCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(user.FieldStatus, field.TypeEnum, value)
@@ -701,48 +637,6 @@ func (_u *UserUpdateOne) AddCurrency(v int) *UserUpdateOne {
 	return _u
 }
 
-// SetPostCount sets the "post_count" field.
-func (_u *UserUpdateOne) SetPostCount(v int) *UserUpdateOne {
-	_u.mutation.ResetPostCount()
-	_u.mutation.SetPostCount(v)
-	return _u
-}
-
-// SetNillablePostCount sets the "post_count" field if the given value is not nil.
-func (_u *UserUpdateOne) SetNillablePostCount(v *int) *UserUpdateOne {
-	if v != nil {
-		_u.SetPostCount(*v)
-	}
-	return _u
-}
-
-// AddPostCount adds value to the "post_count" field.
-func (_u *UserUpdateOne) AddPostCount(v int) *UserUpdateOne {
-	_u.mutation.AddPostCount(v)
-	return _u
-}
-
-// SetCommentCount sets the "comment_count" field.
-func (_u *UserUpdateOne) SetCommentCount(v int) *UserUpdateOne {
-	_u.mutation.ResetCommentCount()
-	_u.mutation.SetCommentCount(v)
-	return _u
-}
-
-// SetNillableCommentCount sets the "comment_count" field if the given value is not nil.
-func (_u *UserUpdateOne) SetNillableCommentCount(v *int) *UserUpdateOne {
-	if v != nil {
-		_u.SetCommentCount(*v)
-	}
-	return _u
-}
-
-// AddCommentCount adds value to the "comment_count" field.
-func (_u *UserUpdateOne) AddCommentCount(v int) *UserUpdateOne {
-	_u.mutation.AddCommentCount(v)
-	return _u
-}
-
 // SetStatus sets the "status" field.
 func (_u *UserUpdateOne) SetStatus(v user.Status) *UserUpdateOne {
 	_u.mutation.SetStatus(v)
@@ -862,16 +756,6 @@ func (_u *UserUpdateOne) check() error {
 			return &ValidationError{Name: "currency", err: fmt.Errorf(`ent: validator failed for field "User.currency": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.PostCount(); ok {
-		if err := user.PostCountValidator(v); err != nil {
-			return &ValidationError{Name: "post_count", err: fmt.Errorf(`ent: validator failed for field "User.post_count": %w`, err)}
-		}
-	}
-	if v, ok := _u.mutation.CommentCount(); ok {
-		if err := user.CommentCountValidator(v); err != nil {
-			return &ValidationError{Name: "comment_count", err: fmt.Errorf(`ent: validator failed for field "User.comment_count": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Status(); ok {
 		if err := user.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "User.status": %w`, err)}
@@ -967,18 +851,6 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.AddedCurrency(); ok {
 		_spec.AddField(user.FieldCurrency, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.PostCount(); ok {
-		_spec.SetField(user.FieldPostCount, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.AddedPostCount(); ok {
-		_spec.AddField(user.FieldPostCount, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.CommentCount(); ok {
-		_spec.SetField(user.FieldCommentCount, field.TypeInt, value)
-	}
-	if value, ok := _u.mutation.AddedCommentCount(); ok {
-		_spec.AddField(user.FieldCommentCount, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.Status(); ok {
 		_spec.SetField(user.FieldStatus, field.TypeEnum, value)

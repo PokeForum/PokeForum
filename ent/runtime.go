@@ -389,18 +389,6 @@ func init() {
 	user.DefaultCurrency = userDescCurrency.Default.(int)
 	// user.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	user.CurrencyValidator = userDescCurrency.Validators[0].(func(int) error)
-	// userDescPostCount is the schema descriptor for post_count field.
-	userDescPostCount := userFields[12].Descriptor()
-	// user.DefaultPostCount holds the default value on creation for the post_count field.
-	user.DefaultPostCount = userDescPostCount.Default.(int)
-	// user.PostCountValidator is a validator for the "post_count" field. It is called by the builders before save.
-	user.PostCountValidator = userDescPostCount.Validators[0].(func(int) error)
-	// userDescCommentCount is the schema descriptor for comment_count field.
-	userDescCommentCount := userFields[13].Descriptor()
-	// user.DefaultCommentCount holds the default value on creation for the comment_count field.
-	user.DefaultCommentCount = userDescCommentCount.Default.(int)
-	// user.CommentCountValidator is a validator for the "comment_count" field. It is called by the builders before save.
-	user.CommentCountValidator = userDescCommentCount.Validators[0].(func(int) error)
 	// userDescID is the schema descriptor for id field.
 	userDescID := userFields[0].Descriptor()
 	// user.IDValidator is a validator for the "id" field. It is called by the builders before save.

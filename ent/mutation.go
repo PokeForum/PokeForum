@@ -7755,35 +7755,31 @@ func (m *SettingsMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *int
-	created_at       *time.Time
-	updated_at       *time.Time
-	email            *string
-	password         *string
-	password_salt    *string
-	username         *string
-	avatar           *string
-	signature        *string
-	readme           *string
-	email_verified   *bool
-	experience       *int
-	addexperience    *int
-	points           *int
-	addpoints        *int
-	currency         *int
-	addcurrency      *int
-	post_count       *int
-	addpost_count    *int
-	comment_count    *int
-	addcomment_count *int
-	status           *user.Status
-	role             *user.Role
-	clearedFields    map[string]struct{}
-	done             bool
-	oldValue         func(context.Context) (*User, error)
-	predicates       []predicate.User
+	op             Op
+	typ            string
+	id             *int
+	created_at     *time.Time
+	updated_at     *time.Time
+	email          *string
+	password       *string
+	password_salt  *string
+	username       *string
+	avatar         *string
+	signature      *string
+	readme         *string
+	email_verified *bool
+	experience     *int
+	addexperience  *int
+	points         *int
+	addpoints      *int
+	currency       *int
+	addcurrency    *int
+	status         *user.Status
+	role           *user.Role
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*User, error)
+	predicates     []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -8457,118 +8453,6 @@ func (m *UserMutation) ResetCurrency() {
 	m.addcurrency = nil
 }
 
-// SetPostCount sets the "post_count" field.
-func (m *UserMutation) SetPostCount(i int) {
-	m.post_count = &i
-	m.addpost_count = nil
-}
-
-// PostCount returns the value of the "post_count" field in the mutation.
-func (m *UserMutation) PostCount() (r int, exists bool) {
-	v := m.post_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPostCount returns the old "post_count" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldPostCount(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPostCount is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPostCount requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPostCount: %w", err)
-	}
-	return oldValue.PostCount, nil
-}
-
-// AddPostCount adds i to the "post_count" field.
-func (m *UserMutation) AddPostCount(i int) {
-	if m.addpost_count != nil {
-		*m.addpost_count += i
-	} else {
-		m.addpost_count = &i
-	}
-}
-
-// AddedPostCount returns the value that was added to the "post_count" field in this mutation.
-func (m *UserMutation) AddedPostCount() (r int, exists bool) {
-	v := m.addpost_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetPostCount resets all changes to the "post_count" field.
-func (m *UserMutation) ResetPostCount() {
-	m.post_count = nil
-	m.addpost_count = nil
-}
-
-// SetCommentCount sets the "comment_count" field.
-func (m *UserMutation) SetCommentCount(i int) {
-	m.comment_count = &i
-	m.addcomment_count = nil
-}
-
-// CommentCount returns the value of the "comment_count" field in the mutation.
-func (m *UserMutation) CommentCount() (r int, exists bool) {
-	v := m.comment_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCommentCount returns the old "comment_count" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldCommentCount(ctx context.Context) (v int, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCommentCount is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCommentCount requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCommentCount: %w", err)
-	}
-	return oldValue.CommentCount, nil
-}
-
-// AddCommentCount adds i to the "comment_count" field.
-func (m *UserMutation) AddCommentCount(i int) {
-	if m.addcomment_count != nil {
-		*m.addcomment_count += i
-	} else {
-		m.addcomment_count = &i
-	}
-}
-
-// AddedCommentCount returns the value that was added to the "comment_count" field in this mutation.
-func (m *UserMutation) AddedCommentCount() (r int, exists bool) {
-	v := m.addcomment_count
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetCommentCount resets all changes to the "comment_count" field.
-func (m *UserMutation) ResetCommentCount() {
-	m.comment_count = nil
-	m.addcomment_count = nil
-}
-
 // SetStatus sets the "status" field.
 func (m *UserMutation) SetStatus(u user.Status) {
 	m.status = &u
@@ -8675,7 +8559,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 17)
+	fields := make([]string, 0, 15)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -8714,12 +8598,6 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.currency != nil {
 		fields = append(fields, user.FieldCurrency)
-	}
-	if m.post_count != nil {
-		fields = append(fields, user.FieldPostCount)
-	}
-	if m.comment_count != nil {
-		fields = append(fields, user.FieldCommentCount)
 	}
 	if m.status != nil {
 		fields = append(fields, user.FieldStatus)
@@ -8761,10 +8639,6 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Points()
 	case user.FieldCurrency:
 		return m.Currency()
-	case user.FieldPostCount:
-		return m.PostCount()
-	case user.FieldCommentCount:
-		return m.CommentCount()
 	case user.FieldStatus:
 		return m.Status()
 	case user.FieldRole:
@@ -8804,10 +8678,6 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldPoints(ctx)
 	case user.FieldCurrency:
 		return m.OldCurrency(ctx)
-	case user.FieldPostCount:
-		return m.OldPostCount(ctx)
-	case user.FieldCommentCount:
-		return m.OldCommentCount(ctx)
 	case user.FieldStatus:
 		return m.OldStatus(ctx)
 	case user.FieldRole:
@@ -8912,20 +8782,6 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCurrency(v)
 		return nil
-	case user.FieldPostCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPostCount(v)
-		return nil
-	case user.FieldCommentCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCommentCount(v)
-		return nil
 	case user.FieldStatus:
 		v, ok := value.(user.Status)
 		if !ok {
@@ -8957,12 +8813,6 @@ func (m *UserMutation) AddedFields() []string {
 	if m.addcurrency != nil {
 		fields = append(fields, user.FieldCurrency)
 	}
-	if m.addpost_count != nil {
-		fields = append(fields, user.FieldPostCount)
-	}
-	if m.addcomment_count != nil {
-		fields = append(fields, user.FieldCommentCount)
-	}
 	return fields
 }
 
@@ -8977,10 +8827,6 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedPoints()
 	case user.FieldCurrency:
 		return m.AddedCurrency()
-	case user.FieldPostCount:
-		return m.AddedPostCount()
-	case user.FieldCommentCount:
-		return m.AddedCommentCount()
 	}
 	return nil, false
 }
@@ -9010,20 +8856,6 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddCurrency(v)
-		return nil
-	case user.FieldPostCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddPostCount(v)
-		return nil
-	case user.FieldCommentCount:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddCommentCount(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User numeric field %s", name)
@@ -9111,12 +8943,6 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldCurrency:
 		m.ResetCurrency()
-		return nil
-	case user.FieldPostCount:
-		m.ResetPostCount()
-		return nil
-	case user.FieldCommentCount:
-		m.ResetCommentCount()
 		return nil
 	case user.FieldStatus:
 		m.ResetStatus()

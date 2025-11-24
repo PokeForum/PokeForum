@@ -119,16 +119,6 @@ func Currency(v int) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCurrency, v))
 }
 
-// PostCount applies equality check predicate on the "post_count" field. It's identical to PostCountEQ.
-func PostCount(v int) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldPostCount, v))
-}
-
-// CommentCount applies equality check predicate on the "comment_count" field. It's identical to CommentCountEQ.
-func CommentCount(v int) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldCommentCount, v))
-}
-
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldCreatedAt, v))
@@ -822,86 +812,6 @@ func CurrencyLT(v int) predicate.User {
 // CurrencyLTE applies the LTE predicate on the "currency" field.
 func CurrencyLTE(v int) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldCurrency, v))
-}
-
-// PostCountEQ applies the EQ predicate on the "post_count" field.
-func PostCountEQ(v int) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldPostCount, v))
-}
-
-// PostCountNEQ applies the NEQ predicate on the "post_count" field.
-func PostCountNEQ(v int) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldPostCount, v))
-}
-
-// PostCountIn applies the In predicate on the "post_count" field.
-func PostCountIn(vs ...int) predicate.User {
-	return predicate.User(sql.FieldIn(FieldPostCount, vs...))
-}
-
-// PostCountNotIn applies the NotIn predicate on the "post_count" field.
-func PostCountNotIn(vs ...int) predicate.User {
-	return predicate.User(sql.FieldNotIn(FieldPostCount, vs...))
-}
-
-// PostCountGT applies the GT predicate on the "post_count" field.
-func PostCountGT(v int) predicate.User {
-	return predicate.User(sql.FieldGT(FieldPostCount, v))
-}
-
-// PostCountGTE applies the GTE predicate on the "post_count" field.
-func PostCountGTE(v int) predicate.User {
-	return predicate.User(sql.FieldGTE(FieldPostCount, v))
-}
-
-// PostCountLT applies the LT predicate on the "post_count" field.
-func PostCountLT(v int) predicate.User {
-	return predicate.User(sql.FieldLT(FieldPostCount, v))
-}
-
-// PostCountLTE applies the LTE predicate on the "post_count" field.
-func PostCountLTE(v int) predicate.User {
-	return predicate.User(sql.FieldLTE(FieldPostCount, v))
-}
-
-// CommentCountEQ applies the EQ predicate on the "comment_count" field.
-func CommentCountEQ(v int) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldCommentCount, v))
-}
-
-// CommentCountNEQ applies the NEQ predicate on the "comment_count" field.
-func CommentCountNEQ(v int) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldCommentCount, v))
-}
-
-// CommentCountIn applies the In predicate on the "comment_count" field.
-func CommentCountIn(vs ...int) predicate.User {
-	return predicate.User(sql.FieldIn(FieldCommentCount, vs...))
-}
-
-// CommentCountNotIn applies the NotIn predicate on the "comment_count" field.
-func CommentCountNotIn(vs ...int) predicate.User {
-	return predicate.User(sql.FieldNotIn(FieldCommentCount, vs...))
-}
-
-// CommentCountGT applies the GT predicate on the "comment_count" field.
-func CommentCountGT(v int) predicate.User {
-	return predicate.User(sql.FieldGT(FieldCommentCount, v))
-}
-
-// CommentCountGTE applies the GTE predicate on the "comment_count" field.
-func CommentCountGTE(v int) predicate.User {
-	return predicate.User(sql.FieldGTE(FieldCommentCount, v))
-}
-
-// CommentCountLT applies the LT predicate on the "comment_count" field.
-func CommentCountLT(v int) predicate.User {
-	return predicate.User(sql.FieldLT(FieldCommentCount, v))
-}
-
-// CommentCountLTE applies the LTE predicate on the "comment_count" field.
-func CommentCountLTE(v int) predicate.User {
-	return predicate.User(sql.FieldLTE(FieldCommentCount, v))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.

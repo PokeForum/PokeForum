@@ -115,7 +115,11 @@ func InjectorSrv(injector *do.Injector) {
 		if err != nil {
 			return nil, err
 		}
-		return service.NewUserProfileService(configs.DB, cacheService, configs.Log, settingsService), nil
+		userManageService, err := do.Invoke[service.IUserManageService](injector)
+		if err != nil {
+			return nil, err
+		}
+		return service.NewUserProfileService(configs.DB, cacheService, configs.Log, settingsService, userManageService), nil
 	})
 	// 注册 RankingService
 	do.Provide(injector, func(i *do.Injector) (service.IRankingService, error) {

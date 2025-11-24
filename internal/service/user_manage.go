@@ -9,6 +9,8 @@ import (
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/categorymoderator"
+	"github.com/PokeForum/PokeForum/ent/comment"
+	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
@@ -43,6 +45,10 @@ type IUserManageService interface {
 	GetUserBalanceLog(ctx context.Context, req schema.UserBalanceLogRequest) (*schema.UserBalanceLogResponse, error)
 	// GetUserBalanceSummary 获取用户余额汇总信息
 	GetUserBalanceSummary(ctx context.Context, userID int) (*schema.UserBalanceSummary, error)
+	// GetUserPostCount 查询单个用户的发帖数
+	GetUserPostCount(ctx context.Context, userID int) (int, error)
+	// GetUserCommentCount 查询单个用户的评论数
+	GetUserCommentCount(ctx context.Context, userID int) (int, error)
 }
 
 // UserManageService 用户管理服务实现
@@ -108,6 +114,37 @@ func (s *UserManageService) GetUserList(ctx context.Context, req schema.UserList
 
 	// 转换响应数据
 	list := make([]schema.UserListItem, len(users))
+	if len(users) == 0 {
+		return &schema.UserListResponse{
+			List:     list,
+			Total:    int64(total),
+			Page:     req.Page,
+			PageSize: req.PageSize,
+		}, nil
+	}
+
+	// 收集用户ID
+	userIDs := make([]int, len(users))
+	for i, u := range users {
+		userIDs[i] = u.ID
+	}
+
+	// 批量查询用户的发帖数和评论数
+	postCounts, err := s.getUserPostCounts(ctx, userIDs)
+	if err != nil {
+		s.logger.Error("批量查询用户发帖数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		// 失败时使用默认值0
+		postCounts = make(map[int]int)
+	}
+
+	commentCounts, err := s.getUserCommentCounts(ctx, userIDs)
+	if err != nil {
+		s.logger.Error("批量查询用户评论数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		// 失败时使用默认值0
+		commentCounts = make(map[int]int)
+	}
+
+	// 构建响应数据
 	for i, u := range users {
 		list[i] = schema.UserListItem{
 			ID:            u.ID,
@@ -118,8 +155,8 @@ func (s *UserManageService) GetUserList(ctx context.Context, req schema.UserList
 			EmailVerified: u.EmailVerified,
 			Points:        u.Points,
 			Currency:      u.Currency,
-			PostCount:     u.PostCount,
-			CommentCount:  u.CommentCount,
+			PostCount:     postCounts[u.ID],
+			CommentCount:  commentCounts[u.ID],
 			Status:        u.Status.String(),
 			Role:          u.Role.String(),
 			CreatedAt:     u.CreatedAt.Format("2006-01-02T15:04:05Z"),
@@ -542,6 +579,19 @@ func (s *UserManageService) GetUserDetail(ctx context.Context, id int) (*schema.
 		}
 	}
 
+	// 实时查询用户的发帖数和评论数
+	postCount, err := s.GetUserPostCount(ctx, u.ID)
+	if err != nil {
+		s.logger.Error("查询用户发帖数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		postCount = 0
+	}
+
+	commentCount, err := s.GetUserCommentCount(ctx, u.ID)
+	if err != nil {
+		s.logger.Error("查询用户评论数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		commentCount = 0
+	}
+
 	// 构建响应数据
 	response := &schema.UserDetailResponse{
 		ID:                u.ID,
@@ -553,8 +603,8 @@ func (s *UserManageService) GetUserDetail(ctx context.Context, id int) (*schema.
 		EmailVerified:     u.EmailVerified,
 		Points:            u.Points,
 		Currency:          u.Currency,
-		PostCount:         u.PostCount,
-		CommentCount:      u.CommentCount,
+		PostCount:         postCount,
+		CommentCount:      commentCount,
 		Status:            u.Status.String(),
 		Role:              u.Role.String(),
 		CreatedAt:         u.CreatedAt.Format("2006-01-02T15:04:05Z"),
@@ -795,4 +845,76 @@ func (s *UserManageService) GetUserBalanceSummary(ctx context.Context, userID in
 	}
 
 	return summary, nil
+}
+
+// getUserPostCounts 批量查询用户的发帖数
+func (s *UserManageService) getUserPostCounts(ctx context.Context, userIDs []int) (map[int]int, error) {
+	if len(userIDs) == 0 {
+		return make(map[int]int), nil
+	}
+
+	// 使用Ent ORM进行批量查询，避免原生SQL的复杂性
+	// 分别查询每个用户的发帖数
+	result := make(map[int]int)
+	for _, userID := range userIDs {
+		count, err := s.db.Post.Query().
+			Where(post.UserIDEQ(userID)).
+			Count(ctx)
+		if err != nil {
+			s.logger.Error("查询用户发帖数失败", zap.Int("user_id", userID), zap.Error(err), tracing.WithTraceIDField(ctx))
+			// 失败时使用默认值0，继续处理其他用户
+			result[userID] = 0
+			continue
+		}
+		result[userID] = count
+	}
+
+	return result, nil
+}
+
+// getUserCommentCounts 批量查询用户的评论数
+func (s *UserManageService) getUserCommentCounts(ctx context.Context, userIDs []int) (map[int]int, error) {
+	if len(userIDs) == 0 {
+		return make(map[int]int), nil
+	}
+
+	// 使用Ent ORM进行批量查询，避免原生SQL的复杂性
+	// 分别查询每个用户的评论数
+	result := make(map[int]int)
+	for _, userID := range userIDs {
+		count, err := s.db.Comment.Query().
+			Where(comment.UserIDEQ(userID)).
+			Count(ctx)
+		if err != nil {
+			s.logger.Error("查询用户评论数失败", zap.Int("user_id", userID), zap.Error(err), tracing.WithTraceIDField(ctx))
+			// 失败时使用默认值0，继续处理其他用户
+			result[userID] = 0
+			continue
+		}
+		result[userID] = count
+	}
+
+	return result, nil
+}
+
+// GetUserPostCount 查询单个用户的发帖数
+func (s *UserManageService) GetUserPostCount(ctx context.Context, userID int) (int, error) {
+	count, err := s.db.Post.Query().
+		Where(post.UserIDEQ(userID)).
+		Count(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("查询用户发帖数失败: %w", err)
+	}
+	return count, nil
+}
+
+// GetUserCommentCount 查询单个用户的评论数
+func (s *UserManageService) GetUserCommentCount(ctx context.Context, userID int) (int, error) {
+	count, err := s.db.Comment.Query().
+		Where(comment.UserIDEQ(userID)).
+		Count(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("查询用户评论数失败: %w", err)
+	}
+	return count, nil
 }

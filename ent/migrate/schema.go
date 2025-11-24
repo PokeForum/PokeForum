@@ -352,8 +352,6 @@ var (
 		{Name: "experience", Type: field.TypeInt, Default: 0},
 		{Name: "points", Type: field.TypeInt, Default: 0},
 		{Name: "currency", Type: field.TypeInt, Default: 0},
-		{Name: "post_count", Type: field.TypeInt, Default: 0},
-		{Name: "comment_count", Type: field.TypeInt, Default: 0},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"Normal", "Mute", "Blocked", "ActivationPending", "RiskControl"}, Default: "Normal"},
 		{Name: "role", Type: field.TypeEnum, Enums: []string{"User", "Moderator", "Admin", "SuperAdmin"}, Default: "User"},
 	}
@@ -366,12 +364,12 @@ var (
 			{
 				Name:    "user_status",
 				Unique:  false,
-				Columns: []*schema.Column{UsersColumns[16]},
+				Columns: []*schema.Column{UsersColumns[14]},
 			},
 			{
 				Name:    "user_role",
 				Unique:  false,
-				Columns: []*schema.Column{UsersColumns[17]},
+				Columns: []*schema.Column{UsersColumns[15]},
 			},
 			{
 				Name:    "user_email_verified",
