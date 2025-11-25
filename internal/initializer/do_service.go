@@ -143,14 +143,7 @@ func InjectorSrv(injector *do.Injector) {
 		return cache.NewRedisLock(configs.Cache, configs.Log), nil
 	})
 
-	// 注册 SigninAsyncTask
-	do.Provide(injector, func(i *do.Injector) (*service.SigninAsyncTask, error) {
-		cacheService, err := do.Invoke[cache.ICacheService](injector)
-		if err != nil {
-			return nil, err
-		}
-		return service.NewSigninAsyncTask(configs.DB, cacheService, configs.Log), nil
-	})
+	// TaskManager 和 SigninAsyncTask 在 server.go 中通过 do.ProvideValue 注入
 
 	// 注册 BlacklistService
 	do.Provide(injector, func(i *do.Injector) (service.IBlacklistService, error) {

@@ -33,6 +33,7 @@ import (
 
 	"github.com/PokeForum/PokeForum/internal/configs"
 	"github.com/PokeForum/PokeForum/internal/initializer"
+	"github.com/PokeForum/PokeForum/internal/pkg/asynq"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/logging"
 	"github.com/PokeForum/PokeForum/internal/service"
@@ -101,19 +102,38 @@ func RunServer() {
 
 	}
 
-	// 注册路由
-	router := initializer.Routers(injector)
-
 	// 初始化缓存服务
 	cacheService := cache.NewRedisCacheService(configs.Cache, configs.Log)
 
-	// 启动统计数据同步任务(每5分钟同步一次)
-	syncTask := service.NewStatsSyncTask(configs.DB, cacheService, configs.Log)
-	syncTask.Start(5 * time.Minute)
+	// 初始化asynq任务管理器
+	taskManager := asynq.NewTaskManagerFromRedis(configs.Cache, 10, configs.Log)
 
-	// 启动签到异步任务(3个worker处理签到数据落库)
-	signinAsyncTask := service.NewSigninAsyncTask(configs.DB, cacheService, configs.Log)
-	signinAsyncTask.Start(3)
+	// 注册签到异步任务处理器
+	signinAsyncTask := service.NewSigninAsyncTask(configs.DB, taskManager, configs.Log)
+	signinAsyncTask.RegisterHandler()
+
+	// 注册统计数据同步任务处理器和定时任务(每5分钟同步一次)
+	syncTask := service.NewStatsSyncTask(configs.DB, cacheService, taskManager, configs.Log)
+	syncTask.RegisterHandler()
+	if err := syncTask.RegisterSchedule(5 * time.Minute); err != nil {
+		configs.Log.Error("注册统计同步定时任务失败", zap.Error(err))
+	}
+
+	// 启动asynq任务服务器
+	if err := taskManager.Start(); err != nil {
+		configs.Log.Error("启动asynq任务服务器失败", zap.Error(err))
+		return
+	}
+
+	// 启动时立即执行一次统计同步
+	syncTask.SyncNow(context.Background())
+
+	// 将SigninAsyncTask注入到injector供SigninService使用
+	do.ProvideValue(injector, signinAsyncTask)
+	do.ProvideValue(injector, taskManager)
+
+	// 注册路由
+	router := initializer.Routers(injector)
 
 	// 启动服务
 	sDSN := fmt.Sprintf("%s:%s", configs.Host, configs.Port)
@@ -137,11 +157,8 @@ func RunServer() {
 	<-quit                                               // 阻塞此处，当接受到上述两种信号时，才继续往下执行
 	configs.Log.Info("Service ready to shut down")
 
-	// 停止统计数据同步任务
-	syncTask.Stop()
-
-	// 停止签到异步任务
-	signinAsyncTask.Stop()
+	// 停止asynq任务服务器
+	taskManager.Stop()
 
 	// 创建10秒超时的Context
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

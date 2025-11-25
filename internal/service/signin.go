@@ -198,7 +198,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 
 	// 异步写入数据库
 	signDate, _ := time.Parse("2006-01-02", today)
-	task := &SigninTask{
+	payload := &SigninTaskPayload{
 		UserID:         userID,
 		SignDate:       signDate,
 		ContinuousDays: continuousDays,
@@ -206,19 +206,13 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 		TraceID:        traceID,
 	}
 
-	err = s.asyncTask.SubmitTask(ctx, task)
+	err = s.asyncTask.SubmitTask(ctx, payload)
 	if err != nil {
 		s.logger.Error("提交异步任务失败",
 			zap.Int64("user_id", userID),
 			zap.Error(err),
 			tracing.WithTraceIDField(ctx))
-
-		// 如果是队列满的错误，返回用户友好的提示
-		if err.Error() == "服务繁忙，请稍后再试" {
-			return nil, errors.New("服务繁忙，请稍后再试")
-		}
-
-		// 其他异步任务失败也不应该继续签到流程，确保数据一致性
+		// 异步任务提交失败，返回用户友好的提示
 		return nil, errors.New("系统繁忙，请稍后重试")
 	}
 

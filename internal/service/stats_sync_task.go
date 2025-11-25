@@ -2,10 +2,14 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/PokeForum/PokeForum/ent"
+	pkgasynq "github.com/PokeForum/PokeForum/internal/pkg/asynq"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
+	"github.com/hibiken/asynq"
 	"go.uber.org/zap"
 )
 
@@ -16,67 +20,66 @@ type StatsSyncTask struct {
 	logger              *zap.Logger
 	postStatsService    IPostStatsService
 	commentStatsService ICommentStatsService
-	ticker              *time.Ticker
-	stopChan            chan struct{}
+	taskManager         *pkgasynq.TaskManager
+}
+
+// StatsSyncPayload 统计同步任务载荷
+type StatsSyncPayload struct {
+	TriggerTime int64 `json:"trigger_time"`
 }
 
 // NewStatsSyncTask 创建统计数据同步任务实例
-func NewStatsSyncTask(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) *StatsSyncTask {
+func NewStatsSyncTask(db *ent.Client, cacheService cache.ICacheService, taskManager *pkgasynq.TaskManager, logger *zap.Logger) *StatsSyncTask {
 	return &StatsSyncTask{
 		db:                  db,
 		cache:               cacheService,
 		logger:              logger,
 		postStatsService:    NewPostStatsService(db, cacheService, logger),
 		commentStatsService: NewCommentStatsService(db, cacheService, logger),
-		stopChan:            make(chan struct{}),
+		taskManager:         taskManager,
 	}
 }
 
-// Start 启动同步任务
+// RegisterHandler 注册任务处理器
+func (t *StatsSyncTask) RegisterHandler() {
+	t.taskManager.RegisterHandlerFunc(pkgasynq.TypeStatsSync, t.HandleStatsSyncTask)
+	t.logger.Info("统计数据同步任务处理器已注册")
+}
+
+// RegisterSchedule 注册定时任务
 // interval: 同步间隔时间
-func (t *StatsSyncTask) Start(interval time.Duration) {
-	t.logger.Debug("启动统计数据同步任务", zap.Duration("interval", interval))
-
-	t.ticker = time.NewTicker(interval)
-
-	go func() {
-		// 启动时立即执行一次同步
-		t.syncAll()
-
-		// 定时执行同步
-		for {
-			select {
-			case <-t.ticker.C:
-				t.syncAll()
-			case <-t.stopChan:
-				t.logger.Debug("统计数据同步任务已停止")
-				return
-			}
-		}
-	}()
-
-	t.logger.Debug("统计数据同步任务已启动")
-}
-
-// Stop 停止同步任务
-func (t *StatsSyncTask) Stop() {
-	t.logger.Debug("正在停止统计数据同步任务")
-
-	if t.ticker != nil {
-		t.ticker.Stop()
+func (t *StatsSyncTask) RegisterSchedule(interval time.Duration) error {
+	// 创建任务
+	payload := &StatsSyncPayload{TriggerTime: time.Now().Unix()}
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("序列化任务载荷失败: %w", err)
 	}
 
-	close(t.stopChan)
+	task := asynq.NewTask(pkgasynq.TypeStatsSync, data)
 
-	// 最后执行一次同步,确保数据完整性
-	t.syncAll()
+	// 转换为cron表达式，如 @every 5m
+	cronSpec := fmt.Sprintf("@every %s", interval.String())
 
-	t.logger.Debug("统计数据同步任务已停止")
+	entryID, err := t.taskManager.RegisterSchedule(cronSpec, task, asynq.Queue(pkgasynq.QueueLow))
+	if err != nil {
+		return fmt.Errorf("注册定时任务失败: %w", err)
+	}
+
+	t.logger.Info("统计数据同步定时任务已注册",
+		zap.String("entry_id", entryID),
+		zap.Duration("interval", interval))
+
+	return nil
 }
 
-// syncAll 同步所有统计数据
-func (t *StatsSyncTask) syncAll() {
-	ctx := context.Background()
+// HandleStatsSyncTask 处理统计同步任务
+func (t *StatsSyncTask) HandleStatsSyncTask(ctx context.Context, task *asynq.Task) error {
+	var payload StatsSyncPayload
+	if err := json.Unmarshal(task.Payload(), &payload); err != nil {
+		t.logger.Error("反序列化统计同步任务失败", zap.Error(err))
+		return fmt.Errorf("反序列化失败: %v: %w", err, asynq.SkipRetry)
+	}
 
 	t.logger.Debug("开始执行统计数据同步")
 	startTime := time.Now()
@@ -102,4 +105,20 @@ func (t *StatsSyncTask) syncAll() {
 		zap.Int("post_count", postCount),
 		zap.Int("comment_count", commentCount),
 		zap.Duration("duration", duration))
+
+	return nil
+}
+
+// SyncNow 立即执行一次同步（用于启动时）
+func (t *StatsSyncTask) SyncNow(ctx context.Context) {
+	t.logger.Debug("立即执行统计数据同步")
+
+	payload := &StatsSyncPayload{TriggerTime: time.Now().Unix()}
+	data, _ := json.Marshal(payload)
+	task := asynq.NewTask(pkgasynq.TypeStatsSync, data)
+
+	_, err := t.taskManager.Enqueue(task, asynq.Queue(pkgasynq.QueueLow))
+	if err != nil {
+		t.logger.Error("提交立即同步任务失败", zap.Error(err))
+	}
 }
