@@ -226,7 +226,7 @@ var (
 		{Name: "user_id", Type: field.TypeInt},
 		{Name: "category_id", Type: field.TypeInt},
 		{Name: "title", Type: field.TypeString},
-		{Name: "content", Type: field.TypeString},
+		{Name: "content", Type: field.TypeString, Size: 2147483647},
 		{Name: "read_permission", Type: field.TypeString, Nullable: true},
 		{Name: "view_count", Type: field.TypeInt, Default: 0},
 		{Name: "like_count", Type: field.TypeInt, Default: 0},

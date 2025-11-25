@@ -27,7 +27,7 @@ func (Post) Fields() []ent.Field {
 		field.String("title").
 			NotEmpty(),
 		// 帖子正文内容，MarkDown格式
-		field.String("content").
+		field.Text("content").
 			NotEmpty(),
 		// 阅读限制
 		field.String("read_permission").
