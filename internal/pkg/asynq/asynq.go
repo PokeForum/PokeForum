@@ -61,7 +61,8 @@ func NewTaskManager(cfg *Config, logger *zap.Logger) *TaskManager {
 
 	// 创建调度器
 	scheduler := asynq.NewScheduler(redisOpt, &asynq.SchedulerOpts{
-		Logger: &asynqLogger{logger: logger},
+		Logger:   &asynqLogger{logger: logger},
+		Location: time.Local,
 	})
 
 	return &TaskManager{
