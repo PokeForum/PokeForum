@@ -9762,7 +9762,6 @@ const docTemplate = `{
                 "content": {
                     "description": "评论内容",
                     "type": "string",
-                    "maxLength": 1000,
                     "minLength": 1,
                     "example": "很有见地的评论"
                 },
@@ -10037,7 +10036,6 @@ const docTemplate = `{
                 "content": {
                     "description": "评论内容",
                     "type": "string",
-                    "maxLength": 1000,
                     "minLength": 1,
                     "example": "更新后的评论内容"
                 },
