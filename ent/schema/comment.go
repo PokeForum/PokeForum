@@ -30,7 +30,7 @@ func (Comment) Fields() []ent.Field {
 		field.Int("reply_to_user_id").
 			Optional(),
 		// 评论内容，MarkDown格式
-		field.String("content").
+		field.Text("content").
 			NotEmpty(),
 		// 点赞数，默认为0
 		field.Int("like_count").

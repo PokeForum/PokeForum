@@ -261,6 +261,10 @@ func (_c *PostCreate) defaults() {
 		v := post.DefaultUpdatedAt()
 		_c.mutation.SetUpdatedAt(v)
 	}
+	if _, ok := _c.mutation.ReadPermission(); !ok {
+		v := post.DefaultReadPermission
+		_c.mutation.SetReadPermission(v)
+	}
 	if _, ok := _c.mutation.ViewCount(); !ok {
 		v := post.DefaultViewCount
 		_c.mutation.SetViewCount(v)

@@ -2,10 +2,10 @@ package schema
 
 // UserCommentCreateRequest 用户创建评论请求体
 type UserCommentCreateRequest struct {
-	PostID        int    `json:"post_id" binding:"required" example:"1"`                      // 帖子ID
-	ParentID      *int   `json:"parent_id" example:"1"`                                       // 父评论ID（回复评论时使用）
-	ReplyToUserID *int   `json:"reply_to_user_id" example:"2"`                                // 回复目标用户ID（回复用户时使用）
-	Content       string `json:"content" binding:"required,min=1,max=1000" example:"很有见地的评论"` // 评论内容
+	PostID        int    `json:"post_id" binding:"required" example:"1"`             // 帖子ID
+	ParentID      *int   `json:"parent_id" example:"1"`                              // 父评论ID（回复评论时使用）
+	ReplyToUserID *int   `json:"reply_to_user_id" example:"2"`                       // 回复目标用户ID（回复用户时使用）
+	Content       string `json:"content" binding:"required,min=1" example:"很有见地的评论"` // 评论内容
 }
 
 // UserCommentCreateResponse 用户创建评论响应体
@@ -23,8 +23,8 @@ type UserCommentCreateResponse struct {
 
 // UserCommentUpdateRequest 用户更新评论请求体
 type UserCommentUpdateRequest struct {
-	ID      int    `json:"id" binding:"required" example:"1"`                            // 评论ID
-	Content string `json:"content" binding:"required,min=1,max=1000" example:"更新后的评论内容"` // 评论内容
+	ID      int    `json:"id" binding:"required" example:"1"`                   // 评论ID
+	Content string `json:"content" binding:"required,min=1" example:"更新后的评论内容"` // 评论内容
 }
 
 // UserCommentUpdateResponse 用户更新评论响应体

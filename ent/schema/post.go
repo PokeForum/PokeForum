@@ -31,6 +31,7 @@ func (Post) Fields() []ent.Field {
 			NotEmpty(),
 		// 阅读限制
 		field.String("read_permission").
+			Default("public").
 			Optional(),
 		// 浏览数，默认为0
 		field.Int("view_count").

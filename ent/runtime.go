@@ -250,6 +250,10 @@ func init() {
 	postDescContent := postFields[4].Descriptor()
 	// post.ContentValidator is a validator for the "content" field. It is called by the builders before save.
 	post.ContentValidator = postDescContent.Validators[0].(func(string) error)
+	// postDescReadPermission is the schema descriptor for read_permission field.
+	postDescReadPermission := postFields[5].Descriptor()
+	// post.DefaultReadPermission holds the default value on creation for the read_permission field.
+	post.DefaultReadPermission = postDescReadPermission.Default.(string)
 	// postDescViewCount is the schema descriptor for view_count field.
 	postDescViewCount := postFields[6].Descriptor()
 	// post.DefaultViewCount holds the default value on creation for the view_count field.
