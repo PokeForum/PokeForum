@@ -104,14 +104,15 @@ type PopularPostsResponse struct {
 
 // PopularPost 热门帖子
 type PopularPost struct {
-	ID           int    `json:"id" example:"1"`                            // 帖子ID
-	Title        string `json:"title" example:"技术分享帖"`                     // 帖子标题
-	Username     string `json:"username" example:"testuser"`               // 作者用户名
-	CategoryName string `json:"category_name" example:"技术讨论"`              // 版块名称
-	ViewCount    int    `json:"view_count" example:"1500"`                 // 浏览数
-	LikeCount    int    `json:"like_count" example:"50"`                   // 点赞数
-	CommentCount int    `json:"comment_count" example:"25"`                // 评论数
-	CreatedAt    string `json:"created_at" example:"2024-01-01T00:00:00Z"` // 创建时间
+	ID           int    `json:"id" example:"1"`                                  // 帖子ID
+	Title        string `json:"title" example:"技术分享帖"`                           // 帖子标题
+	Username     string `json:"username" example:"testuser"`                     // 作者用户名
+	Avatar       string `json:"avatar" example:"https://example.com/avatar.png"` // 作者头像
+	CategoryName string `json:"category_name" example:"技术讨论"`                    // 版块名称
+	ViewCount    int    `json:"view_count" example:"1500"`                       // 浏览数
+	LikeCount    int    `json:"like_count" example:"50"`                         // 点赞数
+	CommentCount int    `json:"comment_count" example:"25"`                      // 评论数
+	CreatedAt    string `json:"created_at" example:"2024-01-01T00:00:00Z"`       // 创建时间
 }
 
 // PopularCategoriesResponse 热门版块响应体

@@ -516,11 +516,15 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 	}
 	users, _ := s.db.User.Query().
 		Where(user.IDIn(userIDList...)).
-		Select(user.FieldID, user.FieldUsername).
+		Select(user.FieldID, user.FieldUsername, user.FieldAvatar).
 		All(ctx)
-	userMap := make(map[int]string)
+	type userInfo struct {
+		Username string
+		Avatar   string
+	}
+	userMap := make(map[int]userInfo)
 	for _, u := range users {
-		userMap[u.ID] = u.Username
+		userMap[u.ID] = userInfo{Username: u.Username, Avatar: u.Avatar}
 	}
 
 	// 批量查询版块信息
@@ -550,10 +554,12 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 	// 转换格式
 	posts := make([]schema.PopularPost, len(popularPosts))
 	for i, p := range popularPosts {
+		ui := userMap[p.UserID]
 		posts[i] = schema.PopularPost{
 			ID:           p.ID,
 			Title:        p.Title,
-			Username:     userMap[p.UserID],
+			Username:     ui.Username,
+			Avatar:       ui.Avatar,
 			CategoryName: categoryMap[p.CategoryID],
 			ViewCount:    p.ViewCount,
 			LikeCount:    p.LikeCount,
