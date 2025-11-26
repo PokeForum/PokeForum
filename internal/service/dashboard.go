@@ -397,11 +397,15 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 	}
 	users, _ := s.db.User.Query().
 		Where(user.IDIn(userIDList...)).
-		Select(user.FieldID, user.FieldUsername).
+		Select(user.FieldID, user.FieldUsername, user.FieldAvatar).
 		All(ctx)
-	userMap := make(map[int]string)
+	type userInfo struct {
+		Username string
+		Avatar   string
+	}
+	userMap := make(map[int]userInfo)
 	for _, u := range users {
-		userMap[u.ID] = u.Username
+		userMap[u.ID] = userInfo{Username: u.Username, Avatar: u.Avatar}
 	}
 
 	// 批量查询版块信息
@@ -435,10 +439,12 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 	// 转换格式
 	posts := make([]schema.RecentPost, len(recentPosts))
 	for i, p := range recentPosts {
+		ui := userMap[p.UserID]
 		posts[i] = schema.RecentPost{
 			ID:           p.ID,
 			Title:        p.Title,
-			Username:     userMap[p.UserID],
+			Username:     ui.Username,
+			Avatar:       ui.Avatar,
 			CategoryName: categoryMap[p.CategoryID],
 			CreatedAt:    p.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		}
@@ -451,10 +457,12 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 		if len(content) > 100 {
 			content = content[:100] + "..."
 		}
+		ui := userMap[c.UserID]
 		comments[i] = schema.RecentComment{
 			ID:        c.ID,
 			Content:   content,
-			Username:  userMap[c.UserID],
+			Username:  ui.Username,
+			Avatar:    ui.Avatar,
 			PostTitle: postMap[c.PostID],
 			CreatedAt: c.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		}
@@ -465,6 +473,7 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 		newUserList[i] = schema.NewUser{
 			ID:        u.ID,
 			Username:  u.Username,
+			Avatar:    u.Avatar,
 			Email:     u.Email,
 			CreatedAt: u.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		}

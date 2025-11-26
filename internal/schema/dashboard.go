@@ -70,28 +70,31 @@ type RecentActivityResponse struct {
 
 // RecentPost 最近帖子
 type RecentPost struct {
-	ID           int    `json:"id" example:"1"`                            // 帖子ID
-	Title        string `json:"title" example:"技术分享帖"`                     // 帖子标题
-	Username     string `json:"username" example:"testuser"`               // 作者用户名
-	CategoryName string `json:"category_name" example:"技术讨论"`              // 版块名称
-	CreatedAt    string `json:"created_at" example:"2024-01-01T00:00:00Z"` // 创建时间
+	ID           int    `json:"id" example:"1"`                                  // 帖子ID
+	Title        string `json:"title" example:"技术分享帖"`                           // 帖子标题
+	Username     string `json:"username" example:"testuser"`                     // 作者用户名
+	Avatar       string `json:"avatar" example:"https://example.com/avatar.png"` // 作者头像
+	CategoryName string `json:"category_name" example:"技术讨论"`                    // 版块名称
+	CreatedAt    string `json:"created_at" example:"2024-01-01T00:00:00Z"`       // 创建时间
 }
 
 // RecentComment 最近评论
 type RecentComment struct {
-	ID        int    `json:"id" example:"1"`                            // 评论ID
-	Content   string `json:"content" example:"很有见地的评论"`                 // 评论内容（截取前100字符）
-	Username  string `json:"username" example:"testuser"`               // 评论者用户名
-	PostTitle string `json:"post_title" example:"技术分享帖"`                // 帖子标题
-	CreatedAt string `json:"created_at" example:"2024-01-01T00:00:00Z"` // 创建时间
+	ID        int    `json:"id" example:"1"`                                  // 评论ID
+	Content   string `json:"content" example:"很有见地的评论"`                       // 评论内容（截取前100字符）
+	Username  string `json:"username" example:"testuser"`                     // 评论者用户名
+	Avatar    string `json:"avatar" example:"https://example.com/avatar.png"` // 评论者头像
+	PostTitle string `json:"post_title" example:"技术分享帖"`                      // 帖子标题
+	CreatedAt string `json:"created_at" example:"2024-01-01T00:00:00Z"`       // 创建时间
 }
 
 // NewUser 新用户
 type NewUser struct {
-	ID        int    `json:"id" example:"1"`                            // 用户ID
-	Username  string `json:"username" example:"newuser"`                // 用户名
-	Email     string `json:"email" example:"new@example.com"`           // 邮箱
-	CreatedAt string `json:"created_at" example:"2024-01-01T00:00:00Z"` // 注册时间
+	ID        int    `json:"id" example:"1"`                                  // 用户ID
+	Username  string `json:"username" example:"newuser"`                      // 用户名
+	Avatar    string `json:"avatar" example:"https://example.com/avatar.png"` // 用户头像
+	Email     string `json:"email" example:"new@example.com"`                 // 邮箱
+	CreatedAt string `json:"created_at" example:"2024-01-01T00:00:00Z"`       // 注册时间
 }
 
 // PopularPostsResponse 热门帖子响应体
