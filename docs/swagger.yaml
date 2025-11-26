@@ -1064,6 +1064,10 @@ definitions:
     type: object
   schema.NewUser:
     properties:
+      avatar:
+        description: 用户头像
+        example: https://example.com/avatar.png
+        type: string
       created_at:
         description: 注册时间
         example: "2024-01-01T00:00:00Z"
@@ -1885,6 +1889,10 @@ definitions:
     type: object
   schema.RecentComment:
     properties:
+      avatar:
+        description: 评论者头像
+        example: https://example.com/avatar.png
+        type: string
       content:
         description: 评论内容（截取前100字符）
         example: 很有见地的评论
@@ -1908,6 +1916,10 @@ definitions:
     type: object
   schema.RecentPost:
     properties:
+      avatar:
+        description: 作者头像
+        example: https://example.com/avatar.png
+        type: string
       category_name:
         description: 版块名称
         example: 技术讨论

@@ -7785,6 +7785,11 @@ const docTemplate = `{
         "schema.NewUser": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "description": "用户头像",
+                    "type": "string",
+                    "example": "https://example.com/avatar.png"
+                },
                 "created_at": {
                     "description": "注册时间",
                     "type": "string",
@@ -8850,6 +8855,11 @@ const docTemplate = `{
         "schema.RecentComment": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "description": "评论者头像",
+                    "type": "string",
+                    "example": "https://example.com/avatar.png"
+                },
                 "content": {
                     "description": "评论内容（截取前100字符）",
                     "type": "string",
@@ -8880,6 +8890,11 @@ const docTemplate = `{
         "schema.RecentPost": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "description": "作者头像",
+                    "type": "string",
+                    "example": "https://example.com/avatar.png"
+                },
                 "category_name": {
                     "description": "版块名称",
                     "type": "string",
