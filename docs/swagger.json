@@ -616,6 +616,47 @@
                 }
             }
         },
+        "/config": {
+            "get": {
+                "description": "获取客户端所需的公开配置，包括常规、首页、SEO、安全、代码、评论配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "公开配置"
+                ],
+                "summary": "获取公开配置",
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.PublicConfigResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
         "/manage/categories": {
             "get": {
                 "description": "分页获取版块列表，支持关键词搜索和状态筛选",
@@ -8178,6 +8219,11 @@
         "schema.PopularPost": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "description": "作者头像",
+                    "type": "string",
+                    "example": "https://example.com/avatar.png"
+                },
                 "category_name": {
                     "description": "版块名称",
                     "type": "string",
@@ -8788,6 +8834,29 @@
                     "maxLength": 200,
                     "minLength": 2,
                     "example": "技术分享帖"
+                }
+            }
+        },
+        "schema.PublicConfigResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "$ref": "#/definitions/schema.CodeSettingsResponse"
+                },
+                "comment": {
+                    "$ref": "#/definitions/schema.CommentSettingsResponse"
+                },
+                "home": {
+                    "$ref": "#/definitions/schema.HomeSettingsResponse"
+                },
+                "routine": {
+                    "$ref": "#/definitions/schema.RoutineSettingsResponse"
+                },
+                "safe": {
+                    "$ref": "#/definitions/schema.SafeSettingsResponse"
+                },
+                "seo": {
+                    "$ref": "#/definitions/schema.SeoSettingsResponse"
                 }
             }
         },

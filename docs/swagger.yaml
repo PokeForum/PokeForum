@@ -1366,6 +1366,10 @@ definitions:
     type: object
   schema.PopularPost:
     properties:
+      avatar:
+        description: 作者头像
+        example: https://example.com/avatar.png
+        type: string
       category_name:
         description: 版块名称
         example: 技术讨论
@@ -1844,6 +1848,21 @@ definitions:
         type: string
     required:
     - id
+    type: object
+  schema.PublicConfigResponse:
+    properties:
+      code:
+        $ref: '#/definitions/schema.CodeSettingsResponse'
+      comment:
+        $ref: '#/definitions/schema.CommentSettingsResponse'
+      home:
+        $ref: '#/definitions/schema.HomeSettingsResponse'
+      routine:
+        $ref: '#/definitions/schema.RoutineSettingsResponse'
+      safe:
+        $ref: '#/definitions/schema.SafeSettingsResponse'
+      seo:
+        $ref: '#/definitions/schema.SeoSettingsResponse'
     type: object
   schema.RankingItem:
     properties:
@@ -4179,6 +4198,30 @@ paths:
       summary: 点赞评论
       tags:
       - '[用户]评论'
+  /config:
+    get:
+      consumes:
+      - application/json
+      description: 获取客户端所需的公开配置，包括常规、首页、SEO、安全、代码、评论配置
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.PublicConfigResponse'
+              type: object
+        "500":
+          description: 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取公开配置
+      tags:
+      - 公开配置
   /manage/categories:
     get:
       consumes:
