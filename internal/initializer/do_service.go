@@ -170,4 +170,10 @@ func InjectorSrv(injector *do.Injector) {
 		}
 		return service.NewSigninService(configs.DB, cacheService, redisLock, configs.Log, settingsService, asyncTask), nil
 	})
+
+	// 注册 PerformanceService
+	do.Provide(injector, func(i *do.Injector) (service.IPerformanceService, error) {
+		pgDB := PgDB()
+		return service.NewPerformanceService(pgDB, configs.Cache, configs.Log), nil
+	})
 }

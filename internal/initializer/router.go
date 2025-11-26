@@ -183,6 +183,13 @@ func Routers(injector *do.Injector) *gin.Engine {
 	SuperManageGroup := AuthAPIGroup.Group("/super/manage")
 	SuperManageGroup.Use(saGin.CheckRole(user.RoleSuperAdmin.String()))
 	{
+		// 性能监控
+		{
+			PerformanceGroup := SuperManageGroup.Group("/performance")
+			PerformanceCon := controller.NewPerformanceController(injector)
+			PerformanceCon.PerformanceRouter(PerformanceGroup)
+		}
+
 		// 设置管理（统一的设置控制器，包含所有系统设置）
 		SettingsGroup := SuperManageGroup.Group("/settings")
 		SettingsCon := controller.NewSettingsController(injector)

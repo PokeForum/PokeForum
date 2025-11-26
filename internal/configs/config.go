@@ -30,4 +30,5 @@ var (
 	Cache  *redis.Client
 	Json   jsoniter.API
 	VP     *viper.Viper
+	PgDB   interface{} // 原生 PostgreSQL 连接 (*sql.DB)
 )
