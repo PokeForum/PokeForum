@@ -64,6 +64,11 @@ func Routers(injector *do.Injector) *gin.Engine {
 	AuthCon := controller.NewAuthController(injector)
 	AuthCon.AuthRouter(AuthGroup)
 
+	// 配置
+	ConfigGroup := api.Group("/config")
+	ConfigCon := controller.NewConfigController(injector)
+	ConfigCon.ConfigRouter(ConfigGroup)
+
 	// 添加登录校验
 	AuthAPIGroup := api.Group("")
 	AuthAPIGroup.Use(saPlugin.AuthMiddleware())

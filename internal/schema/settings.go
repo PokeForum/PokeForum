@@ -193,3 +193,13 @@ type SigninSettingsResponse struct {
 	// 经验值奖励比例
 	ExperienceReward float64 `json:"experience_reward" example:"1.0"`
 }
+
+// PublicConfigResponse 公开配置响应体（客户端可获取的配置）
+type PublicConfigResponse struct {
+	Routine *RoutineSettingsResponse `json:"routine"`
+	Home    *HomeSettingsResponse    `json:"home"`
+	Seo     *SeoSettingsResponse     `json:"seo"`
+	Safe    *SafeSettingsResponse    `json:"safe"`
+	Code    *CodeSettingsResponse    `json:"code"`
+	Comment *CommentSettingsResponse `json:"comment"`
+}
