@@ -24,6 +24,70 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth/forgot-password": {
+            "post": {
+                "description": "向用户邮箱发送找回密码验证码",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "认证"
+                ],
+                "summary": "发送找回密码验证码",
+                "parameters": [
+                    {
+                        "description": "找回密码请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.ForgotPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "发送成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.ForgotPasswordResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "429": {
+                        "description": "发送频率过高",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "用户登录获取认证信息",
@@ -153,6 +217,64 @@ const docTemplate = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/schema.UserResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/reset-password": {
+            "post": {
+                "description": "通过验证码重置用户密码",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "认证"
+                ],
+                "summary": "重置密码",
+                "parameters": [
+                    {
+                        "description": "重置密码请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.ResetPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "重置成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.ResetPasswordResponse"
                                         }
                                     }
                                 }
@@ -4392,70 +4514,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/profile/email": {
-            "put": {
-                "description": "修改用户邮箱，需要验证码验证",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]个人中心"
-                ],
-                "summary": "修改邮箱",
-                "parameters": [
-                    {
-                        "description": "修改邮箱请求",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.UserUpdateEmailRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "修改成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserEmailUpdateResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
         "/profile/email/verify": {
             "post": {
                 "description": "通过验证码验证用户邮箱真实性",
@@ -4528,7 +4586,7 @@ const docTemplate = `{
         },
         "/profile/email/verify-code": {
             "post": {
-                "description": "向用户邮箱发送验证码，用于邮箱验证",
+                "description": "向用户注册邮箱发送验证码，用于邮箱验证",
                 "consumes": [
                     "application/json"
                 ],
@@ -4539,17 +4597,6 @@ const docTemplate = `{
                     "[用户]个人中心"
                 ],
                 "summary": "发送邮箱验证码",
-                "parameters": [
-                    {
-                        "description": "发送验证码请求",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.EmailVerifyCodeRequest"
-                        }
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "发送成功",
@@ -4567,12 +4614,6 @@ const docTemplate = `{
                                     }
                                 }
                             ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
@@ -7722,19 +7763,6 @@ const docTemplate = `{
                 }
             }
         },
-        "schema.EmailVerifyCodeRequest": {
-            "type": "object",
-            "required": [
-                "email"
-            ],
-            "properties": {
-                "email": {
-                    "description": "邮箱地址",
-                    "type": "string",
-                    "example": "user@example.com"
-                }
-            }
-        },
         "schema.EmailVerifyCodeResponse": {
             "type": "object",
             "properties": {
@@ -7758,19 +7786,13 @@ const docTemplate = `{
         "schema.EmailVerifyRequest": {
             "type": "object",
             "required": [
-                "code",
-                "email"
+                "code"
             ],
             "properties": {
                 "code": {
                     "description": "验证码",
                     "type": "string",
                     "example": "123456"
-                },
-                "email": {
-                    "description": "邮箱地址",
-                    "type": "string",
-                    "example": "user@example.com"
                 }
             }
         },
@@ -7784,6 +7806,39 @@ const docTemplate = `{
                 },
                 "verified": {
                     "description": "验证状态",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "schema.ForgotPasswordRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "description": "邮箱",
+                    "type": "string",
+                    "example": "test@example.com"
+                }
+            }
+        },
+        "schema.ForgotPasswordResponse": {
+            "type": "object",
+            "properties": {
+                "expires_in": {
+                    "description": "验证码有效期（秒）",
+                    "type": "integer",
+                    "example": 600
+                },
+                "message": {
+                    "description": "提示信息",
+                    "type": "string",
+                    "example": "验证码已发送到您的邮箱，请查收"
+                },
+                "sent": {
+                    "description": "验证码发送状态",
                     "type": "boolean",
                     "example": true
                 }
@@ -9793,6 +9848,47 @@ const docTemplate = `{
                 }
             }
         },
+        "schema.ResetPasswordRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "email",
+                "new_password"
+            ],
+            "properties": {
+                "code": {
+                    "description": "验证码",
+                    "type": "string",
+                    "example": "123456"
+                },
+                "email": {
+                    "description": "邮箱",
+                    "type": "string",
+                    "example": "test@example.com"
+                },
+                "new_password": {
+                    "description": "新密码",
+                    "type": "string",
+                    "minLength": 8,
+                    "example": "newpass123"
+                }
+            }
+        },
+        "schema.ResetPasswordResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "description": "提示信息",
+                    "type": "string",
+                    "example": "密码重置成功"
+                },
+                "success": {
+                    "description": "是否成功",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "schema.RoutineSettingsRequest": {
             "type": "object",
             "properties": {
@@ -11074,26 +11170,6 @@ const docTemplate = `{
                 }
             }
         },
-        "schema.UserEmailUpdateResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "description": "提示信息",
-                    "type": "string",
-                    "example": "邮箱修改成功，请验证新邮箱"
-                },
-                "need_verify": {
-                    "description": "是否需要验证",
-                    "type": "boolean",
-                    "example": true
-                },
-                "new_email": {
-                    "description": "新邮箱",
-                    "type": "string",
-                    "example": "new@example.com"
-                }
-            }
-        },
         "schema.UserListItem": {
             "type": "object",
             "properties": {
@@ -12071,31 +12147,6 @@ const docTemplate = `{
                     "description": "是否成功",
                     "type": "boolean",
                     "example": true
-                }
-            }
-        },
-        "schema.UserUpdateEmailRequest": {
-            "type": "object",
-            "required": [
-                "new_email",
-                "password",
-                "verify_code"
-            ],
-            "properties": {
-                "new_email": {
-                    "description": "新邮箱",
-                    "type": "string",
-                    "example": "newemail@example.com"
-                },
-                "password": {
-                    "description": "当前密码",
-                    "type": "string",
-                    "example": "password123"
-                },
-                "verify_code": {
-                    "description": "验证码",
-                    "type": "string",
-                    "example": "123456"
                 }
             }
         },
