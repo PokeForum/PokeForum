@@ -11,6 +11,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
 	"github.com/PokeForum/PokeForum/ent/user"
+	_const "github.com/PokeForum/PokeForum/internal/const"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/stats"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
@@ -50,6 +51,7 @@ type PostService struct {
 	cache            cache.ICacheService
 	logger           *zap.Logger
 	postStatsService IPostStatsService
+	settingsService  ISettingsService
 }
 
 // NewPostService 创建帖子服务实例
@@ -59,6 +61,7 @@ func NewPostService(db *ent.Client, cacheService cache.ICacheService, logger *za
 		cache:            cacheService,
 		logger:           logger,
 		postStatsService: NewPostStatsService(db, cacheService, logger),
+		settingsService:  NewSettingsService(db, cacheService, logger),
 	}
 }
 
@@ -827,7 +830,7 @@ func (s *PostService) CheckPrivatePermission(ctx context.Context, userID, postID
 func (s *PostService) checkUserStatus(ctx context.Context, userID int) error {
 	userData, err := s.db.User.Query().
 		Where(user.IDEQ(userID)).
-		Select(user.FieldStatus).
+		Select(user.FieldStatus, user.FieldEmailVerified).
 		Only(ctx)
 	if err != nil {
 		s.logger.Error("获取用户状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
@@ -836,6 +839,11 @@ func (s *PostService) checkUserStatus(ctx context.Context, userID int) error {
 
 	switch userData.Status {
 	case user.StatusNormal:
+		// 检查是否需要验证邮箱
+		verifyEmail, _ := s.settingsService.GetSettingByKey(ctx, _const.SafeVerifyEmail, "false")
+		if verifyEmail == _const.SettingBoolTrue.String() && !userData.EmailVerified {
+			return errors.New("您的邮箱尚未验证，请先完成验证")
+		}
 		return nil
 	case user.StatusRiskControl:
 		// TODO: RiskControl状态需要管理员审核发布，暂时放行
@@ -844,8 +852,6 @@ func (s *PostService) checkUserStatus(ctx context.Context, userID int) error {
 		return errors.New("您已被禁言，无法进行此操作")
 	case user.StatusBlocked:
 		return errors.New("您的账号已被封禁，无法进行此操作")
-	case user.StatusActivationPending:
-		return errors.New("您的账号尚未激活，请先完成激活")
 	default:
 		return errors.New("账号状态异常，无法进行此操作")
 	}
