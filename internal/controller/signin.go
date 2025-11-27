@@ -129,13 +129,13 @@ func (ctrl *SigninController) GetSigninStatus(c *gin.Context) {
 
 // GetDailyRanking 获取每日签到排行榜
 // @Summary 获取每日签到排行榜
-// @Description 获取指定日期的签到排行榜，按奖励积分排序
+// @Description 获取指定日期的签到排行榜，按奖励积分从高到低排序，最多返回前100名
 // @Tags [用户]签到
 // @Accept json
 // @Produce json
 // @Param date query string false "查询日期，格式：YYYY-MM-DD，不传则查询今日"
 // @Param limit query int false "返回数量限制，默认10，最大100"
-// @Success 200 {object} response.Data{data=[]schema.SigninRankingItem} "获取成功"
+// @Success 200 {object} response.Data{data=schema.SigninRankingResponse} "获取成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 500 {object} response.Data "服务器内部错误"
 // @Router /signin/ranking/daily [get]
@@ -154,11 +154,14 @@ func (ctrl *SigninController) GetDailyRanking(c *gin.Context) {
 		limit = parsedLimit
 	}
 
+	// 尝试获取用户ID（可选，用于获取当前用户排名）
+	userID, _ := ctrl.getUserID(c)
+
 	// 获取服务
 	signinService := do.MustInvoke[service.ISigninService](ctrl.injector)
 
 	// 调用签到服务获取排行榜
-	ranking, err := signinService.GetDailyRanking(c.Request.Context(), date, limit)
+	ranking, err := signinService.GetDailyRanking(c.Request.Context(), date, limit, int64(userID))
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -169,12 +172,12 @@ func (ctrl *SigninController) GetDailyRanking(c *gin.Context) {
 
 // GetContinuousRanking 获取连续签到排行榜
 // @Summary 获取连续签到排行榜
-// @Description 获取连续签到天数排行榜，按连续签到天数排序
+// @Description 获取连续签到天数排行榜，按连续签到天数从高到低排序，最多返回前100名
 // @Tags [用户]签到
 // @Accept json
 // @Produce json
 // @Param limit query int false "返回数量限制，默认10，最大100"
-// @Success 200 {object} response.Data{data=[]schema.SigninRankingItem} "获取成功"
+// @Success 200 {object} response.Data{data=schema.SigninRankingResponse} "获取成功"
 // @Failure 400 {object} response.Data "请求参数错误"
 // @Failure 500 {object} response.Data "服务器内部错误"
 // @Router /signin/ranking/continuous [get]
@@ -192,11 +195,14 @@ func (ctrl *SigninController) GetContinuousRanking(c *gin.Context) {
 		limit = parsedLimit
 	}
 
+	// 尝试获取用户ID（可选，用于获取当前用户排名）
+	userID, _ := ctrl.getUserID(c)
+
 	// 获取服务
 	signinService := do.MustInvoke[service.ISigninService](ctrl.injector)
 
 	// 调用签到服务获取排行榜
-	ranking, err := signinService.GetContinuousRanking(c.Request.Context(), limit)
+	ranking, err := signinService.GetContinuousRanking(c.Request.Context(), limit, int64(userID))
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return

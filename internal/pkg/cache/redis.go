@@ -282,6 +282,37 @@ func (r *RedisCacheService) ZAdd(ctx context.Context, key string, member string,
 	return nil
 }
 
+// ZRevRangeWithScores 按分数从高到低获取有序集合成员
+func (r *RedisCacheService) ZRevRangeWithScores(ctx context.Context, key string, start, stop int64) ([]ZMember, error) {
+	result, err := r.client.ZRevRangeWithScores(ctx, key, start, stop).Result()
+	if err != nil {
+		r.logger.Error("获取有序集合成员失败", zap.String("key", key), zap.Error(err))
+		return nil, fmt.Errorf("获取有序集合成员失败: %w", err)
+	}
+
+	members := make([]ZMember, len(result))
+	for i, z := range result {
+		members[i] = ZMember{
+			Member: z.Member.(string),
+			Score:  z.Score,
+		}
+	}
+	return members, nil
+}
+
+// ZRevRank 获取成员在有序集合中的排名（从高到低）
+func (r *RedisCacheService) ZRevRank(ctx context.Context, key string, member string) (int64, error) {
+	rank, err := r.client.ZRevRank(ctx, key, member).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return -1, nil
+		}
+		r.logger.Error("获取成员排名失败", zap.String("key", key), zap.String("member", member), zap.Error(err))
+		return -1, fmt.Errorf("获取成员排名失败: %w", err)
+	}
+	return rank, nil
+}
+
 // XAdd 向Stream添加消息
 func (r *RedisCacheService) XAdd(ctx context.Context, stream string, values map[string]interface{}) (string, error) {
 	messageID, err := r.client.XAdd(ctx, &redis.XAddArgs{

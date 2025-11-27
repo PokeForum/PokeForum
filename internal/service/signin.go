@@ -37,9 +37,9 @@ type ISigninService interface {
 	// GetSigninStatus 获取签到状态
 	GetSigninStatus(ctx context.Context, userID int64) (*schema.SigninStatus, error)
 	// GetDailyRanking 获取每日排行榜
-	GetDailyRanking(ctx context.Context, date string, limit int) ([]*schema.SigninRankingItem, error)
+	GetDailyRanking(ctx context.Context, date string, limit int, userID int64) (*schema.SigninRankingResponse, error)
 	// GetContinuousRanking 获取连续签到排行榜
-	GetContinuousRanking(ctx context.Context, limit int) ([]*schema.SigninRankingItem, error)
+	GetContinuousRanking(ctx context.Context, limit int, userID int64) (*schema.SigninRankingResponse, error)
 }
 
 // NewSigninService 创建签到服务实例
@@ -187,7 +187,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 	}
 
 	// 更新排行榜
-	err = s.updateRanking(ctx, userID, today, rewardPoints)
+	err = s.updateRanking(ctx, userID, today, rewardPoints, continuousDays)
 	if err != nil {
 		s.logger.Error("更新排行榜失败",
 			zap.Int64("user_id", userID),
@@ -195,6 +195,9 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 			tracing.WithTraceIDField(ctx))
 		// 排行榜更新失败不影响签到流程
 	}
+
+	// 获取用户在每日奖励排行榜中的排名
+	rank := s.getUserDailyRank(ctx, userID, today)
 
 	// 异步写入数据库
 	signDate, _ := time.Parse("2006-01-02", today)
@@ -234,6 +237,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 		ContinuousDays:   continuousDays,
 		TotalDays:        totalDays,
 		Message:          s.buildSigninMessage(continuousDays, rewardPoints),
+		Rank:             rank,
 	}
 
 	s.logger.Info("签到处理完成",
@@ -298,15 +302,11 @@ func (s *SigninService) getUserSigninStatus(ctx context.Context, userID int64) (
 	today := time.Now().Format("2006-01-02")
 	isTodaySigned := statusMap["last_sign"] == today
 
-	// 计算明日预计奖励
-	tomorrowReward := s.calculateTomorrowReward(ctx, continuousDays+1)
-
 	return &schema.SigninStatus{
 		IsTodaySigned:  isTodaySigned,
 		LastSigninDate: lastSigninDate,
 		ContinuousDays: continuousDays,
 		TotalDays:      totalDays,
-		TomorrowReward: tomorrowReward,
 	}, nil
 }
 
@@ -319,13 +319,11 @@ func (s *SigninService) getSigninStatusFromDB(ctx context.Context, userID int64)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			// 用户首次签到，返回默认状态
-			tomorrowReward := s.calculateTomorrowReward(ctx, 1)
 			return &schema.SigninStatus{
 				IsTodaySigned:  false,
 				LastSigninDate: nil,
 				ContinuousDays: 0,
 				TotalDays:      0,
-				TomorrowReward: tomorrowReward,
 			}, nil
 		}
 		return nil, err
@@ -339,18 +337,13 @@ func (s *SigninService) getSigninStatusFromDB(ctx context.Context, userID int64)
 		LastSigninDate: &status.LastSigninDate,
 		ContinuousDays: status.ContinuousDays,
 		TotalDays:      status.TotalDays,
-		TomorrowReward: 0,
 	})
-
-	// 计算明日预计奖励
-	tomorrowReward := s.calculateTomorrowReward(ctx, continuousDays+1)
 
 	return &schema.SigninStatus{
 		IsTodaySigned:  isTodaySigned,
 		LastSigninDate: &status.LastSigninDate,
 		ContinuousDays: continuousDays,
 		TotalDays:      totalDays,
-		TomorrowReward: tomorrowReward,
 	}, nil
 }
 
@@ -521,70 +514,6 @@ func (s *SigninService) calculateRandomReward(ctx context.Context) (points, expe
 	return points, experience, nil
 }
 
-// calculateTomorrowReward 计算明日预计奖励
-func (s *SigninService) calculateTomorrowReward(ctx context.Context, continuousDays int) int {
-	// 获取签到模式
-	mode, err := s.settingsService.GetSettingByKey(ctx, _const.SigninMode, "fixed")
-	if err != nil {
-		return 1 // 默认返回1
-	}
-
-	switch mode {
-	case "fixed":
-		pointsStr, err := s.settingsService.GetSettingByKey(ctx, _const.SigninFixedReward, "10")
-		if err != nil {
-			return 1
-		}
-		points, err := strconv.Atoi(pointsStr)
-		if err != nil || points < 1 {
-			return 1
-		}
-		return points
-	case "increment":
-		baseStr, err := s.settingsService.GetSettingByKey(ctx, _const.SigninIncrementBase, "5")
-		if err != nil {
-			return 1
-		}
-		stepStr, err := s.settingsService.GetSettingByKey(ctx, _const.SigninIncrementStep, "1")
-		if err != nil {
-			return 1
-		}
-		base, err := strconv.Atoi(baseStr)
-		if err != nil || base < 1 {
-			return 1
-		}
-		step, err := strconv.Atoi(stepStr)
-		if err != nil {
-			step = 1
-		}
-		tomorrowPoints := base + continuousDays*step
-		if tomorrowPoints < 1 {
-			return 1
-		}
-		return tomorrowPoints
-	case "random":
-		minStr, err := s.settingsService.GetSettingByKey(ctx, _const.SigninRandomMin, "5")
-		if err != nil {
-			return 1
-		}
-		maxStr, err := s.settingsService.GetSettingByKey(ctx, _const.SigninRandomMax, "20")
-		if err != nil {
-			return 1
-		}
-		minNum, err := strconv.Atoi(minStr)
-		if err != nil || minNum < 1 {
-			return 1
-		}
-		maxNum, err := strconv.Atoi(maxStr)
-		if err != nil || maxNum < minNum {
-			return 1
-		}
-		return maxNum // 返回最大值作为明日预计
-	default:
-		return 1
-	}
-}
-
 // updateRedisSigninStatus 更新Redis中的签到状态
 func (s *SigninService) updateRedisSigninStatus(ctx context.Context, userID int64, today string, continuousDays, totalDays int) error {
 	statusKey := fmt.Sprintf("signin:status:%d", userID)
@@ -600,29 +529,49 @@ func (s *SigninService) updateRedisSigninStatus(ctx context.Context, userID int6
 }
 
 // updateRanking 更新排行榜
-func (s *SigninService) updateRanking(ctx context.Context, userID int64, today string, rewardPoints int) error {
-	// 更新每日奖励排行榜
-	dailyRankingKey := fmt.Sprintf("signin:reward:%s", today)
+func (s *SigninService) updateRanking(ctx context.Context, userID int64, today string, rewardPoints int, continuousDays int) error {
+	// 更新每日奖励排行榜（按奖励积分排序）
+	dailyRankingKey := fmt.Sprintf("signin:daily:%s", today)
 	err := s.cache.ZAdd(ctx, dailyRankingKey, fmt.Sprintf("%d", userID), float64(rewardPoints))
 	if err != nil {
 		return err
 	}
 
-	// 设置过期时间（30天）
-	_, err = s.cache.Expire(ctx, dailyRankingKey, 30*24*3600)
+	// 设置过期时间（7天）
+	_, err = s.cache.Expire(ctx, dailyRankingKey, 7*24*3600)
 	if err != nil {
 		return err
 	}
 
-	// 更新连续签到排行榜
+	// 更新连续签到排行榜（按连续天数排序）
 	continuousRankingKey := "signin:continuous:ranking"
-	err = s.cache.ZAdd(ctx, continuousRankingKey, fmt.Sprintf("%d", userID), float64(rewardPoints))
+	err = s.cache.ZAdd(ctx, continuousRankingKey, fmt.Sprintf("%d", userID), float64(continuousDays))
 	if err != nil {
 		return err
 	}
 
-	// 设置过期时间（永久）
 	return nil
+}
+
+// getUserDailyRank 获取用户在每日奖励排行榜中的排名
+func (s *SigninService) getUserDailyRank(ctx context.Context, userID int64, today string) int {
+	dailyRankingKey := fmt.Sprintf("signin:daily:%s", today)
+	rank, err := s.cache.ZRevRank(ctx, dailyRankingKey, fmt.Sprintf("%d", userID))
+	if err != nil || rank < 0 {
+		return 0
+	}
+	// 排名从1开始
+	return int(rank) + 1
+}
+
+// getUserContinuousRank 获取用户在连续签到排行榜中的排名
+func (s *SigninService) getUserContinuousRank(ctx context.Context, userID int64) int {
+	continuousRankingKey := "signin:continuous:ranking"
+	rank, err := s.cache.ZRevRank(ctx, continuousRankingKey, fmt.Sprintf("%d", userID))
+	if err != nil || rank < 0 {
+		return 0
+	}
+	return int(rank) + 1
 }
 
 // updateUserBalance 更新用户积分和经验
@@ -722,23 +671,165 @@ func (s *SigninService) GetSigninStatus(ctx context.Context, userID int64) (*sch
 	return s.getUserSigninStatus(ctx, userID)
 }
 
-// GetDailyRanking 获取每日签到排行榜
-func (s *SigninService) GetDailyRanking(ctx context.Context, date string, limit int) ([]*schema.SigninRankingItem, error) {
+// GetDailyRanking 获取每日签到排行榜（按奖励积分排序）
+func (s *SigninService) GetDailyRanking(ctx context.Context, date string, limit int, userID int64) (*schema.SigninRankingResponse, error) {
 	s.logger.Info("获取每日签到排行榜",
 		zap.String("date", date),
 		zap.Int("limit", limit),
+		zap.Int64("user_id", userID),
 		tracing.WithTraceIDField(ctx))
 
-	// TODO: 实现每日排行榜逻辑
-	return []*schema.SigninRankingItem{}, nil
+	// 如果没有指定日期，使用今天
+	if date == "" {
+		date = time.Now().Format("2006-01-02")
+	}
+
+	// 限制最多100名
+	if limit > 100 {
+		limit = 100
+	}
+
+	dailyRankingKey := fmt.Sprintf("signin:daily:%s", date)
+
+	// 获取排行榜数据（按分数从高到低）
+	members, err := s.cache.ZRevRangeWithScores(ctx, dailyRankingKey, 0, int64(limit-1))
+	if err != nil {
+		s.logger.Error("获取排行榜数据失败",
+			zap.String("date", date),
+			zap.Error(err),
+			tracing.WithTraceIDField(ctx))
+		return nil, errors.New("获取排行榜失败")
+	}
+
+	// 收集用户ID
+	userIDs := make([]int, 0, len(members))
+	for _, m := range members {
+		uid, _ := strconv.Atoi(m.Member)
+		userIDs = append(userIDs, uid)
+	}
+
+	// 批量查询用户信息
+	userMap := make(map[int]*ent.User)
+	if len(userIDs) > 0 {
+		users, err := s.db.User.Query().Where(user.IDIn(userIDs...)).All(ctx)
+		if err != nil {
+			s.logger.Error("查询用户信息失败",
+				zap.Error(err),
+				tracing.WithTraceIDField(ctx))
+		} else {
+			for _, u := range users {
+				userMap[u.ID] = u
+			}
+		}
+	}
+
+	// 构建排行榜列表
+	list := make([]*schema.SigninRankingItem, 0, len(members))
+	for i, m := range members {
+		uid, _ := strconv.Atoi(m.Member)
+		item := &schema.SigninRankingItem{
+			UserID:       int64(uid),
+			Rank:         i + 1,
+			RewardPoints: int(m.Score),
+		}
+
+		if u, ok := userMap[uid]; ok {
+			item.Username = u.Username
+			item.Avatar = u.Avatar
+		}
+
+		list = append(list, item)
+	}
+
+	// 获取当前用户排名
+	myRank := 0
+	if userID > 0 {
+		rank, err := s.cache.ZRevRank(ctx, dailyRankingKey, fmt.Sprintf("%d", userID))
+		if err == nil && rank >= 0 {
+			myRank = int(rank) + 1
+		}
+	}
+
+	return &schema.SigninRankingResponse{
+		List:   list,
+		MyRank: myRank,
+	}, nil
 }
 
-// GetContinuousRanking 获取连续签到排行榜
-func (s *SigninService) GetContinuousRanking(ctx context.Context, limit int) ([]*schema.SigninRankingItem, error) {
+// GetContinuousRanking 获取连续签到排行榜（按连续天数排序）
+func (s *SigninService) GetContinuousRanking(ctx context.Context, limit int, userID int64) (*schema.SigninRankingResponse, error) {
 	s.logger.Info("获取连续签到排行榜",
 		zap.Int("limit", limit),
+		zap.Int64("user_id", userID),
 		tracing.WithTraceIDField(ctx))
 
-	// TODO: 实现连续签到排行榜逻辑
-	return []*schema.SigninRankingItem{}, nil
+	// 限制最多100名
+	if limit > 100 {
+		limit = 100
+	}
+
+	continuousRankingKey := "signin:continuous:ranking"
+
+	// 获取排行榜数据（按分数从高到低）
+	members, err := s.cache.ZRevRangeWithScores(ctx, continuousRankingKey, 0, int64(limit-1))
+	if err != nil {
+		s.logger.Error("获取连续签到排行榜数据失败",
+			zap.Error(err),
+			tracing.WithTraceIDField(ctx))
+		return nil, errors.New("获取排行榜失败")
+	}
+
+	// 收集用户ID
+	userIDs := make([]int, 0, len(members))
+	for _, m := range members {
+		uid, _ := strconv.Atoi(m.Member)
+		userIDs = append(userIDs, uid)
+	}
+
+	// 批量查询用户信息
+	userMap := make(map[int]*ent.User)
+	if len(userIDs) > 0 {
+		users, err := s.db.User.Query().Where(user.IDIn(userIDs...)).All(ctx)
+		if err != nil {
+			s.logger.Error("查询用户信息失败",
+				zap.Error(err),
+				tracing.WithTraceIDField(ctx))
+		} else {
+			for _, u := range users {
+				userMap[u.ID] = u
+			}
+		}
+	}
+
+	// 构建排行榜列表
+	list := make([]*schema.SigninRankingItem, 0, len(members))
+	for i, m := range members {
+		uid, _ := strconv.Atoi(m.Member)
+		item := &schema.SigninRankingItem{
+			UserID:         int64(uid),
+			Rank:           i + 1,
+			ContinuousDays: int(m.Score),
+		}
+
+		if u, ok := userMap[uid]; ok {
+			item.Username = u.Username
+			item.Avatar = u.Avatar
+		}
+
+		list = append(list, item)
+	}
+
+	// 获取当前用户排名
+	myRank := 0
+	if userID > 0 {
+		rank, err := s.cache.ZRevRank(ctx, continuousRankingKey, fmt.Sprintf("%d", userID))
+		if err == nil && rank >= 0 {
+			myRank = int(rank) + 1
+		}
+	}
+
+	return &schema.SigninRankingResponse{
+		List:   list,
+		MyRank: myRank,
+	}, nil
 }

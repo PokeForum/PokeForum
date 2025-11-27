@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+// ZMember 有序集合成员
+type ZMember struct {
+	Member string
+	Score  float64
+}
+
 // ICacheService Redis缓存服务接口
 // 提供统一的缓存操作方法，避免在各个Service中重复编写Redis操作代码
 type ICacheService interface {
@@ -164,6 +170,21 @@ type ICacheService interface {
 	// score: 分数
 	// 返回: 错误信息
 	ZAdd(ctx context.Context, key string, member string, score float64) error
+
+	// ZRevRangeWithScores 按分数从高到低获取有序集合成员
+	// ctx: 上下文
+	// key: 有序集合键名
+	// start: 起始索引
+	// stop: 结束索引
+	// 返回: 成员和分数列表以及错误信息
+	ZRevRangeWithScores(ctx context.Context, key string, start, stop int64) ([]ZMember, error)
+
+	// ZRevRank 获取成员在有序集合中的排名（从高到低）
+	// ctx: 上下文
+	// key: 有序集合键名
+	// member: 成员值
+	// 返回: 排名（0开始）和错误信息，如果成员不存在返回-1
+	ZRevRank(ctx context.Context, key string, member string) (int64, error)
 
 	// XAdd 向Stream添加消息
 	// ctx: 上下文

@@ -84,6 +84,8 @@ type SigninResult struct {
 	TotalDays int `json:"total_days" example:"30"`
 	// 提示信息
 	Message string `json:"message" example:"签到成功！获得10积分，连续签到5天，继续加油！"`
+	// 当前排名（从1开始，0表示未上榜）
+	Rank int `json:"rank" example:"1"`
 }
 
 // SigninStatus 签到状态
@@ -96,8 +98,6 @@ type SigninStatus struct {
 	ContinuousDays int `json:"continuous_days" example:"4"`
 	// 总签到天数
 	TotalDays int `json:"total_days" example:"29"`
-	// 明日预计奖励
-	TomorrowReward int `json:"tomorrow_reward" example:"10"`
 }
 
 // SigninRankingItem 排行榜项目
@@ -116,4 +116,12 @@ type SigninRankingItem struct {
 	RewardPoints int `json:"reward_points" example:"50"`
 	// 排名
 	Rank int `json:"rank" example:"1"`
+}
+
+// SigninRankingResponse 签到排行榜响应
+type SigninRankingResponse struct {
+	// 排行榜列表
+	List []*SigninRankingItem `json:"list"`
+	// 当前用户排名（从1开始，0表示未上榜）
+	MyRank int `json:"my_rank" example:"5"`
 }
