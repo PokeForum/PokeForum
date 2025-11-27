@@ -14,7 +14,6 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/email"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
-	"github.com/wneessen/go-mail"
 	"go.uber.org/zap"
 )
 
@@ -439,39 +438,12 @@ func (s *SettingsService) SendTestEmail(ctx context.Context, toEmail string) err
 		return errors.New("邮箱服务未启用")
 	}
 
-	// 检查必要的配置是否完整，确保主机、端口和用户名都已配置
+	// 检查必要的配置是否完整
 	if config.Host == "" || config.Port == 0 || config.Username == "" {
 		return errors.New("SMTP配置不完整")
 	}
 
-	// 创建SMTP配置对象，用于建立SMTP连接
-	smtpConfig := email.SMTPConfig{
-		Name:       config.Sender,
-		Address:    config.Address,
-		Host:       config.Host,
-		Port:       config.Port,
-		User:       config.Username,
-		Password:   config.Password, // 直接使用配置中的密码
-		Encryption: config.ForcedSSL,
-		Keepalive:  config.ConnectionValidity,
-	}
-
-	// 创建邮件消息对象
-	m := mail.NewMsg()
-	if err = m.FromFormat(smtpConfig.Name, smtpConfig.Address); err != nil {
-		return fmt.Errorf("设置发件人失败: %w", err)
-	}
-
-	// 设置收件人邮箱地址
-	if err = m.To(toEmail); err != nil {
-		return fmt.Errorf("设置收件人失败: %w", err)
-	}
-
-	// 设置邮件主题
-	m.Subject("PokeForum 邮箱服务测试")
-	m.SetMessageID()
-
-	// 设置邮件内容为HTML格式
+	// 构建邮件内容
 	htmlBody := `
 	<html>
 		<body>
@@ -483,34 +455,23 @@ func (s *SettingsService) SendTestEmail(ctx context.Context, toEmail string) err
 		</body>
 	</html>
 	`
-	m.SetBodyString(mail.TypeTextHTML, htmlBody)
 
-	// 建立SMTP连接并发送邮件，配置SMTP选项
-	opts := []mail.Option{
-		mail.WithPort(smtpConfig.Port),
-		mail.WithTimeout(60),
-		mail.WithSMTPAuth(mail.SMTPAuthAutoDiscover),
-		mail.WithTLSPortPolicy(mail.TLSOpportunistic),
-		mail.WithUsername(smtpConfig.User),
-		mail.WithPassword(smtpConfig.Password),
-	}
+	// 使用SMTPPool发送邮件
+	sp := email.NewSMTPPool(email.SMTPConfig{
+		Name:       config.Sender,
+		Address:    config.Address,
+		Host:       config.Host,
+		Port:       config.Port,
+		User:       config.Username,
+		Password:   config.Password,
+		Encryption: config.ForcedSSL,
+		Keepalive:  config.ConnectionValidity,
+	}, s.logger)
+	defer sp.Close()
 
-	// 如果启用SSL加密，添加SSL选项
-	if smtpConfig.Encryption {
-		opts = append(opts, mail.WithSSL())
-	}
-
-	// 创建SMTP客户端
-	client, err := mail.NewClient(smtpConfig.Host, opts...)
-	if err != nil {
-		s.logger.Error("创建SMTP客户端失败", tracing.WithTraceIDField(ctx), zap.Error(err))
-		return fmt.Errorf("创建SMTP客户端失败: %w", err)
-	}
-
-	// 连接到SMTP服务器并发送邮件
-	if err = client.DialAndSend(m); err != nil {
-		s.logger.Error("发送邮件失败", tracing.WithTraceIDField(ctx), zap.Error(err))
-		return fmt.Errorf("发送邮件失败: %w", err)
+	if err = sp.Send(ctx, toEmail, "PokeForum 邮箱服务测试", htmlBody); err != nil {
+		s.logger.Error("发送测试邮件失败", tracing.WithTraceIDField(ctx), zap.Error(err))
+		return fmt.Errorf("发送测试邮件失败: %w", err)
 	}
 
 	return nil

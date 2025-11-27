@@ -26,6 +26,7 @@ type SMTPPool struct {
 	config SMTPConfig
 	ch     chan *message
 	chOpen bool
+	ready  chan struct{} // 初始化完成信号
 	logger *zap.Logger
 }
 
@@ -47,10 +48,19 @@ func NewSMTPPool(config SMTPConfig, logger *zap.Logger) *SMTPPool {
 		config: config,
 		ch:     make(chan *message, 30),
 		chOpen: false,
+		ready:  make(chan struct{}),
 		logger: logger,
 	}
 
 	client.Init()
+
+	// 等待初始化完成（最多5秒）
+	select {
+	case <-client.ready:
+	case <-time.After(5 * time.Second):
+		logger.Warn("SMTP队列初始化超时")
+	}
+
 	return client
 }
 
@@ -129,6 +139,7 @@ func (client *SMTPPool) Init() {
 		}
 
 		client.chOpen = true
+		close(client.ready) // 通知初始化完成
 
 		var err error
 		open := false
