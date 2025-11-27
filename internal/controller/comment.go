@@ -35,8 +35,6 @@ func (ctrl *CommentController) CommentRouter(router *gin.RouterGroup) {
 	router.PUT("", saGin.CheckRole(user.RoleUser.String()), ctrl.UpdateComment)
 	// 获取评论列表
 	router.GET("", ctrl.GetCommentList)
-	// 获取评论详情
-	router.GET("/:id", ctrl.GetCommentDetail)
 	// 点赞评论
 	router.POST("/like", saGin.CheckRole(user.RoleUser.String()), ctrl.LikeComment)
 	// 点踩评论
@@ -268,44 +266,6 @@ func (ctrl *CommentController) GetCommentList(c *gin.Context) {
 	result, err := commentService.GetCommentList(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, 500, "获取评论列表失败", err.Error())
-		return
-	}
-
-	// 返回成功响应
-	response.ResSuccess(c, result)
-}
-
-// GetCommentDetail 获取评论详情
-// @Summary 获取评论详情
-// @Description 根据评论ID获取评论详细信息
-// @Tags [用户]评论
-// @Accept json
-// @Produce json
-// @Param id path int true "评论ID"
-// @Success 200 {object} response.Data{data=schema.UserCommentDetailResponse} "获取成功"
-// @Failure 400 {object} response.Data "请求参数错误"
-// @Failure 404 {object} response.Data "评论不存在"
-// @Failure 500 {object} response.Data "服务器内部错误"
-// @Router /comments/{id} [get]
-func (ctrl *CommentController) GetCommentDetail(c *gin.Context) {
-	// 解析评论ID
-	commentID, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		response.ResErrorWithMsg(c, 400, "请求参数错误", "评论ID必须是数字")
-		return
-	}
-
-	// 获取服务实例
-	commentService := do.MustInvoke[service.ICommentService](ctrl.injector)
-
-	// 调用服务获取评论详情
-	result, err := commentService.GetCommentDetail(c.Request.Context(), commentID)
-	if err != nil {
-		if err.Error() == "评论不存在" {
-			response.ResErrorWithMsg(c, 404, "评论不存在", err.Error())
-		} else {
-			response.ResErrorWithMsg(c, 500, "获取评论详情失败", err.Error())
-		}
 		return
 	}
 

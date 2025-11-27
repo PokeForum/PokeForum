@@ -66,6 +66,11 @@ func NewPostService(db *ent.Client, cacheService cache.ICacheService, logger *za
 func (s *PostService) CreatePost(ctx context.Context, userID int, req schema.UserPostCreateRequest) (*schema.UserPostCreateResponse, error) {
 	s.logger.Info("创建帖子", zap.Int("user_id", userID), zap.Int("category_id", req.CategoryID), zap.String("title", req.Title), tracing.WithTraceIDField(ctx))
 
+	// 检查用户状态
+	if err := s.checkUserStatus(ctx, userID); err != nil {
+		return nil, err
+	}
+
 	// 检查版块是否存在
 	categoryData, err := s.db.Category.Query().
 		Where(category.IDEQ(req.CategoryID)).
@@ -191,6 +196,11 @@ func (s *PostService) SaveDraft(ctx context.Context, userID int, req schema.User
 // UpdatePost 更新帖子
 func (s *PostService) UpdatePost(ctx context.Context, userID int, req schema.UserPostUpdateRequest) (*schema.UserPostUpdateResponse, error) {
 	s.logger.Info("更新帖子", zap.Int("user_id", userID), zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+
+	// 检查用户状态
+	if err := s.checkUserStatus(ctx, userID); err != nil {
+		return nil, err
+	}
 
 	// 检查帖子是否存在
 	postData, err := s.db.Post.Query().
@@ -811,4 +821,32 @@ func (s *PostService) CheckPrivatePermission(ctx context.Context, userID, postID
 	}
 
 	return true, nil
+}
+
+// checkUserStatus 检查用户状态是否允许操作
+func (s *PostService) checkUserStatus(ctx context.Context, userID int) error {
+	userData, err := s.db.User.Query().
+		Where(user.IDEQ(userID)).
+		Select(user.FieldStatus).
+		Only(ctx)
+	if err != nil {
+		s.logger.Error("获取用户状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("获取用户状态失败: %w", err)
+	}
+
+	switch userData.Status {
+	case user.StatusNormal:
+		return nil
+	case user.StatusRiskControl:
+		// TODO: RiskControl状态需要管理员审核发布，暂时放行
+		return nil
+	case user.StatusMute:
+		return errors.New("您已被禁言，无法进行此操作")
+	case user.StatusBlocked:
+		return errors.New("您的账号已被封禁，无法进行此操作")
+	case user.StatusActivationPending:
+		return errors.New("您的账号尚未激活，请先完成激活")
+	default:
+		return errors.New("账号状态异常，无法进行此操作")
+	}
 }

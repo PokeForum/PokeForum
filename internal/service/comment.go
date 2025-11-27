@@ -30,8 +30,6 @@ type ICommentService interface {
 	DislikeComment(ctx context.Context, userID int, req schema.UserCommentActionRequest) (*schema.UserCommentActionResponse, error)
 	// GetCommentList 获取评论列表
 	GetCommentList(ctx context.Context, req schema.UserCommentListRequest) (*schema.UserCommentListResponse, error)
-	// GetCommentDetail 获取评论详情
-	GetCommentDetail(ctx context.Context, commentID int) (*schema.UserCommentDetailResponse, error)
 }
 
 // CommentService 评论服务实现
@@ -57,6 +55,11 @@ func NewCommentService(db *ent.Client, cacheService cache.ICacheService, logger 
 // CreateComment 创建评论
 func (s *CommentService) CreateComment(ctx context.Context, userID int, clientIP, deviceInfo string, req schema.UserCommentCreateRequest) (*schema.UserCommentCreateResponse, error) {
 	s.logger.Info("创建评论", zap.Int("user_id", userID), zap.Int("post_id", req.PostID), zap.String("client_ip", clientIP), zap.String("device_info", deviceInfo), tracing.WithTraceIDField(ctx))
+
+	// 检查用户状态
+	if err := s.checkUserStatus(ctx, userID); err != nil {
+		return nil, err
+	}
 
 	// 检查内容安全
 	if err := s.checkContentSafety(ctx, req.Content); err != nil {
@@ -168,6 +171,11 @@ func (s *CommentService) CreateComment(ctx context.Context, userID int, clientIP
 // UpdateComment 更新评论
 func (s *CommentService) UpdateComment(ctx context.Context, userID int, req schema.UserCommentUpdateRequest) (*schema.UserCommentUpdateResponse, error) {
 	s.logger.Info("更新评论", zap.Int("user_id", userID), zap.Int("comment_id", req.ID), tracing.WithTraceIDField(ctx))
+
+	// 检查用户状态
+	if err := s.checkUserStatus(ctx, userID); err != nil {
+		return nil, err
+	}
 
 	// 检查内容安全
 	if err := s.checkContentSafety(ctx, req.Content); err != nil {
@@ -455,111 +463,32 @@ func (s *CommentService) GetCommentList(ctx context.Context, req schema.UserComm
 	return result, nil
 }
 
-// GetCommentDetail 获取评论详情
-func (s *CommentService) GetCommentDetail(ctx context.Context, commentID int) (*schema.UserCommentDetailResponse, error) {
-	s.logger.Info("获取评论详情", zap.Int("comment_id", commentID), tracing.WithTraceIDField(ctx))
-
-	// 查询评论详情
-	commentData, err := s.db.Comment.Query().
-		Where(comment.IDEQ(commentID)).
+// checkUserStatus 检查用户状态是否允许操作
+func (s *CommentService) checkUserStatus(ctx context.Context, userID int) error {
+	userData, err := s.db.User.Query().
+		Where(user.IDEQ(userID)).
+		Select(user.FieldStatus).
 		Only(ctx)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("评论不存在")
-		}
-		s.logger.Error("获取评论详情失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取评论详情失败: %w", err)
+		s.logger.Error("获取用户状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("获取用户状态失败: %w", err)
 	}
 
-	// 查询作者信息
-	username := "未知用户"
-	author, err := s.db.User.Query().
-		Where(user.IDEQ(commentData.UserID)).
-		Select(user.FieldUsername).
-		Only(ctx)
-	if err == nil {
-		username = author.Username
+	switch userData.Status {
+	case user.StatusNormal:
+		return nil
+	case user.StatusRiskControl:
+		// TODO: RiskControl状态需要管理员审核发布，暂时放行
+		return nil
+	case user.StatusMute:
+		return errors.New("您已被禁言，无法进行此操作")
+	case user.StatusBlocked:
+		return errors.New("您的账号已被封禁，无法进行此操作")
+	case user.StatusActivationPending:
+		return errors.New("您的账号尚未激活，请先完成激活")
+	default:
+		return errors.New("账号状态异常，无法进行此操作")
 	}
-
-	// 查询回复目标用户名
-	replyToUsername := ""
-	if commentData.ReplyToUserID != 0 {
-		replyToUser, err := s.db.User.Query().
-			Where(user.IDEQ(commentData.ReplyToUserID)).
-			Select(user.FieldUsername).
-			Only(ctx)
-		if err == nil {
-			replyToUsername = replyToUser.Username
-		}
-	}
-
-	// 获取实时统计数据
-	statsData, err := s.commentStatsService.GetStats(ctx, commentID)
-	likeCount := commentData.LikeCount
-	dislikeCount := commentData.DislikeCount
-	if err != nil {
-		s.logger.Warn("获取实时统计数据失败，将使用数据库中的旧数据", zap.Error(err), tracing.WithTraceIDField(ctx))
-	} else {
-		likeCount = statsData.LikeCount
-		dislikeCount = statsData.DislikeCount
-	}
-
-	// 获取当前用户ID，如果未登录则为0
-	currentUserID := tracing.GetUserID(ctx)
-
-	// 查询用户点赞状态（仅当用户已登录时）
-	userLiked := false
-	userDisliked := false
-	if currentUserID != 0 {
-		action, err := s.db.CommentAction.Query().
-			Where(
-				commentaction.UserIDEQ(currentUserID),
-				commentaction.CommentIDEQ(commentID),
-			).
-			Select(commentaction.FieldActionType).
-			Only(ctx)
-		if err != nil {
-			// 没有记录或查询失败，保持默认状态
-			s.logger.Debug("查询用户点赞状态失败或无记录", zap.Error(err), tracing.WithTraceIDField(ctx))
-		} else {
-			if action.ActionType == commentaction.ActionTypeLike {
-				userLiked = true
-			} else if action.ActionType == commentaction.ActionTypeDislike {
-				userDisliked = true
-			}
-		}
-	}
-
-	// 构建响应数据
-	result := &schema.UserCommentDetailResponse{
-		ID:           commentData.ID,
-		PostID:       commentData.PostID,
-		UserID:       commentData.UserID,
-		Username:     username,
-		Content:      commentData.Content,
-		LikeCount:    likeCount,
-		DislikeCount: dislikeCount,
-		UserLiked:    userLiked,
-		UserDisliked: userDisliked,
-		IsSelected:   commentData.IsSelected,
-		IsPinned:     commentData.IsPinned,
-		CreatedAt:    commentData.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:    commentData.UpdatedAt.Format("2006-01-02T15:04:05Z"),
-	}
-
-	// 只有当ParentID不为0时才设置
-	if commentData.ParentID != 0 {
-		result.ParentID = &commentData.ParentID
-	}
-
-	// 只有当ReplyToUserID不为0时才设置
-	if commentData.ReplyToUserID != 0 {
-		result.ReplyToUserID = &commentData.ReplyToUserID
-		result.ReplyToUsername = replyToUsername
-	}
-
-	s.logger.Info("获取评论详情成功", zap.Int("comment_id", result.ID), tracing.WithTraceIDField(ctx))
-	return result, nil
 }
 
 // checkContentSafety 检查评论内容是否安全
