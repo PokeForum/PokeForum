@@ -910,6 +910,8 @@ func (s *UserProfileService) sendVerificationEmail(ctx context.Context, email, c
 		Encryption: smtpConfig.ForcedSSL,
 		Keepalive:  smtpConfig.ConnectionValidity,
 	}, s.logger)
+	defer sp.Close()
+
 	if err = sp.Send(ctx, email, fmt.Sprintf("【%s】邮箱验证码", siteConfig.WebSiteName), htmlBody); err != nil {
 		return err
 	}
