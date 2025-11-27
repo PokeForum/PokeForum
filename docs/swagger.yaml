@@ -2589,6 +2589,18 @@ definitions:
         example: 张三
         type: string
     type: object
+  schema.SigninRankingResponse:
+    properties:
+      list:
+        description: 排行榜列表
+        items:
+          $ref: '#/definitions/schema.SigninRankingItem'
+        type: array
+      my_rank:
+        description: 当前用户排名（从1开始，0表示未上榜）
+        example: 5
+        type: integer
+    type: object
   schema.SigninResponse:
     properties:
       code:
@@ -2618,6 +2630,10 @@ definitions:
         description: 提示信息
         example: 签到成功！获得10积分，连续签到5天，继续加油！
         type: string
+      rank:
+        description: 当前排名（从1开始，0表示未上榜）
+        example: 1
+        type: integer
       reward_experience:
         description: 获得的经验值奖励
         example: 10
@@ -2743,10 +2759,6 @@ definitions:
         description: 最近签到日期
         example: "2025-11-13T10:30:00Z"
         type: string
-      tomorrow_reward:
-        description: 明日预计奖励
-        example: 10
-        type: integer
       total_days:
         description: 总签到天数
         example: 29
@@ -7437,7 +7449,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: 获取连续签到天数排行榜，按连续签到天数排序
+      description: 获取连续签到天数排行榜，按连续签到天数从高到低排序，最多返回前100名
       parameters:
       - description: 返回数量限制，默认10，最大100
         in: query
@@ -7453,9 +7465,7 @@ paths:
             - $ref: '#/definitions/response.Data'
             - properties:
                 data:
-                  items:
-                    $ref: '#/definitions/schema.SigninRankingItem'
-                  type: array
+                  $ref: '#/definitions/schema.SigninRankingResponse'
               type: object
         "400":
           description: 请求参数错误
@@ -7472,7 +7482,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: 获取指定日期的签到排行榜，按奖励积分排序
+      description: 获取指定日期的签到排行榜，按奖励积分从高到低排序，最多返回前100名
       parameters:
       - description: 查询日期，格式：YYYY-MM-DD，不传则查询今日
         in: query
@@ -7492,9 +7502,7 @@ paths:
             - $ref: '#/definitions/response.Data'
             - properties:
                 data:
-                  items:
-                    $ref: '#/definitions/schema.SigninRankingItem'
-                  type: array
+                  $ref: '#/definitions/schema.SigninRankingResponse'
               type: object
         "400":
           description: 请求参数错误

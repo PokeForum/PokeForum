@@ -5129,7 +5129,7 @@ const docTemplate = `{
         },
         "/signin/ranking/continuous": {
             "get": {
-                "description": "获取连续签到天数排行榜，按连续签到天数排序",
+                "description": "获取连续签到天数排行榜，按连续签到天数从高到低排序，最多返回前100名",
                 "consumes": [
                     "application/json"
                 ],
@@ -5160,10 +5160,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/schema.SigninRankingItem"
-                                            }
+                                            "$ref": "#/definitions/schema.SigninRankingResponse"
                                         }
                                     }
                                 }
@@ -5187,7 +5184,7 @@ const docTemplate = `{
         },
         "/signin/ranking/daily": {
             "get": {
-                "description": "获取指定日期的签到排行榜，按奖励积分排序",
+                "description": "获取指定日期的签到排行榜，按奖励积分从高到低排序，最多返回前100名",
                 "consumes": [
                     "application/json"
                 ],
@@ -5224,10 +5221,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/schema.SigninRankingItem"
-                                            }
+                                            "$ref": "#/definitions/schema.SigninRankingResponse"
                                         }
                                     }
                                 }
@@ -10089,6 +10083,23 @@ const docTemplate = `{
                 }
             }
         },
+        "schema.SigninRankingResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "description": "排行榜列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.SigninRankingItem"
+                    }
+                },
+                "my_rank": {
+                    "description": "当前用户排名（从1开始，0表示未上榜）",
+                    "type": "integer",
+                    "example": 5
+                }
+            }
+        },
         "schema.SigninResponse": {
             "type": "object",
             "properties": {
@@ -10129,6 +10140,11 @@ const docTemplate = `{
                     "description": "提示信息",
                     "type": "string",
                     "example": "签到成功！获得10积分，连续签到5天，继续加油！"
+                },
+                "rank": {
+                    "description": "当前排名（从1开始，0表示未上榜）",
+                    "type": "integer",
+                    "example": 1
                 },
                 "reward_experience": {
                     "description": "获得的经验值奖励",
@@ -10286,11 +10302,6 @@ const docTemplate = `{
                     "description": "最近签到日期",
                     "type": "string",
                     "example": "2025-11-13T10:30:00Z"
-                },
-                "tomorrow_reward": {
-                    "description": "明日预计奖励",
-                    "type": "integer",
-                    "example": 10
                 },
                 "total_days": {
                     "description": "总签到天数",
