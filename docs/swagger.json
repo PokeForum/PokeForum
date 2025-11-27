@@ -11452,6 +11452,10 @@
                     "description": "当前用户是否已点踩",
                     "type": "boolean"
                 },
+                "user_id": {
+                    "description": "作者 ID",
+                    "type": "integer"
+                },
                 "user_liked": {
                     "description": "当前用户是否已点赞",
                     "type": "boolean"

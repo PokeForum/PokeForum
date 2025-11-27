@@ -641,7 +641,7 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 	}
 
 	// 更新浏览数(使用统计服务,减少数据库压力)
-	if err := s.postStatsService.IncrViewCount(ctx, req.ID); err != nil {
+	if err = s.postStatsService.IncrViewCount(ctx, req.ID); err != nil {
 		s.logger.Warn("增加帖子浏览数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		// 不影响主要流程
 	}
@@ -713,6 +713,7 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 		CategoryName:   categoryName,
 		Title:          postData.Title,
 		Content:        postData.Content,
+		UserID:         postData.UserID,
 		Username:       username,
 		ReadPermission: postData.ReadPermission,
 		ViewCount:      viewCount,

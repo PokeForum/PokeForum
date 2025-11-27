@@ -168,6 +168,8 @@ type UserPostDetailResponse struct {
 	Title string `json:"title"`
 	// 帖子内容
 	Content string `json:"content"`
+	// 作者 ID
+	UserID int `json:"user_id"`
 	// 作者用户名
 	Username string `json:"username"`
 	// 阅读限制
