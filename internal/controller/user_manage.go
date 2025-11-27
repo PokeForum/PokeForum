@@ -50,6 +50,10 @@ func (ctrl *UserManageController) UserManageRouter(router *gin.RouterGroup) {
 	// 余额变动记录
 	router.GET("/balance/logs", ctrl.GetUserBalanceLog)
 	router.GET("/balance/summary/:id", ctrl.GetUserBalanceSummary)
+
+	// 用户封禁/解封
+	router.POST("/ban", ctrl.BanUser)
+	router.POST("/unban", ctrl.UnbanUser)
 }
 
 // GetUserList 获取用户列表
@@ -514,4 +518,70 @@ func (ctrl *UserManageController) GetUserBalanceSummary(c *gin.Context) {
 	}
 
 	response.ResSuccess(c, result)
+}
+
+// BanUser 封禁用户
+// @Summary 封禁用户
+// @Description 封禁指定用户，支持短期封禁和永久封禁
+// @Tags [管理员]用户管理
+// @Accept json
+// @Produce json
+// @Param request body schema.UserBanRequest true "封禁信息"
+// @Success 200 {object} response.Data "封禁成功"
+// @Failure 400 {object} response.Data "请求参数错误"
+// @Failure 500 {object} response.Data "服务器错误"
+// @Router /manage/users/ban [post]
+func (ctrl *UserManageController) BanUser(c *gin.Context) {
+	var req schema.UserBanRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, err.Error())
+		return
+	}
+
+	userManageService, err := do.Invoke[service.IUserManageService](ctrl.injector)
+	if err != nil {
+		response.ResError(c, response.CodeServerBusy)
+		return
+	}
+
+	err = userManageService.BanUser(c.Request.Context(), req)
+	if err != nil {
+		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
+		return
+	}
+
+	response.ResSuccess(c, nil)
+}
+
+// UnbanUser 解封用户
+// @Summary 解封用户
+// @Description 解除指定用户的封禁状态
+// @Tags [管理员]用户管理
+// @Accept json
+// @Produce json
+// @Param request body schema.UserUnbanRequest true "解封信息"
+// @Success 200 {object} response.Data "解封成功"
+// @Failure 400 {object} response.Data "请求参数错误"
+// @Failure 500 {object} response.Data "服务器错误"
+// @Router /manage/users/unban [post]
+func (ctrl *UserManageController) UnbanUser(c *gin.Context) {
+	var req schema.UserUnbanRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, err.Error())
+		return
+	}
+
+	userManageService, err := do.Invoke[service.IUserManageService](ctrl.injector)
+	if err != nil {
+		response.ResError(c, response.CodeServerBusy)
+		return
+	}
+
+	err = userManageService.UnbanUser(c.Request.Context(), req)
+	if err != nil {
+		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
+		return
+	}
+
+	response.ResSuccess(c, nil)
 }

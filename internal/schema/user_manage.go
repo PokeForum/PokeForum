@@ -167,3 +167,16 @@ type UserBalanceSummary struct {
 	TotalCurrencyIn  int    `json:"total_currency_in" example:"800"`  // 总货币收入
 	TotalCurrencyOut int    `json:"total_currency_out" example:"300"` // 总货币支出
 }
+
+// UserBanRequest 用户封禁请求体
+type UserBanRequest struct {
+	ID       int    `json:"id" binding:"required" example:"1"`       // 用户ID
+	Duration int64  `json:"duration" binding:"gte=0" example:"3600"` // 封禁时长（秒），0表示永久封禁
+	Reason   string `json:"reason" example:"违反社区规则"`                 // 封禁原因
+}
+
+// UserUnbanRequest 用户解封请求体
+type UserUnbanRequest struct {
+	ID     int    `json:"id" binding:"required" example:"1"` // 用户ID
+	Reason string `json:"reason" example:"申诉通过"`             // 解封原因
+}

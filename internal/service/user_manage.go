@@ -17,6 +17,7 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/utils"
+	"github.com/click33/sa-token-go/stputil"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -49,6 +50,10 @@ type IUserManageService interface {
 	GetUserPostCount(ctx context.Context, userID int) (int, error)
 	// GetUserCommentCount 查询单个用户的评论数
 	GetUserCommentCount(ctx context.Context, userID int) (int, error)
+	// BanUser 封禁用户
+	BanUser(ctx context.Context, req schema.UserBanRequest) error
+	// UnbanUser 解封用户
+	UnbanUser(ctx context.Context, req schema.UserUnbanRequest) error
 }
 
 // UserManageService 用户管理服务实现
@@ -917,4 +922,78 @@ func (s *UserManageService) GetUserCommentCount(ctx context.Context, userID int)
 		return 0, fmt.Errorf("查询用户评论数失败: %w", err)
 	}
 	return count, nil
+}
+
+// BanUser 封禁用户
+func (s *UserManageService) BanUser(ctx context.Context, req schema.UserBanRequest) error {
+	s.logger.Info("封禁用户", zap.Int("user_id", req.ID), zap.Int64("duration", req.Duration), tracing.WithTraceIDField(ctx))
+
+	// 检查用户是否存在
+	u, err := s.db.User.Get(ctx, req.ID)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return errors.New("用户不存在")
+		}
+		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("获取用户信息失败: %w", err)
+	}
+
+	// 检查用户是否已被永久封禁
+	if u.Status == user.StatusBlocked {
+		return errors.New("用户已被永久封禁")
+	}
+
+	if req.Duration == 0 {
+		// 永久封禁：更新数据库状态
+		_, err = s.db.User.UpdateOneID(req.ID).
+			SetStatus(user.StatusBlocked).
+			Save(ctx)
+		if err != nil {
+			s.logger.Error("永久封禁用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			return fmt.Errorf("永久封禁用户失败: %w", err)
+		}
+		// 同时调用sa-token进行封禁
+		stputil.Disable(req.ID, 0)
+	} else {
+		// 短期封禁：使用sa-token
+		stputil.Disable(req.ID, time.Duration(req.Duration)*time.Second)
+	}
+
+	// 踢出用户所有已登录设备
+	stputil.Kickout(req.ID)
+
+	s.logger.Info("用户封禁成功", zap.Int("user_id", req.ID), zap.String("reason", req.Reason), tracing.WithTraceIDField(ctx))
+	return nil
+}
+
+// UnbanUser 解封用户
+func (s *UserManageService) UnbanUser(ctx context.Context, req schema.UserUnbanRequest) error {
+	s.logger.Info("解封用户", zap.Int("user_id", req.ID), tracing.WithTraceIDField(ctx))
+
+	// 检查用户是否存在
+	u, err := s.db.User.Get(ctx, req.ID)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return errors.New("用户不存在")
+		}
+		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("获取用户信息失败: %w", err)
+	}
+
+	// 如果是永久封禁状态，恢复为正常状态
+	if u.Status == user.StatusBlocked {
+		_, err = s.db.User.UpdateOneID(req.ID).
+			SetStatus(user.StatusNormal).
+			Save(ctx)
+		if err != nil {
+			s.logger.Error("解封用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			return fmt.Errorf("解封用户失败: %w", err)
+		}
+	}
+
+	// 解除sa-token封禁
+	stputil.Untie(req.ID)
+
+	s.logger.Info("用户解封成功", zap.Int("user_id", req.ID), zap.String("reason", req.Reason), tracing.WithTraceIDField(ctx))
+	return nil
 }
