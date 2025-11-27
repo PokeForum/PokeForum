@@ -556,68 +556,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/comments/{id}": {
-            "get": {
-                "description": "根据评论ID获取评论详细信息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[用户]评论"
-                ],
-                "summary": "获取评论详情",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "评论ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "获取成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserCommentDetailResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "404": {
-                        "description": "评论不存在",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
         "/config": {
             "get": {
                 "description": "获取客户端所需的公开配置，包括常规、首页、SEO、安全、代码、评论配置",
@@ -2500,6 +2438,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/manage/users/ban": {
+            "post": {
+                "description": "封禁指定用户，支持短期封禁和永久封禁",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[管理员]用户管理"
+                ],
+                "summary": "封禁用户",
+                "parameters": [
+                    {
+                        "description": "封禁信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserBanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "封禁成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
         "/manage/users/currency": {
             "put": {
                 "description": "为用户增加或减少货币",
@@ -2711,6 +2695,52 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/users/unban": {
+            "post": {
+                "description": "解除指定用户的封禁状态",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[管理员]用户管理"
+                ],
+                "summary": "解封用户",
+                "parameters": [
+                    {
+                        "description": "解封信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserUnbanRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "解封成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -10421,6 +10451,30 @@ const docTemplate = `{
                 }
             }
         },
+        "schema.UserBanRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "duration": {
+                    "description": "封禁时长（秒），0表示永久封禁",
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 3600
+                },
+                "id": {
+                    "description": "用户ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "reason": {
+                    "description": "封禁原因",
+                    "type": "string",
+                    "example": "违反社区规则"
+                }
+            }
+        },
         "schema.UserBlacklistAddRequest": {
             "type": "object",
             "required": [
@@ -10702,91 +10756,6 @@ const docTemplate = `{
                     "description": "回复目标用户名",
                     "type": "string",
                     "example": "targetuser"
-                }
-            }
-        },
-        "schema.UserCommentDetailResponse": {
-            "type": "object",
-            "properties": {
-                "content": {
-                    "description": "评论内容",
-                    "type": "string",
-                    "example": "很有见地的评论"
-                },
-                "created_at": {
-                    "description": "创建时间",
-                    "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
-                },
-                "dislike_count": {
-                    "description": "点踩数",
-                    "type": "integer",
-                    "example": 1
-                },
-                "id": {
-                    "description": "评论ID",
-                    "type": "integer",
-                    "example": 1
-                },
-                "is_pinned": {
-                    "description": "是否置顶",
-                    "type": "boolean",
-                    "example": false
-                },
-                "is_selected": {
-                    "description": "是否精选",
-                    "type": "boolean",
-                    "example": true
-                },
-                "like_count": {
-                    "description": "点赞数",
-                    "type": "integer",
-                    "example": 10
-                },
-                "parent_id": {
-                    "description": "父评论ID",
-                    "type": "integer",
-                    "example": 1
-                },
-                "post_id": {
-                    "description": "帖子ID",
-                    "type": "integer",
-                    "example": 1
-                },
-                "reply_to_user_id": {
-                    "description": "回复目标用户ID",
-                    "type": "integer",
-                    "example": 2
-                },
-                "reply_to_username": {
-                    "description": "回复目标用户名",
-                    "type": "string",
-                    "example": "targetuser"
-                },
-                "updated_at": {
-                    "description": "更新时间",
-                    "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
-                },
-                "user_disliked": {
-                    "description": "当前用户是否已点踩",
-                    "type": "boolean",
-                    "example": false
-                },
-                "user_id": {
-                    "description": "用户ID",
-                    "type": "integer",
-                    "example": 1
-                },
-                "user_liked": {
-                    "description": "当前用户是否已点赞",
-                    "type": "boolean",
-                    "example": false
-                },
-                "username": {
-                    "description": "用户名",
-                    "type": "string",
-                    "example": "testuser"
                 }
             }
         },
@@ -12056,6 +12025,24 @@ const docTemplate = `{
                         "RiskControl"
                     ],
                     "example": "Normal"
+                }
+            }
+        },
+        "schema.UserUnbanRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "description": "用户ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "reason": {
+                    "description": "解封原因",
+                    "type": "string",
+                    "example": "申诉通过"
                 }
             }
         },
