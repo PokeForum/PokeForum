@@ -72,6 +72,35 @@ func NewUserManageService(db *ent.Client, cacheService cache.ICacheService, logg
 	}
 }
 
+// checkOperatorPermission 校验操作者权限
+// 管理员只能操作用户和版主，超级管理员可以操作所有身份
+func (s *UserManageService) checkOperatorPermission(ctx context.Context, operatorID int, targetRole user.Role) error {
+	// 获取操作者信息
+	operator, err := s.db.User.Get(ctx, operatorID)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return errors.New("操作者不存在")
+		}
+		s.logger.Error("获取操作者信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("获取操作者信息失败: %w", err)
+	}
+
+	// 超级管理员可以操作所有身份
+	if operator.Role == user.RoleSuperAdmin {
+		return nil
+	}
+
+	// 管理员只能操作用户和版主
+	if operator.Role == user.RoleAdmin {
+		if targetRole == user.RoleAdmin || targetRole == user.RoleSuperAdmin {
+			return errors.New("无权操作管理员或超级管理员")
+		}
+		return nil
+	}
+
+	return errors.New("无操作权限")
+}
+
 // GetUserList 获取用户列表
 func (s *UserManageService) GetUserList(ctx context.Context, req schema.UserListRequest) (*schema.UserListResponse, error) {
 	s.logger.Info("获取用户列表", tracing.WithTraceIDField(ctx))
@@ -289,13 +318,18 @@ func (s *UserManageService) UpdateUserStatus(ctx context.Context, req schema.Use
 	s.logger.Info("更新用户状态", zap.Int("user_id", req.ID), zap.String("status", req.Status), tracing.WithTraceIDField(ctx))
 
 	// 检查用户是否存在
-	_, err := s.db.User.Get(ctx, req.ID)
+	u, err := s.db.User.Get(ctx, req.ID)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return errors.New("用户不存在")
 		}
 		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("获取用户信息失败: %w", err)
+	}
+
+	// 校验操作权限
+	if err := s.checkOperatorPermission(ctx, req.OperatorID, u.Role); err != nil {
+		return err
 	}
 
 	// 更新用户状态
@@ -938,6 +972,11 @@ func (s *UserManageService) BanUser(ctx context.Context, req schema.UserBanReque
 		return fmt.Errorf("获取用户信息失败: %w", err)
 	}
 
+	// 校验操作权限
+	if err := s.checkOperatorPermission(ctx, req.OperatorID, u.Role); err != nil {
+		return err
+	}
+
 	// 检查用户是否已被永久封禁
 	if u.Status == user.StatusBlocked {
 		return errors.New("用户已被永久封禁")
@@ -978,6 +1017,11 @@ func (s *UserManageService) UnbanUser(ctx context.Context, req schema.UserUnbanR
 		}
 		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("获取用户信息失败: %w", err)
+	}
+
+	// 校验操作权限
+	if err := s.checkOperatorPermission(ctx, req.OperatorID, u.Role); err != nil {
+		return err
 	}
 
 	// 如果是永久封禁状态，恢复为正常状态

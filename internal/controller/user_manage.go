@@ -1,9 +1,15 @@
 package controller
 
 import (
+	"fmt"
+	"strconv"
+
+	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
+	saGin "github.com/click33/sa-token-go/integrations/gin"
+	"github.com/click33/sa-token-go/stputil"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
 )
@@ -21,6 +27,26 @@ func NewUserManageController(injector *do.Injector) *UserManageController {
 	}
 }
 
+// getUserID 从Header中获取token并解析用户ID
+func (ctrl *UserManageController) getUserID(c *gin.Context) (int, error) {
+	token := c.GetHeader("Authorization")
+	if token == "" {
+		return 0, fmt.Errorf("未找到Authorization header")
+	}
+
+	loginID, err := stputil.GetLoginID(token)
+	if err != nil {
+		return 0, err
+	}
+
+	sID, err := strconv.Atoi(loginID)
+	if err != nil {
+		return 0, err
+	}
+
+	return sID, nil
+}
+
 // UserManageRouter 用户管理相关路由注册
 func (ctrl *UserManageController) UserManageRouter(router *gin.RouterGroup) {
 	// 用户列表
@@ -36,7 +62,7 @@ func (ctrl *UserManageController) UserManageRouter(router *gin.RouterGroup) {
 	router.PUT("/status", ctrl.UpdateUserStatus)
 
 	// 用户身份管理
-	router.PUT("/role", ctrl.UpdateUserRole)
+	router.PUT("/role", saGin.CheckRole(user.RoleSuperAdmin.String()), ctrl.UpdateUserRole)
 
 	// 用户积分管理
 	router.PUT("/points", ctrl.UpdateUserPoints)
@@ -283,6 +309,14 @@ func (ctrl *UserManageController) UpdateUserStatus(c *gin.Context) {
 		response.ResErrorWithMsg(c, response.CodeInvalidParam, err.Error())
 		return
 	}
+
+	// 获取操作者ID
+	operatorID, err := ctrl.getUserID(c)
+	if err != nil {
+		response.ResErrorWithMsg(c, response.CodeNeedLogin, err.Error())
+		return
+	}
+	req.OperatorID = operatorID
 
 	// 获取服务
 	userManageService, err := do.Invoke[service.IUserManageService](ctrl.injector)
@@ -538,6 +572,14 @@ func (ctrl *UserManageController) BanUser(c *gin.Context) {
 		return
 	}
 
+	// 获取操作者ID
+	operatorID, err := ctrl.getUserID(c)
+	if err != nil {
+		response.ResErrorWithMsg(c, response.CodeNeedLogin, err.Error())
+		return
+	}
+	req.OperatorID = operatorID
+
 	userManageService, err := do.Invoke[service.IUserManageService](ctrl.injector)
 	if err != nil {
 		response.ResError(c, response.CodeServerBusy)
@@ -570,6 +612,14 @@ func (ctrl *UserManageController) UnbanUser(c *gin.Context) {
 		response.ResErrorWithMsg(c, response.CodeInvalidParam, err.Error())
 		return
 	}
+
+	// 获取操作者ID
+	operatorID, err := ctrl.getUserID(c)
+	if err != nil {
+		response.ResErrorWithMsg(c, response.CodeNeedLogin, err.Error())
+		return
+	}
+	req.OperatorID = operatorID
 
 	userManageService, err := do.Invoke[service.IUserManageService](ctrl.injector)
 	if err != nil {

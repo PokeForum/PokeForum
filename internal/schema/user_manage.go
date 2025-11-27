@@ -32,9 +32,10 @@ type UserUpdateRequest struct {
 
 // UserStatusUpdateRequest 更新用户状态请求体
 type UserStatusUpdateRequest struct {
-	ID     int    `json:"id" binding:"required" example:"1"`                                                                  // 用户ID
-	Status string `json:"status" binding:"required,oneof=Normal Mute Blocked ActivationPending RiskControl" example:"Normal"` // 用户状态
-	Reason string `json:"reason" example:"违反社区规则"`                                                                            // 操作原因
+	ID         int    `json:"id" binding:"required" example:"1"`                                                                  // 用户ID
+	Status     string `json:"status" binding:"required,oneof=Normal Mute Blocked ActivationPending RiskControl" example:"Normal"` // 用户状态
+	Reason     string `json:"reason" example:"违反社区规则"`                                                                            // 操作原因
+	OperatorID int    `json:"-"`                                                                                                  // 操作者ID（内部使用）
 }
 
 // UserRoleUpdateRequest 更新用户身份请求体
@@ -170,13 +171,15 @@ type UserBalanceSummary struct {
 
 // UserBanRequest 用户封禁请求体
 type UserBanRequest struct {
-	ID       int    `json:"id" binding:"required" example:"1"`       // 用户ID
-	Duration int64  `json:"duration" binding:"gte=0" example:"3600"` // 封禁时长（秒），0表示永久封禁
-	Reason   string `json:"reason" example:"违反社区规则"`                 // 封禁原因
+	ID         int    `json:"id" binding:"required" example:"1"`       // 用户ID
+	Duration   int64  `json:"duration" binding:"gte=0" example:"3600"` // 封禁时长（秒），0表示永久封禁
+	Reason     string `json:"reason" example:"违反社区规则"`                 // 封禁原因
+	OperatorID int    `json:"-"`                                       // 操作者ID（内部使用）
 }
 
 // UserUnbanRequest 用户解封请求体
 type UserUnbanRequest struct {
-	ID     int    `json:"id" binding:"required" example:"1"` // 用户ID
-	Reason string `json:"reason" example:"申诉通过"`             // 解封原因
+	ID         int    `json:"id" binding:"required" example:"1"` // 用户ID
+	Reason     string `json:"reason" example:"申诉通过"`             // 解封原因
+	OperatorID int    `json:"-"`                                 // 操作者ID（内部使用）
 }
