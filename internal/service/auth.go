@@ -2,14 +2,17 @@ package service
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
+	"math/big"
 	"strings"
 
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/user"
 	_const "github.com/PokeForum/PokeForum/internal/const"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
+	smtp "github.com/PokeForum/PokeForum/internal/pkg/email"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
@@ -26,6 +29,10 @@ type IAuthService interface {
 	Login(ctx context.Context, req schema.LoginRequest) (*ent.User, error)
 	// GetUserByID 根据ID获取用户
 	GetUserByID(ctx context.Context, id int) (*ent.User, error)
+	// SendForgotPasswordCode 发送找回密码验证码
+	SendForgotPasswordCode(ctx context.Context, req schema.ForgotPasswordRequest) (*schema.ForgotPasswordResponse, error)
+	// ResetPassword 重置密码
+	ResetPassword(ctx context.Context, req schema.ResetPasswordRequest) (*schema.ResetPasswordResponse, error)
 }
 
 // AuthService 认证服务实现
@@ -215,4 +222,187 @@ func isEmailDomainInWhitelist(emailDomain, whitelist string) bool {
 	}
 
 	return false
+}
+
+// SendForgotPasswordCode 发送找回密码验证码
+func (s *AuthService) SendForgotPasswordCode(ctx context.Context, req schema.ForgotPasswordRequest) (*schema.ForgotPasswordResponse, error) {
+	s.logger.Info("发送找回密码验证码", zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
+
+	// 检查邮箱是否存在
+	userData, err := s.db.User.Query().
+		Where(user.EmailEQ(req.Email)).
+		Select(user.FieldID, user.FieldEmail).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, errors.New("该邮箱未注册")
+		}
+		s.logger.Error("查询用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("查询用户失败: %w", err)
+	}
+
+	// 检查发送频率限制
+	limitKey := fmt.Sprintf("password:reset:limit:%s", req.Email)
+	limitValue, err := s.cache.Get(ctx, limitKey)
+	if err == nil && limitValue != "" {
+		sendCount := 0
+		if _, parseErr := fmt.Sscanf(limitValue, "%d", &sendCount); parseErr == nil && sendCount >= 3 {
+			return nil, errors.New("发送次数过多，请1小时后再试")
+		}
+	}
+
+	// 生成6位随机验证码
+	code, err := generateVerifyCode()
+	if err != nil {
+		s.logger.Error("生成验证码失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("生成验证码失败: %w", err)
+	}
+
+	// 存储验证码到Redis（10分钟有效期）
+	codeKey := fmt.Sprintf("password:reset:code:%s", req.Email)
+	err = s.cache.SetEx(ctx, codeKey, code, 600)
+	if err != nil {
+		s.logger.Error("存储验证码失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("存储验证码失败: %w", err)
+	}
+
+	// 更新发送频率限制
+	newCount := 1
+	if limitValue != "" {
+		var val int
+		if _, parseErr := fmt.Sscanf(limitValue, "%d", &val); parseErr == nil {
+			newCount = val + 1
+		}
+	}
+	_ = s.cache.SetEx(ctx, limitKey, fmt.Sprintf("%d", newCount), 3600)
+
+	// 发送重置密码邮件
+	err = s.sendPasswordResetEmail(ctx, userData.Email, code)
+	if err != nil {
+		s.logger.Error("发送重置密码邮件失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("发送重置密码邮件失败: %w", err)
+	}
+
+	s.logger.Info("找回密码验证码发送成功", zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
+
+	return &schema.ForgotPasswordResponse{
+		Sent:      true,
+		Message:   "验证码已发送到您的邮箱，请查收",
+		ExpiresIn: 600,
+	}, nil
+}
+
+// ResetPassword 重置密码
+func (s *AuthService) ResetPassword(ctx context.Context, req schema.ResetPasswordRequest) (*schema.ResetPasswordResponse, error) {
+	s.logger.Info("重置密码", zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
+
+	// 获取存储的验证码
+	codeKey := fmt.Sprintf("password:reset:code:%s", req.Email)
+	storedCode, err := s.cache.Get(ctx, codeKey)
+	if err != nil || storedCode == "" {
+		return nil, errors.New("验证码不存在或已过期")
+	}
+
+	// 验证验证码
+	if storedCode != req.Code {
+		return nil, errors.New("验证码错误")
+	}
+
+	// 查询用户
+	userData, err := s.db.User.Query().
+		Where(user.EmailEQ(req.Email)).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, errors.New("用户不存在")
+		}
+		s.logger.Error("查询用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("查询用户失败: %w", err)
+	}
+
+	// 密码加盐加密
+	combinedPassword := utils.CombinePasswordWithSalt(req.NewPassword, userData.PasswordSalt)
+	hashedPassword, err := utils.HashPassword(combinedPassword)
+	if err != nil {
+		s.logger.Error("密码加密失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("密码加密失败: %w", err)
+	}
+
+	// 更新密码
+	_, err = s.db.User.UpdateOneID(userData.ID).
+		SetPassword(hashedPassword).
+		Save(ctx)
+	if err != nil {
+		s.logger.Error("更新密码失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("更新密码失败: %w", err)
+	}
+
+	// 删除验证码缓存
+	_, _ = s.cache.Del(ctx, codeKey)
+
+	s.logger.Info("密码重置成功", zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
+
+	return &schema.ResetPasswordResponse{
+		Success: true,
+		Message: "密码重置成功，请使用新密码登录",
+	}, nil
+}
+
+// generateVerifyCode 生成6位随机验证码
+func generateVerifyCode() (string, error) {
+	code := ""
+	for i := 0; i < 6; i++ {
+		num, err := rand.Int(rand.Reader, big.NewInt(10))
+		if err != nil {
+			return "", err
+		}
+		code += num.String()
+	}
+	return code, nil
+}
+
+// sendPasswordResetEmail 发送重置密码邮件
+func (s *AuthService) sendPasswordResetEmail(ctx context.Context, email, code string) error {
+	// 获取网站设置
+	siteConfig, err := s.settings.GetSeoSettings(ctx)
+	if err != nil {
+		s.logger.Error("获取网站配置失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("获取网站配置失败: %w", err)
+	}
+
+	// 获取SMTP配置
+	smtpConfig, err := s.settings.GetSMTPConfig(ctx)
+	if err != nil {
+		s.logger.Error("获取SMTP配置失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("获取SMTP配置失败: %w", err)
+	}
+
+	// 创建邮件模板渲染器
+	emailTemplate := smtp.NewEmailTemplate(s.settings, s.logger)
+
+	// 渲染邮件模板
+	htmlBody, err := emailTemplate.RenderPasswordResetTemplate(ctx, code, siteConfig.WebSiteName)
+	if err != nil {
+		s.logger.Error("渲染邮件模板失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("渲染邮件模板失败: %w", err)
+	}
+
+	// 发送邮件
+	sp := smtp.NewSMTPPool(smtp.SMTPConfig{
+		Name:       siteConfig.WebSiteName,
+		Address:    smtpConfig.Address,
+		Host:       smtpConfig.Host,
+		Port:       smtpConfig.Port,
+		User:       smtpConfig.Username,
+		Password:   smtpConfig.Password,
+		Encryption: smtpConfig.ForcedSSL,
+		Keepalive:  smtpConfig.ConnectionValidity,
+	}, s.logger)
+	defer sp.Close()
+
+	if err = sp.Send(ctx, email, fmt.Sprintf("【%s】密码重置验证码", siteConfig.WebSiteName), htmlBody); err != nil {
+		return err
+	}
+
+	return nil
 }

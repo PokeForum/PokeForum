@@ -144,25 +144,6 @@ type UserUpdateUsernameResponse struct {
 	Username string `json:"username" example:"newusername"` // 新用户名
 }
 
-// UserUpdateEmailRequest 修改邮箱请求体
-type UserUpdateEmailRequest struct {
-	NewEmail   string `json:"new_email" binding:"required,email" example:"newemail@example.com"` // 新邮箱
-	VerifyCode string `json:"verify_code" binding:"required" example:"123456"`                   // 验证码
-	Password   string `json:"password" binding:"required" example:"password123"`                 // 当前密码
-}
-
-// UserEmailUpdateResponse 用户邮箱修改响应体
-type UserEmailUpdateResponse struct {
-	NewEmail   string `json:"new_email" example:"new@example.com"` // 新邮箱
-	NeedVerify bool   `json:"need_verify" example:"true"`          // 是否需要验证
-	Message    string `json:"message" example:"邮箱修改成功，请验证新邮箱"`     // 提示信息
-}
-
-// EmailVerifyCodeRequest 发送邮箱验证码请求体
-type EmailVerifyCodeRequest struct {
-	Email string `json:"email" binding:"required,email" example:"user@example.com"` // 邮箱地址
-}
-
 // EmailVerifyCodeResponse 发送邮箱验证码响应体
 type EmailVerifyCodeResponse struct {
 	Sent      bool   `json:"sent" example:"true"`               // 验证码发送状态
@@ -172,8 +153,7 @@ type EmailVerifyCodeResponse struct {
 
 // EmailVerifyRequest 验证邮箱请求体
 type EmailVerifyRequest struct {
-	Email string `json:"email" binding:"required,email" example:"user@example.com"` // 邮箱地址
-	Code  string `json:"code" binding:"required,len=6" example:"123456"`            // 验证码
+	Code string `json:"code" binding:"required,len=6" example:"123456"` // 验证码
 }
 
 // EmailVerifyResponse 验证邮箱响应体

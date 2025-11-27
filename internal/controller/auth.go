@@ -36,6 +36,10 @@ func (ctrl *AuthController) AuthRouter(router *gin.RouterGroup) {
 	router.POST("/login", ctrl.Login)
 	// 退出登录
 	router.POST("/logout", saGin.CheckLogin(), ctrl.Logout)
+	// 发送找回密码验证码
+	router.POST("/forgot-password", ctrl.ForgotPassword)
+	// 重置密码
+	router.POST("/reset-password", ctrl.ResetPassword)
 }
 
 // Register 用户注册接口
@@ -180,4 +184,79 @@ func (ctrl *AuthController) Logout(c *gin.Context) {
 
 	// 返回成功响应
 	response.ResSuccess(c, nil)
+}
+
+// ForgotPassword 发送找回密码验证码
+// @Summary 发送找回密码验证码
+// @Description 向用户邮箱发送找回密码验证码
+// @Tags 认证
+// @Accept json
+// @Produce json
+// @Param request body schema.ForgotPasswordRequest true "找回密码请求"
+// @Success 200 {object} response.Data{data=schema.ForgotPasswordResponse} "发送成功"
+// @Failure 400 {object} response.Data "请求参数错误"
+// @Failure 429 {object} response.Data "发送频率过高"
+// @Failure 500 {object} response.Data "服务器错误"
+// @Router /auth/forgot-password [post]
+func (ctrl *AuthController) ForgotPassword(c *gin.Context) {
+	var req schema.ForgotPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, err.Error())
+		return
+	}
+
+	// 从注入器获取 AuthService
+	authService, err := do.Invoke[service.IAuthService](ctrl.injector)
+	if err != nil {
+		response.ResError(c, response.CodeServerBusy)
+		return
+	}
+
+	// 调用服务发送验证码
+	result, err := authService.SendForgotPasswordCode(c.Request.Context(), req)
+	if err != nil {
+		if err.Error() == "发送次数过多，请1小时后再试" {
+			response.ResErrorWithMsg(c, response.CodeTooManyRequests, err.Error())
+		} else {
+			response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
+		}
+		return
+	}
+
+	response.ResSuccess(c, result)
+}
+
+// ResetPassword 重置密码
+// @Summary 重置密码
+// @Description 通过验证码重置用户密码
+// @Tags 认证
+// @Accept json
+// @Produce json
+// @Param request body schema.ResetPasswordRequest true "重置密码请求"
+// @Success 200 {object} response.Data{data=schema.ResetPasswordResponse} "重置成功"
+// @Failure 400 {object} response.Data "请求参数错误"
+// @Failure 500 {object} response.Data "服务器错误"
+// @Router /auth/reset-password [post]
+func (ctrl *AuthController) ResetPassword(c *gin.Context) {
+	var req schema.ResetPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, err.Error())
+		return
+	}
+
+	// 从注入器获取 AuthService
+	authService, err := do.Invoke[service.IAuthService](ctrl.injector)
+	if err != nil {
+		response.ResError(c, response.CodeServerBusy)
+		return
+	}
+
+	// 调用服务重置密码
+	result, err := authService.ResetPassword(c.Request.Context(), req)
+	if err != nil {
+		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
+		return
+	}
+
+	response.ResSuccess(c, result)
 }

@@ -41,10 +41,8 @@ type IUserProfileService interface {
 	UpdateAvatar(ctx context.Context, userID int, req schema.UserUpdateAvatarRequest) (*schema.UserUpdateAvatarResponse, error)
 	// UpdateUsername 修改用户名(每七日可操作一次)
 	UpdateUsername(ctx context.Context, userID int, req schema.UserUpdateUsernameRequest) (*schema.UserUpdateUsernameResponse, error)
-	// UpdateEmail 修改邮箱
-	UpdateEmail(ctx context.Context, userID int, req schema.UserUpdateEmailRequest) (*schema.UserEmailUpdateResponse, error)
-	// SendEmailVerifyCode 发送邮箱验证码
-	SendEmailVerifyCode(ctx context.Context, userID int, req schema.EmailVerifyCodeRequest) (*schema.EmailVerifyCodeResponse, error)
+	// SendEmailVerifyCode 发送邮箱验证码（直接发送到用户注册邮箱）
+	SendEmailVerifyCode(ctx context.Context, userID int) (*schema.EmailVerifyCodeResponse, error)
 	// VerifyEmail 验证邮箱
 	VerifyEmail(ctx context.Context, userID int, req schema.EmailVerifyRequest) (*schema.EmailVerifyResponse, error)
 	// CheckUsernameUpdatePermission 检查用户名修改权限(每七日可操作一次)
@@ -634,63 +632,6 @@ func (s *UserProfileService) UpdateUsername(ctx context.Context, userID int, req
 	return result, nil
 }
 
-// UpdateEmail 修改邮箱
-func (s *UserProfileService) UpdateEmail(ctx context.Context, userID int, req schema.UserUpdateEmailRequest) (*schema.UserEmailUpdateResponse, error) {
-	s.logger.Info("修改邮箱", zap.Int("user_id", userID), zap.String("new_email", req.NewEmail), tracing.WithTraceIDField(ctx))
-
-	// 查询用户信息
-	userData, err := s.db.User.Query().
-		Where(user.IDEQ(userID)).
-		Only(ctx)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("用户不存在")
-		}
-		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取用户信息失败: %w", err)
-	}
-
-	// 验证密码
-	passwordHash := hashPassword(req.Password, userData.PasswordSalt)
-	if passwordHash != userData.Password {
-		return nil, errors.New("密码错误")
-	}
-
-	// TODO: 验证邮箱验证码
-	// 这里需要集成邮箱验证码服务，暂时省略验证码校验逻辑
-
-	// 检查邮箱是否已存在
-	existingUser, err := s.db.User.Query().
-		Where(user.EmailEQ(req.NewEmail)).
-		Only(ctx)
-	if err != nil && !ent.IsNotFound(err) {
-		s.logger.Error("检查邮箱失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("检查邮箱失败: %w", err)
-	}
-	if existingUser != nil && existingUser.ID != userID {
-		return nil, errors.New("邮箱已被使用")
-	}
-
-	// 更新邮箱，并设置邮箱未验证
-	_, err = s.db.User.UpdateOneID(userID).
-		SetEmail(req.NewEmail).
-		SetEmailVerified(false).
-		Save(ctx)
-	if err != nil {
-		s.logger.Error("更新邮箱失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("更新邮箱失败: %w", err)
-	}
-
-	result := &schema.UserEmailUpdateResponse{
-		NewEmail:   req.NewEmail,
-		NeedVerify: true,
-		Message:    "邮箱修改成功，请重新验证邮箱",
-	}
-
-	s.logger.Info("邮箱修改成功", zap.Int("user_id", userID), zap.String("new_email", req.NewEmail), tracing.WithTraceIDField(ctx))
-	return result, nil
-}
-
 // CheckUsernameUpdatePermission 检查用户名修改权限(每七日可操作一次)
 func (s *UserProfileService) CheckUsernameUpdatePermission(ctx context.Context, userID int) (bool, error) {
 	// 生成Redis键名：user:username:update:limit:{userID}
@@ -731,30 +672,32 @@ func (s *UserProfileService) CheckUsernameUpdatePermission(ctx context.Context, 
 	return true, nil
 }
 
-// SendEmailVerifyCode 发送邮箱验证码
-func (s *UserProfileService) SendEmailVerifyCode(ctx context.Context, userID int, req schema.EmailVerifyCodeRequest) (*schema.EmailVerifyCodeResponse, error) {
-	s.logger.Info("发送邮箱验证码", zap.Int("user_id", userID), zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
+// SendEmailVerifyCode 发送邮箱验证码（直接发送到用户注册邮箱）
+func (s *UserProfileService) SendEmailVerifyCode(ctx context.Context, userID int) (*schema.EmailVerifyCodeResponse, error) {
+	s.logger.Info("发送邮箱验证码", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
-	// 检查用户是否存在
+	// 查询用户信息
 	userData, err := s.db.User.Query().
 		Where(user.IDEQ(userID)).
-		Select(user.FieldEmail).
+		Select(user.FieldEmail, user.FieldEmailVerified).
 		Only(ctx)
 	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, errors.New("用户不存在")
+		}
 		s.logger.Error("查询用户失败", zap.Int("user_id", userID), zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("查询用户失败: %w", err)
 	}
 
-	// 检查邮箱是否属于当前用户
-	if userData.Email != req.Email {
-		return nil, errors.New("邮箱地址与用户邮箱不匹配")
+	// 检查邮箱是否已验证
+	if userData.EmailVerified {
+		return nil, errors.New("邮箱已验证，无需重复验证")
 	}
 
 	// 检查发送频率限制
 	limitKey := fmt.Sprintf("email:verify:limit:%d", userID)
 	limitValue, err := s.cache.Get(ctx, limitKey)
 	if err == nil && limitValue != "" {
-		// 解析发送次数
 		sendCount := 0
 		if _, parseErr := fmt.Sscanf(limitValue, "%d", &sendCount); parseErr == nil && sendCount >= 3 {
 			return nil, errors.New("发送次数过多，请1小时后再试")
@@ -770,8 +713,7 @@ func (s *UserProfileService) SendEmailVerifyCode(ctx context.Context, userID int
 
 	// 存储验证码到Redis（10分钟有效期）
 	codeKey := fmt.Sprintf("email:verify:code:%d", userID)
-	codeData := fmt.Sprintf("%s:%s", req.Email, code)
-	err = s.cache.SetEx(ctx, codeKey, codeData, 600) // 600秒 = 10分钟
+	err = s.cache.SetEx(ctx, codeKey, code, 600)
 	if err != nil {
 		s.logger.Error("存储验证码失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("存储验证码失败: %w", err)
@@ -784,17 +726,16 @@ func (s *UserProfileService) SendEmailVerifyCode(ctx context.Context, userID int
 			newCount = val + 1
 		}
 	}
-
-	_ = s.cache.SetEx(ctx, limitKey, fmt.Sprintf("%d", newCount), 3600) // 1小时有效期
+	_ = s.cache.SetEx(ctx, limitKey, fmt.Sprintf("%d", newCount), 3600)
 
 	// 发送验证邮件
-	err = s.sendVerificationEmail(ctx, req.Email, code)
+	err = s.sendVerificationEmail(ctx, userData.Email, code)
 	if err != nil {
 		s.logger.Error("发送验证邮件失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("发送验证邮件失败: %w", err)
 	}
 
-	s.logger.Info("邮箱验证码发送成功", zap.Int("user_id", userID), zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
+	s.logger.Info("邮箱验证码发送成功", zap.Int("user_id", userID), zap.String("email", userData.Email), tracing.WithTraceIDField(ctx))
 
 	return &schema.EmailVerifyCodeResponse{
 		Sent:      true,
@@ -805,25 +746,16 @@ func (s *UserProfileService) SendEmailVerifyCode(ctx context.Context, userID int
 
 // VerifyEmail 验证邮箱
 func (s *UserProfileService) VerifyEmail(ctx context.Context, userID int, req schema.EmailVerifyRequest) (*schema.EmailVerifyResponse, error) {
-	s.logger.Info("验证邮箱", zap.Int("user_id", userID), zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
+	s.logger.Info("验证邮箱", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
 	// 获取存储的验证码数据
 	codeKey := fmt.Sprintf("email:verify:code:%d", userID)
-	codeData, err := s.cache.Get(ctx, codeKey)
-	if err != nil || codeData == "" {
+	storedCode, err := s.cache.Get(ctx, codeKey)
+	if err != nil || storedCode == "" {
 		return nil, errors.New("验证码不存在或已过期")
 	}
 
-	// 解析存储的数据
-	storedEmail, storedCode := "", ""
-	if _, parseErr := fmt.Sscanf(codeData, "%s:%s", &storedEmail, &storedCode); parseErr != nil {
-		return nil, errors.New("验证码格式错误")
-	}
-
-	// 验证邮箱和验证码
-	if storedEmail != req.Email {
-		return nil, errors.New("邮箱地址不匹配")
-	}
+	// 验证验证码
 	if storedCode != req.Code {
 		return nil, errors.New("验证码错误")
 	}
@@ -839,9 +771,9 @@ func (s *UserProfileService) VerifyEmail(ctx context.Context, userID int, req sc
 
 	// 清除验证码缓存
 	count, _ := s.cache.Del(ctx, codeKey)
-	s.logger.Debug("清楚验证码缓存", zap.Int("count", count), tracing.WithTraceIDField(ctx))
+	s.logger.Debug("清除验证码缓存", zap.Int("count", count), tracing.WithTraceIDField(ctx))
 
-	s.logger.Info("邮箱验证成功", zap.Int("user_id", userID), zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
+	s.logger.Info("邮箱验证成功", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
 	return &schema.EmailVerifyResponse{
 		Verified: true,
