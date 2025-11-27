@@ -328,7 +328,7 @@ func (s *UserManageService) UpdateUserStatus(ctx context.Context, req schema.Use
 	}
 
 	// 校验操作权限
-	if err := s.checkOperatorPermission(ctx, req.OperatorID, u.Role); err != nil {
+	if err = s.checkOperatorPermission(ctx, req.OperatorID, u.Role); err != nil {
 		return err
 	}
 
@@ -992,14 +992,20 @@ func (s *UserManageService) BanUser(ctx context.Context, req schema.UserBanReque
 			return fmt.Errorf("永久封禁用户失败: %w", err)
 		}
 		// 同时调用sa-token进行封禁
-		stputil.Disable(req.ID, 0)
+		if err = stputil.Disable(req.ID, 0); err != nil {
+			s.logger.Warn("stputil 永久封禁失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		}
 	} else {
 		// 短期封禁：使用sa-token
-		stputil.Disable(req.ID, time.Duration(req.Duration)*time.Second)
+		if err = stputil.Disable(req.ID, time.Duration(req.Duration)*time.Second); err != nil {
+			s.logger.Warn("stputil 临时封禁失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		}
 	}
 
 	// 踢出用户所有已登录设备
-	stputil.Kickout(req.ID)
+	if err = stputil.Kickout(req.ID); err != nil {
+		s.logger.Warn("stputil 踢出设备下线失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+	}
 
 	s.logger.Info("用户封禁成功", zap.Int("user_id", req.ID), zap.String("reason", req.Reason), tracing.WithTraceIDField(ctx))
 	return nil
@@ -1020,7 +1026,7 @@ func (s *UserManageService) UnbanUser(ctx context.Context, req schema.UserUnbanR
 	}
 
 	// 校验操作权限
-	if err := s.checkOperatorPermission(ctx, req.OperatorID, u.Role); err != nil {
+	if err = s.checkOperatorPermission(ctx, req.OperatorID, u.Role); err != nil {
 		return err
 	}
 
@@ -1036,7 +1042,10 @@ func (s *UserManageService) UnbanUser(ctx context.Context, req schema.UserUnbanR
 	}
 
 	// 解除sa-token封禁
-	stputil.Untie(req.ID)
+	if err = stputil.Untie(req.ID); err != nil {
+		s.logger.Warn("stputil 移除封禁失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return fmt.Errorf("解封用户失败: %w", err)
+	}
 
 	s.logger.Info("用户解封成功", zap.Int("user_id", req.ID), zap.String("reason", req.Reason), tracing.WithTraceIDField(ctx))
 	return nil
