@@ -12097,7 +12097,6 @@ const docTemplate = `{
                         "Normal",
                         "Mute",
                         "Blocked",
-                        "ActivationPending",
                         "RiskControl"
                     ],
                     "example": "Normal"

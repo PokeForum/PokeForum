@@ -4104,7 +4104,6 @@ definitions:
         - Normal
         - Mute
         - Blocked
-        - ActivationPending
         - RiskControl
         example: Normal
         type: string
