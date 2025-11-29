@@ -10,6 +10,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/categorymoderator"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
+	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"go.uber.org/zap"
@@ -100,8 +101,8 @@ func (s *CategoryManageService) GetCategoryList(ctx context.Context, req schema.
 			Icon:        cat.Icon,
 			Weight:      cat.Weight,
 			Status:      cat.Status.String(),
-			CreatedAt:   cat.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			UpdatedAt:   cat.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt:   cat.CreatedAt.Format(time_tools.DateTimeFormat),
+			UpdatedAt:   cat.UpdatedAt.Format(time_tools.DateTimeFormat),
 		}
 	}
 
@@ -265,8 +266,8 @@ func (s *CategoryManageService) GetCategoryDetail(ctx context.Context, id int) (
 		Icon:        categories.Icon,
 		Weight:      categories.Weight,
 		Status:      categories.Status.String(),
-		CreatedAt:   categories.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:   categories.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:   categories.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:   categories.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	return result, nil

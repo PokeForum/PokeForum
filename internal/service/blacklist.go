@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/blacklist"
 	"github.com/PokeForum/PokeForum/ent/user"
+	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"go.uber.org/zap"
@@ -120,7 +120,7 @@ func (s *BlacklistService) GetUserBlacklist(ctx context.Context, userID int, pag
 			BlockedUserID:   item.BlockedUserID,
 			BlockedUsername: blockedUser.Username,
 			BlockedAvatar:   blockedUser.Avatar,
-			CreatedAt:       item.CreatedAt.Format(time.RFC3339),
+			CreatedAt:       item.CreatedAt.Format(time_tools.DateTimeFormat),
 		}
 		list = append(list, listItem)
 	}
@@ -199,7 +199,7 @@ func (s *BlacklistService) AddToBlacklist(ctx context.Context, userID int, block
 		ID:            blacklistItem.ID,
 		UserID:        blacklistItem.UserID,
 		BlockedUserID: blacklistItem.BlockedUserID,
-		CreatedAt:     blacklistItem.CreatedAt.Format(time.RFC3339),
+		CreatedAt:     blacklistItem.CreatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	s.logger.Info("添加用户到黑名单成功",

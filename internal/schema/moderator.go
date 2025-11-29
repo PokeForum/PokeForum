@@ -58,14 +58,14 @@ type CategoryAnnouncementRequest struct {
 
 // CategoryAnnouncementResponse 版块公告响应体
 type CategoryAnnouncementResponse struct {
-	ID         int    `json:"id" example:"1"`                            // 公告ID
-	CategoryID int    `json:"category_id" example:"1"`                   // 版块ID
-	Title      string `json:"title" example:"版块公告标题"`                    // 公告标题
-	Content    string `json:"content" example:"版块公告内容"`                  // 公告内容
-	IsPinned   bool   `json:"is_pinned" example:"true"`                  // 是否置顶
-	Username   string `json:"username" example:"moderator"`              // 发布者用户名
-	CreatedAt  string `json:"created_at" example:"2024-01-01T00:00:00Z"` // 创建时间
-	UpdatedAt  string `json:"updated_at" example:"2024-01-01T00:00:00Z"` // 更新时间
+	ID         int    `json:"id" example:"1"`                           // 公告ID
+	CategoryID int    `json:"category_id" example:"1"`                  // 版块ID
+	Title      string `json:"title" example:"版块公告标题"`                   // 公告标题
+	Content    string `json:"content" example:"版块公告内容"`                 // 公告内容
+	IsPinned   bool   `json:"is_pinned" example:"true"`                 // 是否置顶
+	Username   string `json:"username" example:"moderator"`             // 发布者用户名
+	CreatedAt  string `json:"created_at" example:"2024-01-01 00:00:00"` // 创建时间
+	UpdatedAt  string `json:"updated_at" example:"2024-01-01 00:00:00"` // 更新时间
 }
 
 // ModeratorCategoriesResponse 版主管理的版块列表响应体
@@ -75,30 +75,30 @@ type ModeratorCategoriesResponse struct {
 
 // ModeratorCategory 版主管理的版块信息
 type ModeratorCategory struct {
-	ID          int    `json:"id" example:"1"`                            // 版块ID
-	Name        string `json:"name" example:"技术讨论"`                       // 版块名称
-	Slug        string `json:"slug" example:"tech"`                       // 版块标识
-	Description string `json:"description" example:"技术相关话题讨论区"`           // 版块描述
-	Icon        string `json:"icon" example:"tech"`                       // 版块图标
-	Status      string `json:"status" example:"Normal"`                   // 版块状态
-	PostCount   int    `json:"post_count" example:"100"`                  // 帖子数量
-	CreatedAt   string `json:"created_at" example:"2024-01-01T00:00:00Z"` // 创建时间
+	ID          int    `json:"id" example:"1"`                           // 版块ID
+	Name        string `json:"name" example:"技术讨论"`                      // 版块名称
+	Slug        string `json:"slug" example:"tech"`                      // 版块标识
+	Description string `json:"description" example:"技术相关话题讨论区"`          // 版块描述
+	Icon        string `json:"icon" example:"tech"`                      // 版块图标
+	Status      string `json:"status" example:"Normal"`                  // 版块状态
+	PostCount   int    `json:"post_count" example:"100"`                 // 帖子数量
+	CreatedAt   string `json:"created_at" example:"2024-01-01 00:00:00"` // 创建时间
 }
 
 // ModeratorPostResponse 版主帖子操作响应体
 type ModeratorPostResponse struct {
-	ID           int    `json:"id" example:"1"`                            // 帖子ID
-	Title        string `json:"title" example:"技术分享帖"`                     // 帖子标题
-	Content      string `json:"content" example:"很有见地的内容"`                 // 帖子内容
-	Username     string `json:"username" example:"testuser"`               // 作者用户名
-	CategoryID   int    `json:"category_id" example:"1"`                   // 版块ID
-	CategoryName string `json:"category_name" example:"技术讨论"`              // 版块名称
-	Status       string `json:"status" example:"Normal"`                   // 帖子状态
-	IsEssence    bool   `json:"is_essence" example:"true"`                 // 是否精华
-	IsPinned     bool   `json:"is_pinned" example:"false"`                 // 是否置顶
-	ViewCount    int    `json:"view_count" example:"1500"`                 // 浏览数
-	LikeCount    int    `json:"like_count" example:"50"`                   // 点赞数
-	CommentCount int    `json:"comment_count" example:"25"`                // 评论数
-	CreatedAt    string `json:"created_at" example:"2024-01-01T00:00:00Z"` // 创建时间
-	UpdatedAt    string `json:"updated_at" example:"2024-01-01T00:00:00Z"` // 更新时间
+	ID           int    `json:"id" example:"1"`                           // 帖子ID
+	Title        string `json:"title" example:"技术分享帖"`                    // 帖子标题
+	Content      string `json:"content" example:"很有见地的内容"`                // 帖子内容
+	Username     string `json:"username" example:"testuser"`              // 作者用户名
+	CategoryID   int    `json:"category_id" example:"1"`                  // 版块ID
+	CategoryName string `json:"category_name" example:"技术讨论"`             // 版块名称
+	Status       string `json:"status" example:"Normal"`                  // 帖子状态
+	IsEssence    bool   `json:"is_essence" example:"true"`                // 是否精华
+	IsPinned     bool   `json:"is_pinned" example:"false"`                // 是否置顶
+	ViewCount    int    `json:"view_count" example:"1500"`                // 浏览数
+	LikeCount    int    `json:"like_count" example:"50"`                  // 点赞数
+	CommentCount int    `json:"comment_count" example:"25"`               // 评论数
+	CreatedAt    string `json:"created_at" example:"2024-01-01 00:00:00"` // 创建时间
+	UpdatedAt    string `json:"updated_at" example:"2024-01-01 00:00:00"` // 更新时间
 }

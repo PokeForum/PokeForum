@@ -7,6 +7,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
+	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"go.uber.org/zap"
@@ -67,7 +68,7 @@ func (s *CategoryService) GetUserCategories(ctx context.Context) (*schema.UserCa
 			Description: cat.Description,
 			Icon:        cat.Icon,
 			Weight:      cat.Weight,
-			CreatedAt:   cat.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt:   cat.CreatedAt.Format(time_tools.DateTimeFormat),
 		}
 	}
 

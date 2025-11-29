@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
+	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 	"github.com/gin-gonic/gin"
@@ -124,8 +125,8 @@ func (ctrl *OAuthProviderController) CreateProvider(c *gin.Context) {
 		ExtraConfig:  provider.ExtraConfig,
 		Enabled:      provider.Enabled,
 		SortOrder:    provider.SortOrder,
-		CreatedAt:    provider.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:    provider.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:    provider.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:    provider.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	response.ResSuccess(c, result)
@@ -183,8 +184,8 @@ func (ctrl *OAuthProviderController) UpdateProvider(c *gin.Context) {
 		ExtraConfig:  provider.ExtraConfig,
 		Enabled:      provider.Enabled,
 		SortOrder:    provider.SortOrder,
-		CreatedAt:    provider.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:    provider.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:    provider.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:    provider.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	response.ResSuccess(c, result)

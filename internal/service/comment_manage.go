@@ -10,6 +10,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
+	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"go.uber.org/zap"
@@ -175,8 +176,8 @@ func (s *CommentManageService) GetCommentList(ctx context.Context, req schema.Co
 			IsPinned:        c.IsPinned,
 			CommenterIP:     c.CommenterIP,
 			DeviceInfo:      c.DeviceInfo,
-			CreatedAt:       c.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			UpdatedAt:       c.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt:       c.CreatedAt.Format(time_tools.DateTimeFormat),
+			UpdatedAt:       c.UpdatedAt.Format(time_tools.DateTimeFormat),
 		}
 	}
 
@@ -355,8 +356,8 @@ func (s *CommentManageService) GetCommentDetail(ctx context.Context, id int) (*s
 		IsPinned:        c.IsPinned,
 		CommenterIP:     c.CommenterIP,
 		DeviceInfo:      c.DeviceInfo,
-		CreatedAt:       c.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:       c.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:       c.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:       c.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	return result, nil

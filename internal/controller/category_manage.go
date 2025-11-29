@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
+	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 	"github.com/gin-gonic/gin"
@@ -120,8 +121,8 @@ func (ctrl *CategoryManageController) CreateCategory(c *gin.Context) {
 		Icon:        category.Icon,
 		Weight:      category.Weight,
 		Status:      category.Status.String(),
-		CreatedAt:   category.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:   category.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:   category.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:   category.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	response.ResSuccess(c, result)
@@ -168,8 +169,8 @@ func (ctrl *CategoryManageController) UpdateCategory(c *gin.Context) {
 		Icon:        category.Icon,
 		Weight:      category.Weight,
 		Status:      category.Status.String(),
-		CreatedAt:   category.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:   category.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:   category.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:   category.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	response.ResSuccess(c, result)

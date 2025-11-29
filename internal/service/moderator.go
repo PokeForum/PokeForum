@@ -11,6 +11,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
+	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"go.uber.org/zap"
@@ -103,7 +104,7 @@ func (s *ModeratorService) GetModeratorCategories(ctx context.Context, userID in
 			Icon:        cat.Icon,
 			Status:      string(cat.Status),
 			PostCount:   postCount,
-			CreatedAt:   cat.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt:   cat.CreatedAt.Format(time_tools.DateTimeFormat),
 		}
 	}
 
@@ -221,8 +222,8 @@ func (s *ModeratorService) EditPost(ctx context.Context, userID int, req schema.
 		ViewCount:    updatedPost.ViewCount,
 		LikeCount:    updatedPost.LikeCount,
 		CommentCount: commentCount,
-		CreatedAt:    updatedPost.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:    updatedPost.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:    updatedPost.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:    updatedPost.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	s.logger.Info("帖子编辑成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
@@ -462,8 +463,8 @@ func (s *ModeratorService) CreateCategoryAnnouncement(ctx context.Context, userI
 		Content:    req.Content,
 		IsPinned:   req.IsPinned,
 		Username:   moderatorData.Username,
-		CreatedAt:  updatedCategory.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:  updatedCategory.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:  updatedCategory.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:  updatedCategory.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	s.logger.Info("版块公告创建成功", zap.Int("category_id", req.CategoryID), tracing.WithTraceIDField(ctx))
@@ -518,8 +519,8 @@ func (s *ModeratorService) GetCategoryAnnouncements(ctx context.Context, userID 
 			Content:    categoryData.Announcement,
 			IsPinned:   false,
 			Username:   moderatorData.Username,
-			CreatedAt:  categoryData.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			UpdatedAt:  categoryData.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt:  categoryData.CreatedAt.Format(time_tools.DateTimeFormat),
+			UpdatedAt:  categoryData.UpdatedAt.Format(time_tools.DateTimeFormat),
 		},
 	}
 

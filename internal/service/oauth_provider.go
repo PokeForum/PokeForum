@@ -8,6 +8,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/oauthprovider"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
+	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"go.uber.org/zap"
@@ -85,8 +86,8 @@ func (s *OAuthProviderService) GetProviderList(ctx context.Context, req schema.O
 			Scopes:      provider.Scopes,
 			Enabled:     provider.Enabled,
 			SortOrder:   provider.SortOrder,
-			CreatedAt:   provider.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			UpdatedAt:   provider.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt:   provider.CreatedAt.Format(time_tools.DateTimeFormat),
+			UpdatedAt:   provider.UpdatedAt.Format(time_tools.DateTimeFormat),
 		}
 	}
 
@@ -258,8 +259,8 @@ func (s *OAuthProviderService) GetProviderDetail(ctx context.Context, id int) (*
 		ExtraConfig:  provider.ExtraConfig,
 		Enabled:      provider.Enabled,
 		SortOrder:    provider.SortOrder,
-		CreatedAt:    provider.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:    provider.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:    provider.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:    provider.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}, nil
 }
 

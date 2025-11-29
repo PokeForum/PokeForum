@@ -6,6 +6,7 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
+	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 	saGin "github.com/click33/sa-token-go/integrations/gin"
@@ -181,8 +182,8 @@ func (ctrl *UserManageController) CreateUser(c *gin.Context) {
 		CommentCount:  commentCount,
 		Status:        u.Status.String(),
 		Role:          u.Role.String(),
-		CreatedAt:     u.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:     u.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:     u.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:     u.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	response.ResSuccess(c, result)
@@ -248,8 +249,8 @@ func (ctrl *UserManageController) UpdateUser(c *gin.Context) {
 		CommentCount:  commentCount,
 		Status:        u.Status.String(),
 		Role:          u.Role.String(),
-		CreatedAt:     u.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:     u.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:     u.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:     u.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	response.ResSuccess(c, result)

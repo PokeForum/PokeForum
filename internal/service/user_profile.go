@@ -20,6 +20,7 @@ import (
 	_const "github.com/PokeForum/PokeForum/internal/const"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	smtp "github.com/PokeForum/PokeForum/internal/pkg/email"
+	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"go.uber.org/zap"
@@ -110,7 +111,7 @@ func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int,
 		CommentCount: commentCount,
 		Status:       string(userData.Status),
 		Role:         string(userData.Role),
-		CreatedAt:    userData.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:    userData.CreatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	// 只有本人才能看到敏感数据
@@ -204,7 +205,7 @@ func (s *UserProfileService) GetUserPosts(ctx context.Context, userID int, req s
 			IsEssence:     p.IsEssence,
 			IsPinned:      p.IsPinned,
 			Status:        string(p.Status),
-			CreatedAt:     p.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt:     p.CreatedAt.Format(time_tools.DateTimeFormat),
 		}
 	}
 
@@ -336,7 +337,7 @@ func (s *UserProfileService) GetUserComments(ctx context.Context, userID int, re
 			Content:      commentData.Content,
 			LikeCount:    commentData.LikeCount,
 			DislikeCount: commentData.DislikeCount,
-			CreatedAt:    commentData.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt:    commentData.CreatedAt.Format(time_tools.DateTimeFormat),
 		})
 	}
 
@@ -508,8 +509,8 @@ func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, r
 			ViewCount:     postData.ViewCount,
 			LikeCount:     postData.LikeCount,
 			FavoriteCount: postData.FavoriteCount,
-			CreatedAt:     postData.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			FavoritedAt:   fav.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt:     postData.CreatedAt.Format(time_tools.DateTimeFormat),
+			FavoritedAt:   fav.CreatedAt.Format(time_tools.DateTimeFormat),
 		})
 	}
 

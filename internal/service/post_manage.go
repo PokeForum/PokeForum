@@ -10,6 +10,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
+	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"go.uber.org/zap"
@@ -178,8 +179,8 @@ func (s *PostManageService) GetPostList(ctx context.Context, req schema.PostList
 			IsPinned:      p.IsPinned,
 			Status:        p.Status.String(),
 			PublishIP:     p.PublishIP,
-			CreatedAt:     p.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			UpdatedAt:     p.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt:     p.CreatedAt.Format(time_tools.DateTimeFormat),
+			UpdatedAt:     p.UpdatedAt.Format(time_tools.DateTimeFormat),
 		}
 	}
 
@@ -362,8 +363,8 @@ func (s *PostManageService) GetPostDetail(ctx context.Context, id int) (*schema.
 		IsPinned:       p.IsPinned,
 		Status:         p.Status.String(),
 		PublishIP:      p.PublishIP,
-		CreatedAt:      p.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:      p.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:      p.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:      p.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	return result, nil

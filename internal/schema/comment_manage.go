@@ -46,23 +46,23 @@ type CommentPinUpdateRequest struct {
 
 // CommentListItem 评论列表项响应体
 type CommentListItem struct {
-	ID              int    `json:"id" example:"1"`                            // 评论ID
-	PostID          int    `json:"post_id" example:"1"`                       // 帖子ID
-	PostTitle       string `json:"post_title" example:"技术分享帖"`                // 帖子标题
-	UserID          int    `json:"user_id" example:"1"`                       // 用户ID
-	Username        string `json:"username" example:"testuser"`               // 用户名
-	ParentID        *int   `json:"parent_id" example:"1"`                     // 父评论ID
-	ReplyToUserID   *int   `json:"reply_to_user_id" example:"2"`              // 回复目标用户ID
-	ReplyToUsername string `json:"reply_to_username" example:"targetuser"`    // 回复目标用户名
-	Content         string `json:"content" example:"很有见地的评论"`                 // 评论内容
-	LikeCount       int    `json:"like_count" example:"10"`                   // 点赞数
-	DislikeCount    int    `json:"dislike_count" example:"1"`                 // 点踩数
-	IsSelected      bool   `json:"is_selected" example:"true"`                // 是否精选
-	IsPinned        bool   `json:"is_pinned" example:"false"`                 // 是否置顶
-	CommenterIP     string `json:"commenter_ip" example:"192.168.1.1"`        // 评论者IP
-	DeviceInfo      string `json:"device_info" example:"Chrome/Windows"`      // 设备信息
-	CreatedAt       string `json:"created_at" example:"2024-01-01T00:00:00Z"` // 创建时间
-	UpdatedAt       string `json:"updated_at" example:"2024-01-01T00:00:00Z"` // 更新时间
+	ID              int    `json:"id" example:"1"`                           // 评论ID
+	PostID          int    `json:"post_id" example:"1"`                      // 帖子ID
+	PostTitle       string `json:"post_title" example:"技术分享帖"`               // 帖子标题
+	UserID          int    `json:"user_id" example:"1"`                      // 用户ID
+	Username        string `json:"username" example:"testuser"`              // 用户名
+	ParentID        *int   `json:"parent_id" example:"1"`                    // 父评论ID
+	ReplyToUserID   *int   `json:"reply_to_user_id" example:"2"`             // 回复目标用户ID
+	ReplyToUsername string `json:"reply_to_username" example:"targetuser"`   // 回复目标用户名
+	Content         string `json:"content" example:"很有见地的评论"`                // 评论内容
+	LikeCount       int    `json:"like_count" example:"10"`                  // 点赞数
+	DislikeCount    int    `json:"dislike_count" example:"1"`                // 点踩数
+	IsSelected      bool   `json:"is_selected" example:"true"`               // 是否精选
+	IsPinned        bool   `json:"is_pinned" example:"false"`                // 是否置顶
+	CommenterIP     string `json:"commenter_ip" example:"192.168.1.1"`       // 评论者IP
+	DeviceInfo      string `json:"device_info" example:"Chrome/Windows"`     // 设备信息
+	CreatedAt       string `json:"created_at" example:"2024-01-01 00:00:00"` // 创建时间
+	UpdatedAt       string `json:"updated_at" example:"2024-01-01 00:00:00"` // 更新时间
 }
 
 // CommentListResponse 评论列表响应体
@@ -75,21 +75,21 @@ type CommentListResponse struct {
 
 // CommentDetailResponse 评论详情响应体
 type CommentDetailResponse struct {
-	ID              int    `json:"id" example:"1"`                            // 评论ID
-	PostID          int    `json:"post_id" example:"1"`                       // 帖子ID
-	PostTitle       string `json:"post_title" example:"技术分享帖"`                // 帖子标题
-	UserID          int    `json:"user_id" example:"1"`                       // 用户ID
-	Username        string `json:"username" example:"testuser"`               // 用户名
-	ParentID        *int   `json:"parent_id" example:"1"`                     // 父评论ID
-	ReplyToUserID   *int   `json:"reply_to_user_id" example:"2"`              // 回复目标用户ID
-	ReplyToUsername string `json:"reply_to_username" example:"targetuser"`    // 回复目标用户名
-	Content         string `json:"content" example:"很有见地的评论"`                 // 评论内容
-	LikeCount       int    `json:"like_count" example:"10"`                   // 点赞数
-	DislikeCount    int    `json:"dislike_count" example:"1"`                 // 点踩数
-	IsSelected      bool   `json:"is_selected" example:"true"`                // 是否精选
-	IsPinned        bool   `json:"is_pinned" example:"false"`                 // 是否置顶
-	CommenterIP     string `json:"commenter_ip" example:"192.168.1.1"`        // 评论者IP
-	DeviceInfo      string `json:"device_info" example:"Chrome/Windows"`      // 设备信息
-	CreatedAt       string `json:"created_at" example:"2024-01-01T00:00:00Z"` // 创建时间
-	UpdatedAt       string `json:"updated_at" example:"2024-01-01T00:00:00Z"` // 更新时间
+	ID              int    `json:"id" example:"1"`                           // 评论ID
+	PostID          int    `json:"post_id" example:"1"`                      // 帖子ID
+	PostTitle       string `json:"post_title" example:"技术分享帖"`               // 帖子标题
+	UserID          int    `json:"user_id" example:"1"`                      // 用户ID
+	Username        string `json:"username" example:"testuser"`              // 用户名
+	ParentID        *int   `json:"parent_id" example:"1"`                    // 父评论ID
+	ReplyToUserID   *int   `json:"reply_to_user_id" example:"2"`             // 回复目标用户ID
+	ReplyToUsername string `json:"reply_to_username" example:"targetuser"`   // 回复目标用户名
+	Content         string `json:"content" example:"很有见地的评论"`                // 评论内容
+	LikeCount       int    `json:"like_count" example:"10"`                  // 点赞数
+	DislikeCount    int    `json:"dislike_count" example:"1"`                // 点踩数
+	IsSelected      bool   `json:"is_selected" example:"true"`               // 是否精选
+	IsPinned        bool   `json:"is_pinned" example:"false"`                // 是否置顶
+	CommenterIP     string `json:"commenter_ip" example:"192.168.1.1"`       // 评论者IP
+	DeviceInfo      string `json:"device_info" example:"Chrome/Windows"`     // 设备信息
+	CreatedAt       string `json:"created_at" example:"2024-01-01 00:00:00"` // 创建时间
+	UpdatedAt       string `json:"updated_at" example:"2024-01-01 00:00:00"` // 更新时间
 }

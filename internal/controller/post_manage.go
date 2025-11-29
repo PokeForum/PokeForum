@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
+	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 	"github.com/gin-gonic/gin"
@@ -135,8 +136,8 @@ func (ctrl *PostManageController) CreatePost(c *gin.Context) {
 		IsPinned:       post.IsPinned,
 		Status:         post.Status.String(),
 		PublishIP:      post.PublishIP,
-		CreatedAt:      post.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:      post.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:      post.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:      post.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	response.ResSuccess(c, result)
@@ -192,8 +193,8 @@ func (ctrl *PostManageController) UpdatePost(c *gin.Context) {
 		IsPinned:       post.IsPinned,
 		Status:         post.Status.String(),
 		PublishIP:      post.PublishIP,
-		CreatedAt:      post.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:      post.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:      post.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:      post.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	response.ResSuccess(c, result)

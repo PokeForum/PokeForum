@@ -14,6 +14,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
+	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/utils"
@@ -193,8 +194,8 @@ func (s *UserManageService) GetUserList(ctx context.Context, req schema.UserList
 			CommentCount:  commentCounts[u.ID],
 			Status:        u.Status.String(),
 			Role:          u.Role.String(),
-			CreatedAt:     u.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			UpdatedAt:     u.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt:     u.CreatedAt.Format(time_tools.DateTimeFormat),
+			UpdatedAt:     u.UpdatedAt.Format(time_tools.DateTimeFormat),
 		}
 	}
 
@@ -646,8 +647,8 @@ func (s *UserManageService) GetUserDetail(ctx context.Context, id int) (*schema.
 		CommentCount:      commentCount,
 		Status:            u.Status.String(),
 		Role:              u.Role.String(),
-		CreatedAt:         u.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:         u.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:         u.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:         u.UpdatedAt.Format(time_tools.DateTimeFormat),
 		ManagedCategories: managedCategories,
 	}
 
@@ -785,7 +786,7 @@ func (s *UserManageService) GetUserBalanceLog(ctx context.Context, req schema.Us
 			RelatedID:    log.RelatedID,
 			RelatedType:  log.RelatedType,
 			IPAddress:    log.IPAddress,
-			CreatedAt:    log.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt:    log.CreatedAt.Format(time_tools.DateTimeFormat),
 		}
 
 		list[i] = item

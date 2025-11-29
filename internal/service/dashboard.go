@@ -11,6 +11,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
+	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"go.uber.org/zap"
@@ -446,7 +447,7 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 			Username:     ui.Username,
 			Avatar:       ui.Avatar,
 			CategoryName: categoryMap[p.CategoryID],
-			CreatedAt:    p.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt:    p.CreatedAt.Format(time_tools.DateTimeFormat),
 		}
 	}
 
@@ -464,7 +465,7 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 			Username:  ui.Username,
 			Avatar:    ui.Avatar,
 			PostTitle: postMap[c.PostID],
-			CreatedAt: c.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt: c.CreatedAt.Format(time_tools.DateTimeFormat),
 		}
 	}
 
@@ -475,7 +476,7 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 			Username:  u.Username,
 			Avatar:    u.Avatar,
 			Email:     u.Email,
-			CreatedAt: u.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt: u.CreatedAt.Format(time_tools.DateTimeFormat),
 		}
 	}
 
@@ -564,7 +565,7 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 			ViewCount:    p.ViewCount,
 			LikeCount:    p.LikeCount,
 			CommentCount: commentCountMap[p.ID],
-			CreatedAt:    p.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt:    p.CreatedAt.Format(time_tools.DateTimeFormat),
 		}
 	}
 

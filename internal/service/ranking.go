@@ -12,6 +12,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
+	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"go.uber.org/zap"
@@ -22,7 +23,7 @@ type IRankingService interface {
 	// GetReadingRanking 获取阅读排行榜
 	// 根据时间范围获取阅读量最高的帖子列表
 	GetReadingRanking(ctx context.Context, req schema.UserRankingListRequest) (*schema.UserRankingListResponse, error)
-	
+
 	// GetCommentRanking 获取评论排行榜
 	// 根据时间范围获取评论数最多的用户列表
 	GetCommentRanking(ctx context.Context, req schema.UserRankingListRequest) (*schema.UserRankingListResponse, error)
@@ -48,43 +49,43 @@ func NewRankingService(db *ent.Client, cache cache.ICacheService, log *zap.Logge
 func (s *RankingService) GetReadingRanking(ctx context.Context, req schema.UserRankingListRequest) (*schema.UserRankingListResponse, error) {
 	// 添加链路追踪
 	s.log.Info("获取阅读排行榜", tracing.WithTraceIDField(ctx))
-	
+
 	// 验证请求参数
 	if req.Type != "reading" {
 		return nil, errors.New("排行榜类型错误")
 	}
-	
+
 	// 计算时间范围
 	startTime, err := s.calculateTimeRange(req.TimeRange)
 	if err != nil {
 		s.log.Error("计算时间范围失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("时间范围参数错误: %w", err)
 	}
-	
+
 	// 计算分页参数
 	offset := (req.Page - 1) * req.PageSize
-	
+
 	// 构建查询条件
 	query := s.db.Post.Query().
 		Where(
 			post.StatusEQ("published"), // 只查询已发布的帖子
 		).
 		Order(ent.Desc(post.FieldViewCount)) // 按阅读数降序排列
-	
+
 	// 如果不是总榜，添加时间范围过滤
 	if req.TimeRange != "all" {
 		query = query.Where(
 			post.CreatedAtGTE(startTime),
 		)
 	}
-	
+
 	// 获取总数
 	total, err := query.Count(ctx)
 	if err != nil {
 		s.log.Error("查询阅读排行榜总数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("查询失败: %w", err)
 	}
-	
+
 	// 获取分页数据
 	posts, err := query.
 		Offset(offset).
@@ -130,23 +131,23 @@ func (s *RankingService) GetReadingRanking(ctx context.Context, req schema.UserR
 	for _, c := range categories {
 		categoryMap[c.ID] = c.Name
 	}
-	
+
 	// 构建响应数据
 	items := make([]schema.RankingItem, 0, len(posts))
 	for i, p := range posts {
 		item := schema.RankingItem{
-			Rank:       offset + i + 1,
-			PostID:     &p.ID,
-			PostTitle:  &p.Title,
-			Count:      p.ViewCount,
-			CreatedAt:  p.CreatedAt.Format("2006-01-02 15:04:05"),
+			Rank:      offset + i + 1,
+			PostID:    &p.ID,
+			PostTitle: &p.Title,
+			Count:     p.ViewCount,
+			CreatedAt: p.CreatedAt.Format(time_tools.DateTimeFormat),
 		}
 		items = append(items, item)
 	}
-	
+
 	// 计算总页数
 	totalPages := (total + req.PageSize - 1) / req.PageSize
-	
+
 	// 构建响应
 	response := &schema.UserRankingListResponse{
 		Type:       req.Type,
@@ -157,13 +158,13 @@ func (s *RankingService) GetReadingRanking(ctx context.Context, req schema.UserR
 		TotalPages: totalPages,
 		Items:      items,
 	}
-	
-	s.log.Info("获取阅读排行榜成功", 
-		zap.Int("total", total), 
+
+	s.log.Info("获取阅读排行榜成功",
+		zap.Int("total", total),
 		zap.Int("page", req.Page),
 		zap.String("time_range", req.TimeRange),
 		tracing.WithTraceIDField(ctx))
-	
+
 	return response, nil
 }
 
@@ -171,32 +172,32 @@ func (s *RankingService) GetReadingRanking(ctx context.Context, req schema.UserR
 func (s *RankingService) GetCommentRanking(ctx context.Context, req schema.UserRankingListRequest) (*schema.UserRankingListResponse, error) {
 	// 添加链路追踪
 	s.log.Info("获取评论排行榜", tracing.WithTraceIDField(ctx))
-	
+
 	// 验证请求参数
 	if req.Type != "comment" {
 		return nil, errors.New("排行榜类型错误")
 	}
-	
+
 	// 计算时间范围
 	startTime, err := s.calculateTimeRange(req.TimeRange)
 	if err != nil {
 		s.log.Error("计算时间范围失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("时间范围参数错误: %w", err)
 	}
-	
+
 	// 计算分页参数
 	offset := (req.Page - 1) * req.PageSize
-	
+
 	// 构建查询条件 - 按用户分组统计评论数
 	query := s.db.Comment.Query()
-	
+
 	// 如果不是总榜，添加时间范围过滤
 	if req.TimeRange != "all" {
 		query = query.Where(
 			comment.CreatedAtGTE(startTime),
 		)
 	}
-	
+
 	// 获取所有符合条件的评论
 	comments, err := query.All(ctx)
 	if err != nil {
@@ -223,7 +224,7 @@ func (s *RankingService) GetCommentRanking(ctx context.Context, req schema.UserR
 	for _, u := range users {
 		userMap[u.ID] = u
 	}
-	
+
 	// 按用户统计评论数
 	userCommentCount := make(map[int]*schema.CommentRankingItem)
 	for _, c := range comments {
@@ -232,7 +233,7 @@ func (s *RankingService) GetCommentRanking(ctx context.Context, req schema.UserR
 		if userInfo == nil {
 			continue
 		}
-		
+
 		if item, exists := userCommentCount[userID]; exists {
 			// 累加评论数和点赞数
 			item.TotalComments++
@@ -245,17 +246,17 @@ func (s *RankingService) GetCommentRanking(ctx context.Context, req schema.UserR
 				Avatar:        userInfo.Avatar,
 				TotalComments: 1,
 				TotalLikes:    c.LikeCount,
-				RegisteredAt:  userInfo.CreatedAt.Format("2006-01-02 15:04:05"),
+				RegisteredAt:  userInfo.CreatedAt.Format(time_tools.DateTimeFormat),
 			}
 		}
 	}
-	
+
 	// 转换为切片并排序（按评论数降序）
 	var commentItems []schema.CommentRankingItem
 	for _, item := range userCommentCount {
 		commentItems = append(commentItems, *item)
 	}
-	
+
 	// 简单排序（按评论数降序，如果评论数相同则按点赞数降序）
 	for i := 0; i < len(commentItems)-1; i++ {
 		for j := i + 1; j < len(commentItems); j++ {
@@ -265,10 +266,10 @@ func (s *RankingService) GetCommentRanking(ctx context.Context, req schema.UserR
 			}
 		}
 	}
-	
+
 	// 获取总数
 	total := len(commentItems)
-	
+
 	// 分页处理
 	start := offset
 	end := offset + req.PageSize
@@ -278,7 +279,7 @@ func (s *RankingService) GetCommentRanking(ctx context.Context, req schema.UserR
 	if end > total {
 		end = total
 	}
-	
+
 	// 构建响应数据
 	items := make([]schema.RankingItem, 0, end-start)
 	for i := start; i < end; i++ {
@@ -291,10 +292,10 @@ func (s *RankingService) GetCommentRanking(ctx context.Context, req schema.UserR
 		}
 		items = append(items, item)
 	}
-	
+
 	// 计算总页数
 	totalPages := (total + req.PageSize - 1) / req.PageSize
-	
+
 	// 构建响应
 	response := &schema.UserRankingListResponse{
 		Type:       req.Type,
@@ -305,20 +306,20 @@ func (s *RankingService) GetCommentRanking(ctx context.Context, req schema.UserR
 		TotalPages: totalPages,
 		Items:      items,
 	}
-	
-	s.log.Info("获取评论排行榜成功", 
-		zap.Int("total", total), 
+
+	s.log.Info("获取评论排行榜成功",
+		zap.Int("total", total),
 		zap.Int("page", req.Page),
 		zap.String("time_range", req.TimeRange),
 		tracing.WithTraceIDField(ctx))
-	
+
 	return response, nil
 }
 
 // calculateTimeRange 计算时间范围
 func (s *RankingService) calculateTimeRange(timeRange string) (time.Time, error) {
 	now := time.Now()
-	
+
 	switch timeRange {
 	case "all":
 		// 总榜不限制时间范围，返回一个很早的时间

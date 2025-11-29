@@ -80,8 +80,8 @@ type UserListItem struct {
 	CommentCount  int    `json:"comment_count" example:"200"`                     // 评论数
 	Status        string `json:"status" example:"Normal"`                         // 用户状态
 	Role          string `json:"role" example:"User"`                             // 用户身份
-	CreatedAt     string `json:"created_at" example:"2024-01-01T00:00:00Z"`       // 创建时间
-	UpdatedAt     string `json:"updated_at" example:"2024-01-01T00:00:00Z"`       // 更新时间
+	CreatedAt     string `json:"created_at" example:"2024-01-01 00:00:00"`        // 创建时间
+	UpdatedAt     string `json:"updated_at" example:"2024-01-01 00:00:00"`        // 更新时间
 }
 
 // UserListResponse 用户列表响应体
@@ -107,8 +107,8 @@ type UserDetailResponse struct {
 	CommentCount      int                 `json:"comment_count" example:"200"`                     // 评论数
 	Status            string              `json:"status" example:"Normal"`                         // 用户状态
 	Role              string              `json:"role" example:"User"`                             // 用户身份
-	CreatedAt         string              `json:"created_at" example:"2024-01-01T00:00:00Z"`       // 创建时间
-	UpdatedAt         string              `json:"updated_at" example:"2024-01-01T00:00:00Z"`       // 更新时间
+	CreatedAt         string              `json:"created_at" example:"2024-01-01 00:00:00"`        // 创建时间
+	UpdatedAt         string              `json:"updated_at" example:"2024-01-01 00:00:00"`        // 更新时间
 	ManagedCategories []CategoryBasicInfo `json:"managed_categories"`                              // 管理的版块列表（仅版主显示）
 }
 
@@ -133,20 +133,20 @@ type UserBalanceLogRequest struct {
 
 // UserBalanceLogItem 用户余额变动记录项
 type UserBalanceLogItem struct {
-	ID           int    `json:"id" example:"1"`                            // 记录ID
-	UserID       int    `json:"user_id" example:"1"`                       // 用户ID
-	Username     string `json:"username" example:"testuser"`               // 用户名
-	Type         string `json:"type" example:"points"`                     // 变动类型
-	Amount       int    `json:"amount" example:"100"`                      // 变动数量
-	BeforeAmount int    `json:"before_amount" example:"1000"`              // 变动前数量
-	AfterAmount  int    `json:"after_amount" example:"1100"`               // 变动后数量
-	Reason       string `json:"reason" example:"发帖奖励"`                     // 变动原因
-	OperatorID   int    `json:"operator_id" example:"2"`                   // 操作者ID
-	OperatorName string `json:"operator_name" example:"admin"`             // 操作者用户名
-	RelatedID    int    `json:"related_id" example:"123"`                  // 关联业务ID
-	RelatedType  string `json:"related_type" example:"post"`               // 关联业务类型
-	IPAddress    string `json:"ip_address" example:"192.168.1.1"`          // IP地址
-	CreatedAt    string `json:"created_at" example:"2024-01-01T00:00:00Z"` // 创建时间
+	ID           int    `json:"id" example:"1"`                           // 记录ID
+	UserID       int    `json:"user_id" example:"1"`                      // 用户ID
+	Username     string `json:"username" example:"testuser"`              // 用户名
+	Type         string `json:"type" example:"points"`                    // 变动类型
+	Amount       int    `json:"amount" example:"100"`                     // 变动数量
+	BeforeAmount int    `json:"before_amount" example:"1000"`             // 变动前数量
+	AfterAmount  int    `json:"after_amount" example:"1100"`              // 变动后数量
+	Reason       string `json:"reason" example:"发帖奖励"`                    // 变动原因
+	OperatorID   int    `json:"operator_id" example:"2"`                  // 操作者ID
+	OperatorName string `json:"operator_name" example:"admin"`            // 操作者用户名
+	RelatedID    int    `json:"related_id" example:"123"`                 // 关联业务ID
+	RelatedType  string `json:"related_type" example:"post"`              // 关联业务类型
+	IPAddress    string `json:"ip_address" example:"192.168.1.1"`         // IP地址
+	CreatedAt    string `json:"created_at" example:"2024-01-01 00:00:00"` // 创建时间
 }
 
 // UserBalanceLogResponse 用户余额变动记录响应体

@@ -14,6 +14,7 @@ import (
 	_const "github.com/PokeForum/PokeForum/internal/const"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/stats"
+	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"go.uber.org/zap"
@@ -125,8 +126,8 @@ func (s *PostService) CreatePost(ctx context.Context, userID int, req schema.Use
 		IsEssence:      newPost.IsEssence,
 		IsPinned:       newPost.IsPinned,
 		Status:         string(newPost.Status),
-		CreatedAt:      newPost.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:      newPost.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:      newPost.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:      newPost.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	s.logger.Info("帖子创建成功", zap.Int("post_id", newPost.ID), tracing.WithTraceIDField(ctx))
@@ -188,8 +189,8 @@ func (s *PostService) SaveDraft(ctx context.Context, userID int, req schema.User
 		IsEssence:      newPost.IsEssence,
 		IsPinned:       newPost.IsPinned,
 		Status:         string(newPost.Status),
-		CreatedAt:      newPost.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:      newPost.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:      newPost.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:      newPost.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	s.logger.Info("草稿保存成功", zap.Int("post_id", newPost.ID), tracing.WithTraceIDField(ctx))
@@ -277,8 +278,8 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int, req schema.Use
 		IsEssence:      updatedPost.IsEssence,
 		IsPinned:       updatedPost.IsPinned,
 		Status:         string(updatedPost.Status),
-		CreatedAt:      updatedPost.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:      updatedPost.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:      updatedPost.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:      updatedPost.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	s.logger.Info("帖子更新成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
@@ -621,8 +622,8 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 			IsEssence:      p.IsEssence,
 			IsPinned:       p.IsPinned,
 			Status:         string(p.Status),
-			CreatedAt:      p.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			UpdatedAt:      p.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt:      p.CreatedAt.Format(time_tools.DateTimeFormat),
+			UpdatedAt:      p.UpdatedAt.Format(time_tools.DateTimeFormat),
 		}
 	}
 
@@ -738,8 +739,8 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 		IsEssence:      postData.IsEssence,
 		IsPinned:       postData.IsPinned,
 		Status:         string(postData.Status),
-		CreatedAt:      postData.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:      postData.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:      postData.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:      postData.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	s.logger.Info("获取帖子详情成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))

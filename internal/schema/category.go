@@ -8,7 +8,7 @@ type UserCategoryListItem struct {
 	Description string `json:"description" example:"技术相关话题讨论区"`             // 版块描述
 	Icon        string `json:"icon" example:"https://example.com/icon.png"` // 版块图标
 	Weight      int    `json:"weight" example:"0"`                          // 权重排序
-	CreatedAt   string `json:"created_at" example:"2024-01-01T00:00:00Z"`   // 创建时间
+	CreatedAt   string `json:"created_at" example:"2024-01-01 00:00:00"`    // 创建时间
 }
 
 // UserCategoryResponse 用户版块响应体

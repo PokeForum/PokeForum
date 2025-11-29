@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
+	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 	"github.com/gin-gonic/gin"
@@ -131,8 +132,8 @@ func (ctrl *CommentManageController) CreateComment(c *gin.Context) {
 		IsPinned:        comment.IsPinned,
 		CommenterIP:     comment.CommenterIP,
 		DeviceInfo:      comment.DeviceInfo,
-		CreatedAt:       comment.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:       comment.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:       comment.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:       comment.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	response.ResSuccess(c, result)
@@ -187,8 +188,8 @@ func (ctrl *CommentManageController) UpdateComment(c *gin.Context) {
 		IsPinned:        comment.IsPinned,
 		CommenterIP:     comment.CommenterIP,
 		DeviceInfo:      comment.DeviceInfo,
-		CreatedAt:       comment.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:       comment.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:       comment.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:       comment.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	response.ResSuccess(c, result)

@@ -14,6 +14,7 @@ import (
 	_const "github.com/PokeForum/PokeForum/internal/const"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/stats"
+	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"go.uber.org/zap"
@@ -152,7 +153,7 @@ func (s *CommentService) CreateComment(ctx context.Context, userID int, clientIP
 		Content:         newComment.Content,
 		LikeCount:       newComment.LikeCount,
 		DislikeCount:    newComment.DislikeCount,
-		CreatedAt:       newComment.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		CreatedAt:       newComment.CreatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	// 只有当ParentID不为0时才设置
@@ -228,7 +229,7 @@ func (s *CommentService) UpdateComment(ctx context.Context, userID int, req sche
 	result := &schema.UserCommentUpdateResponse{
 		ID:        updatedComment.ID,
 		Content:   updatedComment.Content,
-		UpdatedAt: updatedComment.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		UpdatedAt: updatedComment.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	s.logger.Info("更新评论成功", zap.Int("comment_id", result.ID), tracing.WithTraceIDField(ctx))
@@ -437,8 +438,8 @@ func (s *CommentService) GetCommentList(ctx context.Context, req schema.UserComm
 			UserDisliked: userDisliked,
 			IsSelected:   commentData.IsSelected,
 			IsPinned:     commentData.IsPinned,
-			CreatedAt:    commentData.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			UpdatedAt:    commentData.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+			CreatedAt:    commentData.CreatedAt.Format(time_tools.DateTimeFormat),
+			UpdatedAt:    commentData.UpdatedAt.Format(time_tools.DateTimeFormat),
 		}
 
 		// 只有当ParentID不为0时才设置
