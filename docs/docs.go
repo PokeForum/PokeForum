@@ -6717,7 +6717,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "id": {
                     "description": "公告ID",
@@ -6737,7 +6737,7 @@ const docTemplate = `{
                 "updated_at": {
                     "description": "更新时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "username": {
                     "description": "发布者用户名",
@@ -6824,7 +6824,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "description": {
                     "description": "版块描述",
@@ -6859,7 +6859,7 @@ const docTemplate = `{
                 "updated_at": {
                     "description": "更新时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "weight": {
                     "description": "权重排序",
@@ -6905,7 +6905,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "description": {
                     "description": "版块描述",
@@ -6940,7 +6940,7 @@ const docTemplate = `{
                 "updated_at": {
                     "description": "更新时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "weight": {
                     "description": "权重排序",
@@ -7209,7 +7209,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "device_info": {
                     "description": "设备信息",
@@ -7269,7 +7269,7 @@ const docTemplate = `{
                 "updated_at": {
                     "description": "更新时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "user_id": {
                     "description": "用户ID",
@@ -7299,7 +7299,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "device_info": {
                     "description": "设备信息",
@@ -7359,7 +7359,7 @@ const docTemplate = `{
                 "updated_at": {
                     "description": "更新时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "user_id": {
                     "description": "用户ID",
@@ -8008,7 +8008,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "description": {
                     "description": "版块描述",
@@ -8099,7 +8099,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "id": {
                     "description": "帖子ID",
@@ -8134,7 +8134,7 @@ const docTemplate = `{
                 "updated_at": {
                     "description": "更新时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "username": {
                     "description": "作者用户名",
@@ -8200,7 +8200,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "注册时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "email": {
                     "description": "邮箱",
@@ -8319,7 +8319,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "enabled": {
                     "description": "是否启用",
@@ -8369,7 +8369,7 @@ const docTemplate = `{
                 "updated_at": {
                     "description": "更新时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "user_info_url": {
                     "description": "用户信息获取URL",
@@ -8394,7 +8394,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "enabled": {
                     "description": "是否启用",
@@ -8439,7 +8439,7 @@ const docTemplate = `{
                 "updated_at": {
                     "description": "更新时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "user_info_url": {
                     "description": "用户信息获取URL",
@@ -8806,7 +8806,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "id": {
                     "description": "帖子ID",
@@ -8943,7 +8943,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "dislike_count": {
                     "description": "点踩数",
@@ -8998,7 +8998,7 @@ const docTemplate = `{
                 "updated_at": {
                     "description": "更新时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "user_id": {
                     "description": "用户ID",
@@ -9113,7 +9113,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "dislike_count": {
                     "description": "点踩数",
@@ -9163,7 +9163,7 @@ const docTemplate = `{
                 "updated_at": {
                     "description": "更新时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "user_id": {
                     "description": "用户ID",
@@ -9557,7 +9557,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "id": {
                     "description": "评论ID",
@@ -9592,7 +9592,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "id": {
                     "description": "帖子ID",
@@ -10435,7 +10435,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "id": {
                     "description": "记录ID",
@@ -10606,7 +10606,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "id": {
                     "description": "黑名单记录ID",
@@ -10641,7 +10641,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "id": {
                     "description": "黑名单记录ID",
@@ -10707,7 +10707,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "description": {
                     "description": "版块描述",
@@ -10827,7 +10827,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "dislike_count": {
                     "description": "点踩数",
@@ -10877,7 +10877,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "dislike_count": {
                     "description": "点踩数",
@@ -10927,7 +10927,7 @@ const docTemplate = `{
                 "updated_at": {
                     "description": "更新时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "user_disliked": {
                     "description": "当前用户是否已点踩",
@@ -11011,7 +11011,7 @@ const docTemplate = `{
                 "updated_at": {
                     "description": "更新时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 }
             }
         },
@@ -11110,7 +11110,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "currency": {
                     "description": "货币",
@@ -11172,7 +11172,7 @@ const docTemplate = `{
                 "updated_at": {
                     "description": "更新时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "username": {
                     "description": "用户名",
@@ -11197,7 +11197,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "currency": {
                     "description": "货币",
@@ -11247,7 +11247,7 @@ const docTemplate = `{
                 "updated_at": {
                     "description": "更新时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "username": {
                     "description": "用户名",
@@ -11673,7 +11673,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "dislike_count": {
                     "description": "点踩数",
@@ -11742,7 +11742,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "帖子创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "favorite_count": {
                     "description": "收藏数",
@@ -11752,7 +11752,7 @@ const docTemplate = `{
                 "favorited_at": {
                     "description": "收藏时间",
                     "type": "string",
-                    "example": "2024-01-02T00:00:00Z"
+                    "example": "2024-01-02 00:00:00"
                 },
                 "id": {
                     "description": "帖子ID",
@@ -11821,7 +11821,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "currency": {
                     "description": "货币",
@@ -11896,7 +11896,7 @@ const docTemplate = `{
                 "created_at": {
                     "description": "创建时间",
                     "type": "string",
-                    "example": "2024-01-01T00:00:00Z"
+                    "example": "2024-01-01 00:00:00"
                 },
                 "dislike_count": {
                     "description": "点踩数",

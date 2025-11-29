@@ -71,7 +71,7 @@ definitions:
         type: string
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       id:
         description: 公告ID
@@ -87,7 +87,7 @@ definitions:
         type: string
       updated_at:
         description: 更新时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       username:
         description: 发布者用户名
@@ -155,7 +155,7 @@ definitions:
     properties:
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       description:
         description: 版块描述
@@ -183,7 +183,7 @@ definitions:
         type: string
       updated_at:
         description: 更新时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       weight:
         description: 权重排序
@@ -218,7 +218,7 @@ definitions:
     properties:
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       description:
         description: 版块描述
@@ -246,7 +246,7 @@ definitions:
         type: string
       updated_at:
         description: 更新时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       weight:
         description: 权重排序
@@ -452,7 +452,7 @@ definitions:
         type: string
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       device_info:
         description: 设备信息
@@ -500,7 +500,7 @@ definitions:
         type: string
       updated_at:
         description: 更新时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       user_id:
         description: 用户ID
@@ -523,7 +523,7 @@ definitions:
         type: string
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       device_info:
         description: 设备信息
@@ -571,7 +571,7 @@ definitions:
         type: string
       updated_at:
         description: 更新时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       user_id:
         description: 用户ID
@@ -1044,7 +1044,7 @@ definitions:
     properties:
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       description:
         description: 版块描述
@@ -1114,7 +1114,7 @@ definitions:
         type: string
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       id:
         description: 帖子ID
@@ -1142,7 +1142,7 @@ definitions:
         type: string
       updated_at:
         description: 更新时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       username:
         description: 作者用户名
@@ -1191,7 +1191,7 @@ definitions:
         type: string
       created_at:
         description: 注册时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       email:
         description: 邮箱
@@ -1284,7 +1284,7 @@ definitions:
         type: string
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       enabled:
         description: 是否启用
@@ -1323,7 +1323,7 @@ definitions:
         type: string
       updated_at:
         description: 更新时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       user_info_url:
         description: 用户信息获取URL
@@ -1342,7 +1342,7 @@ definitions:
         type: string
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       enabled:
         description: 是否启用
@@ -1377,7 +1377,7 @@ definitions:
         type: string
       updated_at:
         description: 更新时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       user_info_url:
         description: 用户信息获取URL
@@ -1640,7 +1640,7 @@ definitions:
         type: integer
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       id:
         description: 帖子ID
@@ -1750,7 +1750,7 @@ definitions:
         type: string
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       dislike_count:
         description: 点踩数
@@ -1794,7 +1794,7 @@ definitions:
         type: string
       updated_at:
         description: 更新时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       user_id:
         description: 用户ID
@@ -1884,7 +1884,7 @@ definitions:
         type: string
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       dislike_count:
         description: 点踩数
@@ -1924,7 +1924,7 @@ definitions:
         type: string
       updated_at:
         description: 更新时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       user_id:
         description: 用户ID
@@ -2205,7 +2205,7 @@ definitions:
         type: string
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       id:
         description: 评论ID
@@ -2232,7 +2232,7 @@ definitions:
         type: string
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       id:
         description: 帖子ID
@@ -2847,7 +2847,7 @@ definitions:
         type: integer
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       id:
         description: 记录ID
@@ -2977,7 +2977,7 @@ definitions:
         type: integer
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       id:
         description: 黑名单记录ID
@@ -3004,7 +3004,7 @@ definitions:
         type: string
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       id:
         description: 黑名单记录ID
@@ -3051,7 +3051,7 @@ definitions:
     properties:
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       description:
         description: 版块描述
@@ -3141,7 +3141,7 @@ definitions:
         type: string
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       dislike_count:
         description: 点踩数
@@ -3180,7 +3180,7 @@ definitions:
         type: string
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       dislike_count:
         description: 点踩数
@@ -3220,7 +3220,7 @@ definitions:
         type: string
       updated_at:
         description: 更新时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       user_disliked:
         description: 当前用户是否已点踩
@@ -3283,7 +3283,7 @@ definitions:
         type: integer
       updated_at:
         description: 更新时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
     type: object
   schema.UserCreateRequest:
@@ -3362,7 +3362,7 @@ definitions:
         type: integer
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       currency:
         description: 货币
@@ -3413,7 +3413,7 @@ definitions:
         type: string
       updated_at:
         description: 更新时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       username:
         description: 用户名
@@ -3432,7 +3432,7 @@ definitions:
         type: integer
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       currency:
         description: 货币
@@ -3472,7 +3472,7 @@ definitions:
         type: string
       updated_at:
         description: 更新时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       username:
         description: 用户名
@@ -3786,7 +3786,7 @@ definitions:
         type: string
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       dislike_count:
         description: 点踩数
@@ -3838,7 +3838,7 @@ definitions:
         type: string
       created_at:
         description: 帖子创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       favorite_count:
         description: 收藏数
@@ -3846,7 +3846,7 @@ definitions:
         type: integer
       favorited_at:
         description: 收藏时间
-        example: "2024-01-02T00:00:00Z"
+        example: "2024-01-02 00:00:00"
         type: string
       id:
         description: 帖子ID
@@ -3898,7 +3898,7 @@ definitions:
         type: integer
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       currency:
         description: 货币
@@ -3959,7 +3959,7 @@ definitions:
         type: string
       created_at:
         description: 创建时间
-        example: "2024-01-01T00:00:00Z"
+        example: "2024-01-01 00:00:00"
         type: string
       dislike_count:
         description: 点踩数
