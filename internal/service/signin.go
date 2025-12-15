@@ -360,10 +360,10 @@ func (s *SigninService) calculateContinuousDays(status *schema.SigninStatus) (co
 	if lastSignDate == yesterday {
 		// 连续签到
 		return status.ContinuousDays + 1, status.TotalDays + 1
-	} else {
-		// 中断签到，重新开始
-		return 1, status.TotalDays + 1
 	}
+
+	// 中断签到，重新开始
+	return 1, status.TotalDays + 1
 }
 
 // calculateReward 计算签到奖励
@@ -657,9 +657,9 @@ func (s *SigninService) buildSigninMessage(continuousDays, rewardPoints int) str
 		return fmt.Sprintf("签到成功！获得%d积分，连续签到%d天，继续加油！", rewardPoints, continuousDays)
 	} else if continuousDays < 30 {
 		return fmt.Sprintf("签到成功！获得%d积分，连续签到%d天，太棒了！", rewardPoints, continuousDays)
-	} else {
-		return fmt.Sprintf("签到成功！获得%d积分，连续签到%d天，你是签到达人！", rewardPoints, continuousDays)
 	}
+
+	return fmt.Sprintf("签到成功！获得%d积分，连续签到%d天，你是签到达人！", rewardPoints, continuousDays)
 }
 
 // GetSigninStatus 获取用户签到状态

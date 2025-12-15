@@ -86,21 +86,19 @@ func RunServer() {
 	if configs.DB == nil {
 		configs.Log.Error("DB initializer failed")
 		return
-	} else {
-		// 迁移数据库
-		initializer.AutoMigrate(configs.DB)
-		configs.Log.Info("DB initializer succeeded")
 	}
+
+	// 迁移数据库
+	initializer.AutoMigrate(configs.DB)
+	configs.Log.Info("DB initializer succeeded")
 
 	// 初始化缓存
 	configs.Cache = initializer.Cache()
 	if configs.Cache == nil {
 		configs.Log.Error("Cache initializer failed")
 		return
-	} else {
-		configs.Log.Info("Cache initializer succeeded")
-
 	}
+	configs.Log.Info("Cache initializer succeeded")
 
 	// 初始化缓存服务
 	cacheService := cache.NewRedisCacheService(configs.Cache, configs.Log)

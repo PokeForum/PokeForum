@@ -46,7 +46,6 @@ func Routers(injector *do.Injector) *gin.Engine {
 		c.String(http.StatusOK, "pong")
 	})
 
-	// 注册Swagger
 	if configs.Debug == true {
 		Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
