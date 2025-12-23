@@ -10,7 +10,7 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/user"
-	_const "github.com/PokeForum/PokeForum/internal/const"
+	_const "github.com/PokeForum/PokeForum/internal/consts"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	smtp "github.com/PokeForum/PokeForum/internal/pkg/email"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
@@ -274,7 +274,9 @@ func (s *AuthService) SendForgotPasswordCode(ctx context.Context, req schema.For
 			newCount = val + 1
 		}
 	}
-	_ = s.cache.SetEx(ctx, limitKey, fmt.Sprintf("%d", newCount), 3600)
+	if err := s.cache.SetEx(ctx, limitKey, fmt.Sprintf("%d", newCount), 3600); err != nil {
+		s.logger.Warn("更新发送频率限制失败", zap.String("key", limitKey), zap.Error(err), tracing.WithTraceIDField(ctx))
+	}
 
 	// 发送重置密码邮件
 	err = s.sendPasswordResetEmail(ctx, userData.Email, code)
@@ -338,7 +340,9 @@ func (s *AuthService) ResetPassword(ctx context.Context, req schema.ResetPasswor
 	}
 
 	// 删除验证码缓存
-	_, _ = s.cache.Del(ctx, codeKey)
+	if _, err := s.cache.Del(ctx, codeKey); err != nil {
+		s.logger.Warn("删除验证码缓存失败", zap.String("key", codeKey), zap.Error(err), tracing.WithTraceIDField(ctx))
+	}
 
 	s.logger.Info("密码重置成功", zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
 

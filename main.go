@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/PokeForum/PokeForum/cmd"
-	_const "github.com/PokeForum/PokeForum/internal/const"
+	_const "github.com/PokeForum/PokeForum/internal/consts"
 )
 
 func main() {

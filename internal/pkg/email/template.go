@@ -7,7 +7,7 @@ import (
 	"html/template"
 	"strings"
 
-	_const "github.com/PokeForum/PokeForum/internal/const"
+	_const "github.com/PokeForum/PokeForum/internal/consts"
 	"go.uber.org/zap"
 )
 

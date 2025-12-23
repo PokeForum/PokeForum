@@ -17,7 +17,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
 	"github.com/PokeForum/PokeForum/ent/user"
-	_const "github.com/PokeForum/PokeForum/internal/const"
+	_const "github.com/PokeForum/PokeForum/internal/consts"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	smtp "github.com/PokeForum/PokeForum/internal/pkg/email"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
@@ -727,7 +727,9 @@ func (s *UserProfileService) SendEmailVerifyCode(ctx context.Context, userID int
 			newCount = val + 1
 		}
 	}
-	_ = s.cache.SetEx(ctx, limitKey, fmt.Sprintf("%d", newCount), 3600)
+	if err := s.cache.SetEx(ctx, limitKey, fmt.Sprintf("%d", newCount), 3600); err != nil {
+		s.logger.Warn("更新发送频率限制失败", zap.String("key", limitKey), zap.Error(err), tracing.WithTraceIDField(ctx))
+	}
 
 	// 发送验证邮件
 	err = s.sendVerificationEmail(ctx, userData.Email, code)

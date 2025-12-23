@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/PokeForum/PokeForum/internal/configs"
-	_const "github.com/PokeForum/PokeForum/internal/const"
+	_const "github.com/PokeForum/PokeForum/internal/consts"
 	"github.com/spf13/cobra"
 )
 
