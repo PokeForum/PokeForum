@@ -1,8 +1,6 @@
 package initializer
 
 import (
-	"net/http"
-
 	_ "github.com/PokeForum/PokeForum/docs"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/configs"
@@ -38,16 +36,18 @@ func Routers(injector *do.Injector) *gin.Engine {
 	// 跨域配置
 	Router.Use(cors.New(middleware.CorsConfig))
 
+	// 安全响应头
+	Router.Use(middleware.SecurityHeaders())
+
 	// 全局速率限制（每秒100个请求）
 	Router.Use(middleware.RateLimit(middleware.DefaultRateLimitConfig))
 
 	// 注册服务到注入器
 	InjectorSrv(injector)
 
-	// 存活检测
-	Router.GET("/ping", func(c *gin.Context) {
-		c.String(http.StatusOK, "pong")
-	})
+	// 健康检查路由（不受速率限制影响，在api分组之外）
+	healthCon := controller.NewHealthController()
+	healthCon.HealthRouter(Router)
 
 	if configs.Debug == true {
 		Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
