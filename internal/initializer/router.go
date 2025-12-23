@@ -38,6 +38,9 @@ func Routers(injector *do.Injector) *gin.Engine {
 	// 跨域配置
 	Router.Use(cors.New(middleware.CorsConfig))
 
+	// 全局速率限制（每秒100个请求）
+	Router.Use(middleware.RateLimit(middleware.DefaultRateLimitConfig))
+
 	// 注册服务到注入器
 	InjectorSrv(injector)
 
@@ -58,8 +61,9 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 	api := Router.Group("/api/v1")
 
-	// 认证校验
+	// 认证校验（添加更严格的速率限制，防止暴力破解）
 	AuthGroup := api.Group("/auth")
+	AuthGroup.Use(middleware.RateLimit(middleware.AuthRateLimitConfig))
 	AuthCon := controller.NewAuthController(injector)
 	AuthCon.AuthRouter(AuthGroup)
 
