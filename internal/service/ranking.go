@@ -19,6 +19,9 @@ import (
 	"github.com/PokeForum/PokeForum/internal/schema"
 )
 
+// timeRangeAll 时间范围常量：总榜
+const timeRangeAll = "all"
+
 // IRankingService 排行榜服务接口
 type IRankingService interface {
 	// GetReadingRanking 获取阅读排行榜
@@ -74,7 +77,7 @@ func (s *RankingService) GetReadingRanking(ctx context.Context, req schema.UserR
 		Order(ent.Desc(post.FieldViewCount)) // 按阅读数降序排列
 
 	// 如果不是总榜，添加时间范围过滤
-	if req.TimeRange != "all" {
+	if req.TimeRange != timeRangeAll {
 		query = query.Where(
 			post.CreatedAtGTE(startTime),
 		)
@@ -193,7 +196,7 @@ func (s *RankingService) GetCommentRanking(ctx context.Context, req schema.UserR
 	query := s.db.Comment.Query()
 
 	// 如果不是总榜，添加时间范围过滤
-	if req.TimeRange != "all" {
+	if req.TimeRange != timeRangeAll {
 		query = query.Where(
 			comment.CreatedAtGTE(startTime),
 		)
@@ -253,7 +256,7 @@ func (s *RankingService) GetCommentRanking(ctx context.Context, req schema.UserR
 	}
 
 	// 转换为切片并排序（按评论数降序）
-	var commentItems []schema.CommentRankingItem
+	commentItems := make([]schema.CommentRankingItem, 0, len(userCommentCount))
 	for _, item := range userCommentCount {
 		commentItems = append(commentItems, *item)
 	}
@@ -322,7 +325,7 @@ func (s *RankingService) calculateTimeRange(timeRange string) (time.Time, error)
 	now := time.Now()
 
 	switch timeRange {
-	case "all":
+	case timeRangeAll:
 		// 总榜不限制时间范围，返回一个很早的时间
 		return time.Date(2020, 1, 1, 0, 0, 0, 0, now.Location()), nil
 	case "week":

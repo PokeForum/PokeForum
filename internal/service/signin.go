@@ -496,7 +496,8 @@ func (s *SigninService) calculateRandomReward(ctx context.Context) (points, expe
 	}
 
 	// 生成随机奖励积分
-	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	// 签到积分不需要加密级别的随机数，使用 math/rand 即可
+	rng := rand.New(rand.NewSource(time.Now().UnixNano())) //nolint:gosec // 签到积分不需要加密级别的随机数
 	points = rng.Intn(maxNum-minNum+1) + minNum
 
 	// 计算经验值奖励
@@ -562,16 +563,6 @@ func (s *SigninService) getUserDailyRank(ctx context.Context, userID int64, toda
 		return 0
 	}
 	// 排名从1开始
-	return int(rank) + 1
-}
-
-// getUserContinuousRank 获取用户在连续签到排行榜中的排名
-func (s *SigninService) getUserContinuousRank(ctx context.Context, userID int64) int {
-	continuousRankingKey := "signin:continuous:ranking"
-	rank, err := s.cache.ZRevRank(ctx, continuousRankingKey, fmt.Sprintf("%d", userID))
-	if err != nil || rank < 0 {
-		return 0
-	}
 	return int(rank) + 1
 }
 
@@ -652,15 +643,16 @@ func (s *SigninService) createBalanceLog(ctx context.Context, userID int64, logT
 
 // buildSigninMessage 构建签到提示信息
 func (s *SigninService) buildSigninMessage(continuousDays, rewardPoints int) string {
-	if continuousDays == 1 {
+	switch {
+	case continuousDays == 1:
 		return fmt.Sprintf("签到成功！获得%d积分，连续签到1天", rewardPoints)
-	} else if continuousDays < 7 {
+	case continuousDays < 7:
 		return fmt.Sprintf("签到成功！获得%d积分，连续签到%d天，继续加油！", rewardPoints, continuousDays)
-	} else if continuousDays < 30 {
+	case continuousDays < 30:
 		return fmt.Sprintf("签到成功！获得%d积分，连续签到%d天，太棒了！", rewardPoints, continuousDays)
+	default:
+		return fmt.Sprintf("签到成功！获得%d积分，连续签到%d天，你是签到达人！", rewardPoints, continuousDays)
 	}
-
-	return fmt.Sprintf("签到成功！获得%d积分，连续签到%d天，你是签到达人！", rewardPoints, continuousDays)
 }
 
 // GetSigninStatus 获取用户签到状态

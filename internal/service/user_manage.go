@@ -166,19 +166,8 @@ func (s *UserManageService) GetUserList(ctx context.Context, req schema.UserList
 	}
 
 	// 批量查询用户的发帖数和评论数
-	postCounts, err := s.getUserPostCounts(ctx, userIDs)
-	if err != nil {
-		s.logger.Error("批量查询用户发帖数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		// 失败时使用默认值0
-		postCounts = make(map[int]int)
-	}
-
-	commentCounts, err := s.getUserCommentCounts(ctx, userIDs)
-	if err != nil {
-		s.logger.Error("批量查询用户评论数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		// 失败时使用默认值0
-		commentCounts = make(map[int]int)
-	}
+	postCounts := s.getUserPostCounts(ctx, userIDs)
+	commentCounts := s.getUserCommentCounts(ctx, userIDs)
 
 	// 构建响应数据
 	for i, u := range users {
@@ -889,9 +878,9 @@ func (s *UserManageService) GetUserBalanceSummary(ctx context.Context, userID in
 }
 
 // getUserPostCounts 批量查询用户的发帖数
-func (s *UserManageService) getUserPostCounts(ctx context.Context, userIDs []int) (map[int]int, error) {
+func (s *UserManageService) getUserPostCounts(ctx context.Context, userIDs []int) map[int]int {
 	if len(userIDs) == 0 {
-		return make(map[int]int), nil
+		return make(map[int]int)
 	}
 
 	// 使用Ent ORM进行批量查询，避免原生SQL的复杂性
@@ -910,13 +899,13 @@ func (s *UserManageService) getUserPostCounts(ctx context.Context, userIDs []int
 		result[userID] = count
 	}
 
-	return result, nil
+	return result
 }
 
 // getUserCommentCounts 批量查询用户的评论数
-func (s *UserManageService) getUserCommentCounts(ctx context.Context, userIDs []int) (map[int]int, error) {
+func (s *UserManageService) getUserCommentCounts(ctx context.Context, userIDs []int) map[int]int {
 	if len(userIDs) == 0 {
-		return make(map[int]int), nil
+		return make(map[int]int)
 	}
 
 	// 使用Ent ORM进行批量查询，避免原生SQL的复杂性
@@ -935,7 +924,7 @@ func (s *UserManageService) getUserCommentCounts(ctx context.Context, userIDs []
 		result[userID] = count
 	}
 
-	return result, nil
+	return result
 }
 
 // GetUserPostCount 查询单个用户的发帖数

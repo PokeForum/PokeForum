@@ -81,7 +81,7 @@ func (q *QQProvider) ExchangeToken(ctx context.Context, code string) (*TokenResp
 
 	expiresIn := 7776000 // QQ默认90天
 	if params.Get("expires_in") != "" {
-		fmt.Sscanf(params.Get("expires_in"), "%d", &expiresIn)
+		_, _ = fmt.Sscanf(params.Get("expires_in"), "%d", &expiresIn)
 	}
 
 	return &TokenResponse{
@@ -233,7 +233,7 @@ func (q *QQProvider) RefreshToken(ctx context.Context, refreshToken string) (*To
 
 	expiresIn := 7776000
 	if params.Get("expires_in") != "" {
-		fmt.Sscanf(params.Get("expires_in"), "%d", &expiresIn)
+		_, _ = fmt.Sscanf(params.Get("expires_in"), "%d", &expiresIn)
 	}
 
 	return &TokenResponse{

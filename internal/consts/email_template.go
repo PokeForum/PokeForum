@@ -1,3 +1,4 @@
+//nolint:gosec // G101 误报：常量名包含 Password 但这是邮件模板变量名，不是凭据
 package _const
 
 // DefaultEmailAccountActivationTemplate 默认账户激活模板

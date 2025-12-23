@@ -38,6 +38,14 @@ linters:
       - docs
       - third_party
       - ".*_test\\.go"
+    rules:
+      # 控制器和服务中的 CRUD 操作具有相似结构，排除 dupl 检查
+      - path: internal/controller/
+        linters:
+          - dupl
+      - path: internal/service/
+        linters:
+          - dupl
 
 settings:
   errcheck:

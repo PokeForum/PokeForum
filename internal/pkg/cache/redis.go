@@ -392,7 +392,7 @@ func (r *RedisCacheService) XPending(ctx context.Context, stream, group string) 
 		return nil, fmt.Errorf("查询待处理消息失败: %w", err)
 	}
 
-	var consumers []map[string]interface{}
+	consumers := make([]map[string]interface{}, 0, len(result.Consumers))
 	for consumerName, count := range result.Consumers {
 		consumers = append(consumers, map[string]interface{}{
 			"consumer":      consumerName,

@@ -29,7 +29,7 @@ func CreatNestedFile(path string) (*os.File, error) {
 	}
 
 	// 创建文件
-	return os.Create(path)
+	return os.Create(path) //nolint:gosec // 路径由调用方控制，已在调用处验证安全性
 }
 
 // CreatNestedFolder 使用给定的路径创建文件夹，如果目录不存在则递归创建
@@ -48,7 +48,7 @@ func CreatNestedFolder(path string) error {
 // IsEmpty 返回给定目录是否为空目录
 func IsEmpty(name string) (bool, error) {
 	// 打开目录
-	f, err := os.Open(name)
+	f, err := os.Open(name) //nolint:gosec // 路径由调用方控制，已在调用处验证安全性
 	if err != nil {
 		return false, err
 	}

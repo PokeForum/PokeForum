@@ -395,11 +395,7 @@ func (s *PostStatsService) SyncStatsToDatabase(ctx context.Context) (int, error)
 		batch := dirtyIDs[i:end]
 
 		// 处理这一批数据
-		count, err := s.syncBatch(ctx, batch)
-		if err != nil {
-			s.logger.Error("批量同步失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-			continue
-		}
+		count := s.syncBatch(ctx, batch)
 		syncCount += count
 	}
 
@@ -412,7 +408,7 @@ func (s *PostStatsService) SyncStatsToDatabase(ctx context.Context) (int, error)
 }
 
 // syncBatch 批量同步帖子统计数据
-func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) (int, error) {
+func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) int {
 	syncCount := 0
 
 	for _, postID := range postIDs {
@@ -460,7 +456,7 @@ func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) (int, e
 		viewCountStr, _ := s.cache.HGet(ctx, statsKey, "view_count")
 		viewCount := 0
 		if viewCountStr != "" {
-			fmt.Sscanf(viewCountStr, "%d", &viewCount)
+			_, _ = fmt.Sscanf(viewCountStr, "%d", &viewCount)
 		}
 
 		// 更新Post表
@@ -496,7 +492,7 @@ func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) (int, e
 		syncCount++
 	}
 
-	return syncCount, nil
+	return syncCount
 }
 
 // getStatsField 根据操作类型获取对应的统计字段名

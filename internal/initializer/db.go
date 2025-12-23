@@ -56,7 +56,7 @@ func PgDB() *sql.DB {
 	}
 
 	// 测试连接
-	if err := db.Ping(); err != nil {
+	if err := db.PingContext(context.Background()); err != nil {
 		configs.Log.Fatal("failed to ping postgres", zap.Error(err))
 	}
 
