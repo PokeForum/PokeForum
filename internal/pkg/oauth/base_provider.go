@@ -118,7 +118,7 @@ func (b *BaseProvider) ExchangeTokenByForm(ctx context.Context, code string) (*T
 // GetUserInfoByJSON 通过JSON方式获取用户信息
 // 发送带Bearer Token的GET请求
 func (b *BaseProvider) GetUserInfoByJSON(ctx context.Context, accessToken string) (map[string]interface{}, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", b.config.UserInfoURL, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", b.config.UserInfoURL, http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrGetUserInfoFailed, err)
 	}

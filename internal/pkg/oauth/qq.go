@@ -52,7 +52,7 @@ func (q *QQProvider) ExchangeToken(ctx context.Context, code string) (*TokenResp
 	data.Set("redirect_uri", q.config.RedirectURL)
 	data.Set("grant_type", "authorization_code")
 
-	req, err := http.NewRequestWithContext(ctx, "GET", q.config.TokenURL+"?"+data.Encode(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", q.config.TokenURL+"?"+data.Encode(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrExchangeTokenFailed, err)
 	}
@@ -107,7 +107,7 @@ func (q *QQProvider) GetUserInfo(ctx context.Context, accessToken string) (*User
 	params.Set("oauth_consumer_key", q.config.ClientID)
 	params.Set("openid", openID)
 
-	req, err := http.NewRequestWithContext(ctx, "GET", q.config.UserInfoURL+"?"+params.Encode(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", q.config.UserInfoURL+"?"+params.Encode(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrGetUserInfoFailed, err)
 	}
@@ -160,7 +160,7 @@ func (q *QQProvider) getOpenID(ctx context.Context, accessToken string) (string,
 	params := url.Values{}
 	params.Set("access_token", accessToken)
 
-	req, err := http.NewRequestWithContext(ctx, "GET", openIDURL+"?"+params.Encode(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", openIDURL+"?"+params.Encode(), http.NoBody)
 	if err != nil {
 		return "", fmt.Errorf("%w: %v", ErrGetUserInfoFailed, err)
 	}
@@ -205,7 +205,7 @@ func (q *QQProvider) RefreshToken(ctx context.Context, refreshToken string) (*To
 	data.Set("refresh_token", refreshToken)
 	data.Set("grant_type", "refresh_token")
 
-	req, err := http.NewRequestWithContext(ctx, "GET", q.config.TokenURL+"?"+data.Encode(), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", q.config.TokenURL+"?"+data.Encode(), http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrRefreshTokenFailed, err)
 	}

@@ -3,7 +3,6 @@ package controller
 import (
 	"context"
 	"encoding/json"
-	"io"
 	"strings"
 	"time"
 
@@ -144,7 +143,7 @@ func (ctrl *PerformanceController) sendMetrics(c *gin.Context, ctx context.Conte
 	}
 
 	// 发送 SSE 事件
-	_, err = io.WriteString(c.Writer, "data: "+string(data)+"\n\n")
+	_, err = c.Writer.WriteString("data: " + string(data) + "\n\n")
 	if err != nil {
 		ctrl.logger.Debug("SSE 写入失败", zap.Error(err))
 		return
