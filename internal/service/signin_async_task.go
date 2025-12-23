@@ -6,13 +6,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hibiken/asynq"
+	"go.uber.org/zap"
+
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/usersigninlogs"
 	"github.com/PokeForum/PokeForum/ent/usersigninstatus"
 	pkgasynq "github.com/PokeForum/PokeForum/internal/pkg/asynq"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
-	"github.com/hibiken/asynq"
-	"go.uber.org/zap"
 )
 
 // SigninAsyncTask 签到异步任务处理器

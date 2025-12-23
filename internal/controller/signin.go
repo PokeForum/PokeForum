@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/PokeForum/PokeForum/ent/user"
-	"github.com/PokeForum/PokeForum/internal/pkg/response"
-	"github.com/PokeForum/PokeForum/internal/service"
 	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/click33/sa-token-go/stputil"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
+
+	"github.com/PokeForum/PokeForum/ent/user"
+	"github.com/PokeForum/PokeForum/internal/pkg/response"
+	"github.com/PokeForum/PokeForum/internal/service"
 )
 
 // SigninController 签到控制器

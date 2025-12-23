@@ -4,10 +4,11 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/PokeForum/PokeForum/internal/configs"
 	"github.com/redis/go-redis/v9"
 	"github.com/redis/go-redis/v9/maintnotifications"
 	"go.uber.org/zap"
+
+	"github.com/PokeForum/PokeForum/internal/configs"
 )
 
 // Cache 初始化Redis客户端

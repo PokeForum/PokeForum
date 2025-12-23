@@ -64,27 +64,27 @@ func GetUserID(ctx context.Context) int {
 func ContextWithUserID(ginCtx interface{}, ctx context.Context) context.Context {
 	// 尝试从gin.Context获取Authorization token
 	var token string
-	
+
 	// 使用类型断言来检查是否是gin.Context
 	if c, ok := ginCtx.(interface{ GetHeader(string) string }); ok {
 		token = c.GetHeader("Authorization")
 	}
-	
+
 	if token == "" {
 		return ctx
 	}
-	
+
 	// 使用stputil获取登录用户ID
 	loginID, err := stputil.GetLoginID(token)
 	if err != nil {
 		return ctx
 	}
-	
+
 	// String转Int
 	userID, err := strconv.Atoi(loginID)
 	if err != nil {
 		return ctx
 	}
-	
+
 	return WithUserID(ctx, userID)
 }

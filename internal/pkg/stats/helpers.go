@@ -5,9 +5,10 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
+
+	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 )
 
 // Helper 统计助手,封装通用的统计操作

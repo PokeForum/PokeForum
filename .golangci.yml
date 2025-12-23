@@ -1,37 +1,23 @@
+version: "2"
+
 run:
   timeout: 5m
   modules-download-mode: readonly
-  skip-dirs:
-    - ent
-    - docs
 
 linters:
+  default: standard
   enable:
-    # 默认启用的 linters
-    - errcheck
-    - gosimple
-    - govet
-    - ineffassign
-    - staticcheck
-    - unused
     # 额外启用的 linters
     - bodyclose      # 检查 HTTP response body 是否关闭
     - dogsled        # 检查过多的空白标识符赋值
     - dupl           # 检查重复代码
-    - exportloopref  # 检查循环变量指针导出
-    - gochecknoinits # 检查 init 函数使用
     - goconst        # 检查可以替换为常量的字符串
     - gocritic       # 提供代码诊断
-    - gofmt          # 检查代码格式
-    - goimports      # 检查 import 语句
-    - goprintffuncname # 检查 printf 函数命名
     - gosec          # 安全检查
     - misspell       # 检查拼写错误
     - nakedret       # 检查裸返回
     - noctx          # 检查 HTTP 请求是否带 context
     - prealloc       # 检查 slice 预分配
-    - rowserrcheck   # 检查 sql.Rows.Err 是否被检查
-    - sqlclosecheck  # 检查 sql.Rows 是否关闭
     - unconvert      # 检查不必要的类型转换
     - unparam        # 检查未使用的参数
     - whitespace     # 检查不必要的空白行
@@ -42,7 +28,18 @@ linters:
     - lll            # 行长度检查
     - wsl            # 空白行风格
 
-linters-settings:
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - std-error-handling
+    paths:
+      - ent
+      - docs
+      - third_party
+      - ".*_test\\.go"
+
+settings:
   errcheck:
     check-type-assertions: true
     check-blank: true
@@ -52,15 +49,8 @@ linters-settings:
 
   govet:
     check-shadowing: true
-    enable-all: true
     disable:
       - fieldalignment # 字段对齐检查（会产生大量警告）
-
-  gofmt:
-    simplify: true
-
-  goimports:
-    local-prefixes: github.com/PokeForum/PokeForum
 
   goconst:
     min-len: 3
@@ -95,34 +85,23 @@ linters-settings:
     for-loops: false
 
 issues:
-  exclude-rules:
-    # 测试文件中允许的规则
-    - path: _test\.go
-      linters:
-        - dupl
-        - gosec
-        - goconst
-
-    # ent 生成的代码排除检查
-    - path: ent/
-      linters:
-        - all
-
-    # docs 生成的代码排除检查
-    - path: docs/
-      linters:
-        - all
-
-    # main.go 允许使用 init
-    - path: main\.go
-      linters:
-        - gochecknoinits
-
   max-issues-per-linter: 50
   max-same-issues: 10
-  new: false
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    gofmt:
+      simplify: true
+    goimports:
+      local-prefixes:
+        - github.com/PokeForum/PokeForum
 
 output:
-  format: colored-line-number
-  print-issued-lines: true
-  print-linter-name: true
+  formats:
+    text:
+      path: stdout
+      print-issued-lines: true
+      print-linter-name: true

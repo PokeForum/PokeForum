@@ -1,11 +1,12 @@
 package controller
 
 import (
+	"github.com/gin-gonic/gin"
+	"github.com/samber/do"
+
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
-	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
 )
 
 // ConfigController 公开配置控制器

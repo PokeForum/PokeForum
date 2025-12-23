@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/redis/go-redis/v9"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
@@ -18,6 +17,8 @@ import (
 	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/shirou/gopsutil/v3/net"
 	"go.uber.org/zap"
+
+	"github.com/PokeForum/PokeForum/internal/schema"
 )
 
 const (

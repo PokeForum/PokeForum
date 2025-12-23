@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/PokeForum/PokeForum/internal/configs"
-	"github.com/PokeForum/PokeForum/internal/pkg/response"
-	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
+
+	"github.com/PokeForum/PokeForum/internal/configs"
+	"github.com/PokeForum/PokeForum/internal/pkg/response"
+	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 )
 
 // RateLimitConfig 速率限制配置

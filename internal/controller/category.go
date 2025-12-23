@@ -1,10 +1,11 @@
 package controller
 
 import (
-	"github.com/PokeForum/PokeForum/internal/pkg/response"
-	"github.com/PokeForum/PokeForum/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
+
+	"github.com/PokeForum/PokeForum/internal/pkg/response"
+	"github.com/PokeForum/PokeForum/internal/service"
 )
 
 // CategoryController 用户侧版块控制器

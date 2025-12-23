@@ -1,10 +1,11 @@
 package controller
 
 import (
-	"github.com/PokeForum/PokeForum/internal/pkg/response"
-	"github.com/PokeForum/PokeForum/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
+
+	"github.com/PokeForum/PokeForum/internal/pkg/response"
+	"github.com/PokeForum/PokeForum/internal/service"
 )
 
 // DashboardController 仪表盘控制器

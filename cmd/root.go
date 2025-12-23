@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/spf13/cobra"
+
 	"github.com/PokeForum/PokeForum/internal/configs"
 	_const "github.com/PokeForum/PokeForum/internal/consts"
-	"github.com/spf13/cobra"
 )
 
 // GetEnv 获取环境变量

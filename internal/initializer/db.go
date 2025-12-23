@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 
+	"go.uber.org/zap"
+
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/migrate"
 	"github.com/PokeForum/PokeForum/internal/configs"
-	"go.uber.org/zap"
 
 	_ "github.com/lib/pq"
 )

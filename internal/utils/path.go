@@ -18,7 +18,7 @@ var UseWorkingDir = false
 // DotPathToStandardPath 将","分割的路径转换为标准路径
 func DotPathToStandardPath(path string) string {
 	// 将逗号替换为斜杠，并在前面添加 /
-	return "/" + strings.Replace(path, ",", "/", -1)
+	return "/" + strings.ReplaceAll(path, ",", "/")
 }
 
 // FillSlash 给路径补全`/`

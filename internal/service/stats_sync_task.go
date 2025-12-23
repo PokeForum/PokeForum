@@ -6,11 +6,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hibiken/asynq"
+	"go.uber.org/zap"
+
 	"github.com/PokeForum/PokeForum/ent"
 	pkgasynq "github.com/PokeForum/PokeForum/internal/pkg/asynq"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
-	"github.com/hibiken/asynq"
-	"go.uber.org/zap"
 )
 
 // StatsSyncTask 统计数据同步任务

@@ -3,16 +3,17 @@ package controller
 import (
 	"context"
 
-	"github.com/PokeForum/PokeForum/internal/configs"
-	"github.com/PokeForum/PokeForum/internal/pkg/response"
-	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
-	"github.com/PokeForum/PokeForum/internal/schema"
-	"github.com/PokeForum/PokeForum/internal/service"
 	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/click33/sa-token-go/stputil"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
 	"go.uber.org/zap"
+
+	"github.com/PokeForum/PokeForum/internal/configs"
+	"github.com/PokeForum/PokeForum/internal/pkg/response"
+	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
+	"github.com/PokeForum/PokeForum/internal/schema"
+	"github.com/PokeForum/PokeForum/internal/service"
 )
 
 // AuthController 认证控制器

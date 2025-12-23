@@ -1,9 +1,10 @@
 package sa_token
 
 import (
-	"github.com/PokeForum/PokeForum/internal/configs"
 	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/click33/sa-token-go/storage/redis"
+
+	"github.com/PokeForum/PokeForum/internal/configs"
 )
 
 // NewSaToken 创建 SaToken

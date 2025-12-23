@@ -7,9 +7,10 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/gin-gonic/gin"
+
 	"github.com/PokeForum/PokeForum/internal/configs"
 	_const "github.com/PokeForum/PokeForum/internal/consts"
-	"github.com/gin-gonic/gin"
 )
 
 // HealthController 健康检查控制器

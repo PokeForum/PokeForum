@@ -7,9 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/wneessen/go-mail"
 	"go.uber.org/zap"
+
+	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 )
 
 // message 邮件消息

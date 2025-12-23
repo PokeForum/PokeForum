@@ -7,12 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/PokeForum/PokeForum/internal/pkg/response"
-	"github.com/PokeForum/PokeForum/internal/schema"
-	"github.com/PokeForum/PokeForum/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
 	"go.uber.org/zap"
+
+	"github.com/PokeForum/PokeForum/internal/pkg/response"
+	"github.com/PokeForum/PokeForum/internal/schema"
+	"github.com/PokeForum/PokeForum/internal/service"
 )
 
 // PerformanceController 性能监控控制器

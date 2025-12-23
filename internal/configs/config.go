@@ -1,12 +1,13 @@
 package configs
 
 import (
-	"github.com/PokeForum/PokeForum/ent"
-	"github.com/PokeForum/PokeForum/internal/configs/autoload"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
+
+	"github.com/PokeForum/PokeForum/ent"
+	"github.com/PokeForum/PokeForum/internal/configs/autoload"
 )
 
 var (

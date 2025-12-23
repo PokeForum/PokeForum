@@ -14,7 +14,7 @@ type PostEditRequest struct {
 }
 
 // PostMoveRequest 移动帖子请求体
-//type PostMoveRequest struct {
+// type PostMoveRequest struct {
 //	ID               int `json:"id" binding:"required" example:"1"`                 // 帖子ID
 //	TargetCategoryID int `json:"target_category_id" binding:"required" example:"2"` // 目标版块ID
 //}

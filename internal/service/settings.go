@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strconv"
 
+	"go.uber.org/zap"
+
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/settings"
 	_const "github.com/PokeForum/PokeForum/internal/consts"
@@ -14,7 +16,6 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/email"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
-	"go.uber.org/zap"
 )
 
 // ISettingsService 设置服务接口

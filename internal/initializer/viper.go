@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/PokeForum/PokeForum/internal/configs"
-	_const "github.com/PokeForum/PokeForum/internal/consts"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
+
+	"github.com/PokeForum/PokeForum/internal/configs"
+	_const "github.com/PokeForum/PokeForum/internal/consts"
 )
 
 // Viper 初始化配置

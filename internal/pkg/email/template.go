@@ -7,8 +7,9 @@ import (
 	"html/template"
 	"strings"
 
-	_const "github.com/PokeForum/PokeForum/internal/consts"
 	"go.uber.org/zap"
+
+	_const "github.com/PokeForum/PokeForum/internal/consts"
 )
 
 // SettingsService 设置服务接口，避免循环导入

@@ -6,11 +6,12 @@ import (
 	"path"
 	"time"
 
-	"github.com/PokeForum/PokeForum/internal/configs"
-	"github.com/PokeForum/PokeForum/internal/utils"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/PokeForum/PokeForum/internal/configs"
+	"github.com/PokeForum/PokeForum/internal/utils"
 )
 
 var FileRotateLogs = new(fileRotateLogs)
@@ -71,7 +72,7 @@ func (z *_zap) CustomTimeEncoder(t time.Time, encoder zapcore.PrimitiveArrayEnco
 // GetZapCores 根据配置文件的Level获取 []zapcore.Core
 func (z *_zap) GetZapCores() []zapcore.Core {
 	cores := make([]zapcore.Core, 0, 7)
-	if configs.Debug == true {
+	if configs.Debug {
 		for level := zapcore.DebugLevel; level <= zapcore.FatalLevel; level++ {
 			cores = append(cores, z.GetEncoderCore(level, z.GetLevelPriority(level)))
 		}

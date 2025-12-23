@@ -5,10 +5,11 @@ import (
 	"io"
 	"time"
 
-	"github.com/PokeForum/PokeForum/internal/configs"
-	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+
+	"github.com/PokeForum/PokeForum/internal/configs"
+	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 )
 
 type bodyLogWriter struct {
@@ -29,13 +30,13 @@ func Logger() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// 生成链路ID
 		traceID := tracing.GenerateTraceID()
-		
+
 		// 将链路ID存储到context中，方便后续使用
 		ctx.Request = ctx.Request.WithContext(tracing.WithTraceID(ctx.Request.Context(), traceID))
-		
+
 		// 在响应header中设置链路ID，返回给客户端
 		ctx.Header(tracing.TraceIDHeader, traceID)
-		
+
 		bodyLogWriter := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: ctx.Writer}
 		ctx.Writer = bodyLogWriter
 

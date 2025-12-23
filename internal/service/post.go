@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/post"
@@ -17,7 +19,6 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
-	"go.uber.org/zap"
 )
 
 // IPostService 帖子服务接口
@@ -559,9 +560,10 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 				if _, exists := userLikeStatus[action.PostID]; !exists {
 					userLikeStatus[action.PostID] = map[string]bool{"like": false, "dislike": false}
 				}
-				if action.ActionType == postaction.ActionTypeLike {
+				switch action.ActionType {
+				case postaction.ActionTypeLike:
 					userLikeStatus[action.PostID]["like"] = true
-				} else if action.ActionType == postaction.ActionTypeDislike {
+				case postaction.ActionTypeDislike:
 					userLikeStatus[action.PostID]["dislike"] = true
 				}
 			}
@@ -713,9 +715,10 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 			// 没有记录或查询失败，保持默认状态
 			s.logger.Debug("查询用户点赞状态失败或无记录", zap.Error(err), tracing.WithTraceIDField(ctx))
 		} else {
-			if action.ActionType == postaction.ActionTypeLike {
+			switch action.ActionType {
+			case postaction.ActionTypeLike:
 				userLiked = true
-			} else if action.ActionType == postaction.ActionTypeDislike {
+			case postaction.ActionTypeDislike:
 				userDisliked = true
 			}
 		}

@@ -8,6 +8,9 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/click33/sa-token-go/stputil"
+	"go.uber.org/zap"
+
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/user"
 	_const "github.com/PokeForum/PokeForum/internal/consts"
@@ -17,8 +20,6 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/utils"
-	"github.com/click33/sa-token-go/stputil"
-	"go.uber.org/zap"
 )
 
 // IAuthService 认证服务接口

@@ -1,12 +1,6 @@
 package initializer
 
 import (
-	_ "github.com/PokeForum/PokeForum/docs"
-	"github.com/PokeForum/PokeForum/ent/user"
-	"github.com/PokeForum/PokeForum/internal/configs"
-	"github.com/PokeForum/PokeForum/internal/controller"
-	"github.com/PokeForum/PokeForum/internal/middleware"
-	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -14,6 +8,13 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	ginprometheus "github.com/zsais/go-gin-prometheus"
+
+	_ "github.com/PokeForum/PokeForum/docs"
+	"github.com/PokeForum/PokeForum/ent/user"
+	"github.com/PokeForum/PokeForum/internal/configs"
+	"github.com/PokeForum/PokeForum/internal/controller"
+	"github.com/PokeForum/PokeForum/internal/middleware"
+	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 )
 
 func Routers(injector *do.Injector) *gin.Engine {
@@ -49,7 +50,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 	healthCon := controller.NewHealthController()
 	healthCon.HealthRouter(Router)
 
-	if configs.Debug == true {
+	if configs.Debug {
 		Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 

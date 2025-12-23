@@ -46,17 +46,17 @@ func ExtractEmailDomain(email string) string {
 	if atIndex == -1 || atIndex == len(email)-1 {
 		return "" // 没有找到@符号或者@符号是最后一个字符
 	}
-	
+
 	// 提取@符号后面的域名部分
 	domain := email[atIndex+1:]
-	
+
 	// 去除前后空格
 	domain = strings.TrimSpace(domain)
-	
+
 	// 检查域名是否包含点号
 	if !strings.Contains(domain, ".") {
 		return "" // 域名格式无效
 	}
-	
+
 	return domain
 }

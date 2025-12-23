@@ -31,6 +31,11 @@ import (
 	"syscall"
 	"time"
 
+	jsoniter "github.com/json-iterator/go"
+	"github.com/samber/do"
+	"github.com/spf13/cobra"
+	"go.uber.org/zap"
+
 	"github.com/PokeForum/PokeForum/internal/configs"
 	"github.com/PokeForum/PokeForum/internal/initializer"
 	"github.com/PokeForum/PokeForum/internal/pkg/asynq"
@@ -38,10 +43,6 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/logging"
 	"github.com/PokeForum/PokeForum/internal/service"
 	"github.com/PokeForum/PokeForum/internal/utils"
-	jsoniter "github.com/json-iterator/go"
-	"github.com/samber/do"
-	"github.com/spf13/cobra"
-	"go.uber.org/zap"
 )
 
 var ServerCMD = &cobra.Command{
