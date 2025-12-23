@@ -47,50 +47,49 @@ linters:
         linters:
           - dupl
 
-settings:
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
-    exclude-functions:
-      - (io.Closer).Close
-      - (net/http.ResponseWriter).Write
+  settings:
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+      exclude-functions:
+        - (io.Closer).Close
+        - (net/http.ResponseWriter).Write
 
-  govet:
-    check-shadowing: true
-    disable:
-      - fieldalignment # 字段对齐检查（会产生大量警告）
+    govet:
+      disable:
+        - fieldalignment # 字段对齐检查（会产生大量警告）
 
-  goconst:
-    min-len: 3
-    min-occurrences: 3
+    goconst:
+      min-len: 3
+      min-occurrences: 3
 
-  gocritic:
-    enabled-tags:
-      - diagnostic
-      - performance
-      - style
-    disabled-checks:
-      - hugeParam      # 大参数检查（struct 较大时会产生警告）
-      - rangeValCopy   # range 值拷贝检查
+    gocritic:
+      enabled-tags:
+        - diagnostic
+        - performance
+        - style
+      disabled-checks:
+        - hugeParam      # 大参数检查（struct 较大时会产生警告）
+        - rangeValCopy   # range 值拷贝检查
 
-  gosec:
-    excludes:
-      - G104 # 忽略未检查的错误（已有 errcheck）
-      - G304 # 文件路径由变量指定（在某些场景下是合理的）
+    gosec:
+      excludes:
+        - G104 # 忽略未检查的错误（已有 errcheck）
+        - G304 # 文件路径由变量指定（在某些场景下是合理的）
 
-  misspell:
-    locale: US
+    misspell:
+      locale: US
 
-  nakedret:
-    max-func-lines: 30
+    nakedret:
+      max-func-lines: 30
 
-  dupl:
-    threshold: 150
+    dupl:
+      threshold: 150
 
-  prealloc:
-    simple: true
-    range-loops: true
-    for-loops: false
+    prealloc:
+      simple: true
+      range-loops: true
+      for-loops: false
 
 issues:
   max-issues-per-linter: 50
