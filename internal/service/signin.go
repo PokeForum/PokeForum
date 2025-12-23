@@ -12,7 +12,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 	"github.com/PokeForum/PokeForum/ent/usersigninstatus"
-	_const "github.com/PokeForum/PokeForum/internal/const"
+	_const "github.com/PokeForum/PokeForum/internal/consts"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"go.uber.org/zap"
@@ -494,9 +494,9 @@ func (s *SigninService) calculateRandomReward(ctx context.Context) (points, expe
 		return 0, 0, errors.New("签到配置无效")
 	}
 
-	// 使用当前时间作为随机种子，确保随机性
-	rand.New(rand.NewSource(time.Now().UnixNano()))
-	points = rand.Intn(maxNum-minNum+1) + minNum
+	// 生成随机奖励积分
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	points = rng.Intn(maxNum-minNum+1) + minNum
 
 	// 计算经验值奖励
 	experienceRatioStr, err := s.settingsService.GetSettingByKey(ctx, _const.SigninExperienceReward, "1")
