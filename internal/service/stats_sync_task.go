@@ -115,7 +115,7 @@ func (t *StatsSyncTask) SyncNow(ctx context.Context) {
 	t.logger.Debug("立即执行统计数据同步")
 
 	payload := &StatsSyncPayload{TriggerTime: time.Now().Unix()}
-	data, _ := json.Marshal(payload)
+	data, _ := json.Marshal(payload) //nolint:errcheck // 序列化简单结构不会失败
 	task := asynq.NewTask(pkgasynq.TypeStatsSync, data)
 
 	_, err := t.taskManager.Enqueue(task, asynq.Queue(pkgasynq.QueueLow))

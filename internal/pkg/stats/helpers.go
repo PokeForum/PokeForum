@@ -59,7 +59,7 @@ func (h *Helper) GetStats(ctx context.Context, key string, fields []string) (map
 	result := make(map[string]int)
 	for i, field := range fields {
 		if i < len(values) && values[i] != "" {
-			val, _ := strconv.Atoi(values[i])
+			val, _ := strconv.Atoi(values[i]) //nolint:errcheck // 解析失败返回0是预期行为
 			result[field] = val
 		} else {
 			result[field] = 0

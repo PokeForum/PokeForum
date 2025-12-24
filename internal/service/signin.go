@@ -201,7 +201,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 	rank := s.getUserDailyRank(ctx, userID, today)
 
 	// 异步写入数据库
-	signDate, _ := time.Parse("2006-01-02", today)
+	signDate, _ := time.Parse("2006-01-02", today) //nolint:errcheck // today格式已确保正确
 	payload := &SigninTaskPayload{
 		UserID:         userID,
 		SignDate:       signDate,
@@ -290,8 +290,8 @@ func (s *SigninService) getUserSigninStatus(ctx context.Context, userID int64) (
 	}
 
 	// 解析Redis数据
-	continuousDays, _ := strconv.Atoi(statusMap["continuous"])
-	totalDays, _ := strconv.Atoi(statusMap["total"])
+	continuousDays, _ := strconv.Atoi(statusMap["continuous"]) //nolint:errcheck // 解析失败返回0是预期行为
+	totalDays, _ := strconv.Atoi(statusMap["total"])           //nolint:errcheck // 解析失败返回0是预期行为
 
 	var lastSigninDate *time.Time
 	if lastSignStr := statusMap["last_sign"]; lastSignStr != "" {
@@ -697,7 +697,7 @@ func (s *SigninService) GetDailyRanking(ctx context.Context, date string, limit 
 	// 收集用户ID
 	userIDs := make([]int, 0, len(members))
 	for _, m := range members {
-		uid, _ := strconv.Atoi(m.Member)
+		uid, _ := strconv.Atoi(m.Member) //nolint:errcheck // 解析失败返回0是预期行为
 		userIDs = append(userIDs, uid)
 	}
 
@@ -719,7 +719,7 @@ func (s *SigninService) GetDailyRanking(ctx context.Context, date string, limit 
 	// 构建排行榜列表
 	list := make([]*schema.SigninRankingItem, 0, len(members))
 	for i, m := range members {
-		uid, _ := strconv.Atoi(m.Member)
+		uid, _ := strconv.Atoi(m.Member) //nolint:errcheck // 解析失败返回0是预期行为
 		item := &schema.SigninRankingItem{
 			UserID:       int64(uid),
 			Rank:         i + 1,
@@ -775,7 +775,7 @@ func (s *SigninService) GetContinuousRanking(ctx context.Context, limit int, use
 	// 收集用户ID
 	userIDs := make([]int, 0, len(members))
 	for _, m := range members {
-		uid, _ := strconv.Atoi(m.Member)
+		uid, _ := strconv.Atoi(m.Member) //nolint:errcheck // 解析失败返回0是预期行为
 		userIDs = append(userIDs, uid)
 	}
 
@@ -797,7 +797,7 @@ func (s *SigninService) GetContinuousRanking(ctx context.Context, limit int, use
 	// 构建排行榜列表
 	list := make([]*schema.SigninRankingItem, 0, len(members))
 	for i, m := range members {
-		uid, _ := strconv.Atoi(m.Member)
+		uid, _ := strconv.Atoi(m.Member) //nolint:errcheck // 解析失败返回0是预期行为
 		item := &schema.SigninRankingItem{
 			UserID:         int64(uid),
 			Rank:           i + 1,

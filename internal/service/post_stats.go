@@ -102,7 +102,7 @@ func (s *PostStatsService) PerformAction(ctx context.Context, userID, postID int
 	}
 	defer func() {
 		if v := recover(); v != nil {
-			_ = tx.Rollback()
+			_ = tx.Rollback() //nolint:errcheck // panic恢复时回滚失败无需处理
 			panic(v)
 		}
 	}()
@@ -116,14 +116,14 @@ func (s *PostStatsService) PerformAction(ctx context.Context, userID, postID int
 		).
 		Only(ctx)
 	if err != nil && !ent.IsNotFound(err) {
-		_ = tx.Rollback()
+		_ = tx.Rollback() //nolint:errcheck // 错误处理时回滚失败无需处理
 		s.logger.Error("查询操作记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("查询操作记录失败: %w", err)
 	}
 
 	// 如果已存在,直接返回当前统计数据
 	if existingAction != nil {
-		_ = tx.Rollback()
+		_ = tx.Rollback() //nolint:errcheck // 提前返回时回滚失败无需处理
 		return s.GetStats(ctx, postID)
 	}
 
@@ -143,7 +143,7 @@ func (s *PostStatsService) PerformAction(ctx context.Context, userID, postID int
 			).
 			Exec(ctx)
 		if err != nil {
-			_ = tx.Rollback()
+			_ = tx.Rollback() //nolint:errcheck // 错误处理时回滚失败无需处理
 			s.logger.Error("删除相反操作失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 			return nil, fmt.Errorf("删除相反操作失败: %w", err)
 		}
@@ -152,11 +152,11 @@ func (s *PostStatsService) PerformAction(ctx context.Context, userID, postID int
 		if deletedCount > 0 {
 			oppositeField := s.getStatsField(oppositeType)
 			statsKey := stats.GetPostStatsKey(postID)
-			_ = s.statsHelper.IncrStats(ctx, statsKey, oppositeField, -1)
+			_ = s.statsHelper.IncrStats(ctx, statsKey, oppositeField, -1) //nolint:errcheck // Redis操作失败不影响主流程
 
 			// 移除用户操作缓存
 			userActionKey := stats.GetPostUserActionKey(userID, postID)
-			_ = s.statsHelper.RemoveUserAction(ctx, userActionKey, oppositeType)
+			_ = s.statsHelper.RemoveUserAction(ctx, userActionKey, oppositeType) //nolint:errcheck // Redis操作失败不影响主流程
 		}
 	}
 
@@ -167,7 +167,7 @@ func (s *PostStatsService) PerformAction(ctx context.Context, userID, postID int
 		SetActionType(postaction.ActionType(actionType)).
 		Save(ctx)
 	if err != nil {
-		_ = tx.Rollback()
+		_ = tx.Rollback() //nolint:errcheck // 错误处理时回滚失败无需处理
 		s.logger.Error("创建操作记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("创建操作记录失败: %w", err)
 	}
@@ -181,14 +181,14 @@ func (s *PostStatsService) PerformAction(ctx context.Context, userID, postID int
 	// 更新Redis统计数据(异步,失败不影响主流程)
 	statsKey := stats.GetPostStatsKey(postID)
 	field := s.getStatsField(actionType)
-	_ = s.statsHelper.IncrStats(ctx, statsKey, field, 1)
+	_ = s.statsHelper.IncrStats(ctx, statsKey, field, 1) //nolint:errcheck // Redis操作失败不影响主流程
 
 	// 更新用户操作缓存
 	userActionKey := stats.GetPostUserActionKey(userID, postID)
-	_ = s.statsHelper.SetUserAction(ctx, userActionKey, actionType)
+	_ = s.statsHelper.SetUserAction(ctx, userActionKey, actionType) //nolint:errcheck // Redis操作失败不影响主流程
 
 	// 标记帖子为脏数据
-	_ = s.statsHelper.MarkDirty(ctx, stats.PostDirtySetKey, postID)
+	_ = s.statsHelper.MarkDirty(ctx, stats.PostDirtySetKey, postID) //nolint:errcheck // Redis操作失败不影响主流程
 
 	s.logger.Info("执行帖子操作成功", zap.Int("post_id", postID), tracing.WithTraceIDField(ctx))
 	return s.GetStats(ctx, postID)
@@ -223,14 +223,14 @@ func (s *PostStatsService) CancelAction(ctx context.Context, userID, postID int,
 	// 更新Redis统计数据(异步,失败不影响主流程)
 	statsKey := stats.GetPostStatsKey(postID)
 	field := s.getStatsField(actionType)
-	_ = s.statsHelper.IncrStats(ctx, statsKey, field, -1)
+	_ = s.statsHelper.IncrStats(ctx, statsKey, field, -1) //nolint:errcheck // Redis操作失败不影响主流程
 
 	// 移除用户操作缓存
 	userActionKey := stats.GetPostUserActionKey(userID, postID)
-	_ = s.statsHelper.RemoveUserAction(ctx, userActionKey, actionType)
+	_ = s.statsHelper.RemoveUserAction(ctx, userActionKey, actionType) //nolint:errcheck // Redis操作失败不影响主流程
 
 	// 标记帖子为脏数据
-	_ = s.statsHelper.MarkDirty(ctx, stats.PostDirtySetKey, postID)
+	_ = s.statsHelper.MarkDirty(ctx, stats.PostDirtySetKey, postID) //nolint:errcheck // Redis操作失败不影响主流程
 
 	s.logger.Info("取消帖子操作成功", zap.Int("post_id", postID), tracing.WithTraceIDField(ctx))
 	return s.GetStats(ctx, postID)
@@ -282,7 +282,7 @@ func (s *PostStatsService) GetStats(ctx context.Context, postID int) (*stats.Sta
 	}
 
 	// 回填Redis缓存
-	_ = s.statsHelper.SetStats(ctx, statsKey, map[string]int{
+	_ = s.statsHelper.SetStats(ctx, statsKey, map[string]int{ //nolint:errcheck // Redis操作失败不影响主流程
 		"like_count":     result.LikeCount,
 		"dislike_count":  result.DislikeCount,
 		"favorite_count": result.FavoriteCount,
@@ -327,13 +327,13 @@ func (s *PostStatsService) GetUserActionStatus(ctx context.Context, userID, post
 		switch action.ActionType {
 		case postaction.ActionTypeLike:
 			result.HasLiked = true
-			_ = s.statsHelper.SetUserAction(ctx, userActionKey, stats.ActionTypeLike)
+			_ = s.statsHelper.SetUserAction(ctx, userActionKey, stats.ActionTypeLike) //nolint:errcheck // Redis操作失败不影响主流程
 		case postaction.ActionTypeDislike:
 			result.HasDisliked = true
-			_ = s.statsHelper.SetUserAction(ctx, userActionKey, stats.ActionTypeDislike)
+			_ = s.statsHelper.SetUserAction(ctx, userActionKey, stats.ActionTypeDislike) //nolint:errcheck // Redis操作失败不影响主流程
 		case postaction.ActionTypeFavorite:
 			result.HasFavorited = true
-			_ = s.statsHelper.SetUserAction(ctx, userActionKey, stats.ActionTypeFavorite)
+			_ = s.statsHelper.SetUserAction(ctx, userActionKey, stats.ActionTypeFavorite) //nolint:errcheck // Redis操作失败不影响主流程
 		}
 	}
 
@@ -358,10 +358,10 @@ func (s *PostStatsService) GetStatsMap(ctx context.Context, postIDs []int) (map[
 func (s *PostStatsService) IncrViewCount(ctx context.Context, postID int) error {
 	// 直接在Redis中增加浏览数
 	statsKey := stats.GetPostStatsKey(postID)
-	_ = s.statsHelper.IncrStats(ctx, statsKey, "view_count", 1)
+	_ = s.statsHelper.IncrStats(ctx, statsKey, "view_count", 1) //nolint:errcheck // Redis操作失败不影响主流程
 
 	// 标记帖子为脏数据(异步同步到数据库)
-	_ = s.statsHelper.MarkDirty(ctx, stats.PostDirtySetKey, postID)
+	_ = s.statsHelper.MarkDirty(ctx, stats.PostDirtySetKey, postID) //nolint:errcheck // Redis操作失败不影响主流程
 
 	return nil
 }
@@ -453,10 +453,10 @@ func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) int {
 
 		// 从Redis获取浏览数(浏览数只在Redis中维护)
 		statsKey := stats.GetPostStatsKey(postID)
-		viewCountStr, _ := s.cache.HGet(ctx, statsKey, "view_count")
+		viewCountStr, _ := s.cache.HGet(ctx, statsKey, "view_count") //nolint:errcheck // Redis操作失败使用默认值
 		viewCount := 0
 		if viewCountStr != "" {
-			_, _ = fmt.Sscanf(viewCountStr, "%d", &viewCount)
+			_, _ = fmt.Sscanf(viewCountStr, "%d", &viewCount) //nolint:errcheck // 解析失败使用默认值
 		}
 
 		// 更新Post表
@@ -469,8 +469,8 @@ func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) int {
 		if err != nil {
 			if ent.IsNotFound(err) {
 				// 帖子已被删除,清理脏标记和缓存
-				_ = s.statsHelper.RemoveDirtyIDs(ctx, stats.PostDirtySetKey, []int{postID})
-				_ = s.statsHelper.DeleteStatsCache(ctx, statsKey)
+				_ = s.statsHelper.RemoveDirtyIDs(ctx, stats.PostDirtySetKey, []int{postID}) //nolint:errcheck // Redis操作失败不影响主流程
+				_ = s.statsHelper.DeleteStatsCache(ctx, statsKey)                           //nolint:errcheck // Redis操作失败不影响主流程
 				s.logger.Warn("帖子不存在,已清理缓存", zap.Int("post_id", postID), tracing.WithTraceIDField(ctx))
 				continue
 			}
@@ -479,7 +479,7 @@ func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) int {
 		}
 
 		// 更新Redis缓存
-		_ = s.statsHelper.SetStats(ctx, statsKey, map[string]int{
+		_ = s.statsHelper.SetStats(ctx, statsKey, map[string]int{ //nolint:errcheck // Redis操作失败不影响主流程
 			"like_count":     likeCount,
 			"dislike_count":  dislikeCount,
 			"favorite_count": favoriteCount,
@@ -487,7 +487,7 @@ func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) int {
 		})
 
 		// 清除脏标记
-		_ = s.statsHelper.RemoveDirtyIDs(ctx, stats.PostDirtySetKey, []int{postID})
+		_ = s.statsHelper.RemoveDirtyIDs(ctx, stats.PostDirtySetKey, []int{postID}) //nolint:errcheck // Redis操作失败不影响主流程
 
 		syncCount++
 	}

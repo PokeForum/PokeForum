@@ -180,10 +180,13 @@ func (s *UserProfileService) GetUserPosts(ctx context.Context, userID int, req s
 	for id := range categoryIDs {
 		categoryIDList = append(categoryIDList, id)
 	}
-	categories, _ := s.db.Category.Query().
+	categories, err := s.db.Category.Query().
 		Where(category.IDIn(categoryIDList...)).
 		Select(category.FieldID, category.FieldName).
 		All(ctx)
+	if err != nil {
+		s.logger.Warn("批量查询版块信息失败", zap.Error(err))
+	}
 	categoryMap := make(map[int]string)
 	for _, c := range categories {
 		categoryMap[c.ID] = c.Name
@@ -442,9 +445,12 @@ func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, r
 	}
 
 	// 批量查询帖子信息
-	posts, _ := s.db.Post.Query().
+	posts, err := s.db.Post.Query().
 		Where(post.IDIn(postIDs...)).
 		All(ctx)
+	if err != nil {
+		s.logger.Warn("批量查询帖子信息失败", zap.Error(err))
+	}
 	postMap := make(map[int]*ent.Post)
 	for _, postData := range posts {
 		// 他人查看时，过滤掉私有或封禁帖子
@@ -467,10 +473,13 @@ func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, r
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
 	}
-	users, _ := s.db.User.Query().
+	users, err := s.db.User.Query().
 		Where(user.IDIn(userIDList...)).
 		Select(user.FieldID, user.FieldUsername).
 		All(ctx)
+	if err != nil {
+		s.logger.Warn("批量查询用户信息失败", zap.Error(err))
+	}
 	userMap := make(map[int]string)
 	for _, u := range users {
 		userMap[u.ID] = u.Username
@@ -481,10 +490,13 @@ func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, r
 	for id := range categoryIDs {
 		categoryIDList = append(categoryIDList, id)
 	}
-	categories, _ := s.db.Category.Query().
+	categories, err := s.db.Category.Query().
 		Where(category.IDIn(categoryIDList...)).
 		Select(category.FieldID, category.FieldName).
 		All(ctx)
+	if err != nil {
+		s.logger.Warn("批量查询版块信息失败", zap.Error(err))
+	}
 	categoryMap := make(map[int]string)
 	for _, c := range categories {
 		categoryMap[c.ID] = c.Name
@@ -774,7 +786,7 @@ func (s *UserProfileService) VerifyEmail(ctx context.Context, userID int, req sc
 	}
 
 	// 清除验证码缓存
-	count, _ := s.cache.Del(ctx, codeKey)
+	count, _ := s.cache.Del(ctx, codeKey) //nolint:errcheck // 缓存清除失败不影响主流程
 	s.logger.Debug("清除验证码缓存", zap.Int("count", count), tracing.WithTraceIDField(ctx))
 
 	s.logger.Info("邮箱验证成功", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))

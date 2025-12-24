@@ -80,7 +80,7 @@ func (b *BaseProvider) ExchangeTokenByForm(ctx context.Context, code string) (*T
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body) //nolint:errcheck // 错误处理时读取body失败不影响主错误返回
 		return nil, fmt.Errorf("%w: status=%d, body=%s", ErrExchangeTokenFailed, resp.StatusCode, string(body))
 	}
 
@@ -133,7 +133,7 @@ func (b *BaseProvider) GetUserInfoByJSON(ctx context.Context, accessToken string
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body) //nolint:errcheck // 错误处理时读取body失败不影响主错误返回
 		return nil, fmt.Errorf("%w: status=%d, body=%s", ErrGetUserInfoFailed, resp.StatusCode, string(body))
 	}
 
@@ -173,7 +173,7 @@ func (b *BaseProvider) RefreshTokenByForm(ctx context.Context, refreshToken stri
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
+		body, _ := io.ReadAll(resp.Body) //nolint:errcheck // 错误处理时读取body失败不影响主错误返回
 		return nil, fmt.Errorf("%w: status=%d, body=%s", ErrRefreshTokenFailed, resp.StatusCode, string(body))
 	}
 

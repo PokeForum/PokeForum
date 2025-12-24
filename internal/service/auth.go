@@ -169,7 +169,10 @@ func (s *AuthService) Login(ctx context.Context, req schema.LoginRequest) (*ent.
 
 	// 检查封禁-短期
 	if isDisabled := stputil.IsDisable(u.ID); isDisabled {
-		remainingTime, _ := stputil.GetDisableTime(u.ID) // 查询剩余时间, 单位（秒）
+		remainingTime, err := stputil.GetDisableTime(u.ID) // 查询剩余时间, 单位（秒）
+		if err != nil {
+			return nil, errors.New("账户已被限制使用")
+		}
 		return nil, fmt.Errorf("账户已被限制使用, 解除时间: %s", time_tools.CalculateRemainingTime(remainingTime))
 	}
 

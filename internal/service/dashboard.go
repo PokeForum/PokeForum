@@ -397,10 +397,13 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
 	}
-	users, _ := s.db.User.Query().
+	users, err := s.db.User.Query().
 		Where(user.IDIn(userIDList...)).
 		Select(user.FieldID, user.FieldUsername, user.FieldAvatar).
 		All(ctx)
+	if err != nil {
+		s.logger.Warn("批量查询用户信息失败", zap.Error(err))
+	}
 	type userInfo struct {
 		Username string
 		Avatar   string
@@ -415,10 +418,13 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 	for id := range categoryIDs {
 		categoryIDList = append(categoryIDList, id)
 	}
-	categories, _ := s.db.Category.Query().
+	categories, err := s.db.Category.Query().
 		Where(category.IDIn(categoryIDList...)).
 		Select(category.FieldID, category.FieldName).
 		All(ctx)
+	if err != nil {
+		s.logger.Warn("批量查询版块信息失败", zap.Error(err))
+	}
 	categoryMap := make(map[int]string)
 	for _, c := range categories {
 		categoryMap[c.ID] = c.Name
@@ -429,10 +435,13 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 	for id := range postIDs {
 		postIDList = append(postIDList, id)
 	}
-	postsData, _ := s.db.Post.Query().
+	postsData, err := s.db.Post.Query().
 		Where(post.IDIn(postIDList...)).
 		Select(post.FieldID, post.FieldTitle).
 		All(ctx)
+	if err != nil {
+		s.logger.Warn("批量查询帖子信息失败", zap.Error(err))
+	}
 	postMap := make(map[int]string)
 	for _, p := range postsData {
 		postMap[p.ID] = p.Title
@@ -516,10 +525,13 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
 	}
-	users, _ := s.db.User.Query().
+	users, err := s.db.User.Query().
 		Where(user.IDIn(userIDList...)).
 		Select(user.FieldID, user.FieldUsername, user.FieldAvatar).
 		All(ctx)
+	if err != nil {
+		s.logger.Warn("批量查询用户信息失败", zap.Error(err))
+	}
 	type userInfo struct {
 		Username string
 		Avatar   string
@@ -534,10 +546,13 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 	for id := range categoryIDs {
 		categoryIDList = append(categoryIDList, id)
 	}
-	categories, _ := s.db.Category.Query().
+	categories, err := s.db.Category.Query().
 		Where(category.IDIn(categoryIDList...)).
 		Select(category.FieldID, category.FieldName).
 		All(ctx)
+	if err != nil {
+		s.logger.Warn("批量查询版块信息失败", zap.Error(err))
+	}
 	categoryMap := make(map[int]string)
 	for _, c := range categories {
 		categoryMap[c.ID] = c.Name
@@ -547,9 +562,12 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 	// 注意: 这里简化处理，实际应该使用GroupBy优化性能
 	commentCountMap := make(map[int]int)
 	for _, postID := range postIDs {
-		count, _ := s.db.Comment.Query().
+		count, err := s.db.Comment.Query().
 			Where(comment.PostIDEQ(postID)).
 			Count(ctx)
+		if err != nil {
+			s.logger.Warn("查询评论数失败", zap.Error(err), zap.Int("postID", postID))
+		}
 		commentCountMap[postID] = count
 	}
 

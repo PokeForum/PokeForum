@@ -128,10 +128,13 @@ func (s *PostManageService) GetPostList(ctx context.Context, req schema.PostList
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
 	}
-	users, _ := s.db.User.Query().
+	users, err := s.db.User.Query().
 		Where(user.IDIn(userIDList...)).
 		Select(user.FieldID, user.FieldUsername).
 		All(ctx)
+	if err != nil {
+		s.logger.Warn("批量查询用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+	}
 	userMap := make(map[int]string)
 	for _, u := range users {
 		userMap[u.ID] = u.Username
@@ -142,10 +145,13 @@ func (s *PostManageService) GetPostList(ctx context.Context, req schema.PostList
 	for id := range categoryIDs {
 		categoryIDList = append(categoryIDList, id)
 	}
-	categories, _ := s.db.Category.Query().
+	categories, err := s.db.Category.Query().
 		Where(category.IDIn(categoryIDList...)).
 		Select(category.FieldID, category.FieldName).
 		All(ctx)
+	if err != nil {
+		s.logger.Warn("批量查询版块信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+	}
 	categoryMap := make(map[int]string)
 	for _, c := range categories {
 		categoryMap[c.ID] = c.Name

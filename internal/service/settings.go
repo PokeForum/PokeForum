@@ -521,7 +521,7 @@ func (s *SettingsService) GetSigninSettings(ctx context.Context) (*schema.Signin
 	}
 
 	// 解析经验值奖励比例
-	experienceReward, _ := strconv.ParseFloat(configMap[_const.SigninExperienceReward], 64)
+	experienceReward, _ := strconv.ParseFloat(configMap[_const.SigninExperienceReward], 64) //nolint:errcheck // 解析失败使用默认值
 	if experienceReward == 0 {
 		experienceReward = 1.0 // 默认1:1
 	}

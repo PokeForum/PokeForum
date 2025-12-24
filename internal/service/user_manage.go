@@ -750,10 +750,13 @@ func (s *UserManageService) GetUserBalanceLog(ctx context.Context, req schema.Us
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
 	}
-	users, _ := s.db.User.Query().
+	users, err := s.db.User.Query().
 		Where(user.IDIn(userIDList...)).
 		Select(user.FieldID, user.FieldUsername).
 		All(ctx)
+	if err != nil {
+		s.logger.Warn("批量查询用户信息失败", zap.Error(err))
+	}
 	userMap := make(map[int]string)
 	for _, u := range users {
 		userMap[u.ID] = u.Username

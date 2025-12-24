@@ -23,7 +23,7 @@ type PerformanceController struct {
 
 // NewPerformanceController 创建性能监控控制器实例
 func NewPerformanceController(injector *do.Injector) *PerformanceController {
-	logger, _ := do.Invoke[*zap.Logger](injector)
+	logger, _ := do.Invoke[*zap.Logger](injector) //nolint:errcheck // 依赖注入失败时返回nil
 	return &PerformanceController{
 		injector: injector,
 		logger:   logger,

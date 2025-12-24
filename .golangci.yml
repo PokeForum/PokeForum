@@ -69,8 +69,16 @@ linters:
         - performance
         - style
       disabled-checks:
-        - hugeParam      # 大参数检查（struct 较大时会产生警告）
-        - rangeValCopy   # range 值拷贝检查
+        - hugeParam         # 大参数检查（struct 较大时会产生警告）
+        - rangeValCopy      # range 值拷贝检查
+        - unnecessaryBlock  # 路由分组时使用花括号组织代码是常见模式
+        - paramTypeCombine  # 参数类型合并建议（代码已有明确风格）
+        - unnamedResult     # 未命名返回值（对于简单函数可接受）
+        - commentedOutCode  # 注释掉的代码检查（有些注释是说明性的）
+        - sloppyReassign    # err重新赋值检查（符合Go惯用法）
+        - importShadow      # 变量遮蔽导入包名（在上下文中含义明确）
+        - emptyStringTest   # 空字符串测试方式（len(s)==0也是有效方式）
+        - octalLiteral      # 八进制字面量格式（两种格式都有效）
 
     gosec:
       excludes:

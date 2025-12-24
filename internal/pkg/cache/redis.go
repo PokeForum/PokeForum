@@ -194,7 +194,9 @@ func (r *RedisCacheService) HMGet(ctx context.Context, key string, fields ...str
 	result := make([]string, len(values))
 	for i, v := range values {
 		if v != nil {
-			result[i] = v.(string)
+			if str, ok := v.(string); ok {
+				result[i] = str
+			}
 		}
 	}
 	return result, nil
@@ -292,8 +294,12 @@ func (r *RedisCacheService) ZRevRangeWithScores(ctx context.Context, key string,
 
 	members := make([]ZMember, len(result))
 	for i, z := range result {
+		member := ""
+		if str, ok := z.Member.(string); ok {
+			member = str
+		}
 		members[i] = ZMember{
-			Member: z.Member.(string),
+			Member: member,
 			Score:  z.Score,
 		}
 	}

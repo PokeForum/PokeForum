@@ -506,10 +506,13 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
 	}
-	users, _ := s.db.User.Query().
+	users, err := s.db.User.Query().
 		Where(user.IDIn(userIDList...)).
 		Select(user.FieldID, user.FieldUsername).
 		All(ctx)
+	if err != nil {
+		s.logger.Warn("批量查询用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+	}
 	userMap := make(map[int]string)
 	for _, u := range users {
 		userMap[u.ID] = u.Username
@@ -520,10 +523,13 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 	for id := range categoryIDs {
 		categoryIDList = append(categoryIDList, id)
 	}
-	categories, _ := s.db.Category.Query().
+	categories, err := s.db.Category.Query().
 		Where(category.IDIn(categoryIDList...)).
 		Select(category.FieldID, category.FieldName).
 		All(ctx)
+	if err != nil {
+		s.logger.Warn("批量查询版块信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+	}
 	categoryMap := make(map[int]string)
 	for _, c := range categories {
 		categoryMap[c.ID] = c.Name
@@ -844,7 +850,11 @@ func (s *PostService) checkUserStatus(ctx context.Context, userID int) error {
 	switch userData.Status {
 	case user.StatusNormal:
 		// 检查是否需要验证邮箱
-		verifyEmail, _ := s.settingsService.GetSettingByKey(ctx, _const.SafeVerifyEmail, "false")
+		verifyEmail, err := s.settingsService.GetSettingByKey(ctx, _const.SafeVerifyEmail, "false")
+		if err != nil {
+			s.logger.Warn("获取邮箱验证配置失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			verifyEmail = "false"
+		}
 		if verifyEmail == _const.SettingBoolTrue.String() && !userData.EmailVerified {
 			return errors.New("您的邮箱尚未验证，请先完成验证")
 		}

@@ -113,10 +113,13 @@ func (s *RankingService) GetReadingRanking(ctx context.Context, req schema.UserR
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
 	}
-	users, _ := s.db.User.Query().
+	users, err := s.db.User.Query().
 		Where(user.IDIn(userIDList...)).
 		Select(user.FieldID, user.FieldUsername).
 		All(ctx)
+	if err != nil {
+		s.log.Warn("批量查询用户信息失败", zap.Error(err))
+	}
 	userMap := make(map[int]string)
 	for _, u := range users {
 		userMap[u.ID] = u.Username
@@ -127,10 +130,13 @@ func (s *RankingService) GetReadingRanking(ctx context.Context, req schema.UserR
 	for id := range categoryIDs {
 		categoryIDList = append(categoryIDList, id)
 	}
-	categories, _ := s.db.Category.Query().
+	categories, err := s.db.Category.Query().
 		Where(category.IDIn(categoryIDList...)).
 		Select(category.FieldID, category.FieldName).
 		All(ctx)
+	if err != nil {
+		s.log.Warn("批量查询版块信息失败", zap.Error(err))
+	}
 	categoryMap := make(map[int]string)
 	for _, c := range categories {
 		categoryMap[c.ID] = c.Name
@@ -220,10 +226,13 @@ func (s *RankingService) GetCommentRanking(ctx context.Context, req schema.UserR
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
 	}
-	users, _ := s.db.User.Query().
+	users, err := s.db.User.Query().
 		Where(user.IDIn(userIDList...)).
 		Select(user.FieldID, user.FieldUsername, user.FieldAvatar, user.FieldCreatedAt).
 		All(ctx)
+	if err != nil {
+		s.log.Warn("批量查询用户信息失败", zap.Error(err))
+	}
 	userMap := make(map[int]*ent.User)
 	for _, u := range users {
 		userMap[u.ID] = u

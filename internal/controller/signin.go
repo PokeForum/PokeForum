@@ -156,7 +156,7 @@ func (ctrl *SigninController) GetDailyRanking(c *gin.Context) {
 	}
 
 	// 尝试获取用户ID（可选，用于获取当前用户排名）
-	userID, _ := ctrl.getUserID(c)
+	userID, _ := ctrl.getUserID(c) //nolint:errcheck // 用户ID是可选的
 
 	// 获取服务
 	signinService := do.MustInvoke[service.ISigninService](ctrl.injector)
@@ -197,7 +197,7 @@ func (ctrl *SigninController) GetContinuousRanking(c *gin.Context) {
 	}
 
 	// 尝试获取用户ID（可选，用于获取当前用户排名）
-	userID, _ := ctrl.getUserID(c)
+	userID, _ := ctrl.getUserID(c) //nolint:errcheck // 用户ID是可选的
 
 	// 获取服务
 	signinService := do.MustInvoke[service.ISigninService](ctrl.injector)

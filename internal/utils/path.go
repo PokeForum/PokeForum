@@ -70,7 +70,7 @@ func FormSlash(old string) string {
 func MkdirIfNotExist(ctx context.Context, p string) {
 	// 检查目录是否存在，不存在则递归创建
 	if !Exists(p) {
-		_ = os.MkdirAll(p, 0700)
+		_ = os.MkdirAll(p, 0o700) //nolint:errcheck // 创建目录失败在后续操作中会报错
 	}
 }
 

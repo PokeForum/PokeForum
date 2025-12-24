@@ -43,7 +43,10 @@ func Logger() gin.HandlerFunc {
 		// 开始时间
 		startTime := time.Now()
 
-		b, _ := ctx.Copy().GetRawData()
+		b, err := ctx.Copy().GetRawData()
+		if err != nil {
+			b = []byte{}
+		}
 
 		ctx.Request.Body = io.NopCloser(bytes.NewReader(b))
 

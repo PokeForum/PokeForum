@@ -212,10 +212,12 @@ func (s *PerformanceService) collectPgConnections(ctx context.Context, metrics *
 	var maxConnStr string
 	err = s.pgDB.QueryRowContext(ctx, `SHOW max_connections`).Scan(&maxConnStr)
 	if err == nil {
-		maxConn, _ := strconv.Atoi(maxConnStr)
-		metrics.Connections.MaxConn = maxConn
-		if maxConn > 0 {
-			metrics.Connections.UsagePercent = float64(metrics.Connections.Total) / float64(maxConn) * 100
+		maxConn, convErr := strconv.Atoi(maxConnStr)
+		if convErr == nil {
+			metrics.Connections.MaxConn = maxConn
+			if maxConn > 0 {
+				metrics.Connections.UsagePercent = float64(metrics.Connections.Total) / float64(maxConn) * 100
+			}
 		}
 	}
 }
@@ -432,8 +434,9 @@ func (s *PerformanceService) getRedisKeyCount(infoMap map[string]string) int64 {
 			parts := strings.Split(value, ",")
 			for _, part := range parts {
 				if strings.HasPrefix(part, "keys=") {
-					count, _ := strconv.ParseInt(strings.TrimPrefix(part, "keys="), 10, 64)
-					total += count
+					if count, err := strconv.ParseInt(strings.TrimPrefix(part, "keys="), 10, 64); err == nil {
+						total += count
+					}
 				}
 			}
 		}
@@ -449,8 +452,9 @@ func (s *PerformanceService) getRedisExpiresCount(infoMap map[string]string) int
 			parts := strings.Split(value, ",")
 			for _, part := range parts {
 				if strings.HasPrefix(part, "expires=") {
-					count, _ := strconv.ParseInt(strings.TrimPrefix(part, "expires="), 10, 64)
-					total += count
+					if count, err := strconv.ParseInt(strings.TrimPrefix(part, "expires="), 10, 64); err == nil {
+						total += count
+					}
 				}
 			}
 		}
@@ -501,22 +505,25 @@ func (s *PerformanceService) SaveMetrics(ctx context.Context, data *schema.Perfo
 	// 保存系统指标
 	if data.System != nil {
 		key := fmt.Sprintf("%ssystem:%d", perfKeyPrefix, timestamp)
-		jsonData, _ := json.Marshal(data.System)
-		pipe.Set(ctx, key, jsonData, perfRawDataTTL)
+		if jsonData, err := json.Marshal(data.System); err == nil {
+			pipe.Set(ctx, key, jsonData, perfRawDataTTL)
+		}
 	}
 
 	// 保存 PostgreSQL 指标
 	if data.PgSQL != nil {
 		key := fmt.Sprintf("%spgsql:%d", perfKeyPrefix, timestamp)
-		jsonData, _ := json.Marshal(data.PgSQL)
-		pipe.Set(ctx, key, jsonData, perfRawDataTTL)
+		if jsonData, err := json.Marshal(data.PgSQL); err == nil {
+			pipe.Set(ctx, key, jsonData, perfRawDataTTL)
+		}
 	}
 
 	// 保存 Redis 指标
 	if data.Redis != nil {
 		key := fmt.Sprintf("%sredis:%d", perfKeyPrefix, timestamp)
-		jsonData, _ := json.Marshal(data.Redis)
-		pipe.Set(ctx, key, jsonData, perfRawDataTTL)
+		if jsonData, err := json.Marshal(data.Redis); err == nil {
+			pipe.Set(ctx, key, jsonData, perfRawDataTTL)
+		}
 	}
 
 	_, err := pipe.Exec(ctx)
@@ -608,21 +615,21 @@ func parseRedisInfo(info string) map[string]string {
 }
 
 func parseUint64(s string) uint64 {
-	v, _ := strconv.ParseUint(s, 10, 64)
+	v, _ := strconv.ParseUint(s, 10, 64) //nolint:errcheck // 解析失败返回0是预期行为
 	return v
 }
 
 func parseInt64(s string) int64 {
-	v, _ := strconv.ParseInt(s, 10, 64)
+	v, _ := strconv.ParseInt(s, 10, 64) //nolint:errcheck // 解析失败返回0是预期行为
 	return v
 }
 
 func parseInt(s string) int {
-	v, _ := strconv.Atoi(s)
+	v, _ := strconv.Atoi(s) //nolint:errcheck // 解析失败返回0是预期行为
 	return v
 }
 
 func parseFloat64(s string) float64 {
-	v, _ := strconv.ParseFloat(s, 64)
+	v, _ := strconv.ParseFloat(s, 64) //nolint:errcheck // 解析失败返回0是预期行为
 	return v
 }
