@@ -43,7 +43,7 @@ func (ctrl *BlacklistController) getUserID(c *gin.Context) (int, error) {
 	// Get token from header | 从Header中获取token
 	token := c.GetHeader("Authorization")
 	if token == "" {
-		return 0, fmt.Errorf("Authorization header not found | 未找到Authorization header")
+		return 0, fmt.Errorf("authorization header not found | 未找到Authorization header")
 	}
 
 	// Use stputil to get logged-in user ID | 使用stputil获取登录用户ID

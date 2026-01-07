@@ -9,8 +9,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/PokeForum/PokeForum/internal/utils"
 	"go.uber.org/zap"
+
+	"github.com/PokeForum/PokeForum/internal/utils"
 
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/category"
@@ -555,6 +556,9 @@ func (s *UserProfileService) UpdatePassword(ctx context.Context, userID int, req
 
 	// 生成新密码
 	oldPasswordHash, err := utils.HashPassword(req.OldPassword)
+	if err != nil {
+		return nil, errors.New("生成密码哈希失败")
+	}
 	// 生成新的密码哈希
 	newPasswordHash, err := utils.HashPassword(req.NewPassword)
 	if err != nil {

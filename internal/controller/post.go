@@ -31,7 +31,7 @@ func (ctrl *PostController) getUserID(c *gin.Context) (int, error) {
 	// Get token from Header | 从Header中获取token
 	token := c.GetHeader("Authorization")
 	if token == "" {
-		return 0, fmt.Errorf("Authorization header not found | 未找到Authorization header")
+		return 0, fmt.Errorf("authorization header not found | 未找到Authorization header")
 	}
 
 	// Get logged-in user ID using stputil | 使用stputil获取登录用户ID

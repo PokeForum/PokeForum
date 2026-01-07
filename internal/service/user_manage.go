@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/click33/sa-token-go/stputil"
+	"go.uber.org/zap"
+
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/categorymoderator"
@@ -18,8 +21,6 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/utils"
-	"github.com/click33/sa-token-go/stputil"
-	"go.uber.org/zap"
 )
 
 // IUserManageService User management service interface | 用户管理服务接口
