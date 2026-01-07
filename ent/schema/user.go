@@ -24,9 +24,6 @@ func (User) Fields() []ent.Field {
 		// Password, not empty | 密码，不为空
 		field.String("password").
 			NotEmpty(),
-		// Password salt, not empty | 密码盐，不为空
-		field.String("password_salt").
-			NotEmpty(),
 		// Username, unique and not empty | 用户名，唯一且不为空
 		field.String("username").
 			Unique().

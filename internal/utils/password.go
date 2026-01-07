@@ -23,22 +23,6 @@ func CheckPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-// GeneratePasswordSalt generates password salt | 生成密码盐
-func GeneratePasswordSalt() string {
-	// Generate 8-character random string as salt | 生成8位随机字符串作为盐
-	return RandomString(8)
-}
-
-// CombinePasswordWithSalt combines password with salt to increase password strength | 将密码和盐进行拼接，增加密码强度
-// Uses salt + password + salt approach to improve password security | 采用 salt + password + salt 的方式，提高密码安全性
-// Parameters: password - original password, salt - salt value | 参数：password 原始密码，salt 盐值
-// Returns: combined password string | 返回：拼接后的密码字符串
-func CombinePasswordWithSalt(password, salt string) string {
-	// Use salt + password + salt approach for combination | 使用 salt + password + salt 的方式进行拼接
-	// This prevents rainbow table attacks and increases cracking difficulty | 这样可以防止彩虹表攻击，增加破解难度
-	return salt + password + salt
-}
-
 // ValidateStrongPassword validates strong password rules | 验证强密码规则
 // Must meet: at least 8 characters, contains uppercase letters, lowercase letters, numbers, and punctuation | 必须满足：至少8位，包含大写字母、小写字母、数字、标点符号
 func ValidateStrongPassword(password string) error {

@@ -6,10 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/click33/sa-token-go/stputil"
-	"go.uber.org/zap"
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/categorymoderator"
@@ -22,6 +18,8 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/utils"
+	"github.com/click33/sa-token-go/stputil"
+	"go.uber.org/zap"
 )
 
 // IUserManageService User management service interface | 用户管理服务接口
@@ -213,10 +211,8 @@ func (s *UserManageService) CreateUser(ctx context.Context, req schema.UserCreat
 		return nil, fmt.Errorf("检查用户是否存在失败: %w", err)
 	}
 
-	// 生成密码盐和加密密码
-	passwordSalt := utils.GeneratePasswordSalt()
-	combinedPassword := utils.CombinePasswordWithSalt(req.Password, passwordSalt)
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(combinedPassword), bcrypt.DefaultCost)
+	// 加密密码
+	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
 		s.logger.Error("密码加密失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("密码加密失败: %w", err)
@@ -226,8 +222,7 @@ func (s *UserManageService) CreateUser(ctx context.Context, req schema.UserCreat
 	u, err := s.db.User.Create().
 		SetUsername(req.Username).
 		SetEmail(req.Email).
-		SetPassword(string(hashedPassword)).
-		SetPasswordSalt(passwordSalt).
+		SetPassword(hashedPassword).
 		SetRole(user.Role(req.Role)).
 		SetAvatar(req.Avatar).
 		SetSignature(req.Signature).

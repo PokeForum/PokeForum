@@ -3,14 +3,13 @@ package service
 import (
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"math/big"
 	"strconv"
 	"time"
 
+	"github.com/PokeForum/PokeForum/internal/utils"
 	"go.uber.org/zap"
 
 	"github.com/PokeForum/PokeForum/ent"
@@ -554,14 +553,18 @@ func (s *UserProfileService) UpdatePassword(ctx context.Context, userID int, req
 		return nil, fmt.Errorf("获取用户信息失败: %w", err)
 	}
 
+	// 生成新密码
+	oldPasswordHash, err := utils.HashPassword(req.OldPassword)
+	// 生成新的密码哈希
+	newPasswordHash, err := utils.HashPassword(req.NewPassword)
+	if err != nil {
+		return nil, errors.New("生成密码哈希失败")
+	}
+
 	// 验证旧密码
-	oldPasswordHash := hashPassword(req.OldPassword, userData.PasswordSalt)
 	if oldPasswordHash != userData.Password {
 		return nil, errors.New("旧密码错误")
 	}
-
-	// 生成新的密码哈希
-	newPasswordHash := hashPassword(req.NewPassword, userData.PasswordSalt)
 
 	// 更新密码
 	_, err = s.db.User.UpdateOneID(userID).
@@ -865,11 +868,4 @@ func (s *UserProfileService) sendVerificationEmail(ctx context.Context, email, c
 	}
 
 	return nil
-}
-
-// hashPassword Generate password hash | 生成密码哈希值
-func hashPassword(password, salt string) string {
-	hash := sha256.New()
-	hash.Write([]byte(password + salt))
-	return hex.EncodeToString(hash.Sum(nil))
 }

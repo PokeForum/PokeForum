@@ -161,15 +161,9 @@ func createSuperAdmin() error {
 		return fmt.Errorf("the two passwords entered do not match | 两次输入的密码不一致")
 	}
 
-	// Generate password salt | 生成密码盐
-	passwordSalt := utils.GeneratePasswordSalt()
-
-	// Combine password with salt | 拼接密码和盐
-	combinedPassword := utils.CombinePasswordWithSalt(password, passwordSalt)
-
 	// Hash password | 加密密码
 	fmt.Println("Encrypting password | 正在加密密码...")
-	hashedPassword, err := utils.HashPassword(combinedPassword)
+	hashedPassword, err := utils.HashPassword(password)
 	if err != nil {
 		return fmt.Errorf("password encryption failed | 密码加密失败: %w", err)
 	}
@@ -180,7 +174,6 @@ func createSuperAdmin() error {
 		SetEmail(email).
 		SetUsername(username).
 		SetPassword(hashedPassword).
-		SetPasswordSalt(passwordSalt).
 		SetRole("SuperAdmin").
 		SetEmailVerified(true).
 		SetStatus("Normal").

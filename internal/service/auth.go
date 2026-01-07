@@ -119,11 +119,6 @@ func (s *AuthService) Register(ctx context.Context, req schema.RegisterRequest) 
 			return nil, errors.New("邮箱域名不在允许注册的白名单中")
 		}
 	}
-	// Generate password salt | 生成密码盐
-	pwdSalt := utils.GeneratePasswordSalt()
-
-	// Combine password with salt | 密码加盐
-	req.Password = utils.CombinePasswordWithSalt(req.Password, pwdSalt)
 
 	// Hash password | 密码加密
 	hashedPassword, err := utils.HashPassword(req.Password)
@@ -137,7 +132,6 @@ func (s *AuthService) Register(ctx context.Context, req schema.RegisterRequest) 
 		SetUsername(req.Username).
 		SetEmail(req.Email).
 		SetPassword(hashedPassword).
-		SetPasswordSalt(pwdSalt).
 		Save(ctx)
 	if err != nil {
 		s.logger.Error("Failed to create user | 创建用户失败", tracing.WithTraceIDField(ctx), zap.Error(err))
@@ -176,11 +170,8 @@ func (s *AuthService) Login(ctx context.Context, req schema.LoginRequest) (*ent.
 		return nil, fmt.Errorf("账户已被限制使用, 解除时间: %s", time_tools.CalculateRemainingTime(remainingTime))
 	}
 
-	// Combine password with salt | 拼接密码和盐
-	combinedPassword := utils.CombinePasswordWithSalt(req.Password, u.PasswordSalt)
-
 	// Verify password | 验证密码
-	if ok := utils.CheckPasswordHash(combinedPassword, u.Password); !ok {
+	if ok := utils.CheckPasswordHash(req.Password, u.Password); !ok {
 		return nil, errors.New("密码错误")
 	}
 
@@ -326,9 +317,8 @@ func (s *AuthService) ResetPassword(ctx context.Context, req schema.ResetPasswor
 		return nil, fmt.Errorf("查询用户失败: %w", err)
 	}
 
-	// Salt and hash password | 密码加盐加密
-	combinedPassword := utils.CombinePasswordWithSalt(req.NewPassword, userData.PasswordSalt)
-	hashedPassword, err := utils.HashPassword(combinedPassword)
+	// Hash password | 密码加密
+	hashedPassword, err := utils.HashPassword(req.NewPassword)
 	if err != nil {
 		s.logger.Error("Failed to hash password | 密码加密失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("密码加密失败: %w", err)

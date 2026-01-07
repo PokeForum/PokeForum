@@ -7762,7 +7762,6 @@ type UserMutation struct {
 	updated_at     *time.Time
 	email          *string
 	password       *string
-	password_salt  *string
 	username       *string
 	avatar         *string
 	signature      *string
@@ -8028,42 +8027,6 @@ func (m *UserMutation) OldPassword(ctx context.Context) (v string, err error) {
 // ResetPassword resets all changes to the "password" field.
 func (m *UserMutation) ResetPassword() {
 	m.password = nil
-}
-
-// SetPasswordSalt sets the "password_salt" field.
-func (m *UserMutation) SetPasswordSalt(s string) {
-	m.password_salt = &s
-}
-
-// PasswordSalt returns the value of the "password_salt" field in the mutation.
-func (m *UserMutation) PasswordSalt() (r string, exists bool) {
-	v := m.password_salt
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldPasswordSalt returns the old "password_salt" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldPasswordSalt(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldPasswordSalt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldPasswordSalt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldPasswordSalt: %w", err)
-	}
-	return oldValue.PasswordSalt, nil
-}
-
-// ResetPasswordSalt resets all changes to the "password_salt" field.
-func (m *UserMutation) ResetPasswordSalt() {
-	m.password_salt = nil
 }
 
 // SetUsername sets the "username" field.
@@ -8559,7 +8522,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 15)
+	fields := make([]string, 0, 14)
 	if m.created_at != nil {
 		fields = append(fields, user.FieldCreatedAt)
 	}
@@ -8571,9 +8534,6 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.password != nil {
 		fields = append(fields, user.FieldPassword)
-	}
-	if m.password_salt != nil {
-		fields = append(fields, user.FieldPasswordSalt)
 	}
 	if m.username != nil {
 		fields = append(fields, user.FieldUsername)
@@ -8621,8 +8581,6 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Email()
 	case user.FieldPassword:
 		return m.Password()
-	case user.FieldPasswordSalt:
-		return m.PasswordSalt()
 	case user.FieldUsername:
 		return m.Username()
 	case user.FieldAvatar:
@@ -8660,8 +8618,6 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldEmail(ctx)
 	case user.FieldPassword:
 		return m.OldPassword(ctx)
-	case user.FieldPasswordSalt:
-		return m.OldPasswordSalt(ctx)
 	case user.FieldUsername:
 		return m.OldUsername(ctx)
 	case user.FieldAvatar:
@@ -8718,13 +8674,6 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetPassword(v)
-		return nil
-	case user.FieldPasswordSalt:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetPasswordSalt(v)
 		return nil
 	case user.FieldUsername:
 		v, ok := value.(string)
@@ -8916,9 +8865,6 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldPassword:
 		m.ResetPassword()
-		return nil
-	case user.FieldPasswordSalt:
-		m.ResetPasswordSalt()
 		return nil
 	case user.FieldUsername:
 		m.ResetUsername()

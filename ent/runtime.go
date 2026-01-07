@@ -363,32 +363,28 @@ func init() {
 	userDescPassword := userFields[2].Descriptor()
 	// user.PasswordValidator is a validator for the "password" field. It is called by the builders before save.
 	user.PasswordValidator = userDescPassword.Validators[0].(func(string) error)
-	// userDescPasswordSalt is the schema descriptor for password_salt field.
-	userDescPasswordSalt := userFields[3].Descriptor()
-	// user.PasswordSaltValidator is a validator for the "password_salt" field. It is called by the builders before save.
-	user.PasswordSaltValidator = userDescPasswordSalt.Validators[0].(func(string) error)
 	// userDescUsername is the schema descriptor for username field.
-	userDescUsername := userFields[4].Descriptor()
+	userDescUsername := userFields[3].Descriptor()
 	// user.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	user.UsernameValidator = userDescUsername.Validators[0].(func(string) error)
 	// userDescEmailVerified is the schema descriptor for email_verified field.
-	userDescEmailVerified := userFields[8].Descriptor()
+	userDescEmailVerified := userFields[7].Descriptor()
 	// user.DefaultEmailVerified holds the default value on creation for the email_verified field.
 	user.DefaultEmailVerified = userDescEmailVerified.Default.(bool)
 	// userDescExperience is the schema descriptor for experience field.
-	userDescExperience := userFields[9].Descriptor()
+	userDescExperience := userFields[8].Descriptor()
 	// user.DefaultExperience holds the default value on creation for the experience field.
 	user.DefaultExperience = userDescExperience.Default.(int)
 	// user.ExperienceValidator is a validator for the "experience" field. It is called by the builders before save.
 	user.ExperienceValidator = userDescExperience.Validators[0].(func(int) error)
 	// userDescPoints is the schema descriptor for points field.
-	userDescPoints := userFields[10].Descriptor()
+	userDescPoints := userFields[9].Descriptor()
 	// user.DefaultPoints holds the default value on creation for the points field.
 	user.DefaultPoints = userDescPoints.Default.(int)
 	// user.PointsValidator is a validator for the "points" field. It is called by the builders before save.
 	user.PointsValidator = userDescPoints.Validators[0].(func(int) error)
 	// userDescCurrency is the schema descriptor for currency field.
-	userDescCurrency := userFields[11].Descriptor()
+	userDescCurrency := userFields[10].Descriptor()
 	// user.DefaultCurrency holds the default value on creation for the currency field.
 	user.DefaultCurrency = userDescCurrency.Default.(int)
 	// user.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.

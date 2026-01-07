@@ -74,11 +74,6 @@ func Password(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldPassword, v))
 }
 
-// PasswordSalt applies equality check predicate on the "password_salt" field. It's identical to PasswordSaltEQ.
-func PasswordSalt(v string) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldPasswordSalt, v))
-}
-
 // Username applies equality check predicate on the "username" field. It's identical to UsernameEQ.
 func Username(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldUsername, v))
@@ -327,71 +322,6 @@ func PasswordEqualFold(v string) predicate.User {
 // PasswordContainsFold applies the ContainsFold predicate on the "password" field.
 func PasswordContainsFold(v string) predicate.User {
 	return predicate.User(sql.FieldContainsFold(FieldPassword, v))
-}
-
-// PasswordSaltEQ applies the EQ predicate on the "password_salt" field.
-func PasswordSaltEQ(v string) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldPasswordSalt, v))
-}
-
-// PasswordSaltNEQ applies the NEQ predicate on the "password_salt" field.
-func PasswordSaltNEQ(v string) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldPasswordSalt, v))
-}
-
-// PasswordSaltIn applies the In predicate on the "password_salt" field.
-func PasswordSaltIn(vs ...string) predicate.User {
-	return predicate.User(sql.FieldIn(FieldPasswordSalt, vs...))
-}
-
-// PasswordSaltNotIn applies the NotIn predicate on the "password_salt" field.
-func PasswordSaltNotIn(vs ...string) predicate.User {
-	return predicate.User(sql.FieldNotIn(FieldPasswordSalt, vs...))
-}
-
-// PasswordSaltGT applies the GT predicate on the "password_salt" field.
-func PasswordSaltGT(v string) predicate.User {
-	return predicate.User(sql.FieldGT(FieldPasswordSalt, v))
-}
-
-// PasswordSaltGTE applies the GTE predicate on the "password_salt" field.
-func PasswordSaltGTE(v string) predicate.User {
-	return predicate.User(sql.FieldGTE(FieldPasswordSalt, v))
-}
-
-// PasswordSaltLT applies the LT predicate on the "password_salt" field.
-func PasswordSaltLT(v string) predicate.User {
-	return predicate.User(sql.FieldLT(FieldPasswordSalt, v))
-}
-
-// PasswordSaltLTE applies the LTE predicate on the "password_salt" field.
-func PasswordSaltLTE(v string) predicate.User {
-	return predicate.User(sql.FieldLTE(FieldPasswordSalt, v))
-}
-
-// PasswordSaltContains applies the Contains predicate on the "password_salt" field.
-func PasswordSaltContains(v string) predicate.User {
-	return predicate.User(sql.FieldContains(FieldPasswordSalt, v))
-}
-
-// PasswordSaltHasPrefix applies the HasPrefix predicate on the "password_salt" field.
-func PasswordSaltHasPrefix(v string) predicate.User {
-	return predicate.User(sql.FieldHasPrefix(FieldPasswordSalt, v))
-}
-
-// PasswordSaltHasSuffix applies the HasSuffix predicate on the "password_salt" field.
-func PasswordSaltHasSuffix(v string) predicate.User {
-	return predicate.User(sql.FieldHasSuffix(FieldPasswordSalt, v))
-}
-
-// PasswordSaltEqualFold applies the EqualFold predicate on the "password_salt" field.
-func PasswordSaltEqualFold(v string) predicate.User {
-	return predicate.User(sql.FieldEqualFold(FieldPasswordSalt, v))
-}
-
-// PasswordSaltContainsFold applies the ContainsFold predicate on the "password_salt" field.
-func PasswordSaltContainsFold(v string) predicate.User {
-	return predicate.User(sql.FieldContainsFold(FieldPasswordSalt, v))
 }
 
 // UsernameEQ applies the EQ predicate on the "username" field.

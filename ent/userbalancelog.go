@@ -21,29 +21,29 @@ type UserBalanceLog struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// 用户ID，关联到用户表
+	// User ID, reference to user table | 用户ID，关联到用户表
 	UserID int `json:"user_id,omitempty"`
-	// 变动类型：points（积分）、currency（货币）、experience（经验值）
+	// Change type: points (points), currency (currency), experience (experience points) | 变动类型：points（积分）、currency（货币）、experience（经验值）
 	Type userbalancelog.Type `json:"type,omitempty"`
-	// 变动数量：正数为增加，负数为减少
+	// Change amount: positive for increase, negative for decrease | 变动数量：正数为增加，负数为减少
 	Amount int `json:"amount,omitempty"`
-	// 变动前数量
+	// Amount before change | 变动前数量
 	BeforeAmount int `json:"before_amount,omitempty"`
-	// 变动后数量
+	// Amount after change | 变动后数量
 	AfterAmount int `json:"after_amount,omitempty"`
-	// 变动原因/说明
+	// Reason/description for the change | 变动原因/说明
 	Reason string `json:"reason,omitempty"`
-	// 操作者ID，可为空（系统操作时为空）
+	// Operator ID, nullable (null for system operations) | 操作者ID，可为空（系统操作时为空）
 	OperatorID int `json:"operator_id,omitempty"`
-	// 操作者用户名
+	// Operator username | 操作者用户名
 	OperatorName string `json:"operator_name,omitempty"`
-	// 关联的业务ID（如帖子ID、订单ID等）
+	// Related business ID (e.g., post ID, order ID, etc.), optional | 关联的业务ID（如帖子ID、订单ID等）
 	RelatedID int `json:"related_id,omitempty"`
-	// 关联的业务类型
+	// Related business type | 关联的业务类型
 	RelatedType string `json:"related_type,omitempty"`
-	// IP地址
+	// IP address | IP地址
 	IPAddress string `json:"ip_address,omitempty"`
-	// 用户代理
+	// User agent | 用户代理
 	UserAgent    string `json:"user_agent,omitempty"`
 	selectValues sql.SelectValues
 }

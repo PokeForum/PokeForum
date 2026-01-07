@@ -25,8 +25,6 @@ type User struct {
 	Email string `json:"email,omitempty"`
 	// Password holds the value of the "password" field.
 	Password string `json:"password,omitempty"`
-	// PasswordSalt holds the value of the "password_salt" field.
-	PasswordSalt string `json:"password_salt,omitempty"`
 	// Username holds the value of the "username" field.
 	Username string `json:"username,omitempty"`
 	// Avatar holds the value of the "avatar" field.
@@ -59,7 +57,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case user.FieldID, user.FieldExperience, user.FieldPoints, user.FieldCurrency:
 			values[i] = new(sql.NullInt64)
-		case user.FieldEmail, user.FieldPassword, user.FieldPasswordSalt, user.FieldUsername, user.FieldAvatar, user.FieldSignature, user.FieldReadme, user.FieldStatus, user.FieldRole:
+		case user.FieldEmail, user.FieldPassword, user.FieldUsername, user.FieldAvatar, user.FieldSignature, user.FieldReadme, user.FieldStatus, user.FieldRole:
 			values[i] = new(sql.NullString)
 		case user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -107,12 +105,6 @@ func (_m *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field password", values[i])
 			} else if value.Valid {
 				_m.Password = value.String
-			}
-		case user.FieldPasswordSalt:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field password_salt", values[i])
-			} else if value.Valid {
-				_m.PasswordSalt = value.String
 			}
 		case user.FieldUsername:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -221,9 +213,6 @@ func (_m *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("password=")
 	builder.WriteString(_m.Password)
-	builder.WriteString(", ")
-	builder.WriteString("password_salt=")
-	builder.WriteString(_m.PasswordSalt)
 	builder.WriteString(", ")
 	builder.WriteString("username=")
 	builder.WriteString(_m.Username)

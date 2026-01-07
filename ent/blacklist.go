@@ -21,9 +21,9 @@ type Blacklist struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// 执行拉黑操作的用户ID
+	// User ID who performed the blocking action | 执行拉黑操作的用户ID
 	UserID int `json:"user_id,omitempty"`
-	// 被拉黑的用户ID
+	// Blocked user ID | 被拉黑的用户ID
 	BlockedUserID int `json:"blocked_user_id,omitempty"`
 	selectValues  sql.SelectValues
 }

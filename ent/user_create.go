@@ -60,12 +60,6 @@ func (_c *UserCreate) SetPassword(v string) *UserCreate {
 	return _c
 }
 
-// SetPasswordSalt sets the "password_salt" field.
-func (_c *UserCreate) SetPasswordSalt(v string) *UserCreate {
-	_c.mutation.SetPasswordSalt(v)
-	return _c
-}
-
 // SetUsername sets the "username" field.
 func (_c *UserCreate) SetUsername(v string) *UserCreate {
 	_c.mutation.SetUsername(v)
@@ -297,14 +291,6 @@ func (_c *UserCreate) check() error {
 			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
 		}
 	}
-	if _, ok := _c.mutation.PasswordSalt(); !ok {
-		return &ValidationError{Name: "password_salt", err: errors.New(`ent: missing required field "User.password_salt"`)}
-	}
-	if v, ok := _c.mutation.PasswordSalt(); ok {
-		if err := user.PasswordSaltValidator(v); err != nil {
-			return &ValidationError{Name: "password_salt", err: fmt.Errorf(`ent: validator failed for field "User.password_salt": %w`, err)}
-		}
-	}
 	if _, ok := _c.mutation.Username(); !ok {
 		return &ValidationError{Name: "username", err: errors.New(`ent: missing required field "User.username"`)}
 	}
@@ -408,10 +394,6 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
 		_node.Password = value
-	}
-	if value, ok := _c.mutation.PasswordSalt(); ok {
-		_spec.SetField(user.FieldPasswordSalt, field.TypeString, value)
-		_node.PasswordSalt = value
 	}
 	if value, ok := _c.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
