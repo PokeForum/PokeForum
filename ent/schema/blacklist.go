@@ -14,23 +14,23 @@ type Blacklist struct {
 // Fields of the Blacklist.
 func (Blacklist) Fields() []ent.Field {
 	return []ent.Field{
-		// 黑名单记录ID，数据库主键自增
+		// Blacklist record ID, database primary key auto-increment | 黑名单记录ID，数据库主键自增
 		field.Int("id").
 			Positive(),
-		// 用户ID，执行拉黑操作的用户
+		// User ID, the user who performed the blocking action | 用户ID，执行拉黑操作的用户
 		field.Int("user_id").
 			Positive().
-			Comment("执行拉黑操作的用户ID"),
-		// 被拉黑用户ID
+			Comment("User ID who performed the blocking action | 执行拉黑操作的用户ID"),
+		// Blocked user ID | 被拉黑用户ID
 		field.Int("blocked_user_id").
 			Positive().
-			Comment("被拉黑的用户ID"),
+			Comment("Blocked user ID | 被拉黑的用户ID"),
 	}
 }
 
 // Edges of the Blacklist.
-// 注意: 所有关联关系仅用于ORM查询，不会在数据库层面创建外键
-// 数据完整性由应用层逻辑保证
+// Note: All associations are only used for ORM queries and will not create foreign keys at the database level | 注意: 所有关联关系仅用于ORM查询，不会在数据库层面创建外键
+// Data integrity is guaranteed by application layer logic | 数据完整性由应用层逻辑保证
 func (Blacklist) Edges() []ent.Edge {
 	return nil
 }
@@ -38,11 +38,11 @@ func (Blacklist) Edges() []ent.Edge {
 // Indexes of the Blacklist.
 func (Blacklist) Indexes() []ent.Index {
 	return []ent.Index{
-		// 对用户ID创建索引，优化查询性能
+		// Create index for user ID to optimize query performance | 对用户ID创建索引，优化查询性能
 		index.Fields("user_id"),
-		// 对被拉黑用户ID创建索引
+		// Create index for blocked user ID | 对被拉黑用户ID创建索引
 		index.Fields("blocked_user_id"),
-		// 创建复合索引，防止重复拉黑
+		// Create composite index to prevent duplicate blocking | 创建复合索引，防止重复拉黑
 		index.Fields("user_id", "blocked_user_id").
 			Unique(),
 	}

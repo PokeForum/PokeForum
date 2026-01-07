@@ -14,63 +14,63 @@ type Post struct {
 // Fields of the Post.
 func (Post) Fields() []ent.Field {
 	return []ent.Field{
-		// 主键ID
+		// Primary key ID | 主键ID
 		field.Int("id").
 			Positive(),
-		// 用户ID，外键关联到User表
+		// User ID, foreign key to User table | 用户ID，外键关联到User表
 		field.Int("user_id").
 			Positive(),
-		// 版块ID，外键关联到Category表
+		// Category ID, foreign key to Category table | 版块ID，外键关联到Category表
 		field.Int("category_id").
 			Positive(),
-		// 帖子标题
+		// Post title | 帖子标题
 		field.String("title").
 			NotEmpty(),
-		// 帖子正文内容，MarkDown格式
+		// Post content, Markdown format | 帖子正文内容，MarkDown格式
 		field.Text("content").
 			NotEmpty(),
-		// 阅读限制
+		// Read permission | 阅读限制
 		field.String("read_permission").
 			Default("public").
 			Optional(),
-		// 浏览数，默认为0
+		// View count, default 0 | 浏览数，默认为0
 		field.Int("view_count").
 			Default(0).
 			NonNegative(),
-		// 点赞数，默认为0
+		// Like count, default 0 | 点赞数，默认为0
 		field.Int("like_count").
 			Default(0).
 			NonNegative(),
-		// 点踩数，默认为0
+		// Dislike count, default 0 | 点踩数，默认为0
 		field.Int("dislike_count").
 			Default(0).
 			NonNegative(),
-		// 收藏数，默认为0
+		// Favorite count, default 0 | 收藏数，默认为0
 		field.Int("favorite_count").
 			Default(0).
 			NonNegative(),
-		// 是否精华帖，默认false
+		// Whether it's an essence post, default false | 是否精华帖，默认false
 		field.Bool("is_essence").
 			Default(false),
-		// 是否置顶，默认false
+		// Whether it's pinned, default false | 是否置顶，默认false
 		field.Bool("is_pinned").
 			Default(false),
-		// 发布IP
+		// Publish IP | 发布IP
 		field.String("publish_ip").
 			Optional(),
-		// 帖子状态：Normal、Locked、Draft、Private、Ban
+		// Post status: Normal, Locked, Draft, Private, Ban | 帖子状态：Normal、Locked、Draft、Private、Ban
 		field.Enum("status").
 			Values("Normal", "Locked", "Draft", "Private", "Ban").
 			Default("Normal"),
-		// 最后编辑时间，可选字段，用于记录帖子的最后编辑时间
+		// Last edited time, optional field to record the last edit time of the post | 最后编辑时间，可选字段，用于记录帖子的最后编辑时间
 		field.Time("last_edited_at").
 			Optional(),
 	}
 }
 
 // Edges of the Post.
-// 注意: 所有关联关系仅用于ORM查询，不会在数据库层面创建外键
-// 数据完整性由应用层逻辑保证
+// Note: All relationships are only used for ORM queries and will not create foreign keys at the database level | 注意: 所有关联关系仅用于ORM查询，不会在数据库层面创建外键
+// Data integrity is guaranteed by application layer logic | 数据完整性由应用层逻辑保证
 func (Post) Edges() []ent.Edge {
 	return nil
 }
@@ -78,16 +78,16 @@ func (Post) Edges() []ent.Edge {
 // Indexes of the Post.
 func (Post) Indexes() []ent.Index {
 	return []ent.Index{
-		// 为关联字段创建索引以优化查询性能
+		// Create indexes for associated fields to optimize query performance | 为关联字段创建索引以优化查询性能
 		index.Fields("user_id"),
 		index.Fields("category_id"),
-		// 为常用查询字段创建索引
+		// Create indexes for commonly used query fields | 为常用查询字段创建索引
 		index.Fields("status"),
 		index.Fields("is_essence"),
 		index.Fields("is_pinned"),
-		// 为最后编辑时间创建索引
+		// Create index for last edited time | 为最后编辑时间创建索引
 		index.Fields("last_edited_at"),
-		// 创建复合索引优化版块内帖子查询
+		// Create composite index to optimize post queries within categories | 创建复合索引优化版块内帖子查询
 		index.Fields("category_id", "status", "created_at"),
 	}
 }

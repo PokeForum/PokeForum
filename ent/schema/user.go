@@ -14,52 +14,52 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		// 用户ID，数据库主键自增
+		// User ID, database primary key auto-increment | 用户ID，数据库主键自增
 		field.Int("id").
 			Positive(),
-		// 邮箱，唯一且不为空
+		// Email, unique and not empty | 邮箱，唯一且不为空
 		field.String("email").
 			Unique().
 			NotEmpty(),
-		// 密码，不为空
+		// Password, not empty | 密码，不为空
 		field.String("password").
 			NotEmpty(),
-		// 密码盐，不为空
+		// Password salt, not empty | 密码盐，不为空
 		field.String("password_salt").
 			NotEmpty(),
-		// 用户名，唯一且不为空
+		// Username, unique and not empty | 用户名，唯一且不为空
 		field.String("username").
 			Unique().
 			NotEmpty(),
-		// 头像URL
+		// Avatar URL | 头像URL
 		field.String("avatar").
 			Optional(),
-		// 签名，MarkDown格式
+		// Signature, Markdown format | 签名，MarkDown格式
 		field.String("signature").
 			Optional(),
-		// README，MarkDown格式
+		// README, Markdown format | README，MarkDown格式
 		field.String("readme").
 			Optional(),
-		// 邮箱是否已验证，默认false
+		// Whether email is verified, default false | 邮箱是否已验证，默认false
 		field.Bool("email_verified").
 			Default(false),
-		// 经验值，默认为0
+		// Experience points, default 0 | 经验值，默认为0
 		field.Int("experience").
 			Default(0).
 			NonNegative(),
-		// 积分，默认为0
+		// Points, default 0 | 积分，默认为0
 		field.Int("points").
 			Default(0).
 			NonNegative(),
-		// 货币，默认为0
+		// Currency, default 0 | 货币，默认为0
 		field.Int("currency").
 			Default(0).
 			NonNegative(),
-		// 用户状态：Normal、Mute、Blocked、Risk control
+		// User status: Normal, Mute, Blocked, Risk control | 用户状态：Normal、Mute、Blocked、Risk control
 		field.Enum("status").
 			Values("Normal", "Mute", "Blocked", "RiskControl").
 			Default("Normal"),
-		// 用户身份：User、Moderator、Admin、SuperAdmin
+		// User role: User, Moderator, Admin, SuperAdmin | 用户身份：User、Moderator、Admin、SuperAdmin
 		field.Enum("role").
 			Values("User", "Moderator", "Admin", "SuperAdmin").
 			Default("User"),
@@ -67,8 +67,8 @@ func (User) Fields() []ent.Field {
 }
 
 // Edges of the User.
-// 注意: 所有关联关系仅用于ORM查询，不会在数据库层面创建外键
-// 用户相关的所有关联（版主权限、余额记录、黑名单等）均在应用层维护
+// Note: All relationships are only used for ORM queries and will not create foreign keys at the database level | 注意: 所有关联关系仅用于ORM查询，不会在数据库层面创建外键
+// All user-related associations (moderator permissions, balance records, blacklists, etc.) are maintained at the application layer | 用户相关的所有关联（版主权限、余额记录、黑名单等）均在应用层维护
 func (User) Edges() []ent.Edge {
 	return nil
 }
@@ -76,8 +76,8 @@ func (User) Edges() []ent.Edge {
 // Indexes of the User.
 func (User) Indexes() []ent.Index {
 	return []ent.Index{
-		// email和username已经是唯一字段，会自动创建唯一索引
-		// 为常用查询字段创建索引
+		// email and username are already unique fields and will automatically create unique indexes | email和username已经是唯一字段，会自动创建唯一索引
+		// Create indexes for commonly used query fields | 为常用查询字段创建索引
 		index.Fields("status"),
 		index.Fields("role"),
 		index.Fields("email_verified"),

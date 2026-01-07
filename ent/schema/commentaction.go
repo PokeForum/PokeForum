@@ -14,24 +14,24 @@ type CommentAction struct {
 // Fields of the CommentAction.
 func (CommentAction) Fields() []ent.Field {
 	return []ent.Field{
-		// 主键ID
+		// Primary key ID | 主键ID
 		field.Int("id").
 			Positive(),
-		// 用户ID，外键关联到User表
+		// User ID, foreign key reference to User table | 用户ID，外键关联到User表
 		field.Int("user_id").
 			Positive(),
-		// 评论ID，外键关联到Comment表
+		// Comment ID, foreign key reference to Comment table | 评论ID，外键关联到Comment表
 		field.Int("comment_id").
 			Positive(),
-		// 行为类型：Like（点赞）、Dislike（点踩）
+		// Action type: Like (upvote), Dislike (downvote) | 行为类型：Like（点赞）、Dislike（点踩）
 		field.Enum("action_type").
 			Values("Like", "Dislike"),
 	}
 }
 
 // Edges of the CommentAction.
-// 注意: 所有关联关系仅用于ORM查询，不会在数据库层面创建外键
-// 数据完整性由应用层逻辑保证
+// Note: All relationships are for ORM queries only, no foreign keys will be created at database level | 注意: 所有关联关系仅用于ORM查询，不会在数据库层面创建外键
+// Data integrity is ensured by application layer logic | 数据完整性由应用层逻辑保证
 func (CommentAction) Edges() []ent.Edge {
 	return nil
 }
@@ -39,10 +39,10 @@ func (CommentAction) Edges() []ent.Edge {
 // Indexes of the CommentAction.
 func (CommentAction) Indexes() []ent.Index {
 	return []ent.Index{
-		// 为关联字段创建索引以优化查询性能
+		// Create indexes on relational fields to optimize query performance | 为关联字段创建索引以优化查询性能
 		index.Fields("user_id"),
 		index.Fields("comment_id"),
-		// 创建复合唯一索引，确保每个用户对同一评论的同一行为只能有一条记录
+		// Create composite unique index to ensure each user can only have one record for the same action on the same comment | 创建复合唯一索引，确保每个用户对同一评论的同一行为只能有一条记录
 		index.Fields("user_id", "comment_id", "action_type").
 			Unique(),
 	}

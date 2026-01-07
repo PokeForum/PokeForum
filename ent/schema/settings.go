@@ -14,19 +14,19 @@ type Settings struct {
 // Fields of the Settings.
 func (Settings) Fields() []ent.Field {
 	return []ent.Field{
-		// 系统设置ID，数据库主键自增
+		// System settings ID, database primary key auto-increment | 系统设置ID，数据库主键自增
 		field.Int("id").
 			Positive(),
-		// 模块枚举：Site、HomePage、Comment、Seo、Security、Function、Signin
+		// Module enumeration: Site, HomePage, Comment, Seo, Security, Function, Signin | 模块枚举：Site、HomePage、Comment、Seo、Security、Function、Signin
 		field.Enum("module").
 			Values("Site", "HomePage", "Comment", "Seo", "Security", "Function", "Signin"),
-		// 配置键，唯一标识
+		// Configuration key, unique identifier | 配置键，唯一标识
 		field.String("key").
 			NotEmpty(),
-		// 配置值
+		// Configuration value | 配置值
 		field.String("value").
 			Optional(),
-		// 数据类型枚举：string、number、boolean、json、text，默认为string
+		// Data type enumeration: string, number, boolean, json, text, defaults to string | 数据类型枚举：string、number、boolean、json、text，默认为string
 		field.Enum("value_type").
 			Values("string", "number", "boolean", "json", "text").
 			Default("string"),
@@ -36,7 +36,7 @@ func (Settings) Fields() []ent.Field {
 // Indexes of the Settings.
 func (Settings) Indexes() []ent.Index {
 	return []ent.Index{
-		// module和key的组合唯一索引
+		// Unique composite index on module and key | module和key的组合唯一索引
 		index.Fields("module", "key").
 			Unique(),
 	}
