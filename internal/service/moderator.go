@@ -18,38 +18,38 @@ import (
 	"github.com/PokeForum/PokeForum/internal/schema"
 )
 
-// IModeratorService 版主服务接口
+// IModeratorService Moderator service interface | 版主服务接口
 type IModeratorService interface {
-	// GetModeratorCategories 获取版主管理的版块列表
+	// GetModeratorCategories Get list of categories managed by moderator | 获取版主管理的版块列表
 	GetModeratorCategories(ctx context.Context, userID int) (*schema.ModeratorCategoriesResponse, error)
-	// BanPost 封禁帖子
+	// BanPost Ban post | 封禁帖子
 	BanPost(ctx context.Context, userID int, req schema.PostBanRequest) error
-	// EditPost 编辑帖子
+	// EditPost Edit post | 编辑帖子
 	EditPost(ctx context.Context, userID int, req schema.PostEditRequest) (*schema.ModeratorPostResponse, error)
-	// MovePost 移动帖子（仅限有权限的版块）
+	// MovePost Move post (only for categories with permission) | 移动帖子（仅限有权限的版块）
 	MovePost(ctx context.Context, userID int, req schema.PostMoveRequest) error
-	// SetPostEssence 设置帖子精华
+	// SetPostEssence Set post as essence | 设置帖子精华
 	SetPostEssence(ctx context.Context, userID int, req schema.PostEssenceRequest) error
-	// LockPost 锁定帖子
+	// LockPost Lock post | 锁定帖子
 	LockPost(ctx context.Context, userID int, req schema.PostLockRequest) error
-	// PinPost 置顶帖子
+	// PinPost Pin post | 置顶帖子
 	PinPost(ctx context.Context, userID int, req schema.PostPinRequest) error
-	// EditCategory 编辑版块
+	// EditCategory Edit category | 编辑版块
 	EditCategory(ctx context.Context, userID int, req schema.CategoryEditRequest) error
-	// CreateCategoryAnnouncement 创建版块公告
+	// CreateCategoryAnnouncement Create category announcement | 创建版块公告
 	CreateCategoryAnnouncement(ctx context.Context, userID int, req schema.CategoryAnnouncementRequest) (*schema.CategoryAnnouncementResponse, error)
-	// GetCategoryAnnouncements 获取版块公告列表
+	// GetCategoryAnnouncements Get category announcements list | 获取版块公告列表
 	GetCategoryAnnouncements(ctx context.Context, userID int, categoryID int) ([]schema.CategoryAnnouncementResponse, error)
 }
 
-// ModeratorService 版主服务实现
+// ModeratorService Moderator service implementation | 版主服务实现
 type ModeratorService struct {
 	db     *ent.Client
 	cache  cache.ICacheService
 	logger *zap.Logger
 }
 
-// NewModeratorService 创建版主服务实例
+// NewModeratorService Create moderator service instance | 创建版主服务实例
 func NewModeratorService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) IModeratorService {
 	return &ModeratorService{
 		db:     db,
@@ -58,11 +58,11 @@ func NewModeratorService(db *ent.Client, cacheService cache.ICacheService, logge
 	}
 }
 
-// GetModeratorCategories 获取版主管理的版块列表
+// GetModeratorCategories Get list of categories managed by moderator | 获取版主管理的版块列表
 func (s *ModeratorService) GetModeratorCategories(ctx context.Context, userID int) (*schema.ModeratorCategoriesResponse, error) {
 	s.logger.Info("获取版主管理的版块列表", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
-	// 通过中间表查询版主管理的版块
+	// Query categories managed by moderator through junction table | 通过中间表查询版主管理的版块
 	moderatorRecords, err := s.db.CategoryModerator.Query().
 		Where(categorymoderator.UserIDEQ(userID)).
 		All(ctx)
@@ -71,13 +71,13 @@ func (s *ModeratorService) GetModeratorCategories(ctx context.Context, userID in
 		return nil, fmt.Errorf("查询版主关联记录失败: %w", err)
 	}
 
-	// 收集版块ID
+	// Collect category IDs | 收集版块ID
 	categoryIDs := make([]int, len(moderatorRecords))
 	for i, record := range moderatorRecords {
 		categoryIDs[i] = record.CategoryID
 	}
 
-	// 批量查询版块信息
+	// Batch query category information | 批量查询版块信息
 	categories, err := s.db.Category.Query().
 		Where(category.IDIn(categoryIDs...)).
 		All(ctx)
@@ -86,10 +86,10 @@ func (s *ModeratorService) GetModeratorCategories(ctx context.Context, userID in
 		return nil, fmt.Errorf("获取版块信息失败: %w", err)
 	}
 
-	// 转换为响应格式
+	// Convert to response format | 转换为响应格式
 	result := make([]schema.ModeratorCategory, len(categories))
 	for i, cat := range categories {
-		// 获取该版块的帖子数量
+		// Get post count for this category | 获取该版块的帖子数量
 		postCount, err := s.db.Post.Query().
 			Where(post.CategoryIDEQ(cat.ID)).
 			Count(ctx)
@@ -114,11 +114,11 @@ func (s *ModeratorService) GetModeratorCategories(ctx context.Context, userID in
 	}, nil
 }
 
-// BanPost 封禁帖子
+// BanPost Ban post | 封禁帖子
 func (s *ModeratorService) BanPost(ctx context.Context, userID int, req schema.PostBanRequest) error {
 	s.logger.Info("封禁帖子", zap.Int("post_id", req.ID), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
-	// 检查帖子是否存在
+	// Check if post exists | 检查帖子是否存在
 	postData, err := s.db.Post.Query().
 		Where(post.IDEQ(req.ID)).
 		Only(ctx)
@@ -139,7 +139,7 @@ func (s *ModeratorService) BanPost(ctx context.Context, userID int, req schema.P
 		return errors.New("您没有该版块的管理权限")
 	}
 
-	// 封禁帖子
+	// Ban post | 封禁帖子
 	_, err = s.db.Post.UpdateOneID(req.ID).
 		SetStatus(post.StatusBan).
 		Save(ctx)
@@ -152,11 +152,11 @@ func (s *ModeratorService) BanPost(ctx context.Context, userID int, req schema.P
 	return nil
 }
 
-// EditPost 编辑帖子
+// EditPost Edit post | 编辑帖子
 func (s *ModeratorService) EditPost(ctx context.Context, userID int, req schema.PostEditRequest) (*schema.ModeratorPostResponse, error) {
 	s.logger.Info("编辑帖子", zap.Int("post_id", req.ID), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
-	// 检查帖子是否存在
+	// Check if post exists | 检查帖子是否存在
 	postData, err := s.db.Post.Query().
 		Where(post.IDEQ(req.ID)).
 		Only(ctx)
@@ -168,7 +168,7 @@ func (s *ModeratorService) EditPost(ctx context.Context, userID int, req schema.
 		return nil, fmt.Errorf("获取帖子失败: %w", err)
 	}
 
-	// 检查版主是否有该版块的管理权限
+	// Check if moderator has permission to manage this category | 检查版主是否有该版块的管理权限
 	hasPermission, err := s.checkModeratorPermission(ctx, userID, postData.CategoryID)
 	if err != nil {
 		return nil, err
@@ -177,7 +177,7 @@ func (s *ModeratorService) EditPost(ctx context.Context, userID int, req schema.
 		return nil, errors.New("您没有该版块的管理权限")
 	}
 
-	// 更新帖子
+	// Update post | 更新帖子
 	updatedPost, err := s.db.Post.UpdateOneID(req.ID).
 		SetTitle(req.Title).
 		SetContent(req.Content).
@@ -187,10 +187,10 @@ func (s *ModeratorService) EditPost(ctx context.Context, userID int, req schema.
 		return nil, fmt.Errorf("更新帖子失败: %w", err)
 	}
 
-	// 获取评论数（简化处理）
+	// Get comment count (simplified handling) | 获取评论数（简化处理）
 	commentCount := 0
 
-	// 查询作者信息
+	// Query author information | 查询作者信息
 	username := ""
 	author, err := s.db.User.Query().
 		Where(user.IDEQ(postData.UserID)).
@@ -200,7 +200,7 @@ func (s *ModeratorService) EditPost(ctx context.Context, userID int, req schema.
 		username = author.Username
 	}
 
-	// 查询版块信息
+	// Query category information | 查询版块信息
 	categoryName := ""
 	categoryData, err := s.db.Category.Query().
 		Where(category.IDEQ(postData.CategoryID)).
@@ -231,11 +231,11 @@ func (s *ModeratorService) EditPost(ctx context.Context, userID int, req schema.
 	return result, nil
 }
 
-// MovePost 移动帖子（仅限有权限的版块）
+// MovePost Move post (only for categories with permission) | 移动帖子（仅限有权限的版块）
 func (s *ModeratorService) MovePost(ctx context.Context, userID int, req schema.PostMoveRequest) error {
 	s.logger.Info("移动帖子", zap.Int("post_id", req.ID), zap.Int("target_category_id", req.CategoryID), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
-	// 检查帖子是否存在
+	// Check if post exists | 检查帖子是否存在
 	postData, err := s.db.Post.Query().
 		Where(post.IDEQ(req.ID)).
 		Only(ctx)
@@ -247,7 +247,7 @@ func (s *ModeratorService) MovePost(ctx context.Context, userID int, req schema.
 		return fmt.Errorf("获取帖子失败: %w", err)
 	}
 
-	// 检查版主是否有原版块的管理权限
+	// Check if moderator has permission to manage source category | 检查版主是否有原版块的管理权限
 	hasSourcePermission, err := s.checkModeratorPermission(ctx, userID, postData.CategoryID)
 	if err != nil {
 		return err
@@ -256,7 +256,7 @@ func (s *ModeratorService) MovePost(ctx context.Context, userID int, req schema.
 		return errors.New("您没有原版块的管理权限")
 	}
 
-	// 检查版主是否有目标版块的管理权限
+	// Check if moderator has permission to manage target category | 检查版主是否有目标版块的管理权限
 	hasTargetPermission, err := s.checkModeratorPermission(ctx, userID, req.CategoryID)
 	if err != nil {
 		return err
@@ -265,7 +265,7 @@ func (s *ModeratorService) MovePost(ctx context.Context, userID int, req schema.
 		return errors.New("您没有目标版块的管理权限")
 	}
 
-	// 移动帖子
+	// Move post | 移动帖子
 	_, err = s.db.Post.UpdateOneID(req.ID).
 		SetCategoryID(req.CategoryID).
 		Save(ctx)
@@ -278,11 +278,11 @@ func (s *ModeratorService) MovePost(ctx context.Context, userID int, req schema.
 	return nil
 }
 
-// SetPostEssence 设置帖子精华
+// SetPostEssence Set post as essence | 设置帖子精华
 func (s *ModeratorService) SetPostEssence(ctx context.Context, userID int, req schema.PostEssenceRequest) error {
 	s.logger.Info("设置帖子精华", zap.Int("post_id", req.ID), zap.Bool("is_essence", req.IsEssence), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
-	// 检查帖子是否存在
+	// Check if post exists | 检查帖子是否存在
 	postData, err := s.db.Post.Query().
 		Where(post.IDEQ(req.ID)).
 		Only(ctx)
@@ -303,7 +303,7 @@ func (s *ModeratorService) SetPostEssence(ctx context.Context, userID int, req s
 		return errors.New("您没有该版块的管理权限")
 	}
 
-	// 设置精华状态
+	// Set essence status | 设置精华状态
 	_, err = s.db.Post.UpdateOneID(req.ID).
 		SetIsEssence(req.IsEssence).
 		Save(ctx)
@@ -316,11 +316,11 @@ func (s *ModeratorService) SetPostEssence(ctx context.Context, userID int, req s
 	return nil
 }
 
-// LockPost 锁定帖子
+// LockPost Lock post | 锁定帖子
 func (s *ModeratorService) LockPost(ctx context.Context, userID int, req schema.PostLockRequest) error {
 	s.logger.Info("锁定帖子", zap.Int("post_id", req.ID), zap.Bool("is_lock", req.IsLock), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
-	// 检查帖子是否存在
+	// Check if post exists | 检查帖子是否存在
 	postData, err := s.db.Post.Query().
 		Where(post.IDEQ(req.ID)).
 		Only(ctx)
@@ -341,7 +341,7 @@ func (s *ModeratorService) LockPost(ctx context.Context, userID int, req schema.
 		return errors.New("您没有该版块的管理权限")
 	}
 
-	// 设置锁定状态
+	// Set lock status | 设置锁定状态
 	targetStatus := post.StatusNormal
 	if req.IsLock {
 		targetStatus = post.StatusLocked
@@ -359,11 +359,11 @@ func (s *ModeratorService) LockPost(ctx context.Context, userID int, req schema.
 	return nil
 }
 
-// PinPost 置顶帖子
+// PinPost Pin post | 置顶帖子
 func (s *ModeratorService) PinPost(ctx context.Context, userID int, req schema.PostPinRequest) error {
 	s.logger.Info("置顶帖子", zap.Int("post_id", req.ID), zap.Bool("is_pin", req.IsPin), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
-	// 检查帖子是否存在
+	// Check if post exists | 检查帖子是否存在
 	postData, err := s.db.Post.Query().
 		Where(post.IDEQ(req.ID)).
 		Only(ctx)
@@ -384,7 +384,7 @@ func (s *ModeratorService) PinPost(ctx context.Context, userID int, req schema.P
 		return errors.New("您没有该版块的管理权限")
 	}
 
-	// 设置置顶状态
+	// Set pin status | 设置置顶状态
 	_, err = s.db.Post.UpdateOneID(req.ID).
 		SetIsPinned(req.IsPin).
 		Save(ctx)
@@ -397,11 +397,11 @@ func (s *ModeratorService) PinPost(ctx context.Context, userID int, req schema.P
 	return nil
 }
 
-// EditCategory 编辑版块
+// EditCategory Edit category | 编辑版块
 func (s *ModeratorService) EditCategory(ctx context.Context, userID int, req schema.CategoryEditRequest) error {
 	s.logger.Info("编辑版块", zap.Int("category_id", req.ID), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
-	// 检查版主是否有该版块的管理权限
+	// Check if moderator has permission to manage this category | 检查版主是否有该版块的管理权限
 	hasPermission, err := s.checkModeratorPermission(ctx, userID, req.ID)
 	if err != nil {
 		return err
@@ -410,7 +410,7 @@ func (s *ModeratorService) EditCategory(ctx context.Context, userID int, req sch
 		return errors.New("您没有该版块的管理权限")
 	}
 
-	// 更新版块信息
+	// Update category information | 更新版块信息
 	_, err = s.db.Category.UpdateOneID(req.ID).
 		SetName(req.Name).
 		SetNillableDescription(&req.Description).
@@ -425,11 +425,11 @@ func (s *ModeratorService) EditCategory(ctx context.Context, userID int, req sch
 	return nil
 }
 
-// CreateCategoryAnnouncement 创建版块公告
+// CreateCategoryAnnouncement Create category announcement | 创建版块公告
 func (s *ModeratorService) CreateCategoryAnnouncement(ctx context.Context, userID int, req schema.CategoryAnnouncementRequest) (*schema.CategoryAnnouncementResponse, error) {
 	s.logger.Info("创建版块公告", zap.Int("category_id", req.CategoryID), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
-	// 检查版主是否有该版块的管理权限
+	// Check if moderator has permission to manage this category | 检查版主是否有该版块的管理权限
 	hasPermission, err := s.checkModeratorPermission(ctx, userID, req.CategoryID)
 	if err != nil {
 		return nil, err
@@ -438,7 +438,7 @@ func (s *ModeratorService) CreateCategoryAnnouncement(ctx context.Context, userI
 		return nil, errors.New("您没有该版块的管理权限")
 	}
 
-	// 获取版主用户名
+	// Get moderator username | 获取版主用户名
 	moderatorData, err := s.db.User.Query().
 		Where(user.IDEQ(userID)).
 		Only(ctx)
@@ -447,7 +447,7 @@ func (s *ModeratorService) CreateCategoryAnnouncement(ctx context.Context, userI
 		return nil, fmt.Errorf("获取版主信息失败: %w", err)
 	}
 
-	// 创建版块公告
+	// Create category announcement | 创建版块公告
 	updatedCategory, err := s.db.Category.UpdateOneID(req.CategoryID).
 		SetAnnouncement(req.Content).
 		Save(ctx)
@@ -456,7 +456,7 @@ func (s *ModeratorService) CreateCategoryAnnouncement(ctx context.Context, userI
 		return nil, fmt.Errorf("创建版块公告失败: %w", err)
 	}
 
-	// 构建响应数据
+	// Build response data | 构建响应数据
 	result := &schema.CategoryAnnouncementResponse{
 		ID:         updatedCategory.ID,
 		CategoryID: req.CategoryID,
@@ -472,11 +472,11 @@ func (s *ModeratorService) CreateCategoryAnnouncement(ctx context.Context, userI
 	return result, nil
 }
 
-// GetCategoryAnnouncements 获取版块公告列表
+// GetCategoryAnnouncements Get category announcements list | 获取版块公告列表
 func (s *ModeratorService) GetCategoryAnnouncements(ctx context.Context, userID int, categoryID int) ([]schema.CategoryAnnouncementResponse, error) {
 	s.logger.Info("获取版块公告列表", zap.Int("category_id", categoryID), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
-	// 检查版主是否有该版块的管理权限
+	// Check if moderator has permission to manage this category | 检查版主是否有该版块的管理权限
 	hasPermission, err := s.checkModeratorPermission(ctx, userID, categoryID)
 	if err != nil {
 		return nil, err
@@ -485,7 +485,7 @@ func (s *ModeratorService) GetCategoryAnnouncements(ctx context.Context, userID 
 		return nil, errors.New("您没有该版块的管理权限")
 	}
 
-	// 获取版块信息
+	// Get category information | 获取版块信息
 	categoryData, err := s.db.Category.Query().
 		Where(category.IDEQ(categoryID)).
 		Only(ctx)
@@ -497,12 +497,12 @@ func (s *ModeratorService) GetCategoryAnnouncements(ctx context.Context, userID 
 		return nil, fmt.Errorf("获取版块信息失败: %w", err)
 	}
 
-	// 如果版块没有公告，返回空列表
+	// If category has no announcement, return empty list | 如果版块没有公告，返回空列表
 	if categoryData.Announcement == "" {
 		return []schema.CategoryAnnouncementResponse{}, nil
 	}
 
-	// 获取版主用户名
+	// Get moderator username | 获取版主用户名
 	moderatorData, err := s.db.User.Query().
 		Where(user.IDEQ(userID)).
 		Only(ctx)
@@ -511,7 +511,7 @@ func (s *ModeratorService) GetCategoryAnnouncements(ctx context.Context, userID 
 		return nil, fmt.Errorf("获取版主信息失败: %w", err)
 	}
 
-	// 构建响应数据
+	// Build response data | 构建响应数据
 	result := []schema.CategoryAnnouncementResponse{
 		{
 			ID:         categoryData.ID,
@@ -529,9 +529,9 @@ func (s *ModeratorService) GetCategoryAnnouncements(ctx context.Context, userID 
 	return result, nil
 }
 
-// checkModeratorPermission 检查版主是否有指定版块的管理权限（辅助函数）
+// checkModeratorPermission Check if moderator has permission to manage specified category (helper function) | 检查版主是否有指定版块的管理权限（辅助函数）
 func (s *ModeratorService) checkModeratorPermission(ctx context.Context, userID, categoryID int) (bool, error) {
-	// 通过中间表查询版主权限
+	// Query moderator permissions through junction table | 通过中间表查询版主权限
 	return s.db.CategoryModerator.Query().
 		Where(
 			categorymoderator.And(

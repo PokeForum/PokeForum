@@ -18,26 +18,26 @@ import (
 	"github.com/PokeForum/PokeForum/internal/schema"
 )
 
-// IDashboardService 仪表盘服务接口
+// IDashboardService Dashboard service interface | 仪表盘服务接口
 type IDashboardService interface {
-	// GetDashboardStats 获取仪表盘统计数据
+	// GetDashboardStats Get dashboard statistics | 获取仪表盘统计数据
 	GetDashboardStats(ctx context.Context) (*schema.DashboardStatsResponse, error)
-	// GetRecentActivity 获取最近活动
+	// GetRecentActivity Get recent activity | 获取最近活动
 	GetRecentActivity(ctx context.Context) (*schema.RecentActivityResponse, error)
-	// GetPopularPosts 获取热门帖子
+	// GetPopularPosts Get popular posts | 获取热门帖子
 	GetPopularPosts(ctx context.Context) (*schema.PopularPostsResponse, error)
-	// GetPopularCategories 获取热门版块
+	// GetPopularCategories Get popular categories | 获取热门版块
 	GetPopularCategories(ctx context.Context) (*schema.PopularCategoriesResponse, error)
 }
 
-// DashboardService 仪表盘服务实现
+// DashboardService Dashboard service implementation | 仪表盘服务实现
 type DashboardService struct {
 	db     *ent.Client
 	cache  cache.ICacheService
 	logger *zap.Logger
 }
 
-// NewDashboardService 创建仪表盘服务实例
+// NewDashboardService Create dashboard service instance | 创建仪表盘服务实例
 func NewDashboardService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) IDashboardService {
 	return &DashboardService{
 		db:     db,
@@ -46,39 +46,39 @@ func NewDashboardService(db *ent.Client, cacheService cache.ICacheService, logge
 	}
 }
 
-// GetDashboardStats 获取仪表盘统计数据
+// GetDashboardStats Get dashboard statistics | 获取仪表盘统计数据
 func (s *DashboardService) GetDashboardStats(ctx context.Context) (*schema.DashboardStatsResponse, error) {
 	s.logger.Info("获取仪表盘统计数据", tracing.WithTraceIDField(ctx))
 
-	// 获取用户统计
+	// Get user statistics | 获取用户统计
 	userStats, err := s.getUserStats(ctx)
 	if err != nil {
 		s.logger.Error("获取用户统计失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("获取用户统计失败: %w", err)
 	}
 
-	// 获取帖子统计
+	// Get post statistics | 获取帖子统计
 	postStats, err := s.getPostStats(ctx)
 	if err != nil {
 		s.logger.Error("获取帖子统计失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("获取帖子统计失败: %w", err)
 	}
 
-	// 获取评论统计
+	// Get comment statistics | 获取评论统计
 	commentStats, err := s.getCommentStats(ctx)
 	if err != nil {
 		s.logger.Error("获取评论统计失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("获取评论统计失败: %w", err)
 	}
 
-	// 获取版块统计
+	// Get category statistics | 获取版块统计
 	categoryStats, err := s.getCategoryStats(ctx)
 	if err != nil {
 		s.logger.Error("获取版块统计失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("获取版块统计失败: %w", err)
 	}
 
-	// 获取系统统计
+	// Get system statistics | 获取系统统计
 	systemStats, err := s.getSystemStats(ctx)
 	if err != nil {
 		s.logger.Error("获取系统统计失败", zap.Error(err), tracing.WithTraceIDField(ctx))
@@ -94,15 +94,15 @@ func (s *DashboardService) GetDashboardStats(ctx context.Context) (*schema.Dashb
 	}, nil
 }
 
-// getUserStats 获取用户统计
+// getUserStats Get user statistics | 获取用户统计
 func (s *DashboardService) getUserStats(ctx context.Context) (schema.UserStats, error) {
-	// 总用户数
+	// Total user count | 总用户数
 	totalUsers, err := s.db.User.Query().Count(ctx)
 	if err != nil {
 		return schema.UserStats{}, err
 	}
 
-	// 活跃用户数（30天内创建的用户，简化处理）
+	// Active user count (users created within 30 days, simplified handling) | 活跃用户数（30天内创建的用户，简化处理）
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
 	activeUsers, err := s.db.User.Query().
 		Where(user.CreatedAtGTE(thirtyDaysAgo)).
@@ -111,7 +111,7 @@ func (s *DashboardService) getUserStats(ctx context.Context) (schema.UserStats, 
 		return schema.UserStats{}, err
 	}
 
-	// 新增用户数（今日）
+	// New user count (today) | 新增用户数（今日）
 	today := time.Now().Truncate(24 * time.Hour)
 	newUsers, err := s.db.User.Query().
 		Where(user.CreatedAtGTE(today)).
@@ -120,10 +120,10 @@ func (s *DashboardService) getUserStats(ctx context.Context) (schema.UserStats, 
 		return schema.UserStats{}, err
 	}
 
-	// 在线用户数（这里简化处理，实际应该通过Redis或其他方式统计）
+	// Online user count (simplified handling, should actually be tracked via Redis or other methods) | 在线用户数（这里简化处理，实际应该通过Redis或其他方式统计）
 	onlineUsers := int64(0) // 需要根据实际在线用户统计逻辑实现
 
-	// 被封禁用户数
+	// Banned user count | 被封禁用户数
 	bannedUsers, err := s.db.User.Query().
 		Where(user.StatusEQ(user.StatusBlocked)).
 		Count(ctx)
@@ -131,7 +131,7 @@ func (s *DashboardService) getUserStats(ctx context.Context) (schema.UserStats, 
 		return schema.UserStats{}, err
 	}
 
-	// 版主数量
+	// Moderator count | 版主数量
 	moderatorCount, err := s.db.User.Query().
 		Where(user.RoleEQ(user.RoleModerator)).
 		Count(ctx)
@@ -149,15 +149,15 @@ func (s *DashboardService) getUserStats(ctx context.Context) (schema.UserStats, 
 	}, nil
 }
 
-// getPostStats 获取帖子统计
+// getPostStats Get post statistics | 获取帖子统计
 func (s *DashboardService) getPostStats(ctx context.Context) (schema.PostStats, error) {
-	// 总帖子数
+	// Total post count | 总帖子数
 	totalPosts, err := s.db.Post.Query().Count(ctx)
 	if err != nil {
 		return schema.PostStats{}, err
 	}
 
-	// 已发布帖子数
+	// Published post count | 已发布帖子数
 	publishedPosts, err := s.db.Post.Query().
 		Where(post.StatusEQ(post.StatusNormal)).
 		Count(ctx)
@@ -165,7 +165,7 @@ func (s *DashboardService) getPostStats(ctx context.Context) (schema.PostStats, 
 		return schema.PostStats{}, err
 	}
 
-	// 草稿帖子数
+	// Draft post count | 草稿帖子数
 	draftPosts, err := s.db.Post.Query().
 		Where(post.StatusEQ(post.StatusDraft)).
 		Count(ctx)
@@ -173,7 +173,7 @@ func (s *DashboardService) getPostStats(ctx context.Context) (schema.PostStats, 
 		return schema.PostStats{}, err
 	}
 
-	// 被锁定帖子数
+	// Locked post count | 被锁定帖子数
 	lockedPosts, err := s.db.Post.Query().
 		Where(post.StatusEQ(post.StatusLocked)).
 		Count(ctx)
@@ -181,7 +181,7 @@ func (s *DashboardService) getPostStats(ctx context.Context) (schema.PostStats, 
 		return schema.PostStats{}, err
 	}
 
-	// 精华帖子数
+	// Essence post count | 精华帖子数
 	essencePosts, err := s.db.Post.Query().
 		Where(post.IsEssenceEQ(true)).
 		Count(ctx)
@@ -189,7 +189,7 @@ func (s *DashboardService) getPostStats(ctx context.Context) (schema.PostStats, 
 		return schema.PostStats{}, err
 	}
 
-	// 置顶帖子数
+	// Pinned post count | 置顶帖子数
 	pinnedPosts, err := s.db.Post.Query().
 		Where(post.IsPinnedEQ(true)).
 		Count(ctx)
@@ -197,7 +197,7 @@ func (s *DashboardService) getPostStats(ctx context.Context) (schema.PostStats, 
 		return schema.PostStats{}, err
 	}
 
-	// 今日新增帖子数
+	// Today new post count | 今日新增帖子数
 	today := time.Now().Truncate(24 * time.Hour)
 	todayPosts, err := s.db.Post.Query().
 		Where(post.CreatedAtGTE(today)).
@@ -217,15 +217,15 @@ func (s *DashboardService) getPostStats(ctx context.Context) (schema.PostStats, 
 	}, nil
 }
 
-// getCommentStats 获取评论统计
+// getCommentStats Get comment statistics | 获取评论统计
 func (s *DashboardService) getCommentStats(ctx context.Context) (schema.CommentStats, error) {
-	// 总评论数
+	// Total comment count | 总评论数
 	totalComments, err := s.db.Comment.Query().Count(ctx)
 	if err != nil {
 		return schema.CommentStats{}, err
 	}
 
-	// 精选评论数
+	// Selected comment count | 精选评论数
 	selectedComments, err := s.db.Comment.Query().
 		Where(comment.IsSelectedEQ(true)).
 		Count(ctx)
@@ -233,7 +233,7 @@ func (s *DashboardService) getCommentStats(ctx context.Context) (schema.CommentS
 		return schema.CommentStats{}, err
 	}
 
-	// 置顶评论数
+	// Pinned comment count | 置顶评论数
 	pinnedComments, err := s.db.Comment.Query().
 		Where(comment.IsPinnedEQ(true)).
 		Count(ctx)
@@ -241,7 +241,7 @@ func (s *DashboardService) getCommentStats(ctx context.Context) (schema.CommentS
 		return schema.CommentStats{}, err
 	}
 
-	// 今日新增评论数
+	// Today new comment count | 今日新增评论数
 	today := time.Now().Truncate(24 * time.Hour)
 	todayComments, err := s.db.Comment.Query().
 		Where(comment.CreatedAtGTE(today)).
@@ -258,15 +258,15 @@ func (s *DashboardService) getCommentStats(ctx context.Context) (schema.CommentS
 	}, nil
 }
 
-// getCategoryStats 获取版块统计
+// getCategoryStats Get category statistics | 获取版块统计
 func (s *DashboardService) getCategoryStats(ctx context.Context) (schema.CategoryStats, error) {
-	// 总版块数
+	// Total category count | 总版块数
 	totalCategories, err := s.db.Category.Query().Count(ctx)
 	if err != nil {
 		return schema.CategoryStats{}, err
 	}
 
-	// 活跃版块数（正常状态的版块）
+	// Active category count (categories with normal status) | 活跃版块数（正常状态的版块）
 	activeCategories, err := s.db.Category.Query().
 		Where(category.StatusEQ(category.StatusNormal)).
 		Count(ctx)
@@ -274,7 +274,7 @@ func (s *DashboardService) getCategoryStats(ctx context.Context) (schema.Categor
 		return schema.CategoryStats{}, err
 	}
 
-	// 隐藏版块数
+	// Hidden category count | 隐藏版块数
 	hiddenCategories, err := s.db.Category.Query().
 		Where(category.StatusEQ(category.StatusHidden)).
 		Count(ctx)
@@ -282,7 +282,7 @@ func (s *DashboardService) getCategoryStats(ctx context.Context) (schema.Categor
 		return schema.CategoryStats{}, err
 	}
 
-	// 锁定版块数
+	// Locked category count | 锁定版块数
 	lockedCategories, err := s.db.Category.Query().
 		Where(category.StatusEQ(category.StatusLocked)).
 		Count(ctx)
@@ -298,15 +298,15 @@ func (s *DashboardService) getCategoryStats(ctx context.Context) (schema.Categor
 	}, nil
 }
 
-// getSystemStats 获取系统统计
+// getSystemStats Get system statistics | 获取系统统计
 func (s *DashboardService) getSystemStats(ctx context.Context) (schema.SystemStats, error) {
-	// 总浏览量（这里简化处理，实际应该从访问日志统计）
+	// Total views (simplified handling, should actually be from access logs) | 总浏览量（这里简化处理，实际应该从访问日志统计）
 	totalViews := int64(0) // 需要根据实际浏览量统计逻辑实现
 
-	// 今日浏览量
+	// Today views | 今日浏览量
 	todayViews := int64(0) // 需要根据实际今日浏览量统计逻辑实现
 
-	// 总点赞数（帖子点赞数 + 评论点赞数）
+	// Total likes (post likes + comment likes) | 总点赞数（帖子点赞数 + 评论点赞数）
 	posts, err := s.db.Post.Query().All(ctx)
 	if err != nil {
 		return schema.SystemStats{}, err
@@ -329,13 +329,13 @@ func (s *DashboardService) getSystemStats(ctx context.Context) (schema.SystemSta
 
 	totalLikes := totalPostLikes + totalCommentLikes
 
-	// 今日点赞数（简化处理）
+	// Today likes (simplified handling) | 今日点赞数（简化处理）
 	todayLikes := int64(0) // 需要根据实际今日点赞数统计逻辑实现
 
-	// 存储使用量（简化处理）
+	// Storage used (simplified handling) | 存储使用量（简化处理）
 	storageUsed := int64(0) // 需要根据实际存储使用量统计逻辑实现
 
-	// 数据库大小（简化处理）
+	// Database size (simplified handling) | 数据库大小（简化处理）
 	databaseSize := int64(0) // 需要根据实际数据库大小统计逻辑实现
 
 	return schema.SystemStats{
@@ -348,11 +348,11 @@ func (s *DashboardService) getSystemStats(ctx context.Context) (schema.SystemSta
 	}, nil
 }
 
-// GetRecentActivity 获取最近活动
+// GetRecentActivity Get recent activity | 获取最近活动
 func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.RecentActivityResponse, error) {
 	s.logger.Info("获取最近活动", tracing.WithTraceIDField(ctx))
 
-	// 获取最近帖子（最近10条）
+	// Get recent posts (last 10) | 获取最近帖子（最近10条）
 	recentPosts, err := s.db.Post.Query().
 		Order(ent.Desc(post.FieldCreatedAt)).
 		Limit(10).
@@ -361,7 +361,7 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 		return nil, fmt.Errorf("获取最近帖子失败: %w", err)
 	}
 
-	// 获取最近评论（最近10条）
+	// Get recent comments (last 10) | 获取最近评论（最近10条）
 	recentComments, err := s.db.Comment.Query().
 		Order(ent.Desc(comment.FieldCreatedAt)).
 		Limit(10).
@@ -370,7 +370,7 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 		return nil, fmt.Errorf("获取最近评论失败: %w", err)
 	}
 
-	// 获取新用户（最近10个）
+	// Get new users (last 10) | 获取新用户（最近10个）
 	newUsers, err := s.db.User.Query().
 		Order(ent.Desc(user.FieldCreatedAt)).
 		Limit(10).
@@ -379,7 +379,7 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 		return nil, fmt.Errorf("获取新用户失败: %w", err)
 	}
 
-	// 收集需要查询的用户ID和版块ID
+	// Collect user IDs and category IDs to query | 收集需要查询的用户ID和版块ID
 	userIDs := make(map[int]bool)
 	categoryIDs := make(map[int]bool)
 	postIDs := make(map[int]bool)
@@ -392,7 +392,7 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 		postIDs[c.PostID] = true
 	}
 
-	// 批量查询用户信息
+	// Batch query user information | 批量查询用户信息
 	userIDList := make([]int, 0, len(userIDs))
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
@@ -413,7 +413,7 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 		userMap[u.ID] = userInfo{Username: u.Username, Avatar: u.Avatar}
 	}
 
-	// 批量查询版块信息
+	// Batch query category information | 批量查询版块信息
 	categoryIDList := make([]int, 0, len(categoryIDs))
 	for id := range categoryIDs {
 		categoryIDList = append(categoryIDList, id)
@@ -430,7 +430,7 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 		categoryMap[c.ID] = c.Name
 	}
 
-	// 批量查询帖子信息
+	// Batch query post information | 批量查询帖子信息
 	postIDList := make([]int, 0, len(postIDs))
 	for id := range postIDs {
 		postIDList = append(postIDList, id)
@@ -447,7 +447,7 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 		postMap[p.ID] = p.Title
 	}
 
-	// 转换格式
+	// Convert format | 转换格式
 	posts := make([]schema.RecentPost, len(recentPosts))
 	for i, p := range recentPosts {
 		ui := userMap[p.UserID]
@@ -463,7 +463,7 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 
 	comments := make([]schema.RecentComment, len(recentComments))
 	for i, c := range recentComments {
-		// 截取评论内容前100字符
+		// Truncate comment content to first 100 characters | 截取评论内容前100字符
 		content := c.Content
 		if len(content) > 100 {
 			content = content[:100] + "..."
@@ -497,11 +497,11 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 	}, nil
 }
 
-// GetPopularPosts 获取热门帖子
+// GetPopularPosts Get popular posts | 获取热门帖子
 func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.PopularPostsResponse, error) {
 	s.logger.Info("获取热门帖子", tracing.WithTraceIDField(ctx))
 
-	// 按浏览量排序获取热门帖子
+	// Get popular posts sorted by view count | 按浏览量排序获取热门帖子
 	popularPosts, err := s.db.Post.Query().
 		Order(ent.Desc(post.FieldViewCount)).
 		Limit(10).
@@ -510,7 +510,7 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 		return nil, fmt.Errorf("获取热门帖子失败: %w", err)
 	}
 
-	// 收集需要查询的用户ID和版块ID
+	// Collect user IDs and category IDs to query | 收集需要查询的用户ID和版块ID
 	userIDs := make(map[int]bool)
 	categoryIDs := make(map[int]bool)
 	postIDs := make([]int, len(popularPosts))
@@ -520,7 +520,7 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 		postIDs[i] = p.ID
 	}
 
-	// 批量查询用户信息
+	// Batch query user information | 批量查询用户信息
 	userIDList := make([]int, 0, len(userIDs))
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
@@ -541,7 +541,7 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 		userMap[u.ID] = userInfo{Username: u.Username, Avatar: u.Avatar}
 	}
 
-	// 批量查询版块信息
+	// Batch query category information | 批量查询版块信息
 	categoryIDList := make([]int, 0, len(categoryIDs))
 	for id := range categoryIDs {
 		categoryIDList = append(categoryIDList, id)
@@ -558,8 +558,8 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 		categoryMap[c.ID] = c.Name
 	}
 
-	// 批量查询评论数
-	// 注意: 这里简化处理，实际应该使用GroupBy优化性能
+	// Batch query comment count | 批量查询评论数
+	// Note: simplified handling, should actually use GroupBy to optimize performance | 注意: 这里简化处理，实际应该使用GroupBy优化性能
 	commentCountMap := make(map[int]int)
 	for _, postID := range postIDs {
 		count, err := s.db.Comment.Query().
@@ -571,7 +571,7 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 		commentCountMap[postID] = count
 	}
 
-	// 转换格式
+	// Convert format | 转换格式
 	posts := make([]schema.PopularPost, len(popularPosts))
 	for i, p := range popularPosts {
 		ui := userMap[p.UserID]
@@ -593,11 +593,11 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 	}, nil
 }
 
-// GetPopularCategories 获取热门版块
+// GetPopularCategories Get popular categories | 获取热门版块
 func (s *DashboardService) GetPopularCategories(ctx context.Context) (*schema.PopularCategoriesResponse, error) {
 	s.logger.Info("获取热门版块", tracing.WithTraceIDField(ctx))
 
-	// 按帖子数量排序获取热门版块
+	// Get popular categories sorted by post count | 按帖子数量排序获取热门版块
 	popularCategories, err := s.db.Category.Query().
 		Order(ent.Desc(category.FieldWeight)).
 		Limit(10).
@@ -606,10 +606,10 @@ func (s *DashboardService) GetPopularCategories(ctx context.Context) (*schema.Po
 		return nil, fmt.Errorf("获取热门版块失败: %w", err)
 	}
 
-	// 转换格式
+	// Convert format | 转换格式
 	categories := make([]schema.PopularCategory, len(popularCategories))
 	for i, c := range popularCategories {
-		// 获取该版块的帖子数量
+		// Get post count for this category | 获取该版块的帖子数量
 		postCount, err := s.db.Post.Query().
 			Where(post.CategoryIDEQ(c.ID)).
 			Count(ctx)

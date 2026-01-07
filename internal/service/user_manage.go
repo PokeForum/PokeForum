@@ -24,48 +24,48 @@ import (
 	"github.com/PokeForum/PokeForum/internal/utils"
 )
 
-// IUserManageService 用户管理服务接口
+// IUserManageService User management service interface | 用户管理服务接口
 type IUserManageService interface {
-	// GetUserList 获取用户列表
+	// GetUserList Get user list | 获取用户列表
 	GetUserList(ctx context.Context, req schema.UserListRequest) (*schema.UserListResponse, error)
-	// CreateUser 创建用户
+	// CreateUser Create user | 创建用户
 	CreateUser(ctx context.Context, req schema.UserCreateRequest) (*ent.User, error)
-	// UpdateUser 更新用户信息
+	// UpdateUser Update user information | 更新用户信息
 	UpdateUser(ctx context.Context, req schema.UserUpdateRequest) (*ent.User, error)
-	// UpdateUserStatus 更新用户状态
+	// UpdateUserStatus Update user status | 更新用户状态
 	UpdateUserStatus(ctx context.Context, req schema.UserStatusUpdateRequest) error
-	// UpdateUserRole 更新用户身份
+	// UpdateUserRole Update user role | 更新用户身份
 	UpdateUserRole(ctx context.Context, req schema.UserRoleUpdateRequest) error
-	// UpdateUserPoints 更新用户积分
+	// UpdateUserPoints Update user points | 更新用户积分
 	UpdateUserPoints(ctx context.Context, req schema.UserPointsUpdateRequest) error
-	// UpdateUserCurrency 更新用户货币
+	// UpdateUserCurrency Update user currency | 更新用户货币
 	UpdateUserCurrency(ctx context.Context, req schema.UserCurrencyUpdateRequest) error
-	// SetModeratorCategories 设置版主管理版块
+	// SetModeratorCategories Set moderator categories | 设置版主管理版块
 	SetModeratorCategories(ctx context.Context, req schema.ModeratorCategoryRequest) error
-	// GetUserDetail 获取用户详情
+	// GetUserDetail Get user details | 获取用户详情
 	GetUserDetail(ctx context.Context, id int) (*schema.UserDetailResponse, error)
-	// GetUserBalanceLog 获取用户余额变动记录
+	// GetUserBalanceLog Get user balance change log | 获取用户余额变动记录
 	GetUserBalanceLog(ctx context.Context, req schema.UserBalanceLogRequest) (*schema.UserBalanceLogResponse, error)
-	// GetUserBalanceSummary 获取用户余额汇总信息
+	// GetUserBalanceSummary Get user balance summary | 获取用户余额汇总信息
 	GetUserBalanceSummary(ctx context.Context, userID int) (*schema.UserBalanceSummary, error)
-	// GetUserPostCount 查询单个用户的发帖数
+	// GetUserPostCount Query single user's post count | 查询单个用户的发帖数
 	GetUserPostCount(ctx context.Context, userID int) (int, error)
-	// GetUserCommentCount 查询单个用户的评论数
+	// GetUserCommentCount Query single user's comment count | 查询单个用户的评论数
 	GetUserCommentCount(ctx context.Context, userID int) (int, error)
-	// BanUser 封禁用户
+	// BanUser Ban user | 封禁用户
 	BanUser(ctx context.Context, req schema.UserBanRequest) error
-	// UnbanUser 解封用户
+	// UnbanUser Unban user | 解封用户
 	UnbanUser(ctx context.Context, req schema.UserUnbanRequest) error
 }
 
-// UserManageService 用户管理服务实现
+// UserManageService User management service implementation | 用户管理服务实现
 type UserManageService struct {
 	db     *ent.Client
 	cache  cache.ICacheService
 	logger *zap.Logger
 }
 
-// NewUserManageService 创建用户管理服务实例
+// NewUserManageService Create user management service instance | 创建用户管理服务实例
 func NewUserManageService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) IUserManageService {
 	return &UserManageService{
 		db:     db,
@@ -74,8 +74,8 @@ func NewUserManageService(db *ent.Client, cacheService cache.ICacheService, logg
 	}
 }
 
-// checkOperatorPermission 校验操作者权限
-// 管理员只能操作用户和版主，超级管理员可以操作所有身份
+// checkOperatorPermission Validate operator permission | 校验操作者权限
+// Admins can only operate on users and moderators, super admins can operate on all roles | 管理员只能操作用户和版主，超级管理员可以操作所有身份
 func (s *UserManageService) checkOperatorPermission(ctx context.Context, operatorID int, targetRole user.Role) error {
 	// 获取操作者信息
 	operator, err := s.db.User.Get(ctx, operatorID)
@@ -103,7 +103,7 @@ func (s *UserManageService) checkOperatorPermission(ctx context.Context, operato
 	return errors.New("无操作权限")
 }
 
-// GetUserList 获取用户列表
+// GetUserList Get user list | 获取用户列表
 func (s *UserManageService) GetUserList(ctx context.Context, req schema.UserListRequest) (*schema.UserListResponse, error) {
 	s.logger.Info("获取用户列表", tracing.WithTraceIDField(ctx))
 
@@ -197,7 +197,7 @@ func (s *UserManageService) GetUserList(ctx context.Context, req schema.UserList
 	}, nil
 }
 
-// CreateUser 创建用户
+// CreateUser Create user | 创建用户
 func (s *UserManageService) CreateUser(ctx context.Context, req schema.UserCreateRequest) (*ent.User, error) {
 	s.logger.Info("创建用户", zap.String("username", req.Username), tracing.WithTraceIDField(ctx))
 
@@ -242,7 +242,7 @@ func (s *UserManageService) CreateUser(ctx context.Context, req schema.UserCreat
 	return u, nil
 }
 
-// UpdateUser 更新用户信息
+// UpdateUser Update user information | 更新用户信息
 func (s *UserManageService) UpdateUser(ctx context.Context, req schema.UserUpdateRequest) (*ent.User, error) {
 	s.logger.Info("更新用户信息", zap.Int("user_id", req.ID), tracing.WithTraceIDField(ctx))
 
@@ -304,7 +304,7 @@ func (s *UserManageService) UpdateUser(ctx context.Context, req schema.UserUpdat
 	return u, nil
 }
 
-// UpdateUserStatus 更新用户状态
+// UpdateUserStatus Update user status | 更新用户状态
 func (s *UserManageService) UpdateUserStatus(ctx context.Context, req schema.UserStatusUpdateRequest) error {
 	s.logger.Info("更新用户状态", zap.Int("user_id", req.ID), zap.String("status", req.Status), tracing.WithTraceIDField(ctx))
 
@@ -336,7 +336,7 @@ func (s *UserManageService) UpdateUserStatus(ctx context.Context, req schema.Use
 	return nil
 }
 
-// UpdateUserRole 更新用户身份
+// UpdateUserRole Update user role | 更新用户身份
 func (s *UserManageService) UpdateUserRole(ctx context.Context, req schema.UserRoleUpdateRequest) error {
 	s.logger.Info("更新用户身份", zap.Int("user_id", req.ID), zap.String("role", req.Role), tracing.WithTraceIDField(ctx))
 
@@ -374,7 +374,7 @@ func (s *UserManageService) UpdateUserRole(ctx context.Context, req schema.UserR
 	return nil
 }
 
-// UpdateUserPoints 更新用户积分
+// UpdateUserPoints Update user points | 更新用户积分
 func (s *UserManageService) UpdateUserPoints(ctx context.Context, req schema.UserPointsUpdateRequest) error {
 	s.logger.Info("更新用户积分", zap.Int("user_id", req.ID), zap.Int("points", req.Points), tracing.WithTraceIDField(ctx))
 
@@ -428,7 +428,7 @@ func (s *UserManageService) UpdateUserPoints(ctx context.Context, req schema.Use
 	return nil
 }
 
-// UpdateUserCurrency 更新用户货币
+// UpdateUserCurrency Update user currency | 更新用户货币
 func (s *UserManageService) UpdateUserCurrency(ctx context.Context, req schema.UserCurrencyUpdateRequest) error {
 	s.logger.Info("更新用户货币", zap.Int("user_id", req.ID), zap.Int("currency", req.Currency), tracing.WithTraceIDField(ctx))
 
@@ -482,7 +482,7 @@ func (s *UserManageService) UpdateUserCurrency(ctx context.Context, req schema.U
 	return nil
 }
 
-// SetModeratorCategories 设置版主管理版块
+// SetModeratorCategories Set moderator categories | 设置版主管理版块
 func (s *UserManageService) SetModeratorCategories(ctx context.Context, req schema.ModeratorCategoryRequest) error {
 	s.logger.Info("设置版主管理版块", zap.Int("user_id", req.UserID), tracing.WithTraceIDField(ctx))
 
@@ -563,7 +563,7 @@ func (s *UserManageService) SetModeratorCategories(ctx context.Context, req sche
 	return nil
 }
 
-// GetUserDetail 获取用户详情
+// GetUserDetail Get user details | 获取用户详情
 func (s *UserManageService) GetUserDetail(ctx context.Context, id int) (*schema.UserDetailResponse, error) {
 	s.logger.Info("获取用户详情", zap.Int("user_id", id), tracing.WithTraceIDField(ctx))
 
@@ -645,7 +645,7 @@ func (s *UserManageService) GetUserDetail(ctx context.Context, id int) (*schema.
 	return response, nil
 }
 
-// createBalanceLog 创建余额变动记录
+// createBalanceLog Create balance change log | 创建余额变动记录
 func (s *UserManageService) createBalanceLog(ctx context.Context, userID int, logType userbalancelog.Type, amount, beforeAmount, afterAmount int, reason, operatorName string, operatorID *int, relatedID *int, relatedType, ipAddress, userAgent string) error {
 	// 创建余额变动记录
 	createBuilder := s.db.UserBalanceLog.Create().
@@ -679,7 +679,7 @@ func (s *UserManageService) createBalanceLog(ctx context.Context, userID int, lo
 	return nil
 }
 
-// GetUserBalanceLog 获取用户余额变动记录
+// GetUserBalanceLog Get user balance change log | 获取用户余额变动记录
 func (s *UserManageService) GetUserBalanceLog(ctx context.Context, req schema.UserBalanceLogRequest) (*schema.UserBalanceLogResponse, error) {
 	s.logger.Info("获取用户余额变动记录", zap.Int("user_id", req.UserID), tracing.WithTraceIDField(ctx))
 
@@ -793,7 +793,7 @@ func (s *UserManageService) GetUserBalanceLog(ctx context.Context, req schema.Us
 	}, nil
 }
 
-// GetUserBalanceSummary 获取用户余额汇总信息
+// GetUserBalanceSummary Get user balance summary | 获取用户余额汇总信息
 func (s *UserManageService) GetUserBalanceSummary(ctx context.Context, userID int) (*schema.UserBalanceSummary, error) {
 	s.logger.Info("获取用户余额汇总信息", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
@@ -880,7 +880,7 @@ func (s *UserManageService) GetUserBalanceSummary(ctx context.Context, userID in
 	return summary, nil
 }
 
-// getUserPostCounts 批量查询用户的发帖数
+// getUserPostCounts Batch query users' post counts | 批量查询用户的发帖数
 func (s *UserManageService) getUserPostCounts(ctx context.Context, userIDs []int) map[int]int {
 	if len(userIDs) == 0 {
 		return make(map[int]int)
@@ -905,7 +905,7 @@ func (s *UserManageService) getUserPostCounts(ctx context.Context, userIDs []int
 	return result
 }
 
-// getUserCommentCounts 批量查询用户的评论数
+// getUserCommentCounts Batch query users' comment counts | 批量查询用户的评论数
 func (s *UserManageService) getUserCommentCounts(ctx context.Context, userIDs []int) map[int]int {
 	if len(userIDs) == 0 {
 		return make(map[int]int)
@@ -930,7 +930,7 @@ func (s *UserManageService) getUserCommentCounts(ctx context.Context, userIDs []
 	return result
 }
 
-// GetUserPostCount 查询单个用户的发帖数
+// GetUserPostCount Query single user's post count | 查询单个用户的发帖数
 func (s *UserManageService) GetUserPostCount(ctx context.Context, userID int) (int, error) {
 	count, err := s.db.Post.Query().
 		Where(post.UserIDEQ(userID)).
@@ -941,7 +941,7 @@ func (s *UserManageService) GetUserPostCount(ctx context.Context, userID int) (i
 	return count, nil
 }
 
-// GetUserCommentCount 查询单个用户的评论数
+// GetUserCommentCount Query single user's comment count | 查询单个用户的评论数
 func (s *UserManageService) GetUserCommentCount(ctx context.Context, userID int) (int, error) {
 	count, err := s.db.Comment.Query().
 		Where(comment.UserIDEQ(userID)).
@@ -952,7 +952,7 @@ func (s *UserManageService) GetUserCommentCount(ctx context.Context, userID int)
 	return count, nil
 }
 
-// BanUser 封禁用户
+// BanUser Ban user | 封禁用户
 func (s *UserManageService) BanUser(ctx context.Context, req schema.UserBanRequest) error {
 	s.logger.Info("封禁用户", zap.Int("user_id", req.ID), zap.Int64("duration", req.Duration), tracing.WithTraceIDField(ctx))
 
@@ -1005,7 +1005,7 @@ func (s *UserManageService) BanUser(ctx context.Context, req schema.UserBanReque
 	return nil
 }
 
-// UnbanUser 解封用户
+// UnbanUser Unban user | 解封用户
 func (s *UserManageService) UnbanUser(ctx context.Context, req schema.UserUnbanRequest) error {
 	s.logger.Info("解封用户", zap.Int("user_id", req.ID), tracing.WithTraceIDField(ctx))
 

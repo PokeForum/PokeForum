@@ -27,32 +27,32 @@ import (
 	"github.com/PokeForum/PokeForum/internal/schema"
 )
 
-// IUserProfileService 用户个人中心服务接口
+// IUserProfileService User profile service interface | 用户个人中心服务接口
 type IUserProfileService interface {
-	// GetProfileOverview 获取用户个人中心概览
+	// GetProfileOverview Get user profile overview | 获取用户个人中心概览
 	GetProfileOverview(ctx context.Context, userID int, isOwner bool) (*schema.UserProfileOverviewResponse, error)
-	// GetUserPosts 获取用户主题帖列表
+	// GetUserPosts Get user posts list | 获取用户主题帖列表
 	GetUserPosts(ctx context.Context, userID int, req schema.UserProfilePostsRequest, isOwner bool) (*schema.UserProfilePostsResponse, error)
-	// GetUserComments 获取用户评论列表
+	// GetUserComments Get user comments list | 获取用户评论列表
 	GetUserComments(ctx context.Context, userID int, req schema.UserProfileCommentsRequest, isOwner bool) (*schema.UserProfileCommentsResponse, error)
-	// GetUserFavorites 获取用户收藏列表
+	// GetUserFavorites Get user favorites list | 获取用户收藏列表
 	GetUserFavorites(ctx context.Context, userID int, req schema.UserProfileFavoritesRequest, isOwner bool) (*schema.UserProfileFavoritesResponse, error)
-	// UpdatePassword 修改密码
+	// UpdatePassword Update password | 修改密码
 	UpdatePassword(ctx context.Context, userID int, req schema.UserUpdatePasswordRequest) (*schema.UserUpdatePasswordResponse, error)
-	// UpdateAvatar 修改头像
+	// UpdateAvatar Update avatar | 修改头像
 	UpdateAvatar(ctx context.Context, userID int, req schema.UserUpdateAvatarRequest) (*schema.UserUpdateAvatarResponse, error)
-	// UpdateUsername 修改用户名(每七日可操作一次)
+	// UpdateUsername Update username (can be done once every 7 days) | 修改用户名(每七日可操作一次)
 	UpdateUsername(ctx context.Context, userID int, req schema.UserUpdateUsernameRequest) (*schema.UserUpdateUsernameResponse, error)
-	// SendEmailVerifyCode 发送邮箱验证码（直接发送到用户注册邮箱）
+	// SendEmailVerifyCode Send email verification code (sent directly to user's registered email) | 发送邮箱验证码（直接发送到用户注册邮箱）
 	SendEmailVerifyCode(ctx context.Context, userID int) (*schema.EmailVerifyCodeResponse, error)
-	// VerifyEmail 验证邮箱
+	// VerifyEmail Verify email | 验证邮箱
 	VerifyEmail(ctx context.Context, userID int, req schema.EmailVerifyRequest) (*schema.EmailVerifyResponse, error)
-	// CheckUsernameUpdatePermission 检查用户名修改权限(每七日可操作一次)
+	// CheckUsernameUpdatePermission Check username update permission (can be done once every 7 days) | 检查用户名修改权限(每七日可操作一次)
 	CheckUsernameUpdatePermission(ctx context.Context, userID int) (bool, error)
-	// TODO 粉丝列表
+	// TODO Followers list | TODO 粉丝列表
 }
 
-// UserProfileService 用户个人中心服务实现
+// UserProfileService User profile service implementation | 用户个人中心服务实现
 type UserProfileService struct {
 	db                *ent.Client
 	cache             cache.ICacheService
@@ -61,7 +61,7 @@ type UserProfileService struct {
 	userManageService IUserManageService
 }
 
-// NewUserProfileService 创建用户个人中心服务实例
+// NewUserProfileService Create user profile service instance | 创建用户个人中心服务实例
 func NewUserProfileService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger, settingsService ISettingsService, userManageService IUserManageService) IUserProfileService {
 	return &UserProfileService{
 		db:                db,
@@ -72,7 +72,7 @@ func NewUserProfileService(db *ent.Client, cacheService cache.ICacheService, log
 	}
 }
 
-// GetProfileOverview 获取用户个人中心概览
+// GetProfileOverview Get user profile overview | 获取用户个人中心概览
 func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int, isOwner bool) (*schema.UserProfileOverviewResponse, error) {
 	s.logger.Info("获取用户个人中心概览", zap.Int("user_id", userID), zap.Bool("is_owner", isOwner), tracing.WithTraceIDField(ctx))
 
@@ -133,7 +133,7 @@ func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int,
 	return result, nil
 }
 
-// GetUserPosts 获取用户主题帖列表
+// GetUserPosts Get user posts list | 获取用户主题帖列表
 func (s *UserProfileService) GetUserPosts(ctx context.Context, userID int, req schema.UserProfilePostsRequest, isOwner bool) (*schema.UserProfilePostsResponse, error) {
 	s.logger.Info("获取用户主题帖列表", zap.Int("user_id", userID), zap.Int("page", req.Page), zap.Bool("is_owner", isOwner), tracing.WithTraceIDField(ctx))
 
@@ -224,7 +224,7 @@ func (s *UserProfileService) GetUserPosts(ctx context.Context, userID int, req s
 	return result, nil
 }
 
-// GetUserComments 获取用户评论列表
+// GetUserComments Get user comments list | 获取用户评论列表
 func (s *UserProfileService) GetUserComments(ctx context.Context, userID int, req schema.UserProfileCommentsRequest, isOwner bool) (*schema.UserProfileCommentsResponse, error) {
 	s.logger.Info("获取用户评论列表", zap.Int("user_id", userID), zap.Int("page", req.Page), zap.Bool("is_owner", isOwner), tracing.WithTraceIDField(ctx))
 
@@ -356,7 +356,7 @@ func (s *UserProfileService) GetUserComments(ctx context.Context, userID int, re
 	return result, nil
 }
 
-// GetUserFavorites 获取用户收藏列表
+// GetUserFavorites Get user favorites list | 获取用户收藏列表
 func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, req schema.UserProfileFavoritesRequest, isOwner bool) (*schema.UserProfileFavoritesResponse, error) {
 	s.logger.Info("获取用户收藏列表", zap.Int("user_id", userID), zap.Int("page", req.Page), zap.Bool("is_owner", isOwner), tracing.WithTraceIDField(ctx))
 
@@ -538,7 +538,7 @@ func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, r
 	return result, nil
 }
 
-// UpdatePassword 修改密码
+// UpdatePassword Update password | 修改密码
 func (s *UserProfileService) UpdatePassword(ctx context.Context, userID int, req schema.UserUpdatePasswordRequest) (*schema.UserUpdatePasswordResponse, error) {
 	s.logger.Info("修改密码", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
@@ -581,7 +581,7 @@ func (s *UserProfileService) UpdatePassword(ctx context.Context, userID int, req
 	return result, nil
 }
 
-// UpdateAvatar 修改头像
+// UpdateAvatar Update avatar | 修改头像
 func (s *UserProfileService) UpdateAvatar(ctx context.Context, userID int, req schema.UserUpdateAvatarRequest) (*schema.UserUpdateAvatarResponse, error) {
 	s.logger.Info("修改头像", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
@@ -603,7 +603,7 @@ func (s *UserProfileService) UpdateAvatar(ctx context.Context, userID int, req s
 	return result, nil
 }
 
-// UpdateUsername 修改用户名(每七日可操作一次)
+// UpdateUsername Update username (can be done once every 7 days) | 修改用户名(每七日可操作一次)
 func (s *UserProfileService) UpdateUsername(ctx context.Context, userID int, req schema.UserUpdateUsernameRequest) (*schema.UserUpdateUsernameResponse, error) {
 	s.logger.Info("修改用户名", zap.Int("user_id", userID), zap.String("new_username", req.Username), tracing.WithTraceIDField(ctx))
 
@@ -646,7 +646,7 @@ func (s *UserProfileService) UpdateUsername(ctx context.Context, userID int, req
 	return result, nil
 }
 
-// CheckUsernameUpdatePermission 检查用户名修改权限(每七日可操作一次)
+// CheckUsernameUpdatePermission Check username update permission (can be done once every 7 days) | 检查用户名修改权限(每七日可操作一次)
 func (s *UserProfileService) CheckUsernameUpdatePermission(ctx context.Context, userID int) (bool, error) {
 	// 生成Redis键名：user:username:update:limit:{userID}
 	redisKey := fmt.Sprintf("user:username:update:limit:%d", userID)
@@ -686,7 +686,7 @@ func (s *UserProfileService) CheckUsernameUpdatePermission(ctx context.Context, 
 	return true, nil
 }
 
-// SendEmailVerifyCode 发送邮箱验证码（直接发送到用户注册邮箱）
+// SendEmailVerifyCode Send email verification code (sent directly to user's registered email) | 发送邮箱验证码（直接发送到用户注册邮箱）
 func (s *UserProfileService) SendEmailVerifyCode(ctx context.Context, userID int) (*schema.EmailVerifyCodeResponse, error) {
 	s.logger.Info("发送邮箱验证码", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
@@ -760,7 +760,7 @@ func (s *UserProfileService) SendEmailVerifyCode(ctx context.Context, userID int
 	}, nil
 }
 
-// VerifyEmail 验证邮箱
+// VerifyEmail Verify email | 验证邮箱
 func (s *UserProfileService) VerifyEmail(ctx context.Context, userID int, req schema.EmailVerifyRequest) (*schema.EmailVerifyResponse, error) {
 	s.logger.Info("验证邮箱", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
@@ -797,7 +797,7 @@ func (s *UserProfileService) VerifyEmail(ctx context.Context, userID int, req sc
 	}, nil
 }
 
-// generateVerifyCode 生成6位随机验证码
+// generateVerifyCode Generate 6-digit random verification code | 生成6位随机验证码
 func (s *UserProfileService) generateVerifyCode() (string, error) {
 	code := ""
 	for i := 0; i < 6; i++ {
@@ -810,7 +810,7 @@ func (s *UserProfileService) generateVerifyCode() (string, error) {
 	return code, nil
 }
 
-// sendVerificationEmail 发送验证邮件
+// sendVerificationEmail Send verification email | 发送验证邮件
 func (s *UserProfileService) sendVerificationEmail(ctx context.Context, email, code string) error {
 	// 检查是否启用了邮箱验证
 	isVerifyEmail, err := s.settings.GetSettingByKey(ctx, _const.SafeVerifyEmail, _const.SettingBoolTrue.String())
@@ -867,7 +867,7 @@ func (s *UserProfileService) sendVerificationEmail(ctx context.Context, email, c
 	return nil
 }
 
-// hashPassword 生成密码哈希值
+// hashPassword Generate password hash | 生成密码哈希值
 func hashPassword(password, salt string) string {
 	hash := sha256.New()
 	hash.Write([]byte(password + salt))

@@ -14,45 +14,45 @@ import (
 	"go.uber.org/zap"
 )
 
-// ICommentStatsService 评论统计服务接口
+// ICommentStatsService Comment statistics service interface | 评论统计服务接口
 type ICommentStatsService interface {
-	// PerformAction 执行评论操作(点赞/点踩)
-	// userID: 用户ID
-	// commentID: 评论ID
-	// actionType: 操作类型
-	// 返回: 更新后的统计数据和错误
+	// PerformAction Perform comment action (like/dislike) | 执行评论操作(点赞/点踩)
+	// userID: User ID | 用户ID
+	// commentID: Comment ID | 评论ID
+	// actionType: Action type | 操作类型
+	// Returns: Updated statistics data and error | 返回: 更新后的统计数据和错误
 	PerformAction(ctx context.Context, userID, commentID int, actionType stats.ActionType) (*stats.Stats, error)
 
-	// CancelAction 取消评论操作
-	// userID: 用户ID
-	// commentID: 评论ID
-	// actionType: 操作类型
-	// 返回: 更新后的统计数据和错误
+	// CancelAction Cancel comment action | 取消评论操作
+	// userID: User ID | 用户ID
+	// commentID: Comment ID | 评论ID
+	// actionType: Action type | 操作类型
+	// Returns: Updated statistics data and error | 返回: 更新后的统计数据和错误
 	CancelAction(ctx context.Context, userID, commentID int, actionType stats.ActionType) (*stats.Stats, error)
 
-	// GetStats 获取评论统计数据
-	// commentID: 评论ID
-	// 返回: 统计数据和错误
+	// GetStats Get comment statistics data | 获取评论统计数据
+	// commentID: Comment ID | 评论ID
+	// Returns: Statistics data and error | 返回: 统计数据和错误
 	GetStats(ctx context.Context, commentID int) (*stats.Stats, error)
 
-	// GetUserActionStatus 获取用户对评论的操作状态
-	// userID: 用户ID
-	// commentID: 评论ID
-	// 返回: 用户操作状态和错误
+	// GetUserActionStatus Get user's action status on a comment | 获取用户对评论的操作状态
+	// userID: User ID | 用户ID
+	// commentID: Comment ID | 评论ID
+	// Returns: User action status and error | 返回: 用户操作状态和错误
 	GetUserActionStatus(ctx context.Context, userID, commentID int) (*stats.UserActionStatus, error)
 
-	// GetStatsMap 批量获取评论统计数据
-	// commentIDs: 评论ID列表
-	// 返回: 评论ID到统计数据的映射和错误
+	// GetStatsMap Batch get comment statistics data | 批量获取评论统计数据
+	// commentIDs: Comment ID list | 评论ID列表
+	// Returns: Comment ID to statistics data mapping and error | 返回: 评论ID到统计数据的映射和错误
 	GetStatsMap(ctx context.Context, commentIDs []int) (map[int]*stats.Stats, error)
 
-	// SyncStatsToDatabase 同步统计数据到数据库
-	// 从Redis的dirty集合获取需要同步的评论ID,批量聚合CommentAction表统计真实数据,更新Comment表
-	// 返回: 同步数量和错误
+	// SyncStatsToDatabase Sync statistics data to database | 同步统计数据到数据库
+	// Get comment IDs from Redis dirty set that need to be synced, batch aggregate real data from CommentAction table, update Comment table | 从Redis的dirty集合获取需要同步的评论ID,批量聚合CommentAction表统计真实数据,更新Comment表
+	// Returns: Sync count and error | 返回: 同步数量和错误
 	SyncStatsToDatabase(ctx context.Context) (int, error)
 }
 
-// CommentStatsService 评论统计服务实现
+// CommentStatsService Comment statistics service implementation | 评论统计服务实现
 type CommentStatsService struct {
 	db          *ent.Client
 	cache       cache.ICacheService
@@ -60,7 +60,7 @@ type CommentStatsService struct {
 	logger      *zap.Logger
 }
 
-// NewCommentStatsService 创建评论统计服务实例
+// NewCommentStatsService Create a comment statistics service instance | 创建评论统计服务实例
 func NewCommentStatsService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) ICommentStatsService {
 	return &CommentStatsService{
 		db:          db,
@@ -70,7 +70,7 @@ func NewCommentStatsService(db *ent.Client, cacheService cache.ICacheService, lo
 	}
 }
 
-// PerformAction 执行评论操作(点赞/点踩)
+// PerformAction Perform comment action (like/dislike) | 执行评论操作(点赞/点踩)
 func (s *CommentStatsService) PerformAction(ctx context.Context, userID, commentID int, actionType stats.ActionType) (*stats.Stats, error) {
 	s.logger.Info("执行评论操作",
 		zap.Int("user_id", userID),
@@ -78,7 +78,7 @@ func (s *CommentStatsService) PerformAction(ctx context.Context, userID, comment
 		zap.String("action_type", string(actionType)),
 		tracing.WithTraceIDField(ctx))
 
-	// 检查评论是否存在
+	// Check if comment exists | 检查评论是否存在
 	exists, err := s.db.Comment.Query().Where(comment.IDEQ(commentID)).Exist(ctx)
 	if err != nil {
 		s.logger.Error("检查评论是否存在失败", zap.Error(err), tracing.WithTraceIDField(ctx))
@@ -88,7 +88,7 @@ func (s *CommentStatsService) PerformAction(ctx context.Context, userID, comment
 		return nil, errors.New("评论不存在")
 	}
 
-	// 开启数据库事务
+	// Start database transaction | 开启数据库事务
 	tx, err := s.db.Tx(ctx)
 	if err != nil {
 		s.logger.Error("开启事务失败", zap.Error(err), tracing.WithTraceIDField(ctx))
@@ -101,7 +101,7 @@ func (s *CommentStatsService) PerformAction(ctx context.Context, userID, comment
 		}
 	}()
 
-	// 检查是否已经存在该操作
+	// Check if the action already exists | 检查是否已经存在该操作
 	existingAction, err := tx.CommentAction.Query().
 		Where(
 			commentaction.UserIDEQ(userID),
@@ -115,14 +115,14 @@ func (s *CommentStatsService) PerformAction(ctx context.Context, userID, comment
 		return nil, fmt.Errorf("查询操作记录失败: %w", err)
 	}
 
-	// 如果已存在,直接返回当前统计数据
+	// If already exists, return current statistics data directly | 如果已存在,直接返回当前统计数据
 	if existingAction != nil {
 		_ = tx.Rollback()
 		return s.GetStats(ctx, commentID)
 	}
 
-	// 处理点赞和点踩互斥逻辑
-	// 删除相反的操作
+	// Handle mutually exclusive logic for like and dislike | 处理点赞和点踩互斥逻辑
+	// Delete the opposite action | 删除相反的操作
 	oppositeType := stats.ActionTypeDislike
 	if actionType == stats.ActionTypeDislike {
 		oppositeType = stats.ActionTypeLike
@@ -141,18 +141,18 @@ func (s *CommentStatsService) PerformAction(ctx context.Context, userID, comment
 		return nil, fmt.Errorf("删除相反操作失败: %w", err)
 	}
 
-	// 如果删除了相反操作,需要更新Redis计数
+	// If opposite action was deleted, need to update Redis count | 如果删除了相反操作,需要更新Redis计数
 	if deletedCount > 0 {
 		oppositeField := s.getStatsField(oppositeType)
 		statsKey := stats.GetCommentStatsKey(commentID)
 		_ = s.statsHelper.IncrStats(ctx, statsKey, oppositeField, -1)
 
-		// 移除用户操作缓存
+		// Remove user action cache | 移除用户操作缓存
 		userActionKey := stats.GetCommentUserActionKey(userID, commentID)
 		_ = s.statsHelper.RemoveUserAction(ctx, userActionKey, oppositeType)
 	}
 
-	// 创建新的操作记录
+	// Create new action record | 创建新的操作记录
 	_, err = tx.CommentAction.Create().
 		SetUserID(userID).
 		SetCommentID(commentID).
@@ -164,29 +164,29 @@ func (s *CommentStatsService) PerformAction(ctx context.Context, userID, comment
 		return nil, fmt.Errorf("创建操作记录失败: %w", err)
 	}
 
-	// 提交事务
+	// Commit transaction | 提交事务
 	if err = tx.Commit(); err != nil {
 		s.logger.Error("提交事务失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("提交事务失败: %w", err)
 	}
 
-	// 更新Redis统计数据(异步,失败不影响主流程)
+	// Update Redis statistics data (async, failure doesn't affect main flow) | 更新Redis统计数据(异步,失败不影响主流程)
 	statsKey := stats.GetCommentStatsKey(commentID)
 	field := s.getStatsField(actionType)
 	_ = s.statsHelper.IncrStats(ctx, statsKey, field, 1)
 
-	// 更新用户操作缓存
+	// Update user action cache | 更新用户操作缓存
 	userActionKey := stats.GetCommentUserActionKey(userID, commentID)
 	_ = s.statsHelper.SetUserAction(ctx, userActionKey, actionType)
 
-	// 标记评论为脏数据
+	// Mark comment as dirty data | 标记评论为脏数据
 	_ = s.statsHelper.MarkDirty(ctx, stats.CommentDirtySetKey, commentID)
 
 	s.logger.Info("执行评论操作成功", zap.Int("comment_id", commentID), tracing.WithTraceIDField(ctx))
 	return s.GetStats(ctx, commentID)
 }
 
-// CancelAction 取消评论操作
+// CancelAction Cancel comment action | 取消评论操作
 func (s *CommentStatsService) CancelAction(ctx context.Context, userID, commentID int, actionType stats.ActionType) (*stats.Stats, error) {
 	s.logger.Info("取消评论操作",
 		zap.Int("user_id", userID),
@@ -194,7 +194,7 @@ func (s *CommentStatsService) CancelAction(ctx context.Context, userID, commentI
 		zap.String("action_type", string(actionType)),
 		tracing.WithTraceIDField(ctx))
 
-	// 删除操作记录
+	// Delete action record | 删除操作记录
 	deletedCount, err := s.db.CommentAction.Delete().
 		Where(
 			commentaction.UserIDEQ(userID),
@@ -207,36 +207,36 @@ func (s *CommentStatsService) CancelAction(ctx context.Context, userID, commentI
 		return nil, fmt.Errorf("删除操作记录失败: %w", err)
 	}
 
-	// 如果没有删除任何记录,说明操作不存在
+	// If no records were deleted, the action doesn't exist | 如果没有删除任何记录,说明操作不存在
 	if deletedCount == 0 {
 		return s.GetStats(ctx, commentID)
 	}
 
-	// 更新Redis统计数据(异步,失败不影响主流程)
+	// Update Redis statistics data (async, failure doesn't affect main flow) | 更新Redis统计数据(异步,失败不影响主流程)
 	statsKey := stats.GetCommentStatsKey(commentID)
 	field := s.getStatsField(actionType)
 	_ = s.statsHelper.IncrStats(ctx, statsKey, field, -1)
 
-	// 移除用户操作缓存
+	// Remove user action cache | 移除用户操作缓存
 	userActionKey := stats.GetCommentUserActionKey(userID, commentID)
 	_ = s.statsHelper.RemoveUserAction(ctx, userActionKey, actionType)
 
-	// 标记评论为脏数据
+	// Mark comment as dirty data | 标记评论为脏数据
 	_ = s.statsHelper.MarkDirty(ctx, stats.CommentDirtySetKey, commentID)
 
 	s.logger.Info("取消评论操作成功", zap.Int("comment_id", commentID), tracing.WithTraceIDField(ctx))
 	return s.GetStats(ctx, commentID)
 }
 
-// GetStats 获取评论统计数据
+// GetStats Get comment statistics data | 获取评论统计数据
 func (s *CommentStatsService) GetStats(ctx context.Context, commentID int) (*stats.Stats, error) {
-	// 优先从Redis读取
+	// Prefer reading from Redis | 优先从Redis读取
 	statsKey := stats.GetCommentStatsKey(commentID)
 	fields := []string{"like_count", "dislike_count"}
 
 	statData, err := s.statsHelper.GetStats(ctx, statsKey, fields)
 	if err == nil && len(statData) > 0 {
-		// 检查是否有有效数据
+		// Check if there's valid data | 检查是否有有效数据
 		hasData := false
 		for _, v := range statData {
 			if v > 0 {
@@ -253,7 +253,7 @@ func (s *CommentStatsService) GetStats(ctx context.Context, commentID int) (*sta
 		}
 	}
 
-	// Redis未命中,从数据库读取
+	// Redis cache miss, read from database | Redis未命中,从数据库读取
 	commentData, err := s.db.Comment.Query().Where(comment.IDEQ(commentID)).Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -269,7 +269,7 @@ func (s *CommentStatsService) GetStats(ctx context.Context, commentID int) (*sta
 		DislikeCount: commentData.DislikeCount,
 	}
 
-	// 回填Redis缓存
+	// Backfill Redis cache | 回填Redis缓存
 	_ = s.statsHelper.SetStats(ctx, statsKey, map[string]int{
 		"like_count":    result.LikeCount,
 		"dislike_count": result.DislikeCount,
@@ -278,9 +278,9 @@ func (s *CommentStatsService) GetStats(ctx context.Context, commentID int) (*sta
 	return result, nil
 }
 
-// GetUserActionStatus 获取用户对评论的操作状态
+// GetUserActionStatus Get user's action status on a comment | 获取用户对评论的操作状态
 func (s *CommentStatsService) GetUserActionStatus(ctx context.Context, userID, commentID int) (*stats.UserActionStatus, error) {
-	// 优先从Redis读取
+	// Prefer reading from Redis | 优先从Redis读取
 	userActionKey := stats.GetCommentUserActionKey(userID, commentID)
 	actions, err := s.statsHelper.GetUserActions(ctx, userActionKey)
 	if err == nil && len(actions) > 0 {
@@ -290,7 +290,7 @@ func (s *CommentStatsService) GetUserActionStatus(ctx context.Context, userID, c
 		}, nil
 	}
 
-	// Redis未命中,从数据库读取
+	// Redis cache miss, read from database | Redis未命中,从数据库读取
 	userActions, err := s.db.CommentAction.Query().
 		Where(
 			commentaction.UserIDEQ(userID),
@@ -321,7 +321,7 @@ func (s *CommentStatsService) GetUserActionStatus(ctx context.Context, userID, c
 	return result, nil
 }
 
-// GetStatsMap 批量获取评论统计数据
+// GetStatsMap Batch get comment statistics data | 批量获取评论统计数据
 func (s *CommentStatsService) GetStatsMap(ctx context.Context, commentIDs []int) (map[int]*stats.Stats, error) {
 	result := make(map[int]*stats.Stats)
 	for _, id := range commentIDs {
@@ -335,11 +335,11 @@ func (s *CommentStatsService) GetStatsMap(ctx context.Context, commentIDs []int)
 	return result, nil
 }
 
-// SyncStatsToDatabase 同步统计数据到数据库
+// SyncStatsToDatabase Sync statistics data to database | 同步统计数据到数据库
 func (s *CommentStatsService) SyncStatsToDatabase(ctx context.Context) (int, error) {
 	s.logger.Debug("开始同步评论统计数据到数据库", tracing.WithTraceIDField(ctx))
 
-	// 获取所有脏数据ID
+	// Get all dirty data IDs | 获取所有脏数据ID
 	dirtyIDs, err := s.statsHelper.GetDirtyIDs(ctx, stats.CommentDirtySetKey)
 	if err != nil {
 		s.logger.Error("获取脏数据ID失败", zap.Error(err), tracing.WithTraceIDField(ctx))
@@ -354,7 +354,7 @@ func (s *CommentStatsService) SyncStatsToDatabase(ctx context.Context) (int, err
 	s.logger.Info("需要同步的评论数量", zap.Int("count", len(dirtyIDs)), tracing.WithTraceIDField(ctx))
 
 	syncCount := 0
-	// 批量处理,每次处理100个
+	// Batch processing, 100 items per batch | 批量处理,每次处理100个
 	batchSize := 100
 	for i := 0; i < len(dirtyIDs); i += batchSize {
 		end := i + batchSize
@@ -363,7 +363,7 @@ func (s *CommentStatsService) SyncStatsToDatabase(ctx context.Context) (int, err
 		}
 		batch := dirtyIDs[i:end]
 
-		// 处理这一批数据
+		// Process this batch | 处理这一批数据
 		count, err := s.syncBatch(ctx, batch)
 		if err != nil {
 			s.logger.Error("批量同步失败", zap.Error(err), tracing.WithTraceIDField(ctx))
@@ -380,15 +380,15 @@ func (s *CommentStatsService) SyncStatsToDatabase(ctx context.Context) (int, err
 	return syncCount, nil
 }
 
-// syncBatch 批量同步评论统计数据
+// syncBatch Batch sync comment statistics data | 批量同步评论统计数据
 func (s *CommentStatsService) syncBatch(ctx context.Context, commentIDs []int) (int, error) {
 	syncCount := 0
 
 	for _, commentID := range commentIDs {
-		// 从CommentAction表聚合真实数据
+		// Aggregate real data from CommentAction table | 从CommentAction表聚合真实数据
 		var likeCount, dislikeCount int
 
-		// 统计点赞数
+		// Count likes | 统计点赞数
 		likeCount, err := s.db.CommentAction.Query().
 			Where(
 				commentaction.CommentIDEQ(commentID),
@@ -400,7 +400,7 @@ func (s *CommentStatsService) syncBatch(ctx context.Context, commentIDs []int) (
 			continue
 		}
 
-		// 统计点踩数
+		// Count dislikes | 统计点踩数
 		dislikeCount, err = s.db.CommentAction.Query().
 			Where(
 				commentaction.CommentIDEQ(commentID),
@@ -412,14 +412,14 @@ func (s *CommentStatsService) syncBatch(ctx context.Context, commentIDs []int) (
 			continue
 		}
 
-		// 更新Comment表
+		// Update Comment table | 更新Comment表
 		err = s.db.Comment.UpdateOneID(commentID).
 			SetLikeCount(likeCount).
 			SetDislikeCount(dislikeCount).
 			Exec(ctx)
 		if err != nil {
 			if ent.IsNotFound(err) {
-				// 评论已被删除,清理脏标记和缓存
+				// Comment has been deleted, clean up dirty mark and cache | 评论已被删除,清理脏标记和缓存
 				statsKey := stats.GetCommentStatsKey(commentID)
 				_ = s.statsHelper.RemoveDirtyIDs(ctx, stats.CommentDirtySetKey, []int{commentID})
 				_ = s.statsHelper.DeleteStatsCache(ctx, statsKey)
@@ -430,14 +430,14 @@ func (s *CommentStatsService) syncBatch(ctx context.Context, commentIDs []int) (
 			continue
 		}
 
-		// 更新Redis缓存
+		// Update Redis cache | 更新Redis缓存
 		statsKey := stats.GetCommentStatsKey(commentID)
 		_ = s.statsHelper.SetStats(ctx, statsKey, map[string]int{
 			"like_count":    likeCount,
 			"dislike_count": dislikeCount,
 		})
 
-		// 清除脏标记
+		// Clear dirty mark | 清除脏标记
 		_ = s.statsHelper.RemoveDirtyIDs(ctx, stats.CommentDirtySetKey, []int{commentID})
 
 		syncCount++
@@ -446,7 +446,7 @@ func (s *CommentStatsService) syncBatch(ctx context.Context, commentIDs []int) (
 	return syncCount, nil
 }
 
-// getStatsField 根据操作类型获取对应的统计字段名
+// getStatsField Get corresponding statistics field name based on action type | 根据操作类型获取对应的统计字段名
 func (s *CommentStatsService) getStatsField(actionType stats.ActionType) string {
 	switch actionType {
 	case stats.ActionTypeLike:

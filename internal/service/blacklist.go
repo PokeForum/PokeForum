@@ -15,25 +15,25 @@ import (
 	"github.com/PokeForum/PokeForum/internal/schema"
 )
 
-// IBlacklistService 黑名单服务接口
+// IBlacklistService Blacklist service interface | 黑名单服务接口
 type IBlacklistService interface {
-	// GetUserBlacklist 获取用户黑名单列表
+	// GetUserBlacklist Get user blacklist | 获取用户黑名单列表
 	GetUserBlacklist(ctx context.Context, userID int, page int, pageSize int) (*schema.UserBlacklistListResponse, error)
-	// AddToBlacklist 添加用户到黑名单
+	// AddToBlacklist Add user to blacklist | 添加用户到黑名单
 	AddToBlacklist(ctx context.Context, userID int, blockedUserID int) (*schema.UserBlacklistAddResponse, error)
-	// RemoveFromBlacklist 从黑名单移除用户
+	// RemoveFromBlacklist Remove user from blacklist | 从黑名单移除用户
 	RemoveFromBlacklist(ctx context.Context, userID int, blockedUserID int) error
-	// IsUserBlocked 检查用户是否被拉黑
+	// IsUserBlocked Check if user is blocked | 检查用户是否被拉黑
 	IsUserBlocked(ctx context.Context, userID int, targetUserID int) (bool, error)
 }
 
-// BlacklistService 黑名单服务实现
+// BlacklistService Blacklist service implementation | 黑名单服务实现
 type BlacklistService struct {
 	db     *ent.Client
 	logger *zap.Logger
 }
 
-// NewBlacklistService 创建黑名单服务实例
+// NewBlacklistService Create blacklist service instance | 创建黑名单服务实例
 func NewBlacklistService(db *ent.Client, logger *zap.Logger) IBlacklistService {
 	return &BlacklistService{
 		db:     db,
@@ -41,9 +41,9 @@ func NewBlacklistService(db *ent.Client, logger *zap.Logger) IBlacklistService {
 	}
 }
 
-// GetUserBlacklist 获取用户黑名单列表
+// GetUserBlacklist Get user blacklist | 获取用户黑名单列表
 func (s *BlacklistService) GetUserBlacklist(ctx context.Context, userID int, page int, pageSize int) (*schema.UserBlacklistListResponse, error) {
-	// 记录日志
+	// Log record | 记录日志
 	s.logger.Info("获取用户黑名单列表",
 		tracing.WithTraceIDField(ctx),
 		zap.Int("user_id", userID),
@@ -51,10 +51,10 @@ func (s *BlacklistService) GetUserBlacklist(ctx context.Context, userID int, pag
 		zap.Int("page_size", pageSize),
 	)
 
-	// 计算偏移量
+	// Calculate offset | 计算偏移量
 	offset := (page - 1) * pageSize
 
-	// 查询黑名单总数
+	// Query total blacklist count | 查询黑名单总数
 	total, err := s.db.Blacklist.Query().
 		Where(blacklist.UserIDEQ(userID)).
 		Count(ctx)
@@ -67,7 +67,7 @@ func (s *BlacklistService) GetUserBlacklist(ctx context.Context, userID int, pag
 		return nil, fmt.Errorf("查询黑名单总数失败: %w", err)
 	}
 
-	// 查询黑名单列表
+	// Query blacklist | 查询黑名单列表
 	blacklistItems, err := s.db.Blacklist.Query().
 		Where(blacklist.UserIDEQ(userID)).
 		Order(ent.Desc(blacklist.FieldCreatedAt)).
@@ -83,13 +83,13 @@ func (s *BlacklistService) GetUserBlacklist(ctx context.Context, userID int, pag
 		return nil, fmt.Errorf("查询黑名单列表失败: %w", err)
 	}
 
-	// 收集所有被拉黑用户的ID
+	// Collect all blocked user IDs | 收集所有被拉黑用户的ID
 	blockedUserIDs := make([]int, len(blacklistItems))
 	for i, item := range blacklistItems {
 		blockedUserIDs[i] = item.BlockedUserID
 	}
 
-	// 批量查询被拉黑用户信息
+	// Batch query blocked user information | 批量查询被拉黑用户信息
 	blockedUsers, err := s.db.User.Query().
 		Where(user.IDIn(blockedUserIDs...)).
 		Select(user.FieldID, user.FieldUsername, user.FieldAvatar).
@@ -102,18 +102,18 @@ func (s *BlacklistService) GetUserBlacklist(ctx context.Context, userID int, pag
 		return nil, fmt.Errorf("查询被拉黑用户信息失败: %w", err)
 	}
 
-	// 创建用户ID到用户信息的映射
+	// Create mapping from user ID to user information | 创建用户ID到用户信息的映射
 	userMap := make(map[int]*ent.User)
 	for _, u := range blockedUsers {
 		userMap[u.ID] = u
 	}
 
-	// 构建响应数据
+	// Build response data | 构建响应数据
 	list := make([]schema.UserBlacklistItem, 0, len(blacklistItems))
 	for _, item := range blacklistItems {
 		blockedUser := userMap[item.BlockedUserID]
 		if blockedUser == nil {
-			continue // 用户不存在，跳过
+			continue // User does not exist, skip | 用户不存在，跳过
 		}
 
 		listItem := schema.UserBlacklistItem{
@@ -126,7 +126,7 @@ func (s *BlacklistService) GetUserBlacklist(ctx context.Context, userID int, pag
 		list = append(list, listItem)
 	}
 
-	// 计算总页数
+	// Calculate total pages | 计算总页数
 	totalPages := (int64(total) + int64(pageSize) - 1) / int64(pageSize)
 
 	result := &schema.UserBlacklistListResponse{
@@ -147,16 +147,16 @@ func (s *BlacklistService) GetUserBlacklist(ctx context.Context, userID int, pag
 	return result, nil
 }
 
-// AddToBlacklist 添加用户到黑名单
+// AddToBlacklist Add user to blacklist | 添加用户到黑名单
 func (s *BlacklistService) AddToBlacklist(ctx context.Context, userID int, blockedUserID int) (*schema.UserBlacklistAddResponse, error) {
-	// 记录日志
+	// Log record | 记录日志
 	s.logger.Info("添加用户到黑名单",
 		tracing.WithTraceIDField(ctx),
 		zap.Int("user_id", userID),
 		zap.Int("blocked_user_id", blockedUserID),
 	)
 
-	// 检查被拉黑用户是否存在
+	// Check if blocked user exists | 检查被拉黑用户是否存在
 	exists, err := s.db.User.Query().
 		Where(user.IDEQ(blockedUserID)).
 		Exist(ctx)
@@ -172,7 +172,7 @@ func (s *BlacklistService) AddToBlacklist(ctx context.Context, userID int, block
 		return nil, errors.New("被拉黑用户不存在")
 	}
 
-	// 检查是否已经在黑名单中
+	// Check if already in blacklist | 检查是否已经在黑名单中
 	isBlocked, err := s.IsUserBlocked(ctx, userID, blockedUserID)
 	if err != nil {
 		return nil, fmt.Errorf("检查黑名单状态失败: %w", err)
@@ -181,7 +181,7 @@ func (s *BlacklistService) AddToBlacklist(ctx context.Context, userID int, block
 		return nil, errors.New("用户已在黑名单中")
 	}
 
-	// 创建黑名单记录
+	// Create blacklist record | 创建黑名单记录
 	blacklistItem, err := s.db.Blacklist.Create().
 		SetUserID(userID).
 		SetBlockedUserID(blockedUserID).
@@ -213,16 +213,16 @@ func (s *BlacklistService) AddToBlacklist(ctx context.Context, userID int, block
 	return result, nil
 }
 
-// RemoveFromBlacklist 从黑名单移除用户
+// RemoveFromBlacklist Remove user from blacklist | 从黑名单移除用户
 func (s *BlacklistService) RemoveFromBlacklist(ctx context.Context, userID int, blockedUserID int) error {
-	// 记录日志
+	// Log record | 记录日志
 	s.logger.Info("从黑名单移除用户",
 		tracing.WithTraceIDField(ctx),
 		zap.Int("user_id", userID),
 		zap.Int("blocked_user_id", blockedUserID),
 	)
 
-	// 查找并删除黑名单记录
+	// Find and delete blacklist record | 查找并删除黑名单记录
 	affected, err := s.db.Blacklist.Delete().
 		Where(
 			blacklist.UserIDEQ(userID),
@@ -252,16 +252,16 @@ func (s *BlacklistService) RemoveFromBlacklist(ctx context.Context, userID int, 
 	return nil
 }
 
-// IsUserBlocked 检查用户是否被拉黑
+// IsUserBlocked Check if user is blocked | 检查用户是否被拉黑
 func (s *BlacklistService) IsUserBlocked(ctx context.Context, userID int, targetUserID int) (bool, error) {
-	// 记录日志
+	// Log record | 记录日志
 	s.logger.Debug("检查用户是否被拉黑",
 		tracing.WithTraceIDField(ctx),
 		zap.Int("user_id", userID),
 		zap.Int("target_user_id", targetUserID),
 	)
 
-	// 查询黑名单记录
+	// Query blacklist record | 查询黑名单记录
 	exists, err := s.db.Blacklist.Query().
 		Where(
 			blacklist.UserIDEQ(userID),

@@ -15,50 +15,50 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 )
 
-// IPostStatsService 帖子统计服务接口
+// IPostStatsService Post statistics service interface | 帖子统计服务接口
 type IPostStatsService interface {
-	// PerformAction 执行帖子操作(点赞/点踩/收藏)
-	// userID: 用户ID
-	// postID: 帖子ID
-	// actionType: 操作类型
-	// 返回: 更新后的统计数据和错误
+	// PerformAction Perform post action (like/dislike/favorite) | 执行帖子操作(点赞/点踩/收藏)
+	// userID: User ID | 用户ID
+	// postID: Post ID | 帖子ID
+	// actionType: Action type | 操作类型
+	// Return: Updated statistics and error | 返回: 更新后的统计数据和错误
 	PerformAction(ctx context.Context, userID, postID int, actionType stats.ActionType) (*stats.Stats, error)
 
-	// CancelAction 取消帖子操作
-	// userID: 用户ID
-	// postID: 帖子ID
-	// actionType: 操作类型
-	// 返回: 更新后的统计数据和错误
+	// CancelAction Cancel post action | 取消帖子操作
+	// userID: User ID | 用户ID
+	// postID: Post ID | 帖子ID
+	// actionType: Action type | 操作类型
+	// Return: Updated statistics and error | 返回: 更新后的统计数据和错误
 	CancelAction(ctx context.Context, userID, postID int, actionType stats.ActionType) (*stats.Stats, error)
 
-	// GetStats 获取帖子统计数据
-	// postID: 帖子ID
-	// 返回: 统计数据和错误
+	// GetStats Get post statistics | 获取帖子统计数据
+	// postID: Post ID | 帖子ID
+	// Return: Statistics and error | 返回: 统计数据和错误
 	GetStats(ctx context.Context, postID int) (*stats.Stats, error)
 
-	// GetUserActionStatus 获取用户对帖子的操作状态
-	// userID: 用户ID
-	// postID: 帖子ID
-	// 返回: 用户操作状态和错误
+	// GetUserActionStatus Get user's action status on post | 获取用户对帖子的操作状态
+	// userID: User ID | 用户ID
+	// postID: Post ID | 帖子ID
+	// Return: User action status and error | 返回: 用户操作状态和错误
 	GetUserActionStatus(ctx context.Context, userID, postID int) (*stats.UserActionStatus, error)
 
-	// GetStatsMap 批量获取帖子统计数据
-	// postIDs: 帖子ID列表
-	// 返回: 帖子ID到统计数据的映射和错误
+	// GetStatsMap Batch get post statistics | 批量获取帖子统计数据
+	// postIDs: List of post IDs | 帖子ID列表
+	// Return: Mapping of post ID to statistics and error | 返回: 帖子ID到统计数据的映射和错误
 	GetStatsMap(ctx context.Context, postIDs []int) (map[int]*stats.Stats, error)
 
-	// IncrViewCount 增加帖子浏览数
-	// postID: 帖子ID
-	// 返回: 错误
+	// IncrViewCount Increment post view count | 增加帖子浏览数
+	// postID: Post ID | 帖子ID
+	// Return: Error | 返回: 错误
 	IncrViewCount(ctx context.Context, postID int) error
 
-	// SyncStatsToDatabase 同步统计数据到数据库
-	// 从Redis的dirty集合获取需要同步的帖子ID,批量聚合PostAction表统计真实数据,更新Post表
-	// 返回: 同步数量和错误
+	// SyncStatsToDatabase Sync statistics to database | 同步统计数据到数据库
+	// Get post IDs that need syncing from Redis dirty set, aggregate real data from PostAction table, update Post table | 从Redis的dirty集合获取需要同步的帖子ID,批量聚合PostAction表统计真实数据,更新Post表
+	// Return: Sync count and error | 返回: 同步数量和错误
 	SyncStatsToDatabase(ctx context.Context) (int, error)
 }
 
-// PostStatsService 帖子统计服务实现
+// PostStatsService Post statistics service implementation | 帖子统计服务实现
 type PostStatsService struct {
 	db          *ent.Client
 	cache       cache.ICacheService
@@ -66,7 +66,7 @@ type PostStatsService struct {
 	logger      *zap.Logger
 }
 
-// NewPostStatsService 创建帖子统计服务实例
+// NewPostStatsService Create a post statistics service instance | 创建帖子统计服务实例
 func NewPostStatsService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) IPostStatsService {
 	return &PostStatsService{
 		db:          db,
@@ -76,7 +76,7 @@ func NewPostStatsService(db *ent.Client, cacheService cache.ICacheService, logge
 	}
 }
 
-// PerformAction 执行帖子操作(点赞/点踩/收藏)
+// PerformAction Perform post action (like/dislike/favorite) | 执行帖子操作(点赞/点踩/收藏)
 func (s *PostStatsService) PerformAction(ctx context.Context, userID, postID int, actionType stats.ActionType) (*stats.Stats, error) {
 	s.logger.Info("执行帖子操作",
 		zap.Int("user_id", userID),
@@ -84,7 +84,7 @@ func (s *PostStatsService) PerformAction(ctx context.Context, userID, postID int
 		zap.String("action_type", string(actionType)),
 		tracing.WithTraceIDField(ctx))
 
-	// 检查帖子是否存在
+	// Check if post exists | 检查帖子是否存在
 	exists, err := s.db.Post.Query().Where(post.IDEQ(postID)).Exist(ctx)
 	if err != nil {
 		s.logger.Error("检查帖子是否存在失败", zap.Error(err), tracing.WithTraceIDField(ctx))
@@ -94,7 +94,7 @@ func (s *PostStatsService) PerformAction(ctx context.Context, userID, postID int
 		return nil, errors.New("帖子不存在")
 	}
 
-	// 开启数据库事务
+	// Start database transaction | 开启数据库事务
 	tx, err := s.db.Tx(ctx)
 	if err != nil {
 		s.logger.Error("开启事务失败", zap.Error(err), tracing.WithTraceIDField(ctx))
@@ -102,12 +102,12 @@ func (s *PostStatsService) PerformAction(ctx context.Context, userID, postID int
 	}
 	defer func() {
 		if v := recover(); v != nil {
-			_ = tx.Rollback() //nolint:errcheck // panic恢复时回滚失败无需处理
+			_ = tx.Rollback() //nolint:errcheck // No need to handle rollback failure during panic recovery | panic恢复时回滚失败无需处理
 			panic(v)
 		}
 	}()
 
-	// 检查是否已经存在该操作
+	// Check if action already exists | 检查是否已经存在该操作
 	existingAction, err := tx.PostAction.Query().
 		Where(
 			postaction.UserIDEQ(userID),
@@ -116,20 +116,20 @@ func (s *PostStatsService) PerformAction(ctx context.Context, userID, postID int
 		).
 		Only(ctx)
 	if err != nil && !ent.IsNotFound(err) {
-		_ = tx.Rollback() //nolint:errcheck // 错误处理时回滚失败无需处理
+		_ = tx.Rollback() //nolint:errcheck // No need to handle rollback failure during error handling | 错误处理时回滚失败无需处理
 		s.logger.Error("查询操作记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("查询操作记录失败: %w", err)
 	}
 
-	// 如果已存在,直接返回当前统计数据
+	// If already exists, return current statistics | 如果已存在,直接返回当前统计数据
 	if existingAction != nil {
-		_ = tx.Rollback() //nolint:errcheck // 提前返回时回滚失败无需处理
+		_ = tx.Rollback() //nolint:errcheck // No need to handle rollback failure when returning early | 提前返回时回滚失败无需处理
 		return s.GetStats(ctx, postID)
 	}
 
-	// 处理点赞和点踩互斥逻辑
+	// Handle mutually exclusive logic for like and dislike | 处理点赞和点踩互斥逻辑
 	if actionType == stats.ActionTypeLike || actionType == stats.ActionTypeDislike {
-		// 删除相反的操作
+		// Delete opposite action | 删除相反的操作
 		oppositeType := stats.ActionTypeDislike
 		if actionType == stats.ActionTypeDislike {
 			oppositeType = stats.ActionTypeLike
@@ -143,58 +143,58 @@ func (s *PostStatsService) PerformAction(ctx context.Context, userID, postID int
 			).
 			Exec(ctx)
 		if err != nil {
-			_ = tx.Rollback() //nolint:errcheck // 错误处理时回滚失败无需处理
+			_ = tx.Rollback() //nolint:errcheck // No need to handle rollback failure during error handling | 错误处理时回滚失败无需处理
 			s.logger.Error("删除相反操作失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 			return nil, fmt.Errorf("删除相反操作失败: %w", err)
 		}
 
-		// 如果删除了相反操作,需要更新Redis计数
+		// If opposite action was deleted, need to update Redis count | 如果删除了相反操作,需要更新Redis计数
 		if deletedCount > 0 {
 			oppositeField := s.getStatsField(oppositeType)
 			statsKey := stats.GetPostStatsKey(postID)
-			_ = s.statsHelper.IncrStats(ctx, statsKey, oppositeField, -1) //nolint:errcheck // Redis操作失败不影响主流程
+			_ = s.statsHelper.IncrStats(ctx, statsKey, oppositeField, -1) //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 
-			// 移除用户操作缓存
+			// Remove user action cache | 移除用户操作缓存
 			userActionKey := stats.GetPostUserActionKey(userID, postID)
-			_ = s.statsHelper.RemoveUserAction(ctx, userActionKey, oppositeType) //nolint:errcheck // Redis操作失败不影响主流程
+			_ = s.statsHelper.RemoveUserAction(ctx, userActionKey, oppositeType) //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 		}
 	}
 
-	// 创建新的操作记录
+	// Create new action record | 创建新的操作记录
 	_, err = tx.PostAction.Create().
 		SetUserID(userID).
 		SetPostID(postID).
 		SetActionType(postaction.ActionType(actionType)).
 		Save(ctx)
 	if err != nil {
-		_ = tx.Rollback() //nolint:errcheck // 错误处理时回滚失败无需处理
+		_ = tx.Rollback() //nolint:errcheck // No need to handle rollback failure during error handling | 错误处理时回滚失败无需处理
 		s.logger.Error("创建操作记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("创建操作记录失败: %w", err)
 	}
 
-	// 提交事务
+	// Commit transaction | 提交事务
 	if err = tx.Commit(); err != nil {
 		s.logger.Error("提交事务失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("提交事务失败: %w", err)
 	}
 
-	// 更新Redis统计数据(异步,失败不影响主流程)
+	// Update Redis statistics (async, failure doesn't affect main flow) | 更新Redis统计数据(异步,失败不影响主流程)
 	statsKey := stats.GetPostStatsKey(postID)
 	field := s.getStatsField(actionType)
-	_ = s.statsHelper.IncrStats(ctx, statsKey, field, 1) //nolint:errcheck // Redis操作失败不影响主流程
+	_ = s.statsHelper.IncrStats(ctx, statsKey, field, 1) //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 
-	// 更新用户操作缓存
+	// Update user action cache | 更新用户操作缓存
 	userActionKey := stats.GetPostUserActionKey(userID, postID)
-	_ = s.statsHelper.SetUserAction(ctx, userActionKey, actionType) //nolint:errcheck // Redis操作失败不影响主流程
+	_ = s.statsHelper.SetUserAction(ctx, userActionKey, actionType) //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 
-	// 标记帖子为脏数据
-	_ = s.statsHelper.MarkDirty(ctx, stats.PostDirtySetKey, postID) //nolint:errcheck // Redis操作失败不影响主流程
+	// Mark post as dirty data | 标记帖子为脏数据
+	_ = s.statsHelper.MarkDirty(ctx, stats.PostDirtySetKey, postID) //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 
 	s.logger.Info("执行帖子操作成功", zap.Int("post_id", postID), tracing.WithTraceIDField(ctx))
 	return s.GetStats(ctx, postID)
 }
 
-// CancelAction 取消帖子操作
+// CancelAction Cancel post action | 取消帖子操作
 func (s *PostStatsService) CancelAction(ctx context.Context, userID, postID int, actionType stats.ActionType) (*stats.Stats, error) {
 	s.logger.Info("取消帖子操作",
 		zap.Int("user_id", userID),
@@ -202,7 +202,7 @@ func (s *PostStatsService) CancelAction(ctx context.Context, userID, postID int,
 		zap.String("action_type", string(actionType)),
 		tracing.WithTraceIDField(ctx))
 
-	// 删除操作记录
+	// Delete action record | 删除操作记录
 	deletedCount, err := s.db.PostAction.Delete().
 		Where(
 			postaction.UserIDEQ(userID),
@@ -215,36 +215,36 @@ func (s *PostStatsService) CancelAction(ctx context.Context, userID, postID int,
 		return nil, fmt.Errorf("删除操作记录失败: %w", err)
 	}
 
-	// 如果没有删除任何记录,说明操作不存在
+	// If no records were deleted, action doesn't exist | 如果没有删除任何记录,说明操作不存在
 	if deletedCount == 0 {
 		return s.GetStats(ctx, postID)
 	}
 
-	// 更新Redis统计数据(异步,失败不影响主流程)
+	// Update Redis statistics (async, failure doesn't affect main flow) | 更新Redis统计数据(异步,失败不影响主流程)
 	statsKey := stats.GetPostStatsKey(postID)
 	field := s.getStatsField(actionType)
-	_ = s.statsHelper.IncrStats(ctx, statsKey, field, -1) //nolint:errcheck // Redis操作失败不影响主流程
+	_ = s.statsHelper.IncrStats(ctx, statsKey, field, -1) //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 
-	// 移除用户操作缓存
+	// Remove user action cache | 移除用户操作缓存
 	userActionKey := stats.GetPostUserActionKey(userID, postID)
-	_ = s.statsHelper.RemoveUserAction(ctx, userActionKey, actionType) //nolint:errcheck // Redis操作失败不影响主流程
+	_ = s.statsHelper.RemoveUserAction(ctx, userActionKey, actionType) //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 
-	// 标记帖子为脏数据
-	_ = s.statsHelper.MarkDirty(ctx, stats.PostDirtySetKey, postID) //nolint:errcheck // Redis操作失败不影响主流程
+	// Mark post as dirty data | 标记帖子为脏数据
+	_ = s.statsHelper.MarkDirty(ctx, stats.PostDirtySetKey, postID) //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 
 	s.logger.Info("取消帖子操作成功", zap.Int("post_id", postID), tracing.WithTraceIDField(ctx))
 	return s.GetStats(ctx, postID)
 }
 
-// GetStats 获取帖子统计数据
+// GetStats Get post statistics | 获取帖子统计数据
 func (s *PostStatsService) GetStats(ctx context.Context, postID int) (*stats.Stats, error) {
-	// 优先从Redis读取
+	// Read from Redis first | 优先从Redis读取
 	statsKey := stats.GetPostStatsKey(postID)
 	fields := []string{"like_count", "dislike_count", "favorite_count", "view_count"}
 
 	statData, err := s.statsHelper.GetStats(ctx, statsKey, fields)
 	if err == nil && len(statData) > 0 {
-		// 检查是否有有效数据
+		// Check if there is valid data | 检查是否有有效数据
 		hasData := false
 		for _, v := range statData {
 			if v > 0 {
@@ -263,7 +263,7 @@ func (s *PostStatsService) GetStats(ctx context.Context, postID int) (*stats.Sta
 		}
 	}
 
-	// Redis未命中,从数据库读取
+	// Redis cache miss, read from database | Redis未命中,从数据库读取
 	postData, err := s.db.Post.Query().Where(post.IDEQ(postID)).Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -281,8 +281,8 @@ func (s *PostStatsService) GetStats(ctx context.Context, postID int) (*stats.Sta
 		ViewCount:     postData.ViewCount,
 	}
 
-	// 回填Redis缓存
-	_ = s.statsHelper.SetStats(ctx, statsKey, map[string]int{ //nolint:errcheck // Redis操作失败不影响主流程
+	// Backfill Redis cache | 回填Redis缓存
+	_ = s.statsHelper.SetStats(ctx, statsKey, map[string]int{ //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 		"like_count":     result.LikeCount,
 		"dislike_count":  result.DislikeCount,
 		"favorite_count": result.FavoriteCount,
@@ -292,9 +292,9 @@ func (s *PostStatsService) GetStats(ctx context.Context, postID int) (*stats.Sta
 	return result, nil
 }
 
-// GetUserActionStatus 获取用户对帖子的操作状态
+// GetUserActionStatus Get user's action status on post | 获取用户对帖子的操作状态
 func (s *PostStatsService) GetUserActionStatus(ctx context.Context, userID, postID int) (*stats.UserActionStatus, error) {
-	// 优先从Redis读取
+	// Read from Redis first | 优先从Redis读取
 	userActionKey := stats.GetPostUserActionKey(userID, postID)
 	actions, err := s.statsHelper.GetUserActions(ctx, userActionKey)
 	if err == nil && len(actions) > 0 {
@@ -305,7 +305,7 @@ func (s *PostStatsService) GetUserActionStatus(ctx context.Context, userID, post
 		}, nil
 	}
 
-	// Redis未命中,从数据库读取
+	// Redis cache miss, read from database | Redis未命中,从数据库读取
 	userActions, err := s.db.PostAction.Query().
 		Where(
 			postaction.UserIDEQ(userID),
@@ -327,20 +327,20 @@ func (s *PostStatsService) GetUserActionStatus(ctx context.Context, userID, post
 		switch action.ActionType {
 		case postaction.ActionTypeLike:
 			result.HasLiked = true
-			_ = s.statsHelper.SetUserAction(ctx, userActionKey, stats.ActionTypeLike) //nolint:errcheck // Redis操作失败不影响主流程
+			_ = s.statsHelper.SetUserAction(ctx, userActionKey, stats.ActionTypeLike) //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 		case postaction.ActionTypeDislike:
 			result.HasDisliked = true
-			_ = s.statsHelper.SetUserAction(ctx, userActionKey, stats.ActionTypeDislike) //nolint:errcheck // Redis操作失败不影响主流程
+			_ = s.statsHelper.SetUserAction(ctx, userActionKey, stats.ActionTypeDislike) //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 		case postaction.ActionTypeFavorite:
 			result.HasFavorited = true
-			_ = s.statsHelper.SetUserAction(ctx, userActionKey, stats.ActionTypeFavorite) //nolint:errcheck // Redis操作失败不影响主流程
+			_ = s.statsHelper.SetUserAction(ctx, userActionKey, stats.ActionTypeFavorite) //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 		}
 	}
 
 	return result, nil
 }
 
-// GetStatsMap 批量获取帖子统计数据
+// GetStatsMap Batch get post statistics | 批量获取帖子统计数据
 func (s *PostStatsService) GetStatsMap(ctx context.Context, postIDs []int) (map[int]*stats.Stats, error) {
 	result := make(map[int]*stats.Stats)
 	for _, id := range postIDs {
@@ -354,23 +354,23 @@ func (s *PostStatsService) GetStatsMap(ctx context.Context, postIDs []int) (map[
 	return result, nil
 }
 
-// IncrViewCount 增加帖子浏览数
+// IncrViewCount Increment post view count | 增加帖子浏览数
 func (s *PostStatsService) IncrViewCount(ctx context.Context, postID int) error {
-	// 直接在Redis中增加浏览数
+	// Increment view count directly in Redis | 直接在Redis中增加浏览数
 	statsKey := stats.GetPostStatsKey(postID)
-	_ = s.statsHelper.IncrStats(ctx, statsKey, "view_count", 1) //nolint:errcheck // Redis操作失败不影响主流程
+	_ = s.statsHelper.IncrStats(ctx, statsKey, "view_count", 1) //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 
-	// 标记帖子为脏数据(异步同步到数据库)
-	_ = s.statsHelper.MarkDirty(ctx, stats.PostDirtySetKey, postID) //nolint:errcheck // Redis操作失败不影响主流程
+	// Mark post as dirty data (async sync to database) | 标记帖子为脏数据(异步同步到数据库)
+	_ = s.statsHelper.MarkDirty(ctx, stats.PostDirtySetKey, postID) //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 
 	return nil
 }
 
-// SyncStatsToDatabase 同步统计数据到数据库
+// SyncStatsToDatabase Sync statistics to database | 同步统计数据到数据库
 func (s *PostStatsService) SyncStatsToDatabase(ctx context.Context) (int, error) {
 	s.logger.Debug("开始同步帖子统计数据到数据库", tracing.WithTraceIDField(ctx))
 
-	// 获取所有脏数据ID
+	// Get all dirty data IDs | 获取所有脏数据ID
 	dirtyIDs, err := s.statsHelper.GetDirtyIDs(ctx, stats.PostDirtySetKey)
 	if err != nil {
 		s.logger.Error("获取脏数据ID失败", zap.Error(err), tracing.WithTraceIDField(ctx))
@@ -385,7 +385,7 @@ func (s *PostStatsService) SyncStatsToDatabase(ctx context.Context) (int, error)
 	s.logger.Info("需要同步的帖子数量", zap.Int("count", len(dirtyIDs)), tracing.WithTraceIDField(ctx))
 
 	syncCount := 0
-	// 批量处理,每次处理100个
+	// Batch processing, 100 items at a time | 批量处理,每次处理100个
 	batchSize := 100
 	for i := 0; i < len(dirtyIDs); i += batchSize {
 		end := i + batchSize
@@ -394,7 +394,7 @@ func (s *PostStatsService) SyncStatsToDatabase(ctx context.Context) (int, error)
 		}
 		batch := dirtyIDs[i:end]
 
-		// 处理这一批数据
+		// Process this batch | 处理这一批数据
 		count := s.syncBatch(ctx, batch)
 		syncCount += count
 	}
@@ -407,15 +407,15 @@ func (s *PostStatsService) SyncStatsToDatabase(ctx context.Context) (int, error)
 	return syncCount, nil
 }
 
-// syncBatch 批量同步帖子统计数据
+// syncBatch Batch sync post statistics | 批量同步帖子统计数据
 func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) int {
 	syncCount := 0
 
 	for _, postID := range postIDs {
-		// 从PostAction表聚合真实数据
+		// Aggregate real data from PostAction table | 从PostAction表聚合真实数据
 		var likeCount, dislikeCount, favoriteCount int
 
-		// 统计点赞数
+		// Count likes | 统计点赞数
 		likeCount, err := s.db.PostAction.Query().
 			Where(
 				postaction.PostIDEQ(postID),
@@ -427,7 +427,7 @@ func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) int {
 			continue
 		}
 
-		// 统计点踩数
+		// Count dislikes | 统计点踩数
 		dislikeCount, err = s.db.PostAction.Query().
 			Where(
 				postaction.PostIDEQ(postID),
@@ -439,7 +439,7 @@ func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) int {
 			continue
 		}
 
-		// 统计收藏数
+		// Count favorites | 统计收藏数
 		favoriteCount, err = s.db.PostAction.Query().
 			Where(
 				postaction.PostIDEQ(postID),
@@ -451,15 +451,15 @@ func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) int {
 			continue
 		}
 
-		// 从Redis获取浏览数(浏览数只在Redis中维护)
+		// Get view count from Redis (view count is only maintained in Redis) | 从Redis获取浏览数(浏览数只在Redis中维护)
 		statsKey := stats.GetPostStatsKey(postID)
-		viewCountStr, _ := s.cache.HGet(ctx, statsKey, "view_count") //nolint:errcheck // Redis操作失败使用默认值
+		viewCountStr, _ := s.cache.HGet(ctx, statsKey, "view_count") //nolint:errcheck // Use default value on Redis operation failure | Redis操作失败使用默认值
 		viewCount := 0
 		if viewCountStr != "" {
-			_, _ = fmt.Sscanf(viewCountStr, "%d", &viewCount) //nolint:errcheck // 解析失败使用默认值
+			_, _ = fmt.Sscanf(viewCountStr, "%d", &viewCount) //nolint:errcheck // Use default value on parse failure | 解析失败使用默认值
 		}
 
-		// 更新Post表
+		// Update Post table | 更新Post表
 		err = s.db.Post.UpdateOneID(postID).
 			SetLikeCount(likeCount).
 			SetDislikeCount(dislikeCount).
@@ -468,9 +468,9 @@ func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) int {
 			Exec(ctx)
 		if err != nil {
 			if ent.IsNotFound(err) {
-				// 帖子已被删除,清理脏标记和缓存
-				_ = s.statsHelper.RemoveDirtyIDs(ctx, stats.PostDirtySetKey, []int{postID}) //nolint:errcheck // Redis操作失败不影响主流程
-				_ = s.statsHelper.DeleteStatsCache(ctx, statsKey)                           //nolint:errcheck // Redis操作失败不影响主流程
+				// Post has been deleted, clean dirty mark and cache | 帖子已被删除,清理脏标记和缓存
+				_ = s.statsHelper.RemoveDirtyIDs(ctx, stats.PostDirtySetKey, []int{postID}) //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
+				_ = s.statsHelper.DeleteStatsCache(ctx, statsKey)                           //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 				s.logger.Warn("帖子不存在,已清理缓存", zap.Int("post_id", postID), tracing.WithTraceIDField(ctx))
 				continue
 			}
@@ -478,16 +478,16 @@ func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) int {
 			continue
 		}
 
-		// 更新Redis缓存
-		_ = s.statsHelper.SetStats(ctx, statsKey, map[string]int{ //nolint:errcheck // Redis操作失败不影响主流程
+		// Update Redis cache | 更新Redis缓存
+		_ = s.statsHelper.SetStats(ctx, statsKey, map[string]int{ //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 			"like_count":     likeCount,
 			"dislike_count":  dislikeCount,
 			"favorite_count": favoriteCount,
 			"view_count":     viewCount,
 		})
 
-		// 清除脏标记
-		_ = s.statsHelper.RemoveDirtyIDs(ctx, stats.PostDirtySetKey, []int{postID}) //nolint:errcheck // Redis操作失败不影响主流程
+		// Clear dirty mark | 清除脏标记
+		_ = s.statsHelper.RemoveDirtyIDs(ctx, stats.PostDirtySetKey, []int{postID}) //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 
 		syncCount++
 	}
@@ -495,7 +495,7 @@ func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) int {
 	return syncCount
 }
 
-// getStatsField 根据操作类型获取对应的统计字段名
+// getStatsField Get corresponding statistics field name based on action type | 根据操作类型获取对应的统计字段名
 func (s *PostStatsService) getStatsField(actionType stats.ActionType) string {
 	switch actionType {
 	case stats.ActionTypeLike:

@@ -16,24 +16,24 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 )
 
-// SigninAsyncTask 签到异步任务处理器
-// 使用asynq实现可靠的消息队列，确保数据持久化和故障恢复
+// SigninAsyncTask Sign-in async task handler | 签到异步任务处理器
+// Uses asynq for reliable message queue, ensuring data persistence and fault recovery | 使用asynq实现可靠的消息队列，确保数据持久化和故障恢复
 type SigninAsyncTask struct {
 	db          *ent.Client
 	logger      *zap.Logger
 	taskManager *pkgasynq.TaskManager
 }
 
-// SigninTaskPayload 签到任务载荷
+// SigninTaskPayload Sign-in task payload | 签到任务载荷
 type SigninTaskPayload struct {
 	UserID         int64     `json:"user_id"`
 	SignDate       time.Time `json:"sign_date"`
 	ContinuousDays int       `json:"continuous_days"`
 	TotalDays      int       `json:"total_days"`
-	TraceID        string    `json:"trace_id"` // 用于链路追踪
+	TraceID        string    `json:"trace_id"` // For distributed tracing | 用于链路追踪
 }
 
-// NewSigninAsyncTask 创建签到异步任务处理器
+// NewSigninAsyncTask Create sign-in async task handler | 创建签到异步任务处理器
 func NewSigninAsyncTask(db *ent.Client, taskManager *pkgasynq.TaskManager, logger *zap.Logger) *SigninAsyncTask {
 	return &SigninAsyncTask{
 		db:          db,
@@ -42,26 +42,26 @@ func NewSigninAsyncTask(db *ent.Client, taskManager *pkgasynq.TaskManager, logge
 	}
 }
 
-// RegisterHandler 注册任务处理器到TaskManager
+// RegisterHandler Register task handler to TaskManager | 注册任务处理器到TaskManager
 func (s *SigninAsyncTask) RegisterHandler() {
 	s.taskManager.RegisterHandlerFunc(pkgasynq.TypeSigninPersist, s.HandleSigninTask)
-	s.logger.Info("签到异步任务处理器已注册")
+	s.logger.Info("Sign-in async task handler registered | 签到异步任务处理器已注册")
 }
 
-// NewSigninTask 创建签到任务
+// NewSigninTask Create sign-in task | 创建签到任务
 func NewSigninTask(payload *SigninTaskPayload) (*asynq.Task, error) {
 	data, err := json.Marshal(payload)
 	if err != nil {
-		return nil, fmt.Errorf("序列化签到任务失败: %w", err)
+		return nil, fmt.Errorf("failed to serialize sign-in task | 序列化签到任务失败: %w", err)
 	}
 	return asynq.NewTask(pkgasynq.TypeSigninPersist, data, asynq.MaxRetry(3), asynq.Queue(pkgasynq.QueueDefault)), nil
 }
 
-// SubmitTask 提交签到任务
+// SubmitTask Submit sign-in task | 提交签到任务
 func (s *SigninAsyncTask) SubmitTask(ctx context.Context, payload *SigninTaskPayload) error {
 	task, err := NewSigninTask(payload)
 	if err != nil {
-		s.logger.Error("创建签到任务失败",
+		s.logger.Error("Failed to create sign-in task | 创建签到任务失败",
 			zap.Int64("user_id", payload.UserID),
 			zap.String("trace_id", payload.TraceID),
 			zap.Error(err))
@@ -70,14 +70,14 @@ func (s *SigninAsyncTask) SubmitTask(ctx context.Context, payload *SigninTaskPay
 
 	info, err := s.taskManager.EnqueueContext(ctx, task)
 	if err != nil {
-		s.logger.Error("提交签到任务失败",
+		s.logger.Error("Failed to submit sign-in task | 提交签到任务失败",
 			zap.Int64("user_id", payload.UserID),
 			zap.String("trace_id", payload.TraceID),
 			zap.Error(err))
-		return fmt.Errorf("提交任务失败: %w", err)
+		return fmt.Errorf("failed to submit task | 提交任务失败: %w", err)
 	}
 
-	s.logger.Debug("提交签到任务成功",
+	s.logger.Debug("Sign-in task submitted successfully | 提交签到任务成功",
 		zap.Int64("user_id", payload.UserID),
 		zap.String("trace_id", payload.TraceID),
 		zap.String("task_id", info.ID))
@@ -85,37 +85,37 @@ func (s *SigninAsyncTask) SubmitTask(ctx context.Context, payload *SigninTaskPay
 	return nil
 }
 
-// HandleSigninTask 处理签到任务（asynq Handler）
+// HandleSigninTask Handle sign-in task (asynq Handler) | 处理签到任务（asynq Handler）
 func (s *SigninAsyncTask) HandleSigninTask(ctx context.Context, t *asynq.Task) error {
 	var payload SigninTaskPayload
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
-		s.logger.Error("反序列化签到任务失败", zap.Error(err))
-		return fmt.Errorf("反序列化失败: %v: %w", err, asynq.SkipRetry)
+		s.logger.Error("Failed to deserialize sign-in task | 反序列化签到任务失败", zap.Error(err))
+		return fmt.Errorf("deserialization failed | 反序列化失败: %v: %w", err, asynq.SkipRetry)
 	}
 
-	// 创建带链路ID的context
+	// Create context with trace ID | 创建带链路ID的context
 	if payload.TraceID != "" {
 		ctx = tracing.WithTraceID(ctx, payload.TraceID)
 	}
 
 	startTime := time.Now()
-	s.logger.Info("开始处理签到任务",
+	s.logger.Info("Start processing sign-in task | 开始处理签到任务",
 		zap.Int64("user_id", payload.UserID),
 		zap.String("trace_id", payload.TraceID),
 		tracing.WithTraceIDField(ctx))
 
-	// 处理签到状态表
+	// Handle sign-in status table | 处理签到状态表
 	if err := s.updateSigninStatus(ctx, &payload); err != nil {
-		s.logger.Error("更新签到状态失败",
+		s.logger.Error("Failed to update sign-in status | 更新签到状态失败",
 			zap.Int64("user_id", payload.UserID),
 			zap.Error(err),
 			tracing.WithTraceIDField(ctx))
 		return err
 	}
 
-	// 处理签到日志表
+	// Handle sign-in log table | 处理签到日志表
 	if err := s.insertSigninLog(ctx, &payload); err != nil {
-		s.logger.Error("插入签到日志失败",
+		s.logger.Error("Failed to insert sign-in log | 插入签到日志失败",
 			zap.Int64("user_id", payload.UserID),
 			zap.Error(err),
 			tracing.WithTraceIDField(ctx))
@@ -123,7 +123,7 @@ func (s *SigninAsyncTask) HandleSigninTask(ctx context.Context, t *asynq.Task) e
 	}
 
 	duration := time.Since(startTime)
-	s.logger.Info("签到任务处理完成",
+	s.logger.Info("Sign-in task processing completed | 签到任务处理完成",
 		zap.Int64("user_id", payload.UserID),
 		zap.Duration("duration", duration),
 		tracing.WithTraceIDField(ctx))
@@ -131,7 +131,7 @@ func (s *SigninAsyncTask) HandleSigninTask(ctx context.Context, t *asynq.Task) e
 	return nil
 }
 
-// updateSigninStatus 更新签到状态表
+// updateSigninStatus Update sign-in status table | 更新签到状态表
 func (s *SigninAsyncTask) updateSigninStatus(ctx context.Context, payload *SigninTaskPayload) error {
 	existing, err := s.db.UserSigninStatus.Query().
 		Where(usersigninstatus.UserID(payload.UserID)).
@@ -139,7 +139,7 @@ func (s *SigninAsyncTask) updateSigninStatus(ctx context.Context, payload *Signi
 
 	if err != nil {
 		if ent.IsNotFound(err) {
-			// 记录不存在，创建新记录
+			// Record does not exist, create new record | 记录不存在，创建新记录
 			err = s.db.UserSigninStatus.Create().
 				SetUserID(payload.UserID).
 				SetLastSigninDate(payload.SignDate).
@@ -150,7 +150,7 @@ func (s *SigninAsyncTask) updateSigninStatus(ctx context.Context, payload *Signi
 			return err
 		}
 	} else {
-		// 记录存在，更新记录
+		// Record exists, update record | 记录存在，更新记录
 		_, err = s.db.UserSigninStatus.UpdateOne(existing).
 			SetLastSigninDate(payload.SignDate).
 			SetContinuousDays(payload.ContinuousDays).
@@ -162,7 +162,7 @@ func (s *SigninAsyncTask) updateSigninStatus(ctx context.Context, payload *Signi
 		return err
 	}
 
-	s.logger.Debug("签到状态更新成功",
+	s.logger.Debug("Sign-in status updated successfully | 签到状态更新成功",
 		zap.Int64("user_id", payload.UserID),
 		zap.Time("sign_date", payload.SignDate),
 		zap.Int("continuous_days", payload.ContinuousDays),
@@ -172,9 +172,9 @@ func (s *SigninAsyncTask) updateSigninStatus(ctx context.Context, payload *Signi
 	return nil
 }
 
-// insertSigninLog 插入签到日志
+// insertSigninLog Insert sign-in log | 插入签到日志
 func (s *SigninAsyncTask) insertSigninLog(ctx context.Context, payload *SigninTaskPayload) error {
-	// 检查今日是否已签到（防止重复插入）
+	// Check if signed in today (prevent duplicate insertion) | 检查今日是否已签到（防止重复插入）
 	exists, err := s.db.UserSigninLogs.Query().
 		Where(
 			usersigninlogs.UserID(payload.UserID),
@@ -187,14 +187,14 @@ func (s *SigninAsyncTask) insertSigninLog(ctx context.Context, payload *SigninTa
 	}
 
 	if exists {
-		s.logger.Debug("签到日志已存在，跳过插入",
+		s.logger.Debug("Sign-in log already exists, skip insertion | 签到日志已存在，跳过插入",
 			zap.Int64("user_id", payload.UserID),
 			zap.Time("sign_date", payload.SignDate),
 			tracing.WithTraceIDField(ctx))
 		return nil
 	}
 
-	// 插入新的签到日志
+	// Insert new sign-in log | 插入新的签到日志
 	err = s.db.UserSigninLogs.Create().
 		SetUserID(payload.UserID).
 		SetSignDate(payload.SignDate).
@@ -204,7 +204,7 @@ func (s *SigninAsyncTask) insertSigninLog(ctx context.Context, payload *SigninTa
 		return err
 	}
 
-	s.logger.Debug("签到日志插入成功",
+	s.logger.Debug("Sign-in log inserted successfully | 签到日志插入成功",
 		zap.Int64("user_id", payload.UserID),
 		zap.Time("sign_date", payload.SignDate),
 		tracing.WithTraceIDField(ctx))
