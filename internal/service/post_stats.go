@@ -368,8 +368,6 @@ func (s *PostStatsService) IncrViewCount(ctx context.Context, postID int) error 
 
 // SyncStatsToDatabase Sync statistics to database | 同步统计数据到数据库
 func (s *PostStatsService) SyncStatsToDatabase(ctx context.Context) (int, error) {
-	s.logger.Debug("开始同步帖子统计数据到数据库", tracing.WithTraceIDField(ctx))
-
 	// Get all dirty data IDs | 获取所有脏数据ID
 	dirtyIDs, err := s.statsHelper.GetDirtyIDs(ctx, stats.PostDirtySetKey)
 	if err != nil {
@@ -378,7 +376,6 @@ func (s *PostStatsService) SyncStatsToDatabase(ctx context.Context) (int, error)
 	}
 
 	if len(dirtyIDs) == 0 {
-		s.logger.Debug("没有需要同步的帖子数据", tracing.WithTraceIDField(ctx))
 		return 0, nil
 	}
 

@@ -337,8 +337,6 @@ func (s *CommentStatsService) GetStatsMap(ctx context.Context, commentIDs []int)
 
 // SyncStatsToDatabase Sync statistics data to database | 同步统计数据到数据库
 func (s *CommentStatsService) SyncStatsToDatabase(ctx context.Context) (int, error) {
-	s.logger.Debug("开始同步评论统计数据到数据库", tracing.WithTraceIDField(ctx))
-
 	// Get all dirty data IDs | 获取所有脏数据ID
 	dirtyIDs, err := s.statsHelper.GetDirtyIDs(ctx, stats.CommentDirtySetKey)
 	if err != nil {
@@ -347,7 +345,6 @@ func (s *CommentStatsService) SyncStatsToDatabase(ctx context.Context) (int, err
 	}
 
 	if len(dirtyIDs) == 0 {
-		s.logger.Debug("没有需要同步的评论数据", tracing.WithTraceIDField(ctx))
 		return 0, nil
 	}
 
