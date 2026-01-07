@@ -9,12 +9,12 @@ import (
 )
 
 func InjectorSrv(injector *do.Injector) {
-	// 注册 CacheService
+	// Register CacheService | 注册 CacheService
 	do.Provide(injector, func(i *do.Injector) (cache.ICacheService, error) {
 		return cache.NewRedisCacheService(configs.Cache, configs.Log), nil
 	})
 
-	// 注册 SettingsService
+	// Register SettingsService | 注册 SettingsService
 	do.Provide(injector, func(i *do.Injector) (service.ISettingsService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
 		if err != nil {
@@ -22,7 +22,7 @@ func InjectorSrv(injector *do.Injector) {
 		}
 		return service.NewSettingsService(configs.DB, cacheService, configs.Log), nil
 	})
-	// 注册 AuthService
+	// Register AuthService | 注册 AuthService
 	do.Provide(injector, func(i *do.Injector) (service.IAuthService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
 		if err != nil {
@@ -34,7 +34,7 @@ func InjectorSrv(injector *do.Injector) {
 		}
 		return service.NewAuthService(configs.DB, cacheService, configs.Log, settingsService), nil
 	})
-	// 注册 UserManageService
+	// Register UserManageService | 注册 UserManageService
 	do.Provide(injector, func(i *do.Injector) (service.IUserManageService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
 		if err != nil {
@@ -42,7 +42,7 @@ func InjectorSrv(injector *do.Injector) {
 		}
 		return service.NewUserManageService(configs.DB, cacheService, configs.Log), nil
 	})
-	// 注册 CategoryManageService
+	// Register CategoryManageService | 注册 CategoryManageService
 	do.Provide(injector, func(i *do.Injector) (service.ICategoryManageService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
 		if err != nil {
@@ -50,7 +50,7 @@ func InjectorSrv(injector *do.Injector) {
 		}
 		return service.NewCategoryManageService(configs.DB, cacheService, configs.Log), nil
 	})
-	// 注册 CategoryService
+	// Register CategoryService | 注册 CategoryService
 	do.Provide(injector, func(i *do.Injector) (service.ICategoryService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
 		if err != nil {
@@ -58,7 +58,7 @@ func InjectorSrv(injector *do.Injector) {
 		}
 		return service.NewCategoryService(configs.DB, cacheService, configs.Log), nil
 	})
-	// 注册 PostManageService
+	// Register PostManageService | 注册 PostManageService
 	do.Provide(injector, func(i *do.Injector) (service.IPostManageService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
 		if err != nil {
@@ -66,7 +66,7 @@ func InjectorSrv(injector *do.Injector) {
 		}
 		return service.NewPostManageService(configs.DB, cacheService, configs.Log), nil
 	})
-	// 注册 CommentManageService
+	// Register CommentManageService | 注册 CommentManageService
 	do.Provide(injector, func(i *do.Injector) (service.ICommentManageService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
 		if err != nil {
@@ -74,7 +74,7 @@ func InjectorSrv(injector *do.Injector) {
 		}
 		return service.NewCommentManageService(configs.DB, cacheService, configs.Log), nil
 	})
-	// 注册 DashboardService
+	// Register DashboardService | 注册 DashboardService
 	do.Provide(injector, func(i *do.Injector) (service.IDashboardService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
 		if err != nil {
@@ -82,7 +82,7 @@ func InjectorSrv(injector *do.Injector) {
 		}
 		return service.NewDashboardService(configs.DB, cacheService, configs.Log), nil
 	})
-	// 注册 ModeratorService
+	// Register ModeratorService | 注册 ModeratorService
 	do.Provide(injector, func(i *do.Injector) (service.IModeratorService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
 		if err != nil {
@@ -90,7 +90,7 @@ func InjectorSrv(injector *do.Injector) {
 		}
 		return service.NewModeratorService(configs.DB, cacheService, configs.Log), nil
 	})
-	// 注册 PostService
+	// Register PostService | 注册 PostService
 	do.Provide(injector, func(i *do.Injector) (service.IPostService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
 		if err != nil {
@@ -98,7 +98,7 @@ func InjectorSrv(injector *do.Injector) {
 		}
 		return service.NewPostService(configs.DB, cacheService, configs.Log), nil
 	})
-	// 注册 CommentService
+	// Register CommentService | 注册 CommentService
 	do.Provide(injector, func(i *do.Injector) (service.ICommentService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
 		if err != nil {
@@ -106,7 +106,7 @@ func InjectorSrv(injector *do.Injector) {
 		}
 		return service.NewCommentService(configs.DB, cacheService, configs.Log), nil
 	})
-	// 注册 UserProfileService
+	// Register UserProfileService | 注册 UserProfileService
 	do.Provide(injector, func(i *do.Injector) (service.IUserProfileService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
 		if err != nil {
@@ -122,7 +122,7 @@ func InjectorSrv(injector *do.Injector) {
 		}
 		return service.NewUserProfileService(configs.DB, cacheService, configs.Log, settingsService, userManageService), nil
 	})
-	// 注册 RankingService
+	// Register RankingService | 注册 RankingService
 	do.Provide(injector, func(i *do.Injector) (service.IRankingService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
 		if err != nil {
@@ -130,7 +130,7 @@ func InjectorSrv(injector *do.Injector) {
 		}
 		return service.NewRankingService(configs.DB, cacheService, configs.Log), nil
 	})
-	// 注册 OAuthProviderService
+	// Register OAuthProviderService | 注册 OAuthProviderService
 	do.Provide(injector, func(i *do.Injector) (service.IOAuthProviderService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
 		if err != nil {
@@ -139,19 +139,19 @@ func InjectorSrv(injector *do.Injector) {
 		return service.NewOAuthProviderService(configs.DB, cacheService, configs.Log), nil
 	})
 
-	// 注册 RedisLock
+	// Register RedisLock | 注册 RedisLock
 	do.Provide(injector, func(i *do.Injector) (*cache.RedisLock, error) {
 		return cache.NewRedisLock(configs.Cache, configs.Log), nil
 	})
 
-	// TaskManager 和 SigninAsyncTask 在 server.go 中通过 do.ProvideValue 注入
+	// TaskManager and SigninAsyncTask are injected through do.ProvideValue in server.go | TaskManager 和 SigninAsyncTask 在 server.go 中通过 do.ProvideValue 注入
 
-	// 注册 BlacklistService
+	// Register BlacklistService | 注册 BlacklistService
 	do.Provide(injector, func(i *do.Injector) (service.IBlacklistService, error) {
 		return service.NewBlacklistService(configs.DB, configs.Log), nil
 	})
 
-	// 注册 SigninService
+	// Register SigninService | 注册 SigninService
 	do.Provide(injector, func(i *do.Injector) (service.ISigninService, error) {
 		cacheService, err := do.Invoke[cache.ICacheService](injector)
 		if err != nil {
@@ -172,7 +172,7 @@ func InjectorSrv(injector *do.Injector) {
 		return service.NewSigninService(configs.DB, cacheService, redisLock, configs.Log, settingsService, asyncTask), nil
 	})
 
-	// 注册 PerformanceService
+	// Register PerformanceService | 注册 PerformanceService
 	do.Provide(injector, func(i *do.Injector) (service.IPerformanceService, error) {
 		pgDB := PgDB()
 		return service.NewPerformanceService(pgDB, configs.Cache, configs.Log), nil

@@ -18,14 +18,14 @@ import (
 )
 
 func Routers(injector *do.Injector) *gin.Engine {
-	// 设置SaToken
+	// Set up SaToken | 设置SaToken
 	saManager := satoken.NewSaToken()
 	saGin.SetManager(saManager)
 
-	// 创建 Gin 插件
+	// Create Gin plugin | 创建 Gin 插件
 	saPlugin := saGin.NewPlugin(saManager)
 
-	// 设置模式
+	// Set mode | 设置模式
 	if !configs.Debug {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -34,19 +34,19 @@ func Routers(injector *do.Injector) *gin.Engine {
 	Router.Use(middleware.Logger())
 	Router.Use(middleware.Recovery())
 
-	// 跨域配置
+	// CORS configuration | 跨域配置
 	Router.Use(cors.New(middleware.CorsConfig))
 
-	// 安全响应头
+	// Security response headers | 安全响应头
 	Router.Use(middleware.SecurityHeaders())
 
-	// 全局速率限制（每秒100个请求）
+	// Global rate limiting (100 requests per second) | 全局速率限制（每秒100个请求）
 	Router.Use(middleware.RateLimit(middleware.DefaultRateLimitConfig))
 
-	// 注册服务到注入器
+	// Register services to the injector | 注册服务到注入器
 	InjectorSrv(injector)
 
-	// 健康检查路由（不受速率限制影响，在api分组之外）
+	// Health check route (not affected by rate limiting, outside of api group) | 健康检查路由（不受速率限制影响，在api分组之外）
 	healthCon := controller.NewHealthController()
 	healthCon.HealthRouter(Router)
 
@@ -54,7 +54,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 		Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	}
 
-	// 注册 Prometheus
+	// Register Prometheus | 注册 Prometheus
 	if configs.Prometheus {
 		p := ginprometheus.NewPrometheus("gin")
 		p.Use(Router)
@@ -62,151 +62,151 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 	api := Router.Group("/api/v1")
 
-	// 认证校验（添加更严格的速率限制，防止暴力破解）
+	// Authentication verification (add stricter rate limiting to prevent brute force attacks) | 认证校验（添加更严格的速率限制，防止暴力破解）
 	AuthGroup := api.Group("/auth")
 	AuthGroup.Use(middleware.RateLimit(middleware.AuthRateLimitConfig))
 	AuthCon := controller.NewAuthController(injector)
 	AuthCon.AuthRouter(AuthGroup)
 
-	// 配置
+	// Configuration | 配置
 	ConfigGroup := api.Group("/config")
 	ConfigCon := controller.NewConfigController(injector)
 	ConfigCon.ConfigRouter(ConfigGroup)
 
-	// 添加登录校验
+	// Add login verification | 添加登录校验
 	AuthAPIGroup := api.Group("")
 	AuthAPIGroup.Use(saPlugin.AuthMiddleware())
 
-	// 论坛接口 - 用户侧权限校验放在Controller检查
+	// Forum interfaces - User-side permission checks are performed in the Controller | 论坛接口 - 用户侧权限校验放在Controller检查
 	ForumGroup := api.Group("")
 	{
-		// 用户
+		// User | 用户
 		{
-			// 个人中心
+			// User Profile | 个人中心
 			{
 				ProfileGroup := ForumGroup.Group("/profile")
 				ProfileCon := controller.NewUserProfileController(injector)
 				ProfileCon.UserProfileRouter(ProfileGroup)
 
-				// 拉黑用户
+				// Blacklist | 拉黑用户
 				BlacklistGroup := ForumGroup.Group("/profile/blacklist")
 				BlacklistCon := controller.NewBlacklistController(injector)
 				BlacklistCon.BlacklistRouter(BlacklistGroup)
 
-				// TODO 举报
+				// TODO Report | 举报
 
 				/*
-					- 邀请码注册
-					- 开关配置是否开启邀请码机制
-					- 用户可创建邀请码数量（有限/无限）
-					- 邀请码使用次数（有限/无限）
+					- Invitation code registration | 邀请码注册
+					- Toggle configuration for invitation code mechanism | 开关配置是否开启邀请码机制
+					- Number of invitation codes a user can create (limited/unlimited) | 用户可创建邀请码数量（有限/无限）
+					- Number of times an invitation code can be used (limited/unlimited) | 邀请码使用次数（有限/无限）
 				*/
-				// TODO 邀请码
+				// TODO Invitation Code | 邀请码
 			}
 
-			// TODO 发现
+			// TODO Discovery | 发现
 			{
 			}
 
-			// 排行榜
+			// Ranking | 排行榜
 			RankingGroup := ForumGroup.Group("/ranking")
 			RankingCon := controller.NewRankingController(injector)
 			RankingCon.RankingRouter(RankingGroup)
 
-			// 版块
+			// Category | 版块
 			CategoryGroup := ForumGroup.Group("/categories")
 			CategoryCon := controller.NewCategoryController(injector)
 			CategoryCon.CategoryRouter(CategoryGroup)
 
-			// 主题帖
+			// Post | 主题帖
 			PostGroup := ForumGroup.Group("/posts")
 			PostCon := controller.NewPostController(injector)
 			PostCon.PostRouter(PostGroup)
 
-			// 评论
+			// Comment | 评论
 			CommentGroup := ForumGroup.Group("/comments")
 			CommentCon := controller.NewCommentController(injector)
 			CommentCon.CommentRouter(CommentGroup)
 
-			// 签到系统
+			// Sign-in System | 签到系统
 			SigninGroup := ForumGroup.Group("/signin")
 			SigninCon := controller.NewSigninController(injector)
 			SigninCon.SigninRouter(SigninGroup)
 		}
 
-		// 版主接口
+		// Moderator Interface | 版主接口
 		ModeratorGroup := ForumGroup.Group("/moderator")
 		ModeratorGroup.Use(saGin.CheckRole(user.RoleModerator.String()))
 		ModeratorCon := controller.NewModeratorController(injector)
 		ModeratorCon.ModeratorRouter(ModeratorGroup)
 	}
 
-	// 管理员接口
+	// Administrator Interface | 管理员接口
 	ManageGroup := AuthAPIGroup.Group("/manage")
 	ManageGroup.Use(saGin.CheckRole(user.RoleAdmin.String()))
 	{
-		// 仪表盘
+		// Dashboard | 仪表盘
 		{
 			DashboardGroup := ManageGroup.Group("/dashboard")
 			DashboardCon := controller.NewDashboardController(injector)
 			DashboardCon.DashboardRouter(DashboardGroup)
 		}
 
-		// 用户管理
+		// User Management | 用户管理
 		{
 			UserManageGroup := ManageGroup.Group("/users")
 			UserManageCon := controller.NewUserManageController(injector)
 			UserManageCon.UserManageRouter(UserManageGroup)
 		}
 
-		// 版块管理
+		// Category Management | 版块管理
 		{
 			CategoryManageGroup := ManageGroup.Group("/categories")
 			CategoryManageCon := controller.NewCategoryManageController(injector)
 			CategoryManageCon.CategoryManageRouter(CategoryManageGroup)
 		}
 
-		// 帖子管理
+		// Post Management | 帖子管理
 		{
 			PostManageGroup := ManageGroup.Group("/posts")
 			PostManageCon := controller.NewPostManageController(injector)
 			PostManageCon.PostManageRouter(PostManageGroup)
 		}
 
-		// 评论管理
+		// Comment Management | 评论管理
 		{
 			CommentManageGroup := ManageGroup.Group("/comments")
 			CommentManageCon := controller.NewCommentManageController(injector)
 			CommentManageCon.CommentManageRouter(CommentManageGroup)
 		}
 
-		// TODO 举报管理
+		// TODO Report Management | 举报管理
 	}
 
-	// 超级管理接口
+	// Super Administrator Interface | 超级管理接口
 	SuperManageGroup := AuthAPIGroup.Group("/super/manage")
 	SuperManageGroup.Use(saGin.CheckRole(user.RoleSuperAdmin.String()))
 	{
-		// 性能监控
+		// Performance Monitoring | 性能监控
 		{
 			PerformanceGroup := SuperManageGroup.Group("/performance")
 			PerformanceCon := controller.NewPerformanceController(injector)
 			PerformanceCon.PerformanceRouter(PerformanceGroup)
 		}
 
-		// 设置管理（统一的设置控制器，包含所有系统设置）
+		// Settings Management (Unified settings controller, includes all system settings) | 设置管理（统一的设置控制器，包含所有系统设置）
 		SettingsGroup := SuperManageGroup.Group("/settings")
 		SettingsCon := controller.NewSettingsController(injector)
 		SettingsCon.SettingsRouter(SettingsGroup)
 
-		// OAuth提供商管理
+		// OAuth Provider Management | OAuth提供商管理
 		OAuthGroup := SuperManageGroup.Group("/settings/oauth")
 		{
 			OAuthProviderCon := controller.NewOAuthProviderController(injector)
 			OAuthProviderCon.OAuthProviderRouter(OAuthGroup)
 		}
 
-		// TODO 广告设置
+		// TODO Advertisement Settings | 广告设置
 	}
 
 	return Router
