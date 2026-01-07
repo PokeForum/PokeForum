@@ -52,13 +52,13 @@ var startTime = time.Now()
 // HealthRouter Register health check routes | 注册健康检查路由
 func (ctrl *HealthController) HealthRouter(router *gin.Engine) {
 	// Simple liveness probe (for load balancers) | 简单存活检测(用于负载均衡器)
-	router.GET("/ping", ctrl.Ping)
+	router.GET("/api/v1/ping", ctrl.Ping)
 
 	// Detailed health check (for monitoring systems) | 详细健康检查(用于监控系统)
-	router.GET("/health", ctrl.Health)
+	router.GET("/api/v1/health", ctrl.Health)
 
 	// Readiness check (for Kubernetes and other orchestration systems) | 就绪检查(用于Kubernetes等编排系统)
-	router.GET("/ready", ctrl.Ready)
+	router.GET("/api/v1/ready", ctrl.Ready)
 }
 
 // Ping Simple liveness probe | 简单存活检测
