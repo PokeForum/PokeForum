@@ -1,8 +1,8 @@
-// Package cmd 提供命令行接口和服务器启动功能
+// Package cmd provides command-line interface and server startup functionality | Package cmd 提供命令行接口和服务器启动功能
 //
 // @title PokeForum API
 // @version 1.0
-// @description PokeForum 是一个基于 Gin 框架的论坛应用程序
+// @description PokeForum is a forum application based on Gin framework | PokeForum 是一个基于 Gin 框架的论坛应用程序
 // @termsOfService http://swagger.io/terms/
 //
 // @contact.name API Support
@@ -49,51 +49,51 @@ var ServerCMD = &cobra.Command{
 	Use:   "server",
 	Short: "Start the server",
 	Long:  `Start the server`,
-	// 启动服务器
+	// Start the server | 启动服务器
 	RunE: func(cmd *cobra.Command, args []string) error {
 		RunServer()
 		return nil
 	},
 }
 
-// RunServer 启动服务器
+// RunServer starts the server | 启动服务器
 func RunServer() {
-	// 创建注入器
+	// Create injector | 创建注入器
 	injector := do.New()
 
-	// 初始化配置文件，使用命令行标志中的配置文件路径
+	// Initialize configuration file using the config file path from command line flags | 初始化配置文件，使用命令行标志中的配置文件路径
 	configs.VP = initializer.Viper(configs.ConfigPath)
 
-	// 初始化日志
+	// Initialize logger | 初始化日志
 	configs.Log = logging.Zap()
 
-	// 初始化 JSON 处理器
+	// Initialize JSON processor | 初始化 JSON 处理器
 	configs.Json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-	// 创建数据目录
+	// Create data directory | 创建数据目录
 	if err := utils.CreatNestedFolder(utils.DataFolder); err != nil {
 		configs.Log.Error(err.Error())
 		return
 	}
 
-	// 创建主题目录
+	// Create theme directory | 创建主题目录
 	if err := utils.CreatNestedFolder(utils.DataFolder + "/theme"); err != nil {
 		configs.Log.Error(err.Error())
 		return
 	}
 
-	// 初始化数据库
+	// Initialize database | 初始化数据库
 	configs.DB = initializer.DB()
 	if configs.DB == nil {
 		configs.Log.Error("DB initializer failed")
 		return
 	}
 
-	// 迁移数据库
+	// Migrate database | 迁移数据库
 	initializer.AutoMigrate(configs.DB)
 	configs.Log.Info("DB initializer succeeded")
 
-	// 初始化缓存
+	// Initialize cache | 初始化缓存
 	configs.Cache = initializer.Cache()
 	if configs.Cache == nil {
 		configs.Log.Error("Cache initializer failed")
@@ -101,40 +101,40 @@ func RunServer() {
 	}
 	configs.Log.Info("Cache initializer succeeded")
 
-	// 初始化缓存服务
+	// Initialize cache service | 初始化缓存服务
 	cacheService := cache.NewRedisCacheService(configs.Cache, configs.Log)
 
-	// 初始化asynq任务管理器
+	// Initialize asynq task manager | 初始化asynq任务管理器
 	taskManager := asynq.NewTaskManagerFromRedis(configs.Cache, 10, configs.Log)
 
-	// 注册签到异步任务处理器
+	// Register sign-in async task handler | 注册签到异步任务处理器
 	signinAsyncTask := service.NewSigninAsyncTask(configs.DB, taskManager, configs.Log)
 	signinAsyncTask.RegisterHandler()
 
-	// 注册统计数据同步任务处理器和定时任务(每5分钟同步一次)
+	// Register stats sync task handler and scheduled task (sync every 5 minutes) | 注册统计数据同步任务处理器和定时任务(每5分钟同步一次)
 	syncTask := service.NewStatsSyncTask(configs.DB, cacheService, taskManager, configs.Log)
 	syncTask.RegisterHandler()
 	if err := syncTask.RegisterSchedule(5 * time.Minute); err != nil {
-		configs.Log.Error("注册统计同步定时任务失败", zap.Error(err))
+		configs.Log.Error("Failed to register stats sync scheduled task | 注册统计同步定时任务失败", zap.Error(err))
 	}
 
-	// 启动asynq任务服务器
+	// Start asynq task server | 启动asynq任务服务器
 	if err := taskManager.Start(); err != nil {
-		configs.Log.Error("启动asynq任务服务器失败", zap.Error(err))
+		configs.Log.Error("Failed to start asynq task server | 启动asynq任务服务器失败", zap.Error(err))
 		return
 	}
 
-	// 启动时立即执行一次统计同步
+	// Execute stats sync immediately on startup | 启动时立即执行一次统计同步
 	syncTask.SyncNow(context.Background())
 
-	// 将SigninAsyncTask注入到injector供SigninService使用
+	// Inject SigninAsyncTask into injector for SigninService to use | 将SigninAsyncTask注入到injector供SigninService使用
 	do.ProvideValue(injector, signinAsyncTask)
 	do.ProvideValue(injector, taskManager)
 
-	// 注册路由
+	// Register routes | 注册路由
 	router := initializer.Routers(injector)
 
-	// 启动服务
+	// Start service | 启动服务
 	sDSN := fmt.Sprintf("%s:%s", configs.Host, configs.Port)
 	fmt.Printf("Server Run: %s \n", sDSN)
 	srv := &http.Server{
@@ -143,31 +143,31 @@ func RunServer() {
 		ReadHeaderTimeout: 10 * time.Second,
 	}
 
-	// 启动
+	// Start | 启动
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			configs.Log.Error(err.Error())
 		}
 	}()
 
-	// 等待终端信号来优雅关闭服务器，为关闭服务器设置10秒超时
-	quit := make(chan os.Signal, 1) // 创建一个接受信号的通道
+	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds | 等待终端信号来优雅关闭服务器，为关闭服务器设置10秒超时
+	quit := make(chan os.Signal, 1) // Create a channel that receives signals | 创建一个接受信号的通道
 
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM) // 此处不会阻塞
-	<-quit                                               // 阻塞此处，当接受到上述两种信号时，才继续往下执行
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM) // This will not block here | 此处不会阻塞
+	<-quit                                               // Block here until receiving the above two signals | 阻塞此处，当接受到上述两种信号时，才继续往下执行
 	configs.Log.Info("Service ready to shut down")
 
-	// 停止asynq任务服务器
+	// Stop asynq task server | 停止asynq任务服务器
 	taskManager.Stop()
 
-	// 创建10秒超时的Context
+	// Create context with 10 second timeout | 创建10秒超时的Context
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	// 关闭注入器，释放所有服务
+	// Shutdown injector and release all services | 关闭注入器，释放所有服务
 	if err := injector.Shutdown(); err != nil {
 		configs.Log.Fatal(err.Error())
 	}
-	// 10秒内优雅关闭服务（将未处理完成的请求处理完再关闭服务），超过10秒就超时退出
+	// Gracefully shutdown server within 10 seconds (finish processing unfinished requests before shutdown), timeout after 10 seconds | 10秒内优雅关闭服务（将未处理完成的请求处理完再关闭服务），超过10秒就超时退出
 	if err := srv.Shutdown(ctx); err != nil {
 		configs.Log.Fatal("Service timed out has been shut down: ", zap.Error(err))
 	}
