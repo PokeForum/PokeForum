@@ -28,19 +28,19 @@ func (w bodyLogWriter) WriteString(s string) (int, error) {
 
 func Logger() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		// 生成链路ID
+		// Generate trace ID | 生成链路ID
 		traceID := tracing.GenerateTraceID()
 
-		// 将链路ID存储到context中，方便后续使用
+		// Store trace ID in context for subsequent use | 将链路ID存储到context中，方便后续使用
 		ctx.Request = ctx.Request.WithContext(tracing.WithTraceID(ctx.Request.Context(), traceID))
 
-		// 在响应header中设置链路ID，返回给客户端
+		// Set trace ID in response header to return to client | 在响应header中设置链路ID，返回给客户端
 		ctx.Header(tracing.TraceIDHeader, traceID)
 
 		bodyLogWriter := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: ctx.Writer}
 		ctx.Writer = bodyLogWriter
 
-		// 开始时间
+		// Start time | 开始时间
 		startTime := time.Now()
 
 		b, err := ctx.Copy().GetRawData()
@@ -50,13 +50,13 @@ func Logger() gin.HandlerFunc {
 
 		ctx.Request.Body = io.NopCloser(bytes.NewReader(b))
 
-		// 处理请求
+		// Process request | 处理请求
 		ctx.Next()
 
-		// 结束时间
+		// End time | 结束时间
 		endTime := time.Now()
 
-		// 在日志中包含链路ID，方便追踪请求
+		// Include trace ID in logs for request tracking | 在日志中包含链路ID，方便追踪请求
 		configs.Log.Info("请求响应",
 			zap.String("trace_id", traceID),
 			zap.Int("status", ctx.Writer.Status()),
