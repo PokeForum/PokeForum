@@ -57,7 +57,7 @@ func Logger() gin.HandlerFunc {
 		endTime := time.Now()
 
 		// Include trace ID in logs for request tracking | 在日志中包含链路ID，方便追踪请求
-		configs.Log.Info("请求响应",
+		configs.Log.Info("Request",
 			zap.String("trace_id", traceID),
 			zap.Int("status", ctx.Writer.Status()),
 			zap.String("method", ctx.Request.Method),
