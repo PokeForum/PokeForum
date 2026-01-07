@@ -18,14 +18,13 @@ import (
 
 // UserManageController User management controller | 用户管理控制器
 type UserManageController struct {
-	// Injector instance for obtaining services | 注入器实例，用于获取服务
-	injector *do.Injector
+	userManageService service.IUserManageService
 }
 
 // NewUserManageController Create user management controller instance | 创建用户管理控制器实例
 func NewUserManageController(injector *do.Injector) *UserManageController {
 	return &UserManageController{
-		injector: injector,
+		userManageService: do.MustInvoke[service.IUserManageService](injector),
 	}
 }
 
@@ -106,15 +105,8 @@ func (ctrl *UserManageController) GetUserList(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	userManageService, err := do.Invoke[service.IUserManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	result, err := userManageService.GetUserList(c.Request.Context(), req)
+	result, err := ctrl.userManageService.GetUserList(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -141,28 +133,21 @@ func (ctrl *UserManageController) CreateUser(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	userManageService, err := do.Invoke[service.IUserManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	u, err := userManageService.CreateUser(c.Request.Context(), req)
+	u, err := ctrl.userManageService.CreateUser(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
 
 	// Query user's post count in real-time | 实时查询用户的发帖数和评论数
-	postCount, err := userManageService.GetUserPostCount(c.Request.Context(), u.ID)
+	postCount, err := ctrl.userManageService.GetUserPostCount(c.Request.Context(), u.ID)
 	if err != nil {
 		// Post count should be 0 for newly created user, use default value on query failure | 新创建用户的发帖数应该是0，查询失败时使用默认值
 		postCount = 0
 	}
 
-	commentCount, err := userManageService.GetUserCommentCount(c.Request.Context(), u.ID)
+	commentCount, err := ctrl.userManageService.GetUserCommentCount(c.Request.Context(), u.ID)
 	if err != nil {
 		// Comment count should be 0 for newly created user, use default value on query failure | 新创建用户的评论数应该是0，查询失败时使用默认值
 		commentCount = 0
@@ -208,28 +193,21 @@ func (ctrl *UserManageController) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	userManageService, err := do.Invoke[service.IUserManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	u, err := userManageService.UpdateUser(c.Request.Context(), req)
+	u, err := ctrl.userManageService.UpdateUser(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
 
 	// Query user's post count in real-time | 实时查询用户的发帖数和评论数
-	postCount, err := userManageService.GetUserPostCount(c.Request.Context(), u.ID)
+	postCount, err := ctrl.userManageService.GetUserPostCount(c.Request.Context(), u.ID)
 	if err != nil {
 		// Use default value 0 on query failure | 查询失败时使用默认值0
 		postCount = 0
 	}
 
-	commentCount, err := userManageService.GetUserCommentCount(c.Request.Context(), u.ID)
+	commentCount, err := ctrl.userManageService.GetUserCommentCount(c.Request.Context(), u.ID)
 	if err != nil {
 		// Use default value 0 on query failure | 查询失败时使用默认值0
 		commentCount = 0
@@ -277,15 +255,8 @@ func (ctrl *UserManageController) GetUserDetail(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	userManageService, err := do.Invoke[service.IUserManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	result, err := userManageService.GetUserDetail(c.Request.Context(), req.ID)
+	result, err := ctrl.userManageService.GetUserDetail(c.Request.Context(), req.ID)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -320,15 +291,8 @@ func (ctrl *UserManageController) UpdateUserStatus(c *gin.Context) {
 	}
 	req.OperatorID = operatorID
 
-	// Get service | 获取服务
-	userManageService, err := do.Invoke[service.IUserManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	err = userManageService.UpdateUserStatus(c.Request.Context(), req)
+	err = ctrl.userManageService.UpdateUserStatus(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -355,15 +319,8 @@ func (ctrl *UserManageController) UpdateUserRole(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	userManageService, err := do.Invoke[service.IUserManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	err = userManageService.UpdateUserRole(c.Request.Context(), req)
+	err := ctrl.userManageService.UpdateUserRole(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -390,15 +347,8 @@ func (ctrl *UserManageController) UpdateUserPoints(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	userManageService, err := do.Invoke[service.IUserManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	err = userManageService.UpdateUserPoints(c.Request.Context(), req)
+	err := ctrl.userManageService.UpdateUserPoints(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -425,15 +375,8 @@ func (ctrl *UserManageController) UpdateUserCurrency(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	userManageService, err := do.Invoke[service.IUserManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	err = userManageService.UpdateUserCurrency(c.Request.Context(), req)
+	err := ctrl.userManageService.UpdateUserCurrency(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -460,15 +403,8 @@ func (ctrl *UserManageController) SetModeratorCategories(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	userManageService, err := do.Invoke[service.IUserManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	err = userManageService.SetModeratorCategories(c.Request.Context(), req)
+	err := ctrl.userManageService.SetModeratorCategories(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -502,15 +438,8 @@ func (ctrl *UserManageController) GetUserBalanceLog(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	userManageService, err := do.Invoke[service.IUserManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	result, err := userManageService.GetUserBalanceLog(c.Request.Context(), req)
+	result, err := ctrl.userManageService.GetUserBalanceLog(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -539,15 +468,8 @@ func (ctrl *UserManageController) GetUserBalanceSummary(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	userManageService, err := do.Invoke[service.IUserManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	result, err := userManageService.GetUserBalanceSummary(c.Request.Context(), req.ID)
+	result, err := ctrl.userManageService.GetUserBalanceSummary(c.Request.Context(), req.ID)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -582,13 +504,7 @@ func (ctrl *UserManageController) BanUser(c *gin.Context) {
 	}
 	req.OperatorID = operatorID
 
-	userManageService, err := do.Invoke[service.IUserManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	err = userManageService.BanUser(c.Request.Context(), req)
+	err = ctrl.userManageService.BanUser(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -623,13 +539,7 @@ func (ctrl *UserManageController) UnbanUser(c *gin.Context) {
 	}
 	req.OperatorID = operatorID
 
-	userManageService, err := do.Invoke[service.IUserManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	err = userManageService.UnbanUser(c.Request.Context(), req)
+	err = ctrl.userManageService.UnbanUser(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return

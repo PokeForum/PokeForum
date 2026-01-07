@@ -10,14 +10,13 @@ import (
 
 // DashboardController Dashboard controller | 仪表盘控制器
 type DashboardController struct {
-	// Injector instance for obtaining services | 注入器实例，用于获取服务
-	injector *do.Injector
+	dashboardService service.IDashboardService
 }
 
 // NewDashboardController Create dashboard controller instance | 创建仪表盘控制器实例
 func NewDashboardController(injector *do.Injector) *DashboardController {
 	return &DashboardController{
-		injector: injector,
+		dashboardService: do.MustInvoke[service.IDashboardService](injector),
 	}
 }
 
@@ -46,15 +45,8 @@ func (ctrl *DashboardController) DashboardRouter(router *gin.RouterGroup) {
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /manage/dashboard/stats [get]
 func (ctrl *DashboardController) GetDashboardStats(c *gin.Context) {
-	// Get service | 获取服务
-	dashboardService, err := do.Invoke[service.IDashboardService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	result, err := dashboardService.GetDashboardStats(c.Request.Context())
+	result, err := ctrl.dashboardService.GetDashboardStats(c.Request.Context())
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -74,15 +66,8 @@ func (ctrl *DashboardController) GetDashboardStats(c *gin.Context) {
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /manage/dashboard/activity [get]
 func (ctrl *DashboardController) GetRecentActivity(c *gin.Context) {
-	// Get service | 获取服务
-	dashboardService, err := do.Invoke[service.IDashboardService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	result, err := dashboardService.GetRecentActivity(c.Request.Context())
+	result, err := ctrl.dashboardService.GetRecentActivity(c.Request.Context())
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -102,15 +87,8 @@ func (ctrl *DashboardController) GetRecentActivity(c *gin.Context) {
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /manage/dashboard/popular-posts [get]
 func (ctrl *DashboardController) GetPopularPosts(c *gin.Context) {
-	// Get service | 获取服务
-	dashboardService, err := do.Invoke[service.IDashboardService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	result, err := dashboardService.GetPopularPosts(c.Request.Context())
+	result, err := ctrl.dashboardService.GetPopularPosts(c.Request.Context())
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -130,15 +108,8 @@ func (ctrl *DashboardController) GetPopularPosts(c *gin.Context) {
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /manage/dashboard/popular-categories [get]
 func (ctrl *DashboardController) GetPopularCategories(c *gin.Context) {
-	// Get service | 获取服务
-	dashboardService, err := do.Invoke[service.IDashboardService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	result, err := dashboardService.GetPopularCategories(c.Request.Context())
+	result, err := ctrl.dashboardService.GetPopularCategories(c.Request.Context())
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return

@@ -11,13 +11,13 @@ import (
 
 // ConfigController Public configuration controller | 公开配置控制器
 type ConfigController struct {
-	injector *do.Injector
+	settingsService service.ISettingsService
 }
 
 // NewConfigController Create public configuration controller instance | 创建公开配置控制器实例
 func NewConfigController(injector *do.Injector) *ConfigController {
 	return &ConfigController{
-		injector: injector,
+		settingsService: do.MustInvoke[service.ISettingsService](injector),
 	}
 }
 
@@ -36,46 +36,40 @@ func (ctrl *ConfigController) ConfigRouter(router *gin.RouterGroup) {
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /config [get]
 func (ctrl *ConfigController) GetPublicConfig(c *gin.Context) {
-	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	ctx := c.Request.Context()
 
 	// Get all configurations in parallel | 并行获取所有配置
-	routine, err := settingsService.GetRoutineSettings(ctx)
+	routine, err := ctrl.settingsService.GetRoutineSettings(ctx)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
 
-	home, err := settingsService.GetHomeSettings(ctx)
+	home, err := ctrl.settingsService.GetHomeSettings(ctx)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
 
-	seo, err := settingsService.GetSeoSettings(ctx)
+	seo, err := ctrl.settingsService.GetSeoSettings(ctx)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
 
-	safe, err := settingsService.GetSafeSettings(ctx)
+	safe, err := ctrl.settingsService.GetSafeSettings(ctx)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
 
-	code, err := settingsService.GetCodeSettings(ctx)
+	code, err := ctrl.settingsService.GetCodeSettings(ctx)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
 
-	comment, err := settingsService.GetCommentSettings(ctx)
+	comment, err := ctrl.settingsService.GetCommentSettings(ctx)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return

@@ -17,14 +17,13 @@ import (
 
 // BlacklistController Blacklist controller | 黑名单控制器
 type BlacklistController struct {
-	// Injector instance for obtaining services | 注入器实例,用于获取服务
-	injector *do.Injector
+	blacklistService service.IBlacklistService
 }
 
 // NewBlacklistController Create blacklist controller instance | 创建黑名单控制器实例
 func NewBlacklistController(injector *do.Injector) *BlacklistController {
 	return &BlacklistController{
-		injector: injector,
+		blacklistService: do.MustInvoke[service.IBlacklistService](injector),
 	}
 }
 
@@ -100,11 +99,8 @@ func (ctrl *BlacklistController) GetBlacklistList(c *gin.Context) {
 		return
 	}
 
-	// Get blacklist service | 获取黑名单服务
-	blacklistService := do.MustInvoke[service.IBlacklistService](ctrl.injector)
-
-	// Call service to get blacklist | 调用服务获取黑名单列表
-	result, err := blacklistService.GetUserBlacklist(c.Request.Context(), userID, page, pageSize)
+	// Call service | 调用服务
+	result, err := ctrl.blacklistService.GetUserBlacklist(c.Request.Context(), userID, page, pageSize)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, "Failed to get blacklist | 获取黑名单列表失败", err.Error())
 		return
@@ -148,11 +144,8 @@ func (ctrl *BlacklistController) AddToBlacklist(c *gin.Context) {
 		return
 	}
 
-	// Get blacklist service | 获取黑名单服务
-	blacklistService := do.MustInvoke[service.IBlacklistService](ctrl.injector)
-
 	// Call service to add to blacklist | 调用服务添加黑名单
-	result, err := blacklistService.AddToBlacklist(c.Request.Context(), userID, req.BlockedUserID)
+	result, err := ctrl.blacklistService.AddToBlacklist(c.Request.Context(), userID, req.BlockedUserID)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, "Failed to add to blacklist | 添加黑名单失败", err.Error())
 		return
@@ -189,11 +182,8 @@ func (ctrl *BlacklistController) RemoveFromBlacklist(c *gin.Context) {
 		return
 	}
 
-	// Get blacklist service | 获取黑名单服务
-	blacklistService := do.MustInvoke[service.IBlacklistService](ctrl.injector)
-
 	// Call service to remove from blacklist | 调用服务移除黑名单
-	err = blacklistService.RemoveFromBlacklist(c.Request.Context(), userID, req.BlockedUserID)
+	err = ctrl.blacklistService.RemoveFromBlacklist(c.Request.Context(), userID, req.BlockedUserID)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, "Failed to remove from blacklist | 移除黑名单失败", err.Error())
 		return

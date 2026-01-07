@@ -17,16 +17,15 @@ import (
 
 // PerformanceController Performance monitoring controller | 性能监控控制器
 type PerformanceController struct {
-	injector *do.Injector
-	logger   *zap.Logger
+	performanceService service.IPerformanceService
+	logger             *zap.Logger
 }
 
 // NewPerformanceController Create performance monitoring controller instance | 创建性能监控控制器实例
 func NewPerformanceController(injector *do.Injector) *PerformanceController {
-	logger, _ := do.Invoke[*zap.Logger](injector) //nolint:errcheck // Returns nil if dependency injection fails | 依赖注入失败时返回nil
 	return &PerformanceController{
-		injector: injector,
-		logger:   logger,
+		performanceService: do.MustInvoke[service.IPerformanceService](injector),
+		logger:             do.MustInvoke[*zap.Logger](injector),
 	}
 }
 
@@ -82,13 +81,7 @@ func (ctrl *PerformanceController) HandleSSE(c *gin.Context) {
 		}
 	}
 
-	// Get service | 获取服务
-	perfService, err := do.Invoke[service.IPerformanceService](ctrl.injector)
-	if err != nil {
-		ctrl.logger.Error("Failed to get performance monitoring service | 获取性能监控服务失败", zap.Error(err))
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
+	// Push real-time monitoring data | 推送实时监控数据
 
 	// Set SSE response headers | 设置 SSE 响应头
 	c.Writer.Header().Set("Content-Type", "text/event-stream")
@@ -107,12 +100,12 @@ func (ctrl *PerformanceController) HandleSSE(c *gin.Context) {
 	defer ticker.Stop()
 
 	// Send first data immediately | 立即发送第一次数据
-	ctrl.sendMetrics(c, ctx, perfService, modules)
+	ctrl.sendMetrics(c, ctx, ctrl.performanceService, modules)
 
 	for {
 		select {
 		case <-ticker.C:
-			ctrl.sendMetrics(c, ctx, perfService, modules)
+			ctrl.sendMetrics(c, ctx, ctrl.performanceService, modules)
 		case <-clientGone:
 			ctrl.logger.Debug("SSE client disconnected | SSE 客户端断开连接")
 			return
@@ -195,13 +188,7 @@ func (ctrl *PerformanceController) GetHistoryMetrics(c *gin.Context) {
 		return
 	}
 
-	perfService, err := do.Invoke[service.IPerformanceService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	result, err := perfService.GetHistoryMetrics(c.Request.Context(), req)
+	result, err := ctrl.performanceService.GetHistoryMetrics(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return

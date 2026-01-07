@@ -47,7 +47,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 	InjectorSrv(injector)
 
 	// Health check route (not affected by rate limiting, outside of api group) | 健康检查路由（不受速率限制影响，在api分组之外）
-	healthCon := controller.NewHealthController()
+	healthCon := controller.NewHealthController(injector)
 	healthCon.HealthRouter(Router)
 
 	if configs.Debug {

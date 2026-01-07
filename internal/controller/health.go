@@ -9,16 +9,24 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/PokeForum/PokeForum/internal/configs"
+	"github.com/PokeForum/PokeForum/ent"
 	_const "github.com/PokeForum/PokeForum/internal/consts"
+	"github.com/PokeForum/PokeForum/internal/pkg/cache"
+	"github.com/samber/do"
 )
 
 // HealthController Health check controller | 健康检查控制器
-type HealthController struct{}
+type HealthController struct {
+	db    *ent.Client
+	cache cache.ICacheService
+}
 
 // NewHealthController Create health check controller instance | 创建健康检查控制器实例
-func NewHealthController() *HealthController {
-	return &HealthController{}
+func NewHealthController(injector *do.Injector) *HealthController {
+	return &HealthController{
+		db:    do.MustInvoke[*ent.Client](injector),
+		cache: do.MustInvoke[cache.ICacheService](injector),
+	}
 }
 
 // HealthStatus Health status response | 健康状态响应
@@ -153,7 +161,7 @@ func (ctrl *HealthController) Ready(c *gin.Context) {
 
 // checkDatabase Check database connection | 检查数据库连接
 func (ctrl *HealthController) checkDatabase() Check {
-	if configs.DB == nil {
+	if ctrl.db == nil {
 		return Check{
 			Status:  "down",
 			Message: "database client not initialized",
@@ -165,7 +173,7 @@ func (ctrl *HealthController) checkDatabase() Check {
 	defer cancel()
 
 	// Execute simple query to test connection | 执行简单查询测试连接
-	_, err := configs.DB.User.Query().Limit(1).Count(ctx)
+	_, err := ctrl.db.User.Query().Limit(1).Count(ctx)
 	latency := time.Since(start)
 
 	if err != nil {
@@ -184,7 +192,7 @@ func (ctrl *HealthController) checkDatabase() Check {
 
 // checkRedis Check Redis connection | 检查Redis连接
 func (ctrl *HealthController) checkRedis() Check {
-	if configs.Cache == nil {
+	if ctrl.cache == nil {
 		return Check{
 			Status:  "down",
 			Message: "redis client not initialized",
@@ -196,7 +204,7 @@ func (ctrl *HealthController) checkRedis() Check {
 	defer cancel()
 
 	// Execute PING command to test connection | 执行PING命令测试连接
-	err := configs.Cache.Ping(ctx).Err()
+	err := ctrl.cache.Ping(ctx).Err()
 	latency := time.Since(start)
 
 	if err != nil {

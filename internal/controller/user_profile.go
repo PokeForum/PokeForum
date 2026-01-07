@@ -17,14 +17,13 @@ import (
 
 // UserProfileController User profile controller | 用户个人中心控制器
 type UserProfileController struct {
-	// Injector instance for obtaining services | 注入器实例，用于获取服务
-	injector *do.Injector
+	userProfileService service.IUserProfileService
 }
 
 // NewUserProfileController Create user profile controller instance | 创建用户个人中心控制器实例
 func NewUserProfileController(injector *do.Injector) *UserProfileController {
 	return &UserProfileController{
-		injector: injector,
+		userProfileService: do.MustInvoke[service.IUserProfileService](injector),
 	}
 }
 
@@ -110,11 +109,8 @@ func (ctrl *UserProfileController) GetProfileOverview(c *gin.Context) {
 	// Determine if querying own profile | 判断是否为本人
 	isOwner := targetUserID == currentUserID
 
-	// Get service instance | 获取服务实例
-	profileService := do.MustInvoke[service.IUserProfileService](ctrl.injector)
-
 	// Call service to get profile overview | 调用服务获取个人中心概览
-	result, err := profileService.GetProfileOverview(c.Request.Context(), targetUserID, isOwner)
+	result, err := ctrl.userProfileService.GetProfileOverview(c.Request.Context(), targetUserID, isOwner)
 	if err != nil {
 		response.ResErrorWithMsg(c, 500, "获取个人中心概览失败", err.Error())
 		return
@@ -163,11 +159,8 @@ func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
 	// Determine if querying own profile | 判断是否为本人
 	isOwner := targetUserID == currentUserID
 
-	// Get service instance | 获取服务实例
-	profileService := do.MustInvoke[service.IUserProfileService](ctrl.injector)
-
 	// Call service to get user posts list | 调用服务获取用户主题帖列表
-	result, err := profileService.GetUserPosts(c.Request.Context(), targetUserID, req, isOwner)
+	result, err := ctrl.userProfileService.GetUserPosts(c.Request.Context(), targetUserID, req, isOwner)
 	if err != nil {
 		response.ResErrorWithMsg(c, 500, "获取用户主题帖列表失败", err.Error())
 		return
@@ -215,11 +208,8 @@ func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
 	// Determine if querying own profile | 判断是否为本人
 	isOwner := targetUserID == currentUserID
 
-	// Get service instance | 获取服务实例
-	profileService := do.MustInvoke[service.IUserProfileService](ctrl.injector)
-
 	// Call service to get user comments list | 调用服务获取用户评论列表
-	result, err := profileService.GetUserComments(c.Request.Context(), targetUserID, req, isOwner)
+	result, err := ctrl.userProfileService.GetUserComments(c.Request.Context(), targetUserID, req, isOwner)
 	if err != nil {
 		response.ResErrorWithMsg(c, 500, "获取用户评论列表失败", err.Error())
 		return
@@ -267,11 +257,8 @@ func (ctrl *UserProfileController) GetUserFavorites(c *gin.Context) {
 	// Determine if querying own profile | 判断是否为本人
 	isOwner := targetUserID == currentUserID
 
-	// Get service instance | 获取服务实例
-	profileService := do.MustInvoke[service.IUserProfileService](ctrl.injector)
-
 	// Call service to get user favorites list | 调用服务获取用户收藏列表
-	result, err := profileService.GetUserFavorites(c.Request.Context(), targetUserID, req, isOwner)
+	result, err := ctrl.userProfileService.GetUserFavorites(c.Request.Context(), targetUserID, req, isOwner)
 	if err != nil {
 		response.ResErrorWithMsg(c, 500, "获取用户收藏列表失败", err.Error())
 		return
@@ -308,11 +295,8 @@ func (ctrl *UserProfileController) UpdatePassword(c *gin.Context) {
 		return
 	}
 
-	// Get service instance | 获取服务实例
-	profileService := do.MustInvoke[service.IUserProfileService](ctrl.injector)
-
 	// Call service to update password | 调用服务修改密码
-	result, err := profileService.UpdatePassword(c.Request.Context(), userID, req)
+	result, err := ctrl.userProfileService.UpdatePassword(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, 500, "修改密码失败", err.Error())
 		return
@@ -349,11 +333,8 @@ func (ctrl *UserProfileController) UpdateAvatar(c *gin.Context) {
 		return
 	}
 
-	// Get service instance | 获取服务实例
-	profileService := do.MustInvoke[service.IUserProfileService](ctrl.injector)
-
 	// Call service to update avatar | 调用服务修改头像
-	result, err := profileService.UpdateAvatar(c.Request.Context(), userID, req)
+	result, err := ctrl.userProfileService.UpdateAvatar(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, 500, "修改头像失败", err.Error())
 		return
@@ -391,11 +372,8 @@ func (ctrl *UserProfileController) UpdateUsername(c *gin.Context) {
 		return
 	}
 
-	// Get service instance | 获取服务实例
-	profileService := do.MustInvoke[service.IUserProfileService](ctrl.injector)
-
 	// Call service to update username | 调用服务修改用户名
-	result, err := profileService.UpdateUsername(c.Request.Context(), userID, req)
+	result, err := ctrl.userProfileService.UpdateUsername(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, 500, "修改用户名失败", err.Error())
 		return
@@ -424,11 +402,8 @@ func (ctrl *UserProfileController) SendEmailVerifyCode(c *gin.Context) {
 		return
 	}
 
-	// Get user profile service | 获取用户个人中心服务
-	userProfileService := do.MustInvoke[service.IUserProfileService](ctrl.injector)
-
 	// Call service to send verification code | 调用服务发送验证码
-	result, err := userProfileService.SendEmailVerifyCode(c.Request.Context(), userID)
+	result, err := ctrl.userProfileService.SendEmailVerifyCode(c.Request.Context(), userID)
 	if err != nil {
 		if err.Error() == "发送次数过多，请1小时后再试" {
 			response.ResErrorWithMsg(c, response.CodeTooManyRequests, "发送频率过高", err.Error())
@@ -469,11 +444,8 @@ func (ctrl *UserProfileController) VerifyEmail(c *gin.Context) {
 		return
 	}
 
-	// Get user profile service | 获取用户个人中心服务
-	userProfileService := do.MustInvoke[service.IUserProfileService](ctrl.injector)
-
 	// Call service to verify email | 调用服务验证邮箱
-	result, err := userProfileService.VerifyEmail(c.Request.Context(), userID, req)
+	result, err := ctrl.userProfileService.VerifyEmail(c.Request.Context(), userID, req)
 	if err != nil {
 		// Return different status codes based on error type | 根据错误类型返回不同的状态码
 		if err.Error() == "验证码不存在或已过期" ||

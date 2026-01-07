@@ -3,6 +3,8 @@ package cache
 import (
 	"context"
 	"time"
+
+	"github.com/redis/go-redis/v9"
 )
 
 // ZMember Sorted set member | 有序集合成员
@@ -238,4 +240,9 @@ type ICacheService interface {
 	// stream: Stream键名
 	// 返回: Stream长度和错误信息
 	XLen(ctx context.Context, stream string) (int64, error)
+
+	// Ping Check Redis connection | 检查Redis连接
+	// ctx: context | ctx: 上下文
+	// Returns: status command | 返回: 状态命令
+	Ping(ctx context.Context) *redis.StatusCmd
 }

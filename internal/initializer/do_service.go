@@ -2,13 +2,20 @@ package initializer
 
 import (
 	"github.com/samber/do"
+	"go.uber.org/zap"
 
+	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/internal/configs"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/service"
 )
 
 func InjectorSrv(injector *do.Injector) {
+	// Register Infrastructure | 注册基础设施
+	do.ProvideValue(injector, configs.Log)
+	do.ProvideValue(injector, configs.DB)
+	do.ProvideValue(injector, configs.Cache)
+
 	// Register CacheService | 注册 CacheService
 	do.Provide(injector, func(i *do.Injector) (cache.ICacheService, error) {
 		return cache.NewRedisCacheService(configs.Cache, configs.Log), nil
@@ -16,127 +23,104 @@ func InjectorSrv(injector *do.Injector) {
 
 	// Register SettingsService | 注册 SettingsService
 	do.Provide(injector, func(i *do.Injector) (service.ISettingsService, error) {
-		cacheService, err := do.Invoke[cache.ICacheService](injector)
-		if err != nil {
-			return nil, err
-		}
-		return service.NewSettingsService(configs.DB, cacheService, configs.Log), nil
+		cacheService := do.MustInvoke[cache.ICacheService](i)
+		db := do.MustInvoke[*ent.Client](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		return service.NewSettingsService(db, cacheService, logger), nil
 	})
 	// Register AuthService | 注册 AuthService
 	do.Provide(injector, func(i *do.Injector) (service.IAuthService, error) {
-		cacheService, err := do.Invoke[cache.ICacheService](injector)
-		if err != nil {
-			return nil, err
-		}
-		settingsService, err := do.Invoke[service.ISettingsService](injector)
-		if err != nil {
-			return nil, err
-		}
-		return service.NewAuthService(configs.DB, cacheService, configs.Log, settingsService), nil
+		db := do.MustInvoke[*ent.Client](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		cacheService := do.MustInvoke[cache.ICacheService](i)
+		settingsService := do.MustInvoke[service.ISettingsService](i)
+		return service.NewAuthService(db, cacheService, logger, settingsService), nil
 	})
 	// Register UserManageService | 注册 UserManageService
 	do.Provide(injector, func(i *do.Injector) (service.IUserManageService, error) {
-		cacheService, err := do.Invoke[cache.ICacheService](injector)
-		if err != nil {
-			return nil, err
-		}
-		return service.NewUserManageService(configs.DB, cacheService, configs.Log), nil
+		db := do.MustInvoke[*ent.Client](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		cacheService := do.MustInvoke[cache.ICacheService](i)
+		return service.NewUserManageService(db, cacheService, logger), nil
 	})
 	// Register CategoryManageService | 注册 CategoryManageService
 	do.Provide(injector, func(i *do.Injector) (service.ICategoryManageService, error) {
-		cacheService, err := do.Invoke[cache.ICacheService](injector)
-		if err != nil {
-			return nil, err
-		}
-		return service.NewCategoryManageService(configs.DB, cacheService, configs.Log), nil
+		db := do.MustInvoke[*ent.Client](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		cacheService := do.MustInvoke[cache.ICacheService](i)
+		return service.NewCategoryManageService(db, cacheService, logger), nil
 	})
 	// Register CategoryService | 注册 CategoryService
 	do.Provide(injector, func(i *do.Injector) (service.ICategoryService, error) {
-		cacheService, err := do.Invoke[cache.ICacheService](injector)
-		if err != nil {
-			return nil, err
-		}
-		return service.NewCategoryService(configs.DB, cacheService, configs.Log), nil
+		db := do.MustInvoke[*ent.Client](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		cacheService := do.MustInvoke[cache.ICacheService](i)
+		return service.NewCategoryService(db, cacheService, logger), nil
 	})
 	// Register PostManageService | 注册 PostManageService
 	do.Provide(injector, func(i *do.Injector) (service.IPostManageService, error) {
-		cacheService, err := do.Invoke[cache.ICacheService](injector)
-		if err != nil {
-			return nil, err
-		}
-		return service.NewPostManageService(configs.DB, cacheService, configs.Log), nil
+		db := do.MustInvoke[*ent.Client](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		cacheService := do.MustInvoke[cache.ICacheService](i)
+		return service.NewPostManageService(db, cacheService, logger), nil
 	})
 	// Register CommentManageService | 注册 CommentManageService
 	do.Provide(injector, func(i *do.Injector) (service.ICommentManageService, error) {
-		cacheService, err := do.Invoke[cache.ICacheService](injector)
-		if err != nil {
-			return nil, err
-		}
-		return service.NewCommentManageService(configs.DB, cacheService, configs.Log), nil
+		db := do.MustInvoke[*ent.Client](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		cacheService := do.MustInvoke[cache.ICacheService](i)
+		return service.NewCommentManageService(db, cacheService, logger), nil
 	})
 	// Register DashboardService | 注册 DashboardService
 	do.Provide(injector, func(i *do.Injector) (service.IDashboardService, error) {
-		cacheService, err := do.Invoke[cache.ICacheService](injector)
-		if err != nil {
-			return nil, err
-		}
-		return service.NewDashboardService(configs.DB, cacheService, configs.Log), nil
+		db := do.MustInvoke[*ent.Client](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		cacheService := do.MustInvoke[cache.ICacheService](i)
+		return service.NewDashboardService(db, cacheService, logger), nil
 	})
 	// Register ModeratorService | 注册 ModeratorService
 	do.Provide(injector, func(i *do.Injector) (service.IModeratorService, error) {
-		cacheService, err := do.Invoke[cache.ICacheService](injector)
-		if err != nil {
-			return nil, err
-		}
-		return service.NewModeratorService(configs.DB, cacheService, configs.Log), nil
+		db := do.MustInvoke[*ent.Client](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		cacheService := do.MustInvoke[cache.ICacheService](i)
+		return service.NewModeratorService(db, cacheService, logger), nil
 	})
 	// Register PostService | 注册 PostService
 	do.Provide(injector, func(i *do.Injector) (service.IPostService, error) {
-		cacheService, err := do.Invoke[cache.ICacheService](injector)
-		if err != nil {
-			return nil, err
-		}
-		return service.NewPostService(configs.DB, cacheService, configs.Log), nil
+		db := do.MustInvoke[*ent.Client](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		cacheService := do.MustInvoke[cache.ICacheService](i)
+		return service.NewPostService(db, cacheService, logger), nil
 	})
 	// Register CommentService | 注册 CommentService
 	do.Provide(injector, func(i *do.Injector) (service.ICommentService, error) {
-		cacheService, err := do.Invoke[cache.ICacheService](injector)
-		if err != nil {
-			return nil, err
-		}
-		return service.NewCommentService(configs.DB, cacheService, configs.Log), nil
+		db := do.MustInvoke[*ent.Client](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		cacheService := do.MustInvoke[cache.ICacheService](i)
+		return service.NewCommentService(db, cacheService, logger), nil
 	})
 	// Register UserProfileService | 注册 UserProfileService
 	do.Provide(injector, func(i *do.Injector) (service.IUserProfileService, error) {
-		cacheService, err := do.Invoke[cache.ICacheService](injector)
-		if err != nil {
-			return nil, err
-		}
-		settingsService, err := do.Invoke[service.ISettingsService](injector)
-		if err != nil {
-			return nil, err
-		}
-		userManageService, err := do.Invoke[service.IUserManageService](injector)
-		if err != nil {
-			return nil, err
-		}
-		return service.NewUserProfileService(configs.DB, cacheService, configs.Log, settingsService, userManageService), nil
+		db := do.MustInvoke[*ent.Client](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		cacheService := do.MustInvoke[cache.ICacheService](i)
+		settingsService := do.MustInvoke[service.ISettingsService](i)
+		userManageService := do.MustInvoke[service.IUserManageService](i)
+		return service.NewUserProfileService(db, cacheService, logger, settingsService, userManageService), nil
 	})
 	// Register RankingService | 注册 RankingService
 	do.Provide(injector, func(i *do.Injector) (service.IRankingService, error) {
-		cacheService, err := do.Invoke[cache.ICacheService](injector)
-		if err != nil {
-			return nil, err
-		}
-		return service.NewRankingService(configs.DB, cacheService, configs.Log), nil
+		db := do.MustInvoke[*ent.Client](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		cacheService := do.MustInvoke[cache.ICacheService](i)
+		return service.NewRankingService(db, cacheService, logger), nil
 	})
 	// Register OAuthProviderService | 注册 OAuthProviderService
 	do.Provide(injector, func(i *do.Injector) (service.IOAuthProviderService, error) {
-		cacheService, err := do.Invoke[cache.ICacheService](injector)
-		if err != nil {
-			return nil, err
-		}
-		return service.NewOAuthProviderService(configs.DB, cacheService, configs.Log), nil
+		db := do.MustInvoke[*ent.Client](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		cacheService := do.MustInvoke[cache.ICacheService](i)
+		return service.NewOAuthProviderService(db, cacheService, logger), nil
 	})
 
 	// Register RedisLock | 注册 RedisLock
@@ -148,33 +132,26 @@ func InjectorSrv(injector *do.Injector) {
 
 	// Register BlacklistService | 注册 BlacklistService
 	do.Provide(injector, func(i *do.Injector) (service.IBlacklistService, error) {
-		return service.NewBlacklistService(configs.DB, configs.Log), nil
+		db := do.MustInvoke[*ent.Client](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		return service.NewBlacklistService(db, logger), nil
 	})
 
 	// Register SigninService | 注册 SigninService
 	do.Provide(injector, func(i *do.Injector) (service.ISigninService, error) {
-		cacheService, err := do.Invoke[cache.ICacheService](injector)
-		if err != nil {
-			return nil, err
-		}
-		redisLock, err := do.Invoke[*cache.RedisLock](injector)
-		if err != nil {
-			return nil, err
-		}
-		settingsService, err := do.Invoke[service.ISettingsService](injector)
-		if err != nil {
-			return nil, err
-		}
-		asyncTask, err := do.Invoke[*service.SigninAsyncTask](injector)
-		if err != nil {
-			return nil, err
-		}
-		return service.NewSigninService(configs.DB, cacheService, redisLock, configs.Log, settingsService, asyncTask), nil
+		db := do.MustInvoke[*ent.Client](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		cacheService := do.MustInvoke[cache.ICacheService](i)
+		redisLock := do.MustInvoke[*cache.RedisLock](i)
+		settingsService := do.MustInvoke[service.ISettingsService](i)
+		asyncTask := do.MustInvoke[*service.SigninAsyncTask](i)
+		return service.NewSigninService(db, cacheService, redisLock, logger, settingsService, asyncTask), nil
 	})
 
 	// Register PerformanceService | 注册 PerformanceService
 	do.Provide(injector, func(i *do.Injector) (service.IPerformanceService, error) {
 		pgDB := PgDB()
-		return service.NewPerformanceService(pgDB, configs.Cache, configs.Log), nil
+		logger := do.MustInvoke[*zap.Logger](i)
+		return service.NewPerformanceService(pgDB, configs.Cache, logger), nil
 	})
 }

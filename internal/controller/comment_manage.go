@@ -11,14 +11,13 @@ import (
 
 // CommentManageController Comment management controller | 评论管理控制器
 type CommentManageController struct {
-	// Injector instance for retrieving services | 注入器实例,用于获取服务
-	injector *do.Injector
+	commentManageService service.ICommentManageService
 }
 
 // NewCommentManageController Create comment management controller instance | 创建评论管理控制器实例
 func NewCommentManageController(injector *do.Injector) *CommentManageController {
 	return &CommentManageController{
-		injector: injector,
+		commentManageService: do.MustInvoke[service.ICommentManageService](injector),
 	}
 }
 
@@ -66,15 +65,8 @@ func (ctrl *CommentManageController) GetCommentList(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	commentManageService, err := do.Invoke[service.ICommentManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	result, err := commentManageService.GetCommentList(c.Request.Context(), req)
+	result, err := ctrl.commentManageService.GetCommentList(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -101,15 +93,8 @@ func (ctrl *CommentManageController) CreateComment(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	commentManageService, err := do.Invoke[service.ICommentManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	comment, err := commentManageService.CreateComment(c.Request.Context(), req)
+	comment, err := ctrl.commentManageService.CreateComment(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -157,15 +142,8 @@ func (ctrl *CommentManageController) UpdateComment(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	commentManageService, err := do.Invoke[service.ICommentManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	comment, err := commentManageService.UpdateComment(c.Request.Context(), req)
+	comment, err := ctrl.commentManageService.UpdateComment(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -215,15 +193,8 @@ func (ctrl *CommentManageController) GetCommentDetail(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	commentManageService, err := do.Invoke[service.ICommentManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	result, err := commentManageService.GetCommentDetail(c.Request.Context(), req.ID)
+	result, err := ctrl.commentManageService.GetCommentDetail(c.Request.Context(), req.ID)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -252,15 +223,8 @@ func (ctrl *CommentManageController) DeleteComment(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	commentManageService, err := do.Invoke[service.ICommentManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	err = commentManageService.DeleteComment(c.Request.Context(), req.ID)
+	err := ctrl.commentManageService.DeleteComment(c.Request.Context(), req.ID)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -287,15 +251,8 @@ func (ctrl *CommentManageController) SetCommentSelected(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	commentManageService, err := do.Invoke[service.ICommentManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	err = commentManageService.SetCommentSelected(c.Request.Context(), req)
+	err := ctrl.commentManageService.SetCommentSelected(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -322,15 +279,8 @@ func (ctrl *CommentManageController) SetCommentPin(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	commentManageService, err := do.Invoke[service.ICommentManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	err = commentManageService.SetCommentPin(c.Request.Context(), req)
+	err := ctrl.commentManageService.SetCommentPin(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return

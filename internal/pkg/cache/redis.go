@@ -456,3 +456,8 @@ func (r *RedisCacheService) XLen(ctx context.Context, stream string) (int64, err
 
 	return length, nil
 }
+
+// Ping Check Redis connection | 检查Redis连接
+func (r *RedisCacheService) Ping(ctx context.Context) *redis.StatusCmd {
+	return r.client.Ping(ctx)
+}

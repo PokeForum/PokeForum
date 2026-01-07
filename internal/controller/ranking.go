@@ -11,14 +11,13 @@ import (
 
 // RankingController Ranking controller | 排行榜控制器
 type RankingController struct {
-	// Injector instance for obtaining services | 注入器实例，用于获取服务
-	injector *do.Injector
+	rankingService service.IRankingService
 }
 
 // NewRankingController Create ranking controller instance | 创建排行榜控制器实例
 func NewRankingController(injector *do.Injector) *RankingController {
 	return &RankingController{
-		injector: injector,
+		rankingService: do.MustInvoke[service.IRankingService](injector),
 	}
 }
 
@@ -50,9 +49,6 @@ func (ctrl *RankingController) GetRankingList(c *gin.Context) {
 		return
 	}
 
-	// Get service instance | 获取服务实例
-	rankingService := do.MustInvoke[service.IRankingService](ctrl.injector)
-
 	// Call different service methods based on ranking type | 根据排行榜类型调用不同的服务方法
 	var result *schema.UserRankingListResponse
 	var err error
@@ -60,14 +56,14 @@ func (ctrl *RankingController) GetRankingList(c *gin.Context) {
 	switch req.Type {
 	case "reading":
 		// Get reading ranking | 获取阅读排行榜
-		result, err = rankingService.GetReadingRanking(c.Request.Context(), req)
+		result, err = ctrl.rankingService.GetReadingRanking(c.Request.Context(), req)
 		if err != nil {
 			response.ResErrorWithMsg(c, 500, "Failed to get reading ranking | 获取阅读排行榜失败", err.Error())
 			return
 		}
 	case "comment":
 		// Get comment ranking | 获取评论排行榜
-		result, err = rankingService.GetCommentRanking(c.Request.Context(), req)
+		result, err = ctrl.rankingService.GetCommentRanking(c.Request.Context(), req)
 		if err != nil {
 			response.ResErrorWithMsg(c, 500, "Failed to get comment ranking | 获取评论排行榜失败", err.Error())
 			return

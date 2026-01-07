@@ -15,14 +15,13 @@ import (
 
 // ModeratorController Moderator controller | 版主控制器
 type ModeratorController struct {
-	// Injector instance for obtaining services | 注入器实例，用于获取服务
-	injector *do.Injector
+	moderatorService service.IModeratorService
 }
 
 // NewModeratorController Create moderator controller instance | 创建版主控制器实例
 func NewModeratorController(injector *do.Injector) *ModeratorController {
 	return &ModeratorController{
-		injector: injector,
+		moderatorService: do.MustInvoke[service.IModeratorService](injector),
 	}
 }
 
@@ -101,15 +100,8 @@ func (ctrl *ModeratorController) GetModeratorCategories(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	moderatorService, err := do.Invoke[service.IModeratorService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	result, err := moderatorService.GetModeratorCategories(c.Request.Context(), userID)
+	result, err := ctrl.moderatorService.GetModeratorCategories(c.Request.Context(), userID)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -145,15 +137,8 @@ func (ctrl *ModeratorController) BanPost(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	moderatorService, err := do.Invoke[service.IModeratorService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	err = moderatorService.BanPost(c.Request.Context(), userID, req)
+	err = ctrl.moderatorService.BanPost(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -189,15 +174,8 @@ func (ctrl *ModeratorController) EditPost(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	moderatorService, err := do.Invoke[service.IModeratorService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	result, err := moderatorService.EditPost(c.Request.Context(), userID, req)
+	result, err := ctrl.moderatorService.EditPost(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -233,15 +211,8 @@ func (ctrl *ModeratorController) MovePost(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	moderatorService, err := do.Invoke[service.IModeratorService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	err = moderatorService.MovePost(c.Request.Context(), userID, req)
+	err = ctrl.moderatorService.MovePost(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -277,15 +248,8 @@ func (ctrl *ModeratorController) SetPostEssence(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	moderatorService, err := do.Invoke[service.IModeratorService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	err = moderatorService.SetPostEssence(c.Request.Context(), userID, req)
+	err = ctrl.moderatorService.SetPostEssence(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -321,15 +285,8 @@ func (ctrl *ModeratorController) LockPost(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	moderatorService, err := do.Invoke[service.IModeratorService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	err = moderatorService.LockPost(c.Request.Context(), userID, req)
+	err = ctrl.moderatorService.LockPost(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -365,15 +322,8 @@ func (ctrl *ModeratorController) PinPost(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	moderatorService, err := do.Invoke[service.IModeratorService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	err = moderatorService.PinPost(c.Request.Context(), userID, req)
+	err = ctrl.moderatorService.PinPost(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -409,15 +359,8 @@ func (ctrl *ModeratorController) EditCategory(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	moderatorService, err := do.Invoke[service.IModeratorService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	err = moderatorService.EditCategory(c.Request.Context(), userID, req)
+	err = ctrl.moderatorService.EditCategory(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -453,15 +396,8 @@ func (ctrl *ModeratorController) CreateCategoryAnnouncement(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	moderatorService, err := do.Invoke[service.IModeratorService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	result, err := moderatorService.CreateCategoryAnnouncement(c.Request.Context(), userID, req)
+	result, err := ctrl.moderatorService.CreateCategoryAnnouncement(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -499,15 +435,8 @@ func (ctrl *ModeratorController) GetCategoryAnnouncements(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	moderatorService, err := do.Invoke[service.IModeratorService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	result, err := moderatorService.GetCategoryAnnouncements(c.Request.Context(), userID, req.CategoryID)
+	result, err := ctrl.moderatorService.GetCategoryAnnouncements(c.Request.Context(), userID, req.CategoryID)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return

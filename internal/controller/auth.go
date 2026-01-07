@@ -1,13 +1,10 @@
 package controller
 
 import (
-	"context"
-
 	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/click33/sa-token-go/stputil"
 	"github.com/gin-gonic/gin"
 	"github.com/samber/do"
-	"go.uber.org/zap"
 
 	"github.com/PokeForum/PokeForum/internal/configs"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
@@ -18,14 +15,13 @@ import (
 
 // AuthController Authentication controller | 认证控制器
 type AuthController struct {
-	// Injector instance for obtaining services | 注入器实例，用于获取服务
-	injector *do.Injector
+	authService service.IAuthService
 }
 
 // NewAuthController Create authentication controller instance | 创建认证控制器实例
 func NewAuthController(injector *do.Injector) *AuthController {
 	return &AuthController{
-		injector: injector,
+		authService: do.MustInvoke[service.IAuthService](injector),
 	}
 }
 
@@ -61,15 +57,8 @@ func (ctrl *AuthController) Register(c *gin.Context) {
 		return
 	}
 
-	// Get AuthService from injector | 从注入器获取 AuthService
-	authService, err := do.Invoke[service.IAuthService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service to register | 调用服务进行注册
-	user, err := authService.Register(c.Request.Context(), req)
+	user, err := ctrl.authService.Register(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -101,15 +90,8 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 		return
 	}
 
-	// Get AuthService from injector | 从注入器获取 AuthService
-	authService, err := do.Invoke[service.IAuthService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service to login | 调用服务进行登录
-	user, err := authService.Login(c.Request.Context(), req)
+	user, err := ctrl.authService.Login(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -128,32 +110,8 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 		configs.Log.Warn(err.Error())
 	}
 
-	// Record login log - asynchronously save using goroutine | 记录登录日志 - 使用协程异步保存
-	go func() {
-		// Get client IP address | 获取客户端IP地址
-		clientIP := c.ClientIP()
-		// Get device information | 获取设备信息
-		deviceInfo := c.GetHeader("User-Agent")
-		if deviceInfo == "" {
-			deviceInfo = "Unknown"
-		}
-
-		// Create login record | 创建登录记录
-		_, err := configs.DB.UserLoginLog.Create().
-			SetUserID(user.ID).
-			SetIPAddress(clientIP).
-			SetDeviceInfo(deviceInfo).
-			SetSuccess(true).
-			Save(context.Background())
-
-		if err != nil {
-			// Log error without affecting main flow | 记录错误日志，但不影响主流程
-			configs.Log.Error("Failed to save login log | 保存登录日志失败",
-				zap.Int("user_id", user.ID),
-				zap.String("ip_address", clientIP),
-				zap.Error(err))
-		}
-	}()
+	// Record login log - asynchronously save | 记录登录日志 - 异步保存
+	ctrl.authService.RecordLoginLog(c.Request.Context(), user.ID, c.ClientIP(), ua)
 
 	// Return success response | 返回成功响应
 	response.ResSuccess(c, schema.LoginResponse{
@@ -206,15 +164,8 @@ func (ctrl *AuthController) ForgotPassword(c *gin.Context) {
 		return
 	}
 
-	// Get AuthService from injector | 从注入器获取 AuthService
-	authService, err := do.Invoke[service.IAuthService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service to send verification code | 调用服务发送验证码
-	result, err := authService.SendForgotPasswordCode(c.Request.Context(), req)
+	result, err := ctrl.authService.SendForgotPasswordCode(c.Request.Context(), req)
 	if err != nil {
 		if err.Error() == "发送次数过多，请1小时后再试" {
 			response.ResErrorWithMsg(c, response.CodeTooManyRequests, err.Error())
@@ -245,15 +196,8 @@ func (ctrl *AuthController) ResetPassword(c *gin.Context) {
 		return
 	}
 
-	// Get AuthService from injector | 从注入器获取 AuthService
-	authService, err := do.Invoke[service.IAuthService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service to reset password | 调用服务重置密码
-	result, err := authService.ResetPassword(c.Request.Context(), req)
+	result, err := ctrl.authService.ResetPassword(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return

@@ -12,14 +12,13 @@ import (
 
 // CategoryManageController Category management controller | 版块管理控制器
 type CategoryManageController struct {
-	// Injector instance for obtaining services | 注入器实例，用于获取服务
-	injector *do.Injector
+	categoryManageService service.ICategoryManageService
 }
 
 // NewCategoryManageController Create category management controller instance | 创建版块管理控制器实例
 func NewCategoryManageController(injector *do.Injector) *CategoryManageController {
 	return &CategoryManageController{
-		injector: injector,
+		categoryManageService: do.MustInvoke[service.ICategoryManageService](injector),
 	}
 }
 
@@ -64,15 +63,8 @@ func (ctrl *CategoryManageController) GetCategoryList(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	categoryManageService, err := do.Invoke[service.ICategoryManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	result, err := categoryManageService.GetCategoryList(c.Request.Context(), req)
+	result, err := ctrl.categoryManageService.GetCategoryList(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -99,15 +91,8 @@ func (ctrl *CategoryManageController) CreateCategory(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	categoryManageService, err := do.Invoke[service.ICategoryManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	category, err := categoryManageService.CreateCategory(c.Request.Context(), req)
+	category, err := ctrl.categoryManageService.CreateCategory(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -147,15 +132,8 @@ func (ctrl *CategoryManageController) UpdateCategory(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	categoryManageService, err := do.Invoke[service.ICategoryManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	category, err := categoryManageService.UpdateCategory(c.Request.Context(), req)
+	category, err := ctrl.categoryManageService.UpdateCategory(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -197,15 +175,8 @@ func (ctrl *CategoryManageController) GetCategoryDetail(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	categoryManageService, err := do.Invoke[service.ICategoryManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	result, err := categoryManageService.GetCategoryDetail(c.Request.Context(), req.ID)
+	result, err := ctrl.categoryManageService.GetCategoryDetail(c.Request.Context(), req.ID)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -234,15 +205,8 @@ func (ctrl *CategoryManageController) DeleteCategory(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	categoryManageService, err := do.Invoke[service.ICategoryManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	err = categoryManageService.DeleteCategory(c.Request.Context(), req.ID)
+	err := ctrl.categoryManageService.DeleteCategory(c.Request.Context(), req.ID)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -269,15 +233,8 @@ func (ctrl *CategoryManageController) UpdateCategoryStatus(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	categoryManageService, err := do.Invoke[service.ICategoryManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	err = categoryManageService.UpdateCategoryStatus(c.Request.Context(), req)
+	err := ctrl.categoryManageService.UpdateCategoryStatus(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -304,15 +261,8 @@ func (ctrl *CategoryManageController) SetCategoryModerators(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	categoryManageService, err := do.Invoke[service.ICategoryManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Invoke service | 调用服务
-	err = categoryManageService.SetCategoryModerators(c.Request.Context(), req)
+	err := ctrl.categoryManageService.SetCategoryModerators(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return

@@ -16,14 +16,13 @@ import (
 
 // CommentController Comment controller | 评论控制器
 type CommentController struct {
-	// Injector instance for retrieving services | 注入器实例,用于获取服务
-	injector *do.Injector
+	commentService service.ICommentService
 }
 
 // NewCommentController Create comment controller instance | 创建评论控制器实例
 func NewCommentController(injector *do.Injector) *CommentController {
 	return &CommentController{
-		injector: injector,
+		commentService: do.MustInvoke[service.ICommentService](injector),
 	}
 }
 
@@ -91,9 +90,6 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 		return
 	}
 
-	// Get service instance | 获取服务实例
-	commentService := do.MustInvoke[service.ICommentService](ctrl.injector)
-
 	// Get client IP and device info | 获取客户端IP和设备信息
 	clientIP := c.ClientIP()
 	deviceInfo := c.GetHeader("User-Agent")
@@ -102,7 +98,7 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 	}
 
 	// Call service to create comment | 调用服务创建评论
-	result, err := commentService.CreateComment(c.Request.Context(), userID, clientIP, deviceInfo, req)
+	result, err := ctrl.commentService.CreateComment(c.Request.Context(), userID, clientIP, deviceInfo, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, 500, "Failed to create comment | 创建评论失败", err.Error())
 		return
@@ -140,11 +136,8 @@ func (ctrl *CommentController) UpdateComment(c *gin.Context) {
 		return
 	}
 
-	// Get service instance | 获取服务实例
-	commentService := do.MustInvoke[service.ICommentService](ctrl.injector)
-
 	// Call service to update comment | 调用服务更新评论
-	result, err := commentService.UpdateComment(c.Request.Context(), userID, req)
+	result, err := ctrl.commentService.UpdateComment(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, 500, "Failed to update comment | 更新评论失败", err.Error())
 		return
@@ -181,11 +174,8 @@ func (ctrl *CommentController) LikeComment(c *gin.Context) {
 		return
 	}
 
-	// Get service instance | 获取服务实例
-	commentService := do.MustInvoke[service.ICommentService](ctrl.injector)
-
 	// Call service to like comment | 调用服务点赞评论
-	result, err := commentService.LikeComment(c.Request.Context(), userID, req)
+	result, err := ctrl.commentService.LikeComment(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, 500, "Failed to like comment | 点赞评论失败", err.Error())
 		return
@@ -222,11 +212,8 @@ func (ctrl *CommentController) DislikeComment(c *gin.Context) {
 		return
 	}
 
-	// Get service instance | 获取服务实例
-	commentService := do.MustInvoke[service.ICommentService](ctrl.injector)
-
 	// Call service to dislike comment | 调用服务点踩评论
-	result, err := commentService.DislikeComment(c.Request.Context(), userID, req)
+	result, err := ctrl.commentService.DislikeComment(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, 500, "Failed to dislike comment | 点踩评论失败", err.Error())
 		return
@@ -259,11 +246,8 @@ func (ctrl *CommentController) GetCommentList(c *gin.Context) {
 		return
 	}
 
-	// Get service instance | 获取服务实例
-	commentService := do.MustInvoke[service.ICommentService](ctrl.injector)
-
 	// Call service to get comment list | 调用服务获取评论列表
-	result, err := commentService.GetCommentList(c.Request.Context(), req)
+	result, err := ctrl.commentService.GetCommentList(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, 500, "Failed to get comment list | 获取评论列表失败", err.Error())
 		return

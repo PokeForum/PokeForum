@@ -17,14 +17,13 @@ import (
 
 // PostController Post Controller | 帖子控制器
 type PostController struct {
-	// Injector instance for retrieving services | 注入器实例,用于获取服务
-	injector *do.Injector
+	postService service.IPostService
 }
 
 // NewPostController Create post controller instance | 创建帖子控制器实例
 func NewPostController(injector *do.Injector) *PostController {
 	return &PostController{
-		injector: injector,
+		postService: do.MustInvoke[service.IPostService](injector),
 	}
 }
 
@@ -99,15 +98,8 @@ func (ctrl *PostController) CreatePost(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	postService, err := do.Invoke[service.IPostService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	result, err := postService.CreatePost(c.Request.Context(), userID, req)
+	result, err := ctrl.postService.CreatePost(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -142,15 +134,8 @@ func (ctrl *PostController) SaveDraft(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	postService, err := do.Invoke[service.IPostService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	result, err := postService.SaveDraft(c.Request.Context(), userID, req)
+	result, err := ctrl.postService.SaveDraft(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -186,15 +171,8 @@ func (ctrl *PostController) UpdatePost(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	postService, err := do.Invoke[service.IPostService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	result, err := postService.UpdatePost(c.Request.Context(), userID, req)
+	result, err := ctrl.postService.UpdatePost(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -230,15 +208,8 @@ func (ctrl *PostController) SetPostPrivate(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	postService, err := do.Invoke[service.IPostService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	result, err := postService.SetPostPrivate(c.Request.Context(), userID, req)
+	result, err := ctrl.postService.SetPostPrivate(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -274,15 +245,8 @@ func (ctrl *PostController) LikePost(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	postService, err := do.Invoke[service.IPostService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	result, err := postService.LikePost(c.Request.Context(), userID, req)
+	result, err := ctrl.postService.LikePost(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -318,15 +282,8 @@ func (ctrl *PostController) DislikePost(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	postService, err := do.Invoke[service.IPostService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	result, err := postService.DislikePost(c.Request.Context(), userID, req)
+	result, err := ctrl.postService.DislikePost(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -361,15 +318,8 @@ func (ctrl *PostController) FavoritePost(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	postService, err := do.Invoke[service.IPostService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	result, err := postService.FavoritePost(c.Request.Context(), userID, req)
+	result, err := ctrl.postService.FavoritePost(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -399,15 +349,8 @@ func (ctrl *PostController) GetPostList(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	postService, err := do.Invoke[service.IPostService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	result, err := postService.GetPostList(c.Request.Context(), req)
+	result, err := ctrl.postService.GetPostList(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -435,15 +378,8 @@ func (ctrl *PostController) GetPostDetail(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	postService, err := do.Invoke[service.IPostService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	result, err := postService.GetPostDetail(c.Request.Context(), req)
+	result, err := ctrl.postService.GetPostDetail(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return

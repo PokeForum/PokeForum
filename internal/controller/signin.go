@@ -16,14 +16,13 @@ import (
 
 // SigninController Sign-in controller | 签到控制器
 type SigninController struct {
-	// Injector instance for obtaining services | 注入器实例，用于获取服务
-	injector *do.Injector
+	signinService service.ISigninService
 }
 
 // NewSigninController Create sign-in controller instance | 创建签到控制器实例
 func NewSigninController(injector *do.Injector) *SigninController {
 	return &SigninController{
-		injector: injector,
+		signinService: do.MustInvoke[service.ISigninService](injector),
 	}
 }
 
@@ -83,11 +82,8 @@ func (ctrl *SigninController) Signin(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	signinService := do.MustInvoke[service.ISigninService](ctrl.injector)
-
 	// Call sign-in service | 调用签到服务
-	result, err := signinService.Signin(c.Request.Context(), int64(userID))
+	result, err := ctrl.signinService.Signin(c.Request.Context(), int64(userID))
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -115,11 +111,8 @@ func (ctrl *SigninController) GetSigninStatus(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	signinService := do.MustInvoke[service.ISigninService](ctrl.injector)
-
 	// Call sign-in service to get status | 调用签到服务获取状态
-	status, err := signinService.GetSigninStatus(c.Request.Context(), int64(userID))
+	status, err := ctrl.signinService.GetSigninStatus(c.Request.Context(), int64(userID))
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -158,11 +151,8 @@ func (ctrl *SigninController) GetDailyRanking(c *gin.Context) {
 	// Try to get user ID (optional, for getting current user's rank) | 尝试获取用户ID（可选，用于获取当前用户排名）
 	userID, _ := ctrl.getUserID(c) //nolint:errcheck // User ID is optional | 用户ID是可选的
 
-	// Get service | 获取服务
-	signinService := do.MustInvoke[service.ISigninService](ctrl.injector)
-
 	// Call sign-in service to get ranking | 调用签到服务获取排行榜
-	ranking, err := signinService.GetDailyRanking(c.Request.Context(), date, limit, int64(userID))
+	ranking, err := ctrl.signinService.GetDailyRanking(c.Request.Context(), date, limit, int64(userID))
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -199,11 +189,8 @@ func (ctrl *SigninController) GetContinuousRanking(c *gin.Context) {
 	// Try to get user ID (optional, for getting current user's rank) | 尝试获取用户ID（可选，用于获取当前用户排名）
 	userID, _ := ctrl.getUserID(c) //nolint:errcheck // User ID is optional | 用户ID是可选的
 
-	// Get service | 获取服务
-	signinService := do.MustInvoke[service.ISigninService](ctrl.injector)
-
 	// Call sign-in service to get ranking | 调用签到服务获取排行榜
-	ranking, err := signinService.GetContinuousRanking(c.Request.Context(), limit, int64(userID))
+	ranking, err := ctrl.signinService.GetContinuousRanking(c.Request.Context(), limit, int64(userID))
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return

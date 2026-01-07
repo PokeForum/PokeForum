@@ -12,14 +12,13 @@ import (
 
 // PostManageController Post management controller | 帖子管理控制器
 type PostManageController struct {
-	// Injector instance for retrieving services | 注入器实例,用于获取服务
-	injector *do.Injector
+	postManageService service.IPostManageService
 }
 
 // NewPostManageController Create post management controller instance | 创建帖子管理控制器实例
 func NewPostManageController(injector *do.Injector) *PostManageController {
 	return &PostManageController{
-		injector: injector,
+		postManageService: do.MustInvoke[service.IPostManageService](injector),
 	}
 }
 
@@ -70,15 +69,8 @@ func (ctrl *PostManageController) GetPostList(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	postManageService, err := do.Invoke[service.IPostManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	result, err := postManageService.GetPostList(c.Request.Context(), req)
+	result, err := ctrl.postManageService.GetPostList(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -105,15 +97,8 @@ func (ctrl *PostManageController) CreatePost(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	postManageService, err := do.Invoke[service.IPostManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	post, err := postManageService.CreatePost(c.Request.Context(), req)
+	post, err := ctrl.postManageService.CreatePost(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -162,15 +147,8 @@ func (ctrl *PostManageController) UpdatePost(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	postManageService, err := do.Invoke[service.IPostManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	post, err := postManageService.UpdatePost(c.Request.Context(), req)
+	post, err := ctrl.postManageService.UpdatePost(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -221,15 +199,8 @@ func (ctrl *PostManageController) GetPostDetail(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	postManageService, err := do.Invoke[service.IPostManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	result, err := postManageService.GetPostDetail(c.Request.Context(), req.ID)
+	result, err := ctrl.postManageService.GetPostDetail(c.Request.Context(), req.ID)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -258,15 +229,8 @@ func (ctrl *PostManageController) DeletePost(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	postManageService, err := do.Invoke[service.IPostManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	err = postManageService.DeletePost(c.Request.Context(), req.ID)
+	err := ctrl.postManageService.DeletePost(c.Request.Context(), req.ID)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -293,15 +257,8 @@ func (ctrl *PostManageController) UpdatePostStatus(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	postManageService, err := do.Invoke[service.IPostManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	err = postManageService.UpdatePostStatus(c.Request.Context(), req)
+	err := ctrl.postManageService.UpdatePostStatus(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -328,15 +285,8 @@ func (ctrl *PostManageController) SetPostEssence(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	postManageService, err := do.Invoke[service.IPostManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	err = postManageService.SetPostEssence(c.Request.Context(), req)
+	err := ctrl.postManageService.SetPostEssence(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -363,15 +313,8 @@ func (ctrl *PostManageController) SetPostPin(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	postManageService, err := do.Invoke[service.IPostManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	err = postManageService.SetPostPin(c.Request.Context(), req)
+	err := ctrl.postManageService.SetPostPin(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -398,15 +341,8 @@ func (ctrl *PostManageController) MovePost(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	postManageService, err := do.Invoke[service.IPostManageService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	err = postManageService.MovePost(c.Request.Context(), req)
+	err := ctrl.postManageService.MovePost(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return

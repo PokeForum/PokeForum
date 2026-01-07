@@ -12,14 +12,13 @@ import (
 
 // SettingsController Settings controller | 设置控制器
 type SettingsController struct {
-	// Injector instance for obtaining services | 注入器实例，用于获取服务
-	injector *do.Injector
+	settingsService service.ISettingsService
 }
 
 // NewSettingsController Create settings controller instance | 创建设置控制器实例
 func NewSettingsController(injector *do.Injector) *SettingsController {
 	return &SettingsController{
-		injector: injector,
+		settingsService: do.MustInvoke[service.ISettingsService](injector),
 	}
 }
 
@@ -95,13 +94,7 @@ func (ctrl *SettingsController) SettingsRouter(router *gin.RouterGroup) {
 // @Router /super/manage/settings/routine [get]
 // @Security Bearer
 func (ctrl *SettingsController) GetRoutineSettings(c *gin.Context) {
-	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	config, err := settingsService.GetRoutineSettings(c.Request.Context())
+	config, err := ctrl.settingsService.GetRoutineSettings(c.Request.Context())
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -129,13 +122,7 @@ func (ctrl *SettingsController) UpdateRoutineSettings(c *gin.Context) {
 		return
 	}
 
-	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	if err = settingsService.UpdateRoutineSettings(c.Request.Context(), req); err != nil {
+	if err := ctrl.settingsService.UpdateRoutineSettings(c.Request.Context(), req); err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
@@ -154,13 +141,7 @@ func (ctrl *SettingsController) UpdateRoutineSettings(c *gin.Context) {
 // @Router /super/manage/settings/home [get]
 // @Security Bearer
 func (ctrl *SettingsController) GetHomeSettings(c *gin.Context) {
-	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	config, err := settingsService.GetHomeSettings(c.Request.Context())
+	config, err := ctrl.settingsService.GetHomeSettings(c.Request.Context())
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -188,13 +169,7 @@ func (ctrl *SettingsController) UpdateHomeSettings(c *gin.Context) {
 		return
 	}
 
-	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	if err = settingsService.UpdateHomeSettings(c.Request.Context(), req); err != nil {
+	if err := ctrl.settingsService.UpdateHomeSettings(c.Request.Context(), req); err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
@@ -213,13 +188,7 @@ func (ctrl *SettingsController) UpdateHomeSettings(c *gin.Context) {
 // @Router /super/manage/settings/comment [get]
 // @Security Bearer
 func (ctrl *SettingsController) GetCommentSettings(c *gin.Context) {
-	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	config, err := settingsService.GetCommentSettings(c.Request.Context())
+	config, err := ctrl.settingsService.GetCommentSettings(c.Request.Context())
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -247,13 +216,7 @@ func (ctrl *SettingsController) UpdateCommentSettings(c *gin.Context) {
 		return
 	}
 
-	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	if err = settingsService.UpdateCommentSettings(c.Request.Context(), req); err != nil {
+	if err := ctrl.settingsService.UpdateCommentSettings(c.Request.Context(), req); err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
@@ -272,13 +235,7 @@ func (ctrl *SettingsController) UpdateCommentSettings(c *gin.Context) {
 // @Router /super/manage/settings/seo [get]
 // @Security Bearer
 func (ctrl *SettingsController) GetSeoSettings(c *gin.Context) {
-	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	config, err := settingsService.GetSeoSettings(c.Request.Context())
+	config, err := ctrl.settingsService.GetSeoSettings(c.Request.Context())
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -306,13 +263,7 @@ func (ctrl *SettingsController) UpdateSeoSettings(c *gin.Context) {
 		return
 	}
 
-	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	if err = settingsService.UpdateSeoSettings(c.Request.Context(), req); err != nil {
+	if err := ctrl.settingsService.UpdateSeoSettings(c.Request.Context(), req); err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
@@ -331,13 +282,7 @@ func (ctrl *SettingsController) UpdateSeoSettings(c *gin.Context) {
 // @Router /super/manage/settings/code [get]
 // @Security Bearer
 func (ctrl *SettingsController) GetCodeSettings(c *gin.Context) {
-	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	config, err := settingsService.GetCodeSettings(c.Request.Context())
+	config, err := ctrl.settingsService.GetCodeSettings(c.Request.Context())
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -365,13 +310,7 @@ func (ctrl *SettingsController) UpdateCodeSettings(c *gin.Context) {
 		return
 	}
 
-	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	if err = settingsService.UpdateCodeSettings(c.Request.Context(), req); err != nil {
+	if err := ctrl.settingsService.UpdateCodeSettings(c.Request.Context(), req); err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
@@ -390,13 +329,7 @@ func (ctrl *SettingsController) UpdateCodeSettings(c *gin.Context) {
 // @Router /super/manage/settings/safe [get]
 // @Security Bearer
 func (ctrl *SettingsController) GetSafeSettings(c *gin.Context) {
-	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	config, err := settingsService.GetSafeSettings(c.Request.Context())
+	config, err := ctrl.settingsService.GetSafeSettings(c.Request.Context())
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -424,13 +357,7 @@ func (ctrl *SettingsController) UpdateSafeSettings(c *gin.Context) {
 		return
 	}
 
-	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	if err = settingsService.UpdateSafeSettings(c.Request.Context(), req); err != nil {
+	if err := ctrl.settingsService.UpdateSafeSettings(c.Request.Context(), req); err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
@@ -449,13 +376,7 @@ func (ctrl *SettingsController) UpdateSafeSettings(c *gin.Context) {
 // @Router /super/manage/settings/email [get]
 // @Security Bearer
 func (ctrl *SettingsController) GetEmailSettings(c *gin.Context) {
-	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	config, err := settingsService.GetSMTPConfig(c.Request.Context())
+	config, err := ctrl.settingsService.GetSMTPConfig(c.Request.Context())
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -483,13 +404,7 @@ func (ctrl *SettingsController) UpdateEmailSettings(c *gin.Context) {
 		return
 	}
 
-	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	if err = settingsService.UpdateSMTPConfig(c.Request.Context(), req); err != nil {
+	if err := ctrl.settingsService.UpdateSMTPConfig(c.Request.Context(), req); err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
@@ -516,16 +431,10 @@ func (ctrl *SettingsController) SendTestEmail(c *gin.Context) {
 		return
 	}
 
-	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Get user ID from gin.Context and set to context | 从gin.Context获取用户ID并设置到context中
 	ctx := tracing.ContextWithUserID(c, c.Request.Context())
 
-	if err = settingsService.SendTestEmail(ctx, req.ToEmail); err != nil {
+	if err := ctrl.settingsService.SendTestEmail(ctx, req.ToEmail); err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
@@ -547,13 +456,7 @@ func (ctrl *SettingsController) SendTestEmail(c *gin.Context) {
 // @Router /super/manage/settings/signin [get]
 // @Security Bearer
 func (ctrl *SettingsController) GetSigninSettings(c *gin.Context) {
-	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	config, err := settingsService.GetSigninSettings(c.Request.Context())
+	config, err := ctrl.settingsService.GetSigninSettings(c.Request.Context())
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -581,13 +484,7 @@ func (ctrl *SettingsController) UpdateSigninSettings(c *gin.Context) {
 		return
 	}
 
-	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	if err = settingsService.UpdateSigninSettings(c.Request.Context(), req); err != nil {
+	if err := ctrl.settingsService.UpdateSigninSettings(c.Request.Context(), req); err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}

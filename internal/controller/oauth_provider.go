@@ -14,14 +14,13 @@ import (
 
 // OAuthProviderController OAuth provider management controller | OAuth提供商管理控制器
 type OAuthProviderController struct {
-	// Injector instance for obtaining services | 注入器实例,用于获取服务
-	injector *do.Injector
+	oauthProviderService service.IOAuthProviderService
 }
 
 // NewOAuthProviderController Create OAuth provider management controller instance | 创建OAuth提供商管理控制器实例
 func NewOAuthProviderController(injector *do.Injector) *OAuthProviderController {
 	return &OAuthProviderController{
-		injector: injector,
+		oauthProviderService: do.MustInvoke[service.IOAuthProviderService](injector),
 	}
 }
 
@@ -62,15 +61,8 @@ func (ctrl *OAuthProviderController) GetProviderList(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	oauthProviderService, err := do.Invoke[service.IOAuthProviderService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	result, err := oauthProviderService.GetProviderList(c.Request.Context(), req)
+	result, err := ctrl.oauthProviderService.GetProviderList(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -98,15 +90,8 @@ func (ctrl *OAuthProviderController) CreateProvider(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	oauthProviderService, err := do.Invoke[service.IOAuthProviderService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	provider, err := oauthProviderService.CreateProvider(c.Request.Context(), req)
+	provider, err := ctrl.oauthProviderService.CreateProvider(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -152,15 +137,8 @@ func (ctrl *OAuthProviderController) UpdateProvider(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	oauthProviderService, err := do.Invoke[service.IOAuthProviderService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	provider, err := oauthProviderService.UpdateProvider(c.Request.Context(), req)
+	provider, err := ctrl.oauthProviderService.UpdateProvider(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -214,15 +192,8 @@ func (ctrl *OAuthProviderController) GetProviderDetail(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	oauthProviderService, err := do.Invoke[service.IOAuthProviderService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	result, err := oauthProviderService.GetProviderDetail(c.Request.Context(), id)
+	result, err := ctrl.oauthProviderService.GetProviderDetail(c.Request.Context(), id)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -253,15 +224,8 @@ func (ctrl *OAuthProviderController) DeleteProvider(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	oauthProviderService, err := do.Invoke[service.IOAuthProviderService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	if err = oauthProviderService.DeleteProvider(c.Request.Context(), id); err != nil {
+	if err := ctrl.oauthProviderService.DeleteProvider(c.Request.Context(), id); err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
@@ -289,15 +253,8 @@ func (ctrl *OAuthProviderController) UpdateProviderStatus(c *gin.Context) {
 		return
 	}
 
-	// Get service | 获取服务
-	oauthProviderService, err := do.Invoke[service.IOAuthProviderService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
 	// Call service | 调用服务
-	if err = oauthProviderService.UpdateProviderStatus(c.Request.Context(), req); err != nil {
+	if err := ctrl.oauthProviderService.UpdateProviderStatus(c.Request.Context(), req); err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}

@@ -34,6 +34,8 @@ type IAuthService interface {
 	SendForgotPasswordCode(ctx context.Context, req schema.ForgotPasswordRequest) (*schema.ForgotPasswordResponse, error)
 	// ResetPassword Reset password | 重置密码
 	ResetPassword(ctx context.Context, req schema.ResetPasswordRequest) (*schema.ResetPasswordResponse, error)
+	// RecordLoginLog Record login log | 记录登录日志
+	RecordLoginLog(ctx context.Context, userID int, ip, ua string)
 }
 
 // AuthService Authentication service implementation | 认证服务实现
@@ -403,4 +405,31 @@ func (s *AuthService) sendPasswordResetEmail(ctx context.Context, email, code st
 	}
 
 	return nil
+}
+
+// RecordLoginLog Record login log | 记录登录日志
+func (s *AuthService) RecordLoginLog(ctx context.Context, userID int, ip, ua string) {
+	go func() {
+		// Device information | 设备信息
+		deviceInfo := ua
+		if deviceInfo == "" {
+			deviceInfo = "Unknown"
+		}
+
+		// Create login record | 创建登录记录
+		_, err := s.db.UserLoginLog.Create().
+			SetUserID(userID).
+			SetIPAddress(ip).
+			SetDeviceInfo(deviceInfo).
+			SetSuccess(true).
+			Save(context.Background())
+
+		if err != nil {
+			// Log error | 记录错误日志
+			s.logger.Error("Failed to save login log | 保存登录日志失败",
+				zap.Int("user_id", userID),
+				zap.String("ip_address", ip),
+				zap.Error(err))
+		}
+	}()
 }
