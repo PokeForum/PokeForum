@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
 
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
@@ -16,9 +15,9 @@ type CategoryManageController struct {
 }
 
 // NewCategoryManageController Create category management controller instance | 创建版块管理控制器实例
-func NewCategoryManageController(injector *do.Injector) *CategoryManageController {
+func NewCategoryManageController(categoryManageService service.ICategoryManageService) *CategoryManageController {
 	return &CategoryManageController{
-		categoryManageService: do.MustInvoke[service.ICategoryManageService](injector),
+		categoryManageService: categoryManageService,
 	}
 }
 

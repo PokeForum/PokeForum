@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
 
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	"github.com/PokeForum/PokeForum/internal/service"
@@ -14,9 +13,9 @@ type CategoryController struct {
 }
 
 // NewCategoryController Create user-side category controller instance | 创建用户侧版块控制器实例
-func NewCategoryController(injector *do.Injector) *CategoryController {
+func NewCategoryController(categoryService service.ICategoryService) *CategoryController {
 	return &CategoryController{
-		categoryService: do.MustInvoke[service.ICategoryService](injector),
+		categoryService: categoryService,
 	}
 }
 

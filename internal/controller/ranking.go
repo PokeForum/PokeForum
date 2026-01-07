@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
 
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	"github.com/PokeForum/PokeForum/internal/schema"
@@ -15,9 +14,9 @@ type RankingController struct {
 }
 
 // NewRankingController Create ranking controller instance | 创建排行榜控制器实例
-func NewRankingController(injector *do.Injector) *RankingController {
+func NewRankingController(rankingService service.IRankingService) *RankingController {
 	return &RankingController{
-		rankingService: do.MustInvoke[service.IRankingService](injector),
+		rankingService: rankingService,
 	}
 }
 

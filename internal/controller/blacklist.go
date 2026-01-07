@@ -7,7 +7,6 @@ import (
 	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/click33/sa-token-go/stputil"
 	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
 
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
@@ -21,9 +20,9 @@ type BlacklistController struct {
 }
 
 // NewBlacklistController Create blacklist controller instance | 创建黑名单控制器实例
-func NewBlacklistController(injector *do.Injector) *BlacklistController {
+func NewBlacklistController(blacklistService service.IBlacklistService) *BlacklistController {
 	return &BlacklistController{
-		blacklistService: do.MustInvoke[service.IBlacklistService](injector),
+		blacklistService: blacklistService,
 	}
 }
 

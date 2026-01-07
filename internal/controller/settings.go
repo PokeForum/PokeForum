@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
 
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
@@ -16,9 +15,9 @@ type SettingsController struct {
 }
 
 // NewSettingsController Create settings controller instance | 创建设置控制器实例
-func NewSettingsController(injector *do.Injector) *SettingsController {
+func NewSettingsController(settingsService service.ISettingsService) *SettingsController {
 	return &SettingsController{
-		settingsService: do.MustInvoke[service.ISettingsService](injector),
+		settingsService: settingsService,
 	}
 }
 

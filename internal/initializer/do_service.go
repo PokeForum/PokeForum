@@ -1,6 +1,8 @@
 package initializer
 
 import (
+	"database/sql"
+
 	"github.com/samber/do"
 	"go.uber.org/zap"
 
@@ -148,9 +150,21 @@ func InjectorSrv(injector *do.Injector) {
 		return service.NewSigninService(db, cacheService, redisLock, logger, settingsService, asyncTask), nil
 	})
 
+	// Register HealthService | 注册 HealthService
+	do.Provide(injector, func(i *do.Injector) (service.IHealthService, error) {
+		db := do.MustInvoke[*ent.Client](i)
+		cacheService := do.MustInvoke[cache.ICacheService](i)
+		return service.NewHealthService(db, cacheService), nil
+	})
+
+	// Register PgDB | 注册 PgDB
+	do.Provide(injector, func(i *do.Injector) (*sql.DB, error) {
+		return PgDB(), nil
+	})
+
 	// Register PerformanceService | 注册 PerformanceService
 	do.Provide(injector, func(i *do.Injector) (service.IPerformanceService, error) {
-		pgDB := PgDB()
+		pgDB := do.MustInvoke[*sql.DB](i)
 		logger := do.MustInvoke[*zap.Logger](i)
 		return service.NewPerformanceService(pgDB, configs.Cache, logger), nil
 	})

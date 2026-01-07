@@ -8,6 +8,7 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	ginprometheus "github.com/zsais/go-gin-prometheus"
+	"go.uber.org/zap"
 
 	_ "github.com/PokeForum/PokeForum/docs"
 	"github.com/PokeForum/PokeForum/ent/user"
@@ -15,6 +16,7 @@ import (
 	"github.com/PokeForum/PokeForum/internal/controller"
 	"github.com/PokeForum/PokeForum/internal/middleware"
 	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
+	"github.com/PokeForum/PokeForum/internal/service"
 )
 
 func Routers(injector *do.Injector) *gin.Engine {
@@ -46,8 +48,32 @@ func Routers(injector *do.Injector) *gin.Engine {
 	// Register services to the injector | 注册服务到注入器
 	InjectorSrv(injector)
 
+	// Resolve Services | 解析服务
+	// Infrastructure
+	logger := do.MustInvoke[*zap.Logger](injector)
+
+	// Services
+	healthService := do.MustInvoke[service.IHealthService](injector)
+	authService := do.MustInvoke[service.IAuthService](injector)
+	settingsService := do.MustInvoke[service.ISettingsService](injector)
+	userProfileService := do.MustInvoke[service.IUserProfileService](injector)
+	blacklistService := do.MustInvoke[service.IBlacklistService](injector)
+	rankingService := do.MustInvoke[service.IRankingService](injector)
+	categoryService := do.MustInvoke[service.ICategoryService](injector)
+	postService := do.MustInvoke[service.IPostService](injector)
+	commentService := do.MustInvoke[service.ICommentService](injector)
+	signinService := do.MustInvoke[service.ISigninService](injector)
+	moderatorService := do.MustInvoke[service.IModeratorService](injector)
+	dashboardService := do.MustInvoke[service.IDashboardService](injector)
+	userManageService := do.MustInvoke[service.IUserManageService](injector)
+	categoryManageService := do.MustInvoke[service.ICategoryManageService](injector)
+	postManageService := do.MustInvoke[service.IPostManageService](injector)
+	commentManageService := do.MustInvoke[service.ICommentManageService](injector)
+	performanceService := do.MustInvoke[service.IPerformanceService](injector)
+	oauthProviderService := do.MustInvoke[service.IOAuthProviderService](injector)
+
 	// Health check route (not affected by rate limiting, outside of api group) | 健康检查路由（不受速率限制影响，在api分组之外）
-	healthCon := controller.NewHealthController(injector)
+	healthCon := controller.NewHealthController(healthService)
 	healthCon.HealthRouter(Router)
 
 	if configs.Debug {
@@ -65,12 +91,12 @@ func Routers(injector *do.Injector) *gin.Engine {
 	// Authentication verification (add stricter rate limiting to prevent brute force attacks) | 认证校验（添加更严格的速率限制，防止暴力破解）
 	AuthGroup := api.Group("/auth")
 	AuthGroup.Use(middleware.RateLimit(middleware.AuthRateLimitConfig))
-	AuthCon := controller.NewAuthController(injector)
+	AuthCon := controller.NewAuthController(authService)
 	AuthCon.AuthRouter(AuthGroup)
 
 	// Configuration | 配置
 	ConfigGroup := api.Group("/config")
-	ConfigCon := controller.NewConfigController(injector)
+	ConfigCon := controller.NewConfigController(settingsService)
 	ConfigCon.ConfigRouter(ConfigGroup)
 
 	// Add login verification | 添加登录校验
@@ -85,12 +111,12 @@ func Routers(injector *do.Injector) *gin.Engine {
 			// User Profile | 个人中心
 			{
 				ProfileGroup := ForumGroup.Group("/profile")
-				ProfileCon := controller.NewUserProfileController(injector)
+				ProfileCon := controller.NewUserProfileController(userProfileService)
 				ProfileCon.UserProfileRouter(ProfileGroup)
 
 				// Blacklist | 拉黑用户
 				BlacklistGroup := ForumGroup.Group("/profile/blacklist")
-				BlacklistCon := controller.NewBlacklistController(injector)
+				BlacklistCon := controller.NewBlacklistController(blacklistService)
 				BlacklistCon.BlacklistRouter(BlacklistGroup)
 
 				// TODO Report | 举报
@@ -110,34 +136,34 @@ func Routers(injector *do.Injector) *gin.Engine {
 
 			// Ranking | 排行榜
 			RankingGroup := ForumGroup.Group("/ranking")
-			RankingCon := controller.NewRankingController(injector)
+			RankingCon := controller.NewRankingController(rankingService)
 			RankingCon.RankingRouter(RankingGroup)
 
 			// Category | 版块
 			CategoryGroup := ForumGroup.Group("/categories")
-			CategoryCon := controller.NewCategoryController(injector)
+			CategoryCon := controller.NewCategoryController(categoryService)
 			CategoryCon.CategoryRouter(CategoryGroup)
 
 			// Post | 主题帖
 			PostGroup := ForumGroup.Group("/posts")
-			PostCon := controller.NewPostController(injector)
+			PostCon := controller.NewPostController(postService)
 			PostCon.PostRouter(PostGroup)
 
 			// Comment | 评论
 			CommentGroup := ForumGroup.Group("/comments")
-			CommentCon := controller.NewCommentController(injector)
+			CommentCon := controller.NewCommentController(commentService)
 			CommentCon.CommentRouter(CommentGroup)
 
 			// Sign-in System | 签到系统
 			SigninGroup := ForumGroup.Group("/signin")
-			SigninCon := controller.NewSigninController(injector)
+			SigninCon := controller.NewSigninController(signinService)
 			SigninCon.SigninRouter(SigninGroup)
 		}
 
 		// Moderator Interface | 版主接口
 		ModeratorGroup := ForumGroup.Group("/moderator")
 		ModeratorGroup.Use(saGin.CheckRole(user.RoleModerator.String()))
-		ModeratorCon := controller.NewModeratorController(injector)
+		ModeratorCon := controller.NewModeratorController(moderatorService)
 		ModeratorCon.ModeratorRouter(ModeratorGroup)
 	}
 
@@ -148,35 +174,35 @@ func Routers(injector *do.Injector) *gin.Engine {
 		// Dashboard | 仪表盘
 		{
 			DashboardGroup := ManageGroup.Group("/dashboard")
-			DashboardCon := controller.NewDashboardController(injector)
+			DashboardCon := controller.NewDashboardController(dashboardService)
 			DashboardCon.DashboardRouter(DashboardGroup)
 		}
 
 		// User Management | 用户管理
 		{
 			UserManageGroup := ManageGroup.Group("/users")
-			UserManageCon := controller.NewUserManageController(injector)
+			UserManageCon := controller.NewUserManageController(userManageService)
 			UserManageCon.UserManageRouter(UserManageGroup)
 		}
 
 		// Category Management | 版块管理
 		{
 			CategoryManageGroup := ManageGroup.Group("/categories")
-			CategoryManageCon := controller.NewCategoryManageController(injector)
+			CategoryManageCon := controller.NewCategoryManageController(categoryManageService)
 			CategoryManageCon.CategoryManageRouter(CategoryManageGroup)
 		}
 
 		// Post Management | 帖子管理
 		{
 			PostManageGroup := ManageGroup.Group("/posts")
-			PostManageCon := controller.NewPostManageController(injector)
+			PostManageCon := controller.NewPostManageController(postManageService)
 			PostManageCon.PostManageRouter(PostManageGroup)
 		}
 
 		// Comment Management | 评论管理
 		{
 			CommentManageGroup := ManageGroup.Group("/comments")
-			CommentManageCon := controller.NewCommentManageController(injector)
+			CommentManageCon := controller.NewCommentManageController(commentManageService)
 			CommentManageCon.CommentManageRouter(CommentManageGroup)
 		}
 
@@ -190,19 +216,19 @@ func Routers(injector *do.Injector) *gin.Engine {
 		// Performance Monitoring | 性能监控
 		{
 			PerformanceGroup := SuperManageGroup.Group("/performance")
-			PerformanceCon := controller.NewPerformanceController(injector)
+			PerformanceCon := controller.NewPerformanceController(performanceService, logger)
 			PerformanceCon.PerformanceRouter(PerformanceGroup)
 		}
 
 		// Settings Management (Unified settings controller, includes all system settings) | 设置管理（统一的设置控制器，包含所有系统设置）
 		SettingsGroup := SuperManageGroup.Group("/settings")
-		SettingsCon := controller.NewSettingsController(injector)
+		SettingsCon := controller.NewSettingsController(settingsService)
 		SettingsCon.SettingsRouter(SettingsGroup)
 
 		// OAuth Provider Management | OAuth提供商管理
 		OAuthGroup := SuperManageGroup.Group("/settings/oauth")
 		{
-			OAuthProviderCon := controller.NewOAuthProviderController(injector)
+			OAuthProviderCon := controller.NewOAuthProviderController(oauthProviderService)
 			OAuthProviderCon.OAuthProviderRouter(OAuthGroup)
 		}
 

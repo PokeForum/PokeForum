@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
 
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
@@ -16,9 +15,9 @@ type PostManageController struct {
 }
 
 // NewPostManageController Create post management controller instance | 创建帖子管理控制器实例
-func NewPostManageController(injector *do.Injector) *PostManageController {
+func NewPostManageController(postManageService service.IPostManageService) *PostManageController {
 	return &PostManageController{
-		postManageService: do.MustInvoke[service.IPostManageService](injector),
+		postManageService: postManageService,
 	}
 }
 

@@ -4,7 +4,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
 
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
@@ -18,9 +17,9 @@ type OAuthProviderController struct {
 }
 
 // NewOAuthProviderController Create OAuth provider management controller instance | 创建OAuth提供商管理控制器实例
-func NewOAuthProviderController(injector *do.Injector) *OAuthProviderController {
+func NewOAuthProviderController(oauthProviderService service.IOAuthProviderService) *OAuthProviderController {
 	return &OAuthProviderController{
-		oauthProviderService: do.MustInvoke[service.IOAuthProviderService](injector),
+		oauthProviderService: oauthProviderService,
 	}
 }
 

@@ -11,7 +11,6 @@ import (
 	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/click33/sa-token-go/stputil"
 	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
 )
 
 // CommentController Comment controller | 评论控制器
@@ -20,9 +19,9 @@ type CommentController struct {
 }
 
 // NewCommentController Create comment controller instance | 创建评论控制器实例
-func NewCommentController(injector *do.Injector) *CommentController {
+func NewCommentController(commentService service.ICommentService) *CommentController {
 	return &CommentController{
-		commentService: do.MustInvoke[service.ICommentService](injector),
+		commentService: commentService,
 	}
 }
 

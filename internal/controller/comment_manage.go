@@ -6,7 +6,6 @@ import (
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
 )
 
 // CommentManageController Comment management controller | 评论管理控制器
@@ -15,9 +14,9 @@ type CommentManageController struct {
 }
 
 // NewCommentManageController Create comment management controller instance | 创建评论管理控制器实例
-func NewCommentManageController(injector *do.Injector) *CommentManageController {
+func NewCommentManageController(commentManageService service.ICommentManageService) *CommentManageController {
 	return &CommentManageController{
-		commentManageService: do.MustInvoke[service.ICommentManageService](injector),
+		commentManageService: commentManageService,
 	}
 }
 

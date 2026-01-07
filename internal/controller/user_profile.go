@@ -7,7 +7,6 @@ import (
 	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/click33/sa-token-go/stputil"
 	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
 
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
@@ -21,9 +20,9 @@ type UserProfileController struct {
 }
 
 // NewUserProfileController Create user profile controller instance | 创建用户个人中心控制器实例
-func NewUserProfileController(injector *do.Injector) *UserProfileController {
+func NewUserProfileController(userProfileService service.IUserProfileService) *UserProfileController {
 	return &UserProfileController{
-		userProfileService: do.MustInvoke[service.IUserProfileService](injector),
+		userProfileService: userProfileService,
 	}
 }
 

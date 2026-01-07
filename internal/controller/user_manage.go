@@ -7,7 +7,6 @@ import (
 	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/click33/sa-token-go/stputil"
 	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
 
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
@@ -22,9 +21,9 @@ type UserManageController struct {
 }
 
 // NewUserManageController Create user management controller instance | 创建用户管理控制器实例
-func NewUserManageController(injector *do.Injector) *UserManageController {
+func NewUserManageController(userManageService service.IUserManageService) *UserManageController {
 	return &UserManageController{
-		userManageService: do.MustInvoke[service.IUserManageService](injector),
+		userManageService: userManageService,
 	}
 }
 

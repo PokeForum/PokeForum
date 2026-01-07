@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
 	"go.uber.org/zap"
 
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
@@ -22,10 +21,10 @@ type PerformanceController struct {
 }
 
 // NewPerformanceController Create performance monitoring controller instance | 创建性能监控控制器实例
-func NewPerformanceController(injector *do.Injector) *PerformanceController {
+func NewPerformanceController(performanceService service.IPerformanceService, logger *zap.Logger) *PerformanceController {
 	return &PerformanceController{
-		performanceService: do.MustInvoke[service.IPerformanceService](injector),
-		logger:             do.MustInvoke[*zap.Logger](injector),
+		performanceService: performanceService,
+		logger:             logger,
 	}
 }
 

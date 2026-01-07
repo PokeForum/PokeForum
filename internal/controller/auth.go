@@ -4,7 +4,6 @@ import (
 	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/click33/sa-token-go/stputil"
 	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
 
 	"github.com/PokeForum/PokeForum/internal/configs"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
@@ -19,9 +18,9 @@ type AuthController struct {
 }
 
 // NewAuthController Create authentication controller instance | 创建认证控制器实例
-func NewAuthController(injector *do.Injector) *AuthController {
+func NewAuthController(authService service.IAuthService) *AuthController {
 	return &AuthController{
-		authService: do.MustInvoke[service.IAuthService](injector),
+		authService: authService,
 	}
 }
 

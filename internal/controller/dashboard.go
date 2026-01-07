@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
 
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	"github.com/PokeForum/PokeForum/internal/service"
@@ -14,9 +13,9 @@ type DashboardController struct {
 }
 
 // NewDashboardController Create dashboard controller instance | 创建仪表盘控制器实例
-func NewDashboardController(injector *do.Injector) *DashboardController {
+func NewDashboardController(dashboardService service.IDashboardService) *DashboardController {
 	return &DashboardController{
-		dashboardService: do.MustInvoke[service.IDashboardService](injector),
+		dashboardService: dashboardService,
 	}
 }
 
