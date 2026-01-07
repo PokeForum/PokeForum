@@ -11,13 +11,13 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 )
 
-// Helper 统计助手,封装通用的统计操作
+// Helper Statistics helper, encapsulates common statistical operations | 统计助手,封装通用的统计操作
 type Helper struct {
 	cache  cache.ICacheService
 	logger *zap.Logger
 }
 
-// NewStatsHelper 创建统计助手实例
+// NewStatsHelper Create statistics helper instance | 创建统计助手实例
 func NewStatsHelper(cacheService cache.ICacheService, logger *zap.Logger) *Helper {
 	return &Helper{
 		cache:  cacheService,
@@ -25,10 +25,10 @@ func NewStatsHelper(cacheService cache.ICacheService, logger *zap.Logger) *Helpe
 	}
 }
 
-// IncrStats 增加统计数据
-// key: Redis Hash键
-// field: Hash字段名
-// increment: 增量值
+// IncrStats Increase statistics data | 增加统计数据
+// key: Redis Hash key | key: Redis Hash键
+// field: Hash field name | field: Hash字段名
+// increment: Increment value | increment: 增量值
 func (h *Helper) IncrStats(ctx context.Context, key, field string, increment int64) error {
 	_, err := h.cache.HIncrBy(ctx, key, field, increment)
 	if err != nil {
@@ -42,10 +42,10 @@ func (h *Helper) IncrStats(ctx context.Context, key, field string, increment int
 	return nil
 }
 
-// GetStats 获取统计数据
-// key: Redis Hash键
-// fields: 要获取的字段列表
-// 返回: 字段值映射
+// GetStats Get statistics data | 获取统计数据
+// key: Redis Hash key | key: Redis Hash键
+// fields: List of fields to retrieve | fields: 要获取的字段列表
+// Returns: Field value mapping | 返回: 字段值映射
 func (h *Helper) GetStats(ctx context.Context, key string, fields []string) (map[string]int, error) {
 	values, err := h.cache.HMGet(ctx, key, fields...)
 	if err != nil {
@@ -59,7 +59,7 @@ func (h *Helper) GetStats(ctx context.Context, key string, fields []string) (map
 	result := make(map[string]int)
 	for i, field := range fields {
 		if i < len(values) && values[i] != "" {
-			val, _ := strconv.Atoi(values[i]) //nolint:errcheck // 解析失败返回0是预期行为
+			val, _ := strconv.Atoi(values[i]) //nolint:errcheck // Parsing failure returns 0 as expected behavior | 解析失败返回0是预期行为
 			result[field] = val
 		} else {
 			result[field] = 0
@@ -68,11 +68,11 @@ func (h *Helper) GetStats(ctx context.Context, key string, fields []string) (map
 	return result, nil
 }
 
-// SetStats 设置统计数据
-// key: Redis Hash键
-// fieldValues: 字段和值的映射
+// SetStats Set statistics data | 设置统计数据
+// key: Redis Hash key | key: Redis Hash键
+// fieldValues: Mapping of fields and values | fieldValues: 字段和值的映射
 func (h *Helper) SetStats(ctx context.Context, key string, fieldValues map[string]int) error {
-	// 将int转换为interface{}
+	// Convert int to interface{} | 将int转换为interface{}
 	data := make(map[string]interface{})
 	for field, value := range fieldValues {
 		data[field] = value
@@ -88,9 +88,9 @@ func (h *Helper) SetStats(ctx context.Context, key string, fieldValues map[strin
 	return nil
 }
 
-// SetUserAction 设置用户操作状态
-// key: Redis Hash键
-// actionType: 操作类型
+// SetUserAction Set user action status | 设置用户操作状态
+// key: Redis Hash key | key: Redis Hash键
+// actionType: Action type | actionType: 操作类型
 func (h *Helper) SetUserAction(ctx context.Context, key string, actionType ActionType) error {
 	err := h.cache.HSet(ctx, key, string(actionType), 1)
 	if err != nil {
@@ -103,9 +103,9 @@ func (h *Helper) SetUserAction(ctx context.Context, key string, actionType Actio
 	return nil
 }
 
-// RemoveUserAction 移除用户操作状态
-// key: Redis Hash键
-// actionType: 操作类型
+// RemoveUserAction Remove user action status | 移除用户操作状态
+// key: Redis Hash key | key: Redis Hash键
+// actionType: Action type | actionType: 操作类型
 func (h *Helper) RemoveUserAction(ctx context.Context, key string, actionType ActionType) error {
 	_, err := h.cache.HDel(ctx, key, string(actionType))
 	if err != nil {
@@ -118,9 +118,9 @@ func (h *Helper) RemoveUserAction(ctx context.Context, key string, actionType Ac
 	return nil
 }
 
-// GetUserActions 获取用户操作状态
-// key: Redis Hash键
-// 返回: 操作类型到状态的映射
+// GetUserActions Get user action status | 获取用户操作状态
+// key: Redis Hash key | key: Redis Hash键
+// Returns: Mapping of action type to status | 返回: 操作类型到状态的映射
 func (h *Helper) GetUserActions(ctx context.Context, key string) (map[string]bool, error) {
 	values, err := h.cache.HGetAll(ctx, key)
 	if err != nil && !errors.Is(err, redis.Nil) {
@@ -137,9 +137,9 @@ func (h *Helper) GetUserActions(ctx context.Context, key string) (map[string]boo
 	return result, nil
 }
 
-// MarkDirty 标记对象为脏数据
-// dirtySetKey: 脏数据集合键
-// objectID: 对象ID
+// MarkDirty Mark object as dirty data | 标记对象为脏数据
+// dirtySetKey: Dirty data set key | dirtySetKey: 脏数据集合键
+// objectID: Object ID | objectID: 对象ID
 func (h *Helper) MarkDirty(ctx context.Context, dirtySetKey string, objectID int) error {
 	_, err := h.cache.SAdd(ctx, dirtySetKey, objectID)
 	if err != nil {
@@ -152,8 +152,8 @@ func (h *Helper) MarkDirty(ctx context.Context, dirtySetKey string, objectID int
 	return nil
 }
 
-// GetDirtyIDs 获取所有脏数据ID
-// dirtySetKey: 脏数据集合键
+// GetDirtyIDs Get all dirty data IDs | 获取所有脏数据ID
+// dirtySetKey: Dirty data set key | dirtySetKey: 脏数据集合键
 func (h *Helper) GetDirtyIDs(ctx context.Context, dirtySetKey string) ([]int, error) {
 	members, err := h.cache.SMembers(ctx, dirtySetKey)
 	if err != nil {
@@ -177,9 +177,9 @@ func (h *Helper) GetDirtyIDs(ctx context.Context, dirtySetKey string) ([]int, er
 	return ids, nil
 }
 
-// RemoveDirtyIDs 移除脏数据ID
-// dirtySetKey: 脏数据集合键
-// objectIDs: 对象ID列表
+// RemoveDirtyIDs Remove dirty data IDs | 移除脏数据ID
+// dirtySetKey: Dirty data set key | dirtySetKey: 脏数据集合键
+// objectIDs: Object ID list | objectIDs: 对象ID列表
 func (h *Helper) RemoveDirtyIDs(ctx context.Context, dirtySetKey string, objectIDs []int) error {
 	if len(objectIDs) == 0 {
 		return nil
@@ -200,8 +200,8 @@ func (h *Helper) RemoveDirtyIDs(ctx context.Context, dirtySetKey string, objectI
 	return nil
 }
 
-// GetDirtyCount 获取脏数据数量
-// dirtySetKey: 脏数据集合键
+// GetDirtyCount Get dirty data count | 获取脏数据数量
+// dirtySetKey: Dirty data set key | dirtySetKey: 脏数据集合键
 func (h *Helper) GetDirtyCount(ctx context.Context, dirtySetKey string) (int64, error) {
 	count, err := h.cache.SCard(ctx, dirtySetKey)
 	if err != nil {
@@ -213,8 +213,8 @@ func (h *Helper) GetDirtyCount(ctx context.Context, dirtySetKey string) (int64, 
 	return count, nil
 }
 
-// DeleteStatsCache 删除统计缓存
-// key: Redis键
+// DeleteStatsCache Delete statistics cache | 删除统计缓存
+// key: Redis key | key: Redis键
 func (h *Helper) DeleteStatsCache(ctx context.Context, key string) error {
 	_, err := h.cache.Del(ctx, key)
 	if err != nil {

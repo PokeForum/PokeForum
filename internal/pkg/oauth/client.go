@@ -4,20 +4,20 @@ import (
 	"sync"
 )
 
-// Client OAuth客户端实现
+// Client OAuth client implementation | OAuth客户端实现
 type Client struct {
-	providers map[Provider]IProvider // 已注册的OAuth提供商
-	mu        sync.RWMutex            // 读写锁，保护providers
+	providers map[Provider]IProvider // Registered OAuth providers | 已注册的OAuth提供商
+	mu        sync.RWMutex            // Read-write lock to protect providers | 读写锁，保护providers
 }
 
-// NewClient 创建OAuth客户端实例
+// NewClient Create OAuth client instance | 创建OAuth客户端实例
 func NewClient() IClient {
 	return &Client{
 		providers: make(map[Provider]IProvider),
 	}
 }
 
-// GetProvider 获取指定的OAuth提供商
+// GetProvider Get specified OAuth provider | 获取指定的OAuth提供商
 func (c *Client) GetProvider(provider Provider) (IProvider, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -30,22 +30,22 @@ func (c *Client) GetProvider(provider Provider) (IProvider, error) {
 	return p, nil
 }
 
-// RegisterProvider 注册OAuth提供商
+// RegisterProvider Register OAuth provider | 注册OAuth提供商
 func (c *Client) RegisterProvider(provider Provider, config *Config) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	// 检查是否已注册
+	// Check if already registered | 检查是否已注册
 	if _, ok := c.providers[provider]; ok {
 		return ErrProviderAlreadyRegistered
 	}
 
-	// 验证配置
+	// Validate configuration | 验证配置
 	if err := validateConfig(config); err != nil {
 		return err
 	}
 
-	// 根据提供商类型创建对应的实现
+	// Create corresponding implementation according to provider type | 根据提供商类型创建对应的实现
 	var p IProvider
 	var err error
 
@@ -74,7 +74,7 @@ func (c *Client) RegisterProvider(provider Provider, config *Config) error {
 	return nil
 }
 
-// UnregisterProvider 注销OAuth提供商
+// UnregisterProvider Unregister OAuth provider | 注销OAuth提供商
 func (c *Client) UnregisterProvider(provider Provider) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -87,7 +87,7 @@ func (c *Client) UnregisterProvider(provider Provider) error {
 	return nil
 }
 
-// ListProviders 列出所有已注册的OAuth提供商
+// ListProviders List all registered OAuth providers | 列出所有已注册的OAuth提供商
 func (c *Client) ListProviders() []Provider {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -100,7 +100,7 @@ func (c *Client) ListProviders() []Provider {
 	return providers
 }
 
-// validateConfig 验证OAuth配置
+// validateConfig Validate OAuth configuration | 验证OAuth配置
 func validateConfig(config *Config) error {
 	if config == nil {
 		return ErrInvalidConfig
@@ -111,7 +111,7 @@ func validateConfig(config *Config) error {
 	}
 
 	if config.ClientSecret == "" && config.Provider != ProviderFIDO2 {
-		// FIDO2不需要ClientSecret
+		// FIDO2 doesn't need ClientSecret | FIDO2不需要ClientSecret
 		return ErrMissingRequiredField
 	}
 

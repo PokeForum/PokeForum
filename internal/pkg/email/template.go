@@ -12,41 +12,41 @@ import (
 	_const "github.com/PokeForum/PokeForum/internal/consts"
 )
 
-// SettingsService 设置服务接口，避免循环导入
+// SettingsService Settings service interface, avoid circular import | 设置服务接口，避免循环导入
 type SettingsService interface {
 	GetSettingByKey(ctx context.Context, key, defaultValue string) (string, error)
 }
 
-// TemplateData 邮件模板数据
+// TemplateData Email template data | 邮件模板数据
 type TemplateData struct {
-	VerifyCode    string        // 验证码
-	CommonContext CommonContext // 通用上下文
+	VerifyCode    string        // Verification code | 验证码
+	CommonContext CommonContext // Common context | 通用上下文
 }
 
-// CommonContext 通用邮件上下文
+// CommonContext Common email context | 通用邮件上下文
 type CommonContext struct {
-	SiteBasic SiteBasic // 网站基本信息
-	Logo      Logo      // 网站Logo
-	SiteUrl   string    // 网站URL
+	SiteBasic SiteBasic // Site basic information | 网站基本信息
+	Logo      Logo      // Site logo | 网站Logo
+	SiteUrl   string    // Site URL | 网站URL
 }
 
-// SiteBasic 网站基本信息
+// SiteBasic Site basic information | 网站基本信息
 type SiteBasic struct {
-	Name string // 网站名称
+	Name string // Site name | 网站名称
 }
 
-// Logo 网站Logo
+// Logo Site logo | 网站Logo
 type Logo struct {
-	Normal string // 正常Logo
+	Normal string // Normal logo | 正常Logo
 }
 
-// Template 邮件模板渲染器
+// Template Email template renderer | 邮件模板渲染器
 type Template struct {
 	settingsService SettingsService
 	logger          *zap.Logger
 }
 
-// NewEmailTemplate 创建邮件模板渲染器
+// NewEmailTemplate Create email template renderer | 创建邮件模板渲染器
 func NewEmailTemplate(settingsService SettingsService, logger *zap.Logger) *Template {
 	return &Template{
 		settingsService: settingsService,
@@ -54,9 +54,9 @@ func NewEmailTemplate(settingsService SettingsService, logger *zap.Logger) *Temp
 	}
 }
 
-// RenderEmailVerificationTemplate 渲染邮箱验证模板
+// RenderEmailVerificationTemplate Render email verification template | 渲染邮箱验证模板
 func (et *Template) RenderEmailVerificationTemplate(ctx context.Context, verifyCode string, siteName string) (string, error) {
-	// 构建模板数据
+	// Build template data | 构建模板数据
 	data := TemplateData{
 		VerifyCode: verifyCode,
 		CommonContext: CommonContext{
@@ -66,26 +66,26 @@ func (et *Template) RenderEmailVerificationTemplate(ctx context.Context, verifyC
 		},
 	}
 
-	// 从数据库获取自定义模板
+	// Get custom template from database | 从数据库获取自定义模板
 	customTemplate, err := et.settingsService.GetSettingByKey(ctx, _const.EmailAccountActivationTemplate, "")
 	if err != nil {
 		et.logger.Warn("获取自定义邮件模板失败，使用默认模板", zap.Error(err))
 		customTemplate = ""
 	}
 
-	// 如果自定义模板为空，使用默认模板
+	// If custom template is empty, use default template | 如果自定义模板为空，使用默认模板
 	templateContent := customTemplate
 	if strings.TrimSpace(templateContent) == "" {
 		templateContent = _const.DefaultEmailAccountActivationTemplate
 	}
 
-	// 渲染模板
+	// Render template | 渲染模板
 	return et.renderTemplate(templateContent, data)
 }
 
-// RenderPasswordResetTemplate 渲染密码重置模板
+// RenderPasswordResetTemplate Render password reset template | 渲染密码重置模板
 func (et *Template) RenderPasswordResetTemplate(ctx context.Context, verifyCode string, siteName string) (string, error) {
-	// 构建模板数据
+	// Build template data | 构建模板数据
 	data := TemplateData{
 		VerifyCode: verifyCode,
 		CommonContext: CommonContext{
@@ -95,33 +95,33 @@ func (et *Template) RenderPasswordResetTemplate(ctx context.Context, verifyCode 
 		},
 	}
 
-	// 从数据库获取自定义模板
+	// Get custom template from database | 从数据库获取自定义模板
 	customTemplate, err := et.settingsService.GetSettingByKey(ctx, _const.EmailPasswordResetTemplate, "")
 	if err != nil {
 		et.logger.Warn("获取自定义密码重置邮件模板失败，使用默认模板", zap.Error(err))
 		customTemplate = ""
 	}
 
-	// 如果自定义模板为空，使用默认模板
+	// If custom template is empty, use default template | 如果自定义模板为空，使用默认模板
 	templateContent := customTemplate
 	if strings.TrimSpace(templateContent) == "" {
 		templateContent = _const.DefaultEmailPasswordResetTemplate
 	}
 
-	// 渲染模板
+	// Render template | 渲染模板
 	return et.renderTemplate(templateContent, data)
 }
 
-// renderTemplate 渲染模板内容
+// renderTemplate Render template content | 渲染模板内容
 func (et *Template) renderTemplate(templateContent string, data TemplateData) (string, error) {
-	// 创建模板实例
+	// Create template instance | 创建模板实例
 	tmpl, err := template.New("email").Parse(templateContent)
 	if err != nil {
 		et.logger.Error("解析邮件模板失败", zap.Error(err))
 		return "", fmt.Errorf("解析邮件模板失败: %w", err)
 	}
 
-	// 渲染模板
+	// Render template | 渲染模板
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, data); err != nil {
 		et.logger.Error("渲染邮件模板失败", zap.Error(err))
