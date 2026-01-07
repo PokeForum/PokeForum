@@ -9,31 +9,31 @@ import (
 	"github.com/PokeForum/PokeForum/internal/service"
 )
 
-// ConfigController 公开配置控制器
+// ConfigController Public configuration controller | 公开配置控制器
 type ConfigController struct {
 	injector *do.Injector
 }
 
-// NewConfigController 创建公开配置控制器实例
+// NewConfigController Create public configuration controller instance | 创建公开配置控制器实例
 func NewConfigController(injector *do.Injector) *ConfigController {
 	return &ConfigController{
 		injector: injector,
 	}
 }
 
-// ConfigRouter 公开配置路由注册
+// ConfigRouter Public configuration route registration | 公开配置路由注册
 func (ctrl *ConfigController) ConfigRouter(router *gin.RouterGroup) {
 	router.GET("", ctrl.GetPublicConfig)
 }
 
-// GetPublicConfig 获取公开配置
-// @Summary 获取公开配置
-// @Description 获取客户端所需的公开配置，包括常规、首页、SEO、安全、代码、评论配置
-// @Tags 公开配置
+// GetPublicConfig Get public configuration | 获取公开配置
+// @Summary Get public configuration | 获取公开配置
+// @Description Get public configuration required by client, including routine, home, SEO, security, code, and comment settings | 获取客户端所需的公开配置,包括常规、首页、SEO、安全、代码、评论配置
+// @Tags Public Configuration | 公开配置
 // @Accept json
 // @Produce json
-// @Success 200 {object} response.Data{data=schema.PublicConfigResponse} "获取成功"
-// @Failure 500 {object} response.Data "服务器错误"
+// @Success 200 {object} response.Data{data=schema.PublicConfigResponse} "Success | 获取成功"
+// @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /config [get]
 func (ctrl *ConfigController) GetPublicConfig(c *gin.Context) {
 	settingsService, err := do.Invoke[service.ISettingsService](ctrl.injector)
@@ -44,7 +44,7 @@ func (ctrl *ConfigController) GetPublicConfig(c *gin.Context) {
 
 	ctx := c.Request.Context()
 
-	// 并行获取所有配置
+	// Get all configurations in parallel | 并行获取所有配置
 	routine, err := settingsService.GetRoutineSettings(ctx)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
