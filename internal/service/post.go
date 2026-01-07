@@ -706,26 +706,30 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 	// Get current user ID, 0 if not logged in | 获取当前用户ID，如果未登录则为0
 	currentUserID := tracing.GetUserID(ctx)
 
-	// Query user like status (only when user is logged in) | 查询用户点赞状态（仅当用户已登录时）
+	// Query user action status (only when user is logged in) | 查询用户操作状态（仅当用户已登录时）
 	userLiked := false
 	userDisliked := false
+	userFavorite := false
 	if currentUserID != 0 {
-		action, err := s.db.PostAction.Query().
+		actions, err := s.db.PostAction.Query().
 			Where(
 				postaction.UserIDEQ(currentUserID),
 				postaction.PostIDEQ(req.ID),
 			).
 			Select(postaction.FieldActionType).
-			Only(ctx)
+			All(ctx)
 		if err != nil {
-			// No record or query failed, keep default status | 没有记录或查询失败，保持默认状态
-			s.logger.Debug("查询用户点赞状态失败或无记录", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Debug("查询用户操作状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		} else {
-			switch action.ActionType {
-			case postaction.ActionTypeLike:
-				userLiked = true
-			case postaction.ActionTypeDislike:
-				userDisliked = true
+			for _, action := range actions {
+				switch action.ActionType {
+				case postaction.ActionTypeLike:
+					userLiked = true
+				case postaction.ActionTypeDislike:
+					userDisliked = true
+				case postaction.ActionTypeFavorite:
+					userFavorite = true
+				}
 			}
 		}
 	}
@@ -745,6 +749,7 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 		FavoriteCount:  favoriteCount,
 		UserLiked:      userLiked,
 		UserDisliked:   userDisliked,
+		UserFavorited:  userFavorite,
 		IsEssence:      postData.IsEssence,
 		IsPinned:       postData.IsPinned,
 		Status:         string(postData.Status),

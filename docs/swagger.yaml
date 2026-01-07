@@ -1,55 +1,5 @@
 basePath: /api/v1
 definitions:
-  controller.Check:
-    properties:
-      latency:
-        description: Response latency | 响应延迟
-        type: string
-      message:
-        description: Additional information | 额外信息
-        type: string
-      status:
-        description: 'Status: up, down | 状态: up, down'
-        type: string
-    type: object
-  controller.HealthStatus:
-    properties:
-      checks:
-        additionalProperties:
-          $ref: '#/definitions/controller.Check'
-        description: Component check results | 各组件检查结果
-        type: object
-      status:
-        description: 'Overall status: healthy, degraded, unhealthy | 整体状态: healthy,
-          degraded, unhealthy'
-        type: string
-      system:
-        allOf:
-        - $ref: '#/definitions/controller.SystemInfo'
-        description: System information (detail mode only) | 系统信息(仅详细模式)
-      timestamp:
-        description: Check time | 检查时间
-        type: string
-      uptime:
-        description: Uptime | 运行时间
-        type: string
-      version:
-        description: Application version | 应用版本
-        type: string
-    type: object
-  controller.SystemInfo:
-    properties:
-      go_version:
-        type: string
-      mem_alloc:
-        type: string
-      mem_sys:
-        type: string
-      num_cpu:
-        type: integer
-      num_goroutine:
-        type: integer
-    type: object
   response.Data:
     properties:
       code:
@@ -419,6 +369,18 @@ definitions:
         type: integer
     required:
     - id
+    type: object
+  schema.Check:
+    properties:
+      latency:
+        description: Response latency | 响应延迟
+        type: string
+      message:
+        description: Additional information | 额外信息
+        type: string
+      status:
+        description: 'Status: up, down | 状态: up, down'
+        type: string
     type: object
   schema.CodeSettingsRequest:
     properties:
@@ -979,6 +941,31 @@ definitions:
         description: Verification code sent status | 验证码发送状态
         example: true
         type: boolean
+    type: object
+  schema.HealthStatus:
+    properties:
+      checks:
+        additionalProperties:
+          $ref: '#/definitions/schema.Check'
+        description: Component check results | 各组件检查结果
+        type: object
+      status:
+        description: 'Overall status: healthy, degraded, unhealthy | 整体状态: healthy,
+          degraded, unhealthy'
+        type: string
+      system:
+        allOf:
+        - $ref: '#/definitions/schema.SystemInfo'
+        description: System information (detail mode only) | 系统信息(仅详细模式)
+      timestamp:
+        description: Check time | 检查时间
+        type: string
+      uptime:
+        description: Uptime | 运行时间
+        type: string
+      version:
+        description: Application version | 应用版本
+        type: string
     type: object
   schema.HomeSettingsRequest:
     properties:
@@ -2848,6 +2835,19 @@ definitions:
     required:
     - image_url
     type: object
+  schema.SystemInfo:
+    properties:
+      go_version:
+        type: string
+      mem_alloc:
+        type: string
+      mem_sys:
+        type: string
+      num_cpu:
+        type: integer
+      num_goroutine:
+        type: integer
+    type: object
   schema.SystemMetrics:
     properties:
       cpu:
@@ -3672,6 +3672,9 @@ definitions:
       user_disliked:
         description: Whether current user has disliked | 当前用户是否已点踩
         type: boolean
+      user_favorited:
+        description: Whether current user has favorited | 当前用户是否已收藏
+        type: boolean
       user_liked:
         description: Whether current user has liked | 当前用户是否已点赞
         type: boolean
@@ -3728,6 +3731,9 @@ definitions:
         type: string
       user_disliked:
         description: Whether current user has disliked | 当前用户是否已点踩
+        type: boolean
+      user_favorited:
+        description: Whether current user has favorited | 当前用户是否已收藏
         type: boolean
       user_id:
         description: Author ID | 作者 ID
@@ -3830,6 +3836,9 @@ definitions:
         type: string
       user_disliked:
         description: Whether current user has disliked | 当前用户是否已点踩
+        type: boolean
+      user_favorited:
+        description: Whether current user has favorited | 当前用户是否已收藏
         type: boolean
       user_liked:
         description: Whether current user has liked | 当前用户是否已点赞
@@ -4761,11 +4770,11 @@ paths:
         "200":
           description: Service healthy | 服务健康
           schema:
-            $ref: '#/definitions/controller.HealthStatus'
+            $ref: '#/definitions/schema.HealthStatus'
         "503":
           description: Service unhealthy | 服务不健康
           schema:
-            $ref: '#/definitions/controller.HealthStatus'
+            $ref: '#/definitions/schema.HealthStatus'
       summary: Detailed health check | 详细健康检查
       tags:
       - Health Check | 健康检查

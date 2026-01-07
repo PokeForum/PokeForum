@@ -40,6 +40,8 @@ type UserPostCreateResponse struct {
 	UserLiked bool `json:"user_liked"`
 	// Whether current user has disliked | 当前用户是否已点踩
 	UserDisliked bool `json:"user_disliked"`
+	// Whether current user has favorited | 当前用户是否已收藏
+	UserFavorited bool `json:"user_favorited"`
 	// Whether essence post | 是否精华帖
 	IsEssence bool `json:"is_essence"`
 	// Whether pinned | 是否置顶
@@ -92,6 +94,8 @@ type UserPostUpdateResponse struct {
 	UserLiked bool `json:"user_liked"`
 	// Whether current user has disliked | 当前用户是否已点踩
 	UserDisliked bool `json:"user_disliked"`
+	// Whether current user has favorited | 当前用户是否已收藏
+	UserFavorited bool `json:"user_favorited"`
 	// Whether essence post | 是否精华帖
 	IsEssence bool `json:"is_essence"`
 	// Whether pinned | 是否置顶
@@ -186,6 +190,8 @@ type UserPostDetailResponse struct {
 	UserLiked bool `json:"user_liked"`
 	// Whether current user has disliked | 当前用户是否已点踩
 	UserDisliked bool `json:"user_disliked"`
+	// Whether current user has favorited | 当前用户是否已收藏
+	UserFavorited bool `json:"user_favorited"`
 	// Whether essence post | 是否精华帖
 	IsEssence bool `json:"is_essence"`
 	// Whether pinned | 是否置顶

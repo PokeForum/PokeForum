@@ -741,13 +741,13 @@ const docTemplate = `{
                     "200": {
                         "description": "Service healthy | 服务健康",
                         "schema": {
-                            "$ref": "#/definitions/controller.HealthStatus"
+                            "$ref": "#/definitions/schema.HealthStatus"
                         }
                     },
                     "503": {
                         "description": "Service unhealthy | 服务不健康",
                         "schema": {
-                            "$ref": "#/definitions/controller.HealthStatus"
+                            "$ref": "#/definitions/schema.HealthStatus"
                         }
                     }
                 }
@@ -6708,79 +6708,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "controller.Check": {
-            "type": "object",
-            "properties": {
-                "latency": {
-                    "description": "Response latency | 响应延迟",
-                    "type": "string"
-                },
-                "message": {
-                    "description": "Additional information | 额外信息",
-                    "type": "string"
-                },
-                "status": {
-                    "description": "Status: up, down | 状态: up, down",
-                    "type": "string"
-                }
-            }
-        },
-        "controller.HealthStatus": {
-            "type": "object",
-            "properties": {
-                "checks": {
-                    "description": "Component check results | 各组件检查结果",
-                    "type": "object",
-                    "additionalProperties": {
-                        "$ref": "#/definitions/controller.Check"
-                    }
-                },
-                "status": {
-                    "description": "Overall status: healthy, degraded, unhealthy | 整体状态: healthy, degraded, unhealthy",
-                    "type": "string"
-                },
-                "system": {
-                    "description": "System information (detail mode only) | 系统信息(仅详细模式)",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/controller.SystemInfo"
-                        }
-                    ]
-                },
-                "timestamp": {
-                    "description": "Check time | 检查时间",
-                    "type": "string"
-                },
-                "uptime": {
-                    "description": "Uptime | 运行时间",
-                    "type": "string"
-                },
-                "version": {
-                    "description": "Application version | 应用版本",
-                    "type": "string"
-                }
-            }
-        },
-        "controller.SystemInfo": {
-            "type": "object",
-            "properties": {
-                "go_version": {
-                    "type": "string"
-                },
-                "mem_alloc": {
-                    "type": "string"
-                },
-                "mem_sys": {
-                    "type": "string"
-                },
-                "num_cpu": {
-                    "type": "integer"
-                },
-                "num_goroutine": {
-                    "type": "integer"
-                }
-            }
-        },
         "response.Data": {
             "type": "object",
             "properties": {
@@ -7259,6 +7186,23 @@ const docTemplate = `{
                     "type": "integer",
                     "minimum": 0,
                     "example": 0
+                }
+            }
+        },
+        "schema.Check": {
+            "type": "object",
+            "properties": {
+                "latency": {
+                    "description": "Response latency | 响应延迟",
+                    "type": "string"
+                },
+                "message": {
+                    "description": "Additional information | 额外信息",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status: up, down | 状态: up, down",
+                    "type": "string"
                 }
             }
         },
@@ -7994,6 +7938,42 @@ const docTemplate = `{
                     "description": "Verification code sent status | 验证码发送状态",
                     "type": "boolean",
                     "example": true
+                }
+            }
+        },
+        "schema.HealthStatus": {
+            "type": "object",
+            "properties": {
+                "checks": {
+                    "description": "Component check results | 各组件检查结果",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/schema.Check"
+                    }
+                },
+                "status": {
+                    "description": "Overall status: healthy, degraded, unhealthy | 整体状态: healthy, degraded, unhealthy",
+                    "type": "string"
+                },
+                "system": {
+                    "description": "System information (detail mode only) | 系统信息(仅详细模式)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/schema.SystemInfo"
+                        }
+                    ]
+                },
+                "timestamp": {
+                    "description": "Check time | 检查时间",
+                    "type": "string"
+                },
+                "uptime": {
+                    "description": "Uptime | 运行时间",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Application version | 应用版本",
+                    "type": "string"
                 }
             }
         },
@@ -10499,6 +10479,26 @@ const docTemplate = `{
                 }
             }
         },
+        "schema.SystemInfo": {
+            "type": "object",
+            "properties": {
+                "go_version": {
+                    "type": "string"
+                },
+                "mem_alloc": {
+                    "type": "string"
+                },
+                "mem_sys": {
+                    "type": "string"
+                },
+                "num_cpu": {
+                    "type": "integer"
+                },
+                "num_goroutine": {
+                    "type": "integer"
+                }
+            }
+        },
         "schema.SystemMetrics": {
             "type": "object",
             "properties": {
@@ -11592,6 +11592,10 @@ const docTemplate = `{
                     "description": "Whether current user has disliked | 当前用户是否已点踩",
                     "type": "boolean"
                 },
+                "user_favorited": {
+                    "description": "Whether current user has favorited | 当前用户是否已收藏",
+                    "type": "boolean"
+                },
                 "user_liked": {
                     "description": "Whether current user has liked | 当前用户是否已点赞",
                     "type": "boolean"
@@ -11667,6 +11671,10 @@ const docTemplate = `{
                 },
                 "user_disliked": {
                     "description": "Whether current user has disliked | 当前用户是否已点踩",
+                    "type": "boolean"
+                },
+                "user_favorited": {
+                    "description": "Whether current user has favorited | 当前用户是否已收藏",
                     "type": "boolean"
                 },
                 "user_id": {
@@ -11805,6 +11813,10 @@ const docTemplate = `{
                 },
                 "user_disliked": {
                     "description": "Whether current user has disliked | 当前用户是否已点踩",
+                    "type": "boolean"
+                },
+                "user_favorited": {
+                    "description": "Whether current user has favorited | 当前用户是否已收藏",
                     "type": "boolean"
                 },
                 "user_liked": {
