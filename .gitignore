@@ -32,6 +32,9 @@ config.yaml
 # Editor/IDE
 .idea/
 .vscode/
+.agent/
+.claude/
+.windsurf
 
 # Log File
 logs/*
