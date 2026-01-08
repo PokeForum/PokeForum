@@ -11,24 +11,26 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/PokeForum/PokeForum/ent"
-	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
-	"github.com/PokeForum/PokeForum/ent/usersigninstatus"
 	_const "github.com/PokeForum/PokeForum/internal/consts"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
+	"github.com/PokeForum/PokeForum/internal/repository"
 
 	"github.com/PokeForum/PokeForum/internal/schema"
 )
 
 // SigninService Sign-in service implementation | 签到服务实现
 type SigninService struct {
-	db              *ent.Client
-	cache           cache.ICacheService
-	redisLock       *cache.RedisLock
-	logger          *zap.Logger
-	settingsService ISettingsService
-	asyncTask       *SigninAsyncTask
+	db                   *ent.Client
+	userRepo             repository.IUserRepository
+	userSigninStatusRepo repository.IUserSigninStatusRepository
+	userBalanceLogRepo   repository.IUserBalanceLogRepository
+	cache                cache.ICacheService
+	redisLock            *cache.RedisLock
+	logger               *zap.Logger
+	settingsService      ISettingsService
+	asyncTask            *SigninAsyncTask
 }
 
 // ISigninService Sign-in service interface | 签到服务接口
@@ -46,6 +48,7 @@ type ISigninService interface {
 // NewSigninService Create sign-in service instance | 创建签到服务实例
 func NewSigninService(
 	db *ent.Client,
+	repos *repository.Repositories,
 	cacheService cache.ICacheService,
 	redisLock *cache.RedisLock,
 	logger *zap.Logger,
@@ -53,12 +56,15 @@ func NewSigninService(
 	asyncTask *SigninAsyncTask,
 ) ISigninService {
 	return &SigninService{
-		db:              db,
-		cache:           cacheService,
-		redisLock:       redisLock,
-		logger:          logger,
-		settingsService: settingsService,
-		asyncTask:       asyncTask,
+		db:                   db,
+		userRepo:             repos.User,
+		userSigninStatusRepo: repos.UserSigninStatus,
+		userBalanceLogRepo:   repos.UserBalanceLog,
+		cache:                cacheService,
+		redisLock:            redisLock,
+		logger:               logger,
+		settingsService:      settingsService,
+		asyncTask:            asyncTask,
 	}
 }
 
@@ -87,7 +93,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 	}
 
 	// 检查用户是否存在
-	userExists, err := s.db.User.Query().Where(user.ID(int(userID))).Exist(ctx)
+	userExists, err := s.userRepo.ExistsByID(ctx, int(userID))
 	if err != nil {
 		s.logger.Error("检查用户存在性失败",
 			zap.Int64("user_id", userID),
@@ -313,9 +319,7 @@ func (s *SigninService) getUserSigninStatus(ctx context.Context, userID int64) (
 
 // getSigninStatusFromDB Get sign-in status from database | 从数据库获取签到状态
 func (s *SigninService) getSigninStatusFromDB(ctx context.Context, userID int64) (*schema.SigninStatus, error) {
-	status, err := s.db.UserSigninStatus.Query().
-		Where(usersigninstatus.UserID(userID)).
-		Only(ctx)
+	status, err := s.userSigninStatusRepo.GetByUserID(ctx, userID)
 
 	if err != nil {
 		if ent.IsNotFound(err) {
@@ -573,11 +577,9 @@ func (s *SigninService) updateUserBalance(ctx context.Context, userID int64, poi
 	// 实际项目中应该通过UserService来处理
 
 	// 更新用户积分
-	_, err := s.db.User.Update().
-		Where(user.ID(int(userID))).
-		AddPoints(points).
-		AddExperience(experience).
-		Save(ctx)
+	err := s.userRepo.UpdateFields(ctx, int(userID), func(u *ent.UserUpdateOne) *ent.UserUpdateOne {
+		return u.AddPoints(points).AddExperience(experience)
+	})
 
 	if err != nil {
 		return err
@@ -609,7 +611,7 @@ func (s *SigninService) updateUserBalance(ctx context.Context, userID int64, poi
 // createBalanceLog Create balance change log | 创建余额变动日志
 func (s *SigninService) createBalanceLog(ctx context.Context, userID int64, logType string, amount int, reason string) error {
 	// 获取用户当前余额
-	u, err := s.db.User.Get(ctx, int(userID))
+	u, err := s.userRepo.GetByID(ctx, int(userID))
 	if err != nil {
 		return err
 	}
@@ -630,15 +632,16 @@ func (s *SigninService) createBalanceLog(ctx context.Context, userID int64, logT
 	}
 
 	// 创建变动日志
-	return s.db.UserBalanceLog.Create().
-		SetUserID(int(userID)).
-		SetType(enumType).
-		SetAmount(amount).
-		SetBeforeAmount(beforeAmount).
-		SetAfterAmount(afterAmount).
-		SetReason(reason).
-		SetRelatedType("signin").
-		Exec(ctx)
+	_, err = s.userBalanceLogRepo.Create(ctx, func(c *ent.UserBalanceLogCreate) *ent.UserBalanceLogCreate {
+		return c.SetUserID(int(userID)).
+			SetType(enumType).
+			SetAmount(amount).
+			SetBeforeAmount(beforeAmount).
+			SetAfterAmount(afterAmount).
+			SetReason(reason).
+			SetRelatedType("signin")
+	})
+	return err
 }
 
 // buildSigninMessage Build sign-in message | 构建签到提示信息
@@ -704,7 +707,7 @@ func (s *SigninService) GetDailyRanking(ctx context.Context, date string, limit 
 	// 批量查询用户信息
 	userMap := make(map[int]*ent.User)
 	if len(userIDs) > 0 {
-		users, err := s.db.User.Query().Where(user.IDIn(userIDs...)).All(ctx)
+		users, err := s.userRepo.GetByIDs(ctx, userIDs)
 		if err != nil {
 			s.logger.Error("查询用户信息失败",
 				zap.Error(err),
@@ -782,7 +785,7 @@ func (s *SigninService) GetContinuousRanking(ctx context.Context, limit int, use
 	// 批量查询用户信息
 	userMap := make(map[int]*ent.User)
 	if len(userIDs) > 0 {
-		users, err := s.db.User.Query().Where(user.IDIn(userIDs...)).All(ctx)
+		users, err := s.userRepo.GetByIDs(ctx, userIDs)
 		if err != nil {
 			s.logger.Error("查询用户信息失败",
 				zap.Error(err),

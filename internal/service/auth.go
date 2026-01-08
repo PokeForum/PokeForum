@@ -18,6 +18,7 @@ import (
 	smtp "github.com/PokeForum/PokeForum/internal/pkg/email"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
+	"github.com/PokeForum/PokeForum/internal/repository"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/utils"
 )
@@ -40,19 +41,21 @@ type IAuthService interface {
 
 // AuthService Authentication service implementation | 认证服务实现
 type AuthService struct {
-	db       *ent.Client
-	cache    cache.ICacheService
-	logger   *zap.Logger
-	settings ISettingsService // Add settings service dependency | 添加设置服务依赖
+	userRepo     repository.IUserRepository
+	loginLogRepo repository.IUserLoginLogRepository
+	cache        cache.ICacheService
+	logger       *zap.Logger
+	settings     ISettingsService
 }
 
 // NewAuthService Create authentication service instance | 创建认证服务实例
-func NewAuthService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger, settings ISettingsService) IAuthService {
+func NewAuthService(userRepo repository.IUserRepository, loginLogRepo repository.IUserLoginLogRepository, cacheService cache.ICacheService, logger *zap.Logger, settings ISettingsService) IAuthService {
 	return &AuthService{
-		db:       db,
-		cache:    cacheService,
-		logger:   logger,
-		settings: settings,
+		userRepo:     userRepo,
+		loginLogRepo: loginLogRepo,
+		cache:        cacheService,
+		logger:       logger,
+		settings:     settings,
 	}
 }
 
@@ -69,28 +72,22 @@ func (s *AuthService) Register(ctx context.Context, req schema.RegisterRequest) 
 		return nil, errors.New("系统已关闭注册功能")
 	}
 
-	// Check if username already exists | 检查用户名是否已存在
-	existingUser, err := s.db.User.Query().
-		Where(user.UsernameEQ(req.Username)).
-		First(ctx)
-	if err == nil && existingUser != nil {
+	existingUser, err := s.userRepo.GetByUsername(ctx, req.Username)
+	if err != nil {
+		s.logger.Error("Failed to query user | 查询用户失败", tracing.WithTraceIDField(ctx), zap.Error(err))
+		return nil, err
+	}
+	if existingUser != nil {
 		return nil, errors.New("用户名已存在")
 	}
-	if err != nil && !ent.IsNotFound(err) {
-		s.logger.Error("Failed to query user | 查询用户失败", tracing.WithTraceIDField(ctx), zap.Error(err))
-		return nil, fmt.Errorf("查询用户失败: %w", err)
-	}
 
-	// Check if email already exists | 检查邮箱是否已存在
-	existingEmail, err := s.db.User.Query().
-		Where(user.EmailEQ(req.Email)).
-		First(ctx)
-	if err == nil && existingEmail != nil {
-		return nil, errors.New("邮箱已被注册")
-	}
-	if err != nil && !ent.IsNotFound(err) {
+	existingEmail, err := s.userRepo.GetByEmail(ctx, req.Email)
+	if err != nil {
 		s.logger.Error("Failed to query email | 查询邮箱失败", tracing.WithTraceIDField(ctx), zap.Error(err))
-		return nil, fmt.Errorf("查询邮箱失败: %w", err)
+		return nil, err
+	}
+	if existingEmail != nil {
+		return nil, errors.New("邮箱已被注册")
 	}
 
 	// Check email whitelist settings | 检查邮箱白名单设置
@@ -129,15 +126,10 @@ func (s *AuthService) Register(ctx context.Context, req schema.RegisterRequest) 
 		return nil, fmt.Errorf("密码加密失败: %w", err)
 	}
 
-	// Create user | 创建用户
-	newUser, err := s.db.User.Create().
-		SetUsername(req.Username).
-		SetEmail(req.Email).
-		SetPassword(hashedPassword).
-		Save(ctx)
+	newUser, err := s.userRepo.Create(ctx, req.Username, req.Email, hashedPassword)
 	if err != nil {
 		s.logger.Error("Failed to create user | 创建用户失败", tracing.WithTraceIDField(ctx), zap.Error(err))
-		return nil, fmt.Errorf("创建用户失败: %w", err)
+		return nil, err
 	}
 
 	return newUser, nil
@@ -146,16 +138,13 @@ func (s *AuthService) Register(ctx context.Context, req schema.RegisterRequest) 
 // Login User login | 用户登录
 // Find user by username and verify password | 根据用户名查找用户，验证密码是否正确
 func (s *AuthService) Login(ctx context.Context, req schema.LoginRequest) (*ent.User, error) {
-	// Find user by email | 根据邮箱查找用户
-	u, err := s.db.User.Query().
-		Where(user.EmailEQ(req.Email)).
-		First(ctx)
+	u, err := s.userRepo.GetByEmail(ctx, req.Email)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("用户不存在")
-		}
 		s.logger.Error("Failed to query user | 查询用户失败", tracing.WithTraceIDField(ctx), zap.Error(err))
-		return nil, fmt.Errorf("查询用户失败: %w", err)
+		return nil, err
+	}
+	if u == nil {
+		return nil, errors.New("用户不存在")
 	}
 
 	// Check permanent ban | 检查封禁-长期
@@ -182,13 +171,10 @@ func (s *AuthService) Login(ctx context.Context, req schema.LoginRequest) (*ent.
 
 // GetUserByID Get user by ID | 根据ID获取用户
 func (s *AuthService) GetUserByID(ctx context.Context, id int) (*ent.User, error) {
-	u, err := s.db.User.Get(ctx, id)
+	u, err := s.userRepo.GetByID(ctx, id)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("用户不存在")
-		}
 		s.logger.Error("Failed to query user | 查询用户失败", tracing.WithTraceIDField(ctx), zap.Error(err))
-		return nil, fmt.Errorf("查询用户失败: %w", err)
+		return nil, err
 	}
 	return u, nil
 }
@@ -225,17 +211,13 @@ func isEmailDomainInWhitelist(emailDomain, whitelist string) bool {
 func (s *AuthService) SendForgotPasswordCode(ctx context.Context, req schema.ForgotPasswordRequest) (*schema.ForgotPasswordResponse, error) {
 	s.logger.Info("Sending password recovery verification code | 发送找回密码验证码", zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
 
-	// Check if email exists | 检查邮箱是否存在
-	userData, err := s.db.User.Query().
-		Where(user.EmailEQ(req.Email)).
-		Select(user.FieldID, user.FieldEmail).
-		Only(ctx)
+	userData, err := s.userRepo.GetByEmail(ctx, req.Email)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("该邮箱未注册")
-		}
 		s.logger.Error("Failed to query user | 查询用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("查询用户失败: %w", err)
+		return nil, err
+	}
+	if userData == nil {
+		return nil, errors.New("该邮箱未注册")
 	}
 
 	// Check sending frequency limit | 检查发送频率限制
@@ -307,16 +289,13 @@ func (s *AuthService) ResetPassword(ctx context.Context, req schema.ResetPasswor
 		return nil, errors.New("验证码错误")
 	}
 
-	// Query user | 查询用户
-	userData, err := s.db.User.Query().
-		Where(user.EmailEQ(req.Email)).
-		Only(ctx)
+	userData, err := s.userRepo.GetByEmail(ctx, req.Email)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("用户不存在")
-		}
 		s.logger.Error("Failed to query user | 查询用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("查询用户失败: %w", err)
+		return nil, err
+	}
+	if userData == nil {
+		return nil, errors.New("用户不存在")
 	}
 
 	// Hash password | 密码加密
@@ -326,13 +305,10 @@ func (s *AuthService) ResetPassword(ctx context.Context, req schema.ResetPasswor
 		return nil, fmt.Errorf("密码加密失败: %w", err)
 	}
 
-	// Update password | 更新密码
-	_, err = s.db.User.UpdateOneID(userData.ID).
-		SetPassword(hashedPassword).
-		Save(ctx)
+	err = s.userRepo.UpdatePassword(ctx, userData.ID, hashedPassword)
 	if err != nil {
 		s.logger.Error("Failed to update password | 更新密码失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("更新密码失败: %w", err)
+		return nil, err
 	}
 
 	// Delete verification code cache | 删除验证码缓存
@@ -416,16 +392,8 @@ func (s *AuthService) RecordLoginLog(ctx context.Context, userID int, ip, ua str
 			deviceInfo = "Unknown"
 		}
 
-		// Create login record | 创建登录记录
-		_, err := s.db.UserLoginLog.Create().
-			SetUserID(userID).
-			SetIPAddress(ip).
-			SetDeviceInfo(deviceInfo).
-			SetSuccess(true).
-			Save(context.Background())
-
+		_, err := s.loginLogRepo.Create(context.Background(), userID, ip, deviceInfo, true)
 		if err != nil {
-			// Log error | 记录错误日志
 			s.logger.Error("Failed to save login log | 保存登录日志失败",
 				zap.Int("user_id", userID),
 				zap.String("ip_address", ip),

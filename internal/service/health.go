@@ -9,6 +9,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent"
 	_const "github.com/PokeForum/PokeForum/internal/consts"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
+	"github.com/PokeForum/PokeForum/internal/repository"
 	"github.com/PokeForum/PokeForum/internal/schema"
 )
 
@@ -23,15 +24,17 @@ type IHealthService interface {
 
 // HealthService Health check service implementation | 健康检查服务实现
 type HealthService struct {
-	db    *ent.Client
-	cache cache.ICacheService
+	db       *ent.Client
+	userRepo repository.IUserRepository
+	cache    cache.ICacheService
 }
 
 // NewHealthService Create health check service instance | 创建健康检查服务实例
-func NewHealthService(db *ent.Client, cache cache.ICacheService) IHealthService {
+func NewHealthService(db *ent.Client, repos *repository.Repositories, cache cache.ICacheService) IHealthService {
 	return &HealthService{
-		db:    db,
-		cache: cache,
+		db:       db,
+		userRepo: repos.User,
+		cache:    cache,
 	}
 }
 
@@ -106,7 +109,7 @@ func (s *HealthService) checkDatabase(ctx context.Context) schema.Check {
 	defer cancel()
 
 	// Execute simple query to test connection | 执行简单查询测试连接
-	_, err := s.db.User.Query().Limit(1).Count(timeoutCtx)
+	_, err := s.userRepo.Count(timeoutCtx)
 	latency := time.Since(start)
 
 	if err != nil {

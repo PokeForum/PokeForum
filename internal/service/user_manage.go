@@ -10,15 +10,13 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/PokeForum/PokeForum/ent"
-	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/categorymoderator"
-	"github.com/PokeForum/PokeForum/ent/comment"
-	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
+	"github.com/PokeForum/PokeForum/internal/repository"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/utils"
 )
@@ -59,17 +57,29 @@ type IUserManageService interface {
 
 // UserManageService User management service implementation | 用户管理服务实现
 type UserManageService struct {
-	db     *ent.Client
-	cache  cache.ICacheService
-	logger *zap.Logger
+	db                    *ent.Client
+	userRepo              repository.IUserRepository
+	postRepo              repository.IPostRepository
+	commentRepo           repository.ICommentRepository
+	categoryRepo          repository.ICategoryRepository
+	categoryModeratorRepo repository.ICategoryModeratorRepository
+	userBalanceLogRepo    repository.IUserBalanceLogRepository
+	cache                 cache.ICacheService
+	logger                *zap.Logger
 }
 
 // NewUserManageService Create user management service instance | 创建用户管理服务实例
-func NewUserManageService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) IUserManageService {
+func NewUserManageService(db *ent.Client, repos *repository.Repositories, cacheService cache.ICacheService, logger *zap.Logger) IUserManageService {
 	return &UserManageService{
-		db:     db,
-		cache:  cacheService,
-		logger: logger,
+		db:                    db,
+		userRepo:              repos.User,
+		postRepo:              repos.Post,
+		commentRepo:           repos.Comment,
+		categoryRepo:          repos.Category,
+		categoryModeratorRepo: repos.CategoryModerator,
+		userBalanceLogRepo:    repos.UserBalanceLog,
+		cache:                 cacheService,
+		logger:                logger,
 	}
 }
 
@@ -77,11 +87,8 @@ func NewUserManageService(db *ent.Client, cacheService cache.ICacheService, logg
 // Admins can only operate on users and moderators, super admins can operate on all roles | 管理员只能操作用户和版主，超级管理员可以操作所有身份
 func (s *UserManageService) checkOperatorPermission(ctx context.Context, operatorID int, targetRole user.Role) error {
 	// 获取操作者信息
-	operator, err := s.db.User.Get(ctx, operatorID)
+	operator, err := s.userRepo.GetByID(ctx, operatorID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return errors.New("操作者不存在")
-		}
 		s.logger.Error("获取操作者信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("获取操作者信息失败: %w", err)
 	}
@@ -106,42 +113,74 @@ func (s *UserManageService) checkOperatorPermission(ctx context.Context, operato
 func (s *UserManageService) GetUserList(ctx context.Context, req schema.UserListRequest) (*schema.UserListResponse, error) {
 	s.logger.Info("获取用户列表", tracing.WithTraceIDField(ctx))
 
-	// 构建查询条件
-	query := s.db.User.Query()
+	// 使用 Repository 进行条件查询
+	var users []*ent.User
+	var total int
+	var err error
 
-	// 关键词搜索
-	if req.Keyword != "" {
-		query = query.Where(
-			user.Or(
-				user.UsernameContains(req.Keyword),
-				user.EmailContains(req.Keyword),
-			),
-		)
+	// 构建查询条件函数
+	conditionFunc := func(q *ent.UserQuery) *ent.UserQuery {
+		// 关键词搜索
+		if req.Keyword != "" {
+			q = q.Where(
+				user.Or(
+					user.UsernameContains(req.Keyword),
+					user.EmailContains(req.Keyword),
+				),
+			)
+		}
+
+		// 状态筛选
+		if req.Status != "" {
+			q = q.Where(user.StatusEQ(user.Status(req.Status)))
+		}
+
+		// 身份筛选
+		if req.Role != "" {
+			q = q.Where(user.RoleEQ(user.Role(req.Role)))
+		}
+
+		// 排序和分页
+		q = q.Order(ent.Desc(user.FieldCreatedAt)).
+			Offset((req.Page - 1) * req.PageSize).
+			Limit(req.PageSize)
+
+		return q
 	}
 
-	// 状态筛选
-	if req.Status != "" {
-		query = query.Where(user.StatusEQ(user.Status(req.Status)))
+	// 先获取总数
+	totalCountFunc := func(q *ent.UserQuery) *ent.UserQuery {
+		// 关键词搜索
+		if req.Keyword != "" {
+			q = q.Where(
+				user.Or(
+					user.UsernameContains(req.Keyword),
+					user.EmailContains(req.Keyword),
+				),
+			)
+		}
+
+		// 状态筛选
+		if req.Status != "" {
+			q = q.Where(user.StatusEQ(user.Status(req.Status)))
+		}
+
+		// 身份筛选
+		if req.Role != "" {
+			q = q.Where(user.RoleEQ(user.Role(req.Role)))
+		}
+
+		return q
 	}
 
-	// 身份筛选
-	if req.Role != "" {
-		query = query.Where(user.RoleEQ(user.Role(req.Role)))
-	}
-
-	// 获取总数
-	total, err := query.Count(ctx)
+	total, err = s.userRepo.CountWithCondition(ctx, totalCountFunc)
 	if err != nil {
 		s.logger.Error("获取用户总数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("获取用户总数失败: %w", err)
 	}
 
 	// 分页查询
-	users, err := query.
-		Order(ent.Desc(user.FieldCreatedAt)).
-		Offset((req.Page - 1) * req.PageSize).
-		Limit(req.PageSize).
-		All(ctx)
+	users, err = s.userRepo.ListWithCondition(ctx, conditionFunc, 0)
 	if err != nil {
 		s.logger.Error("获取用户列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("获取用户列表失败: %w", err)
@@ -201,15 +240,22 @@ func (s *UserManageService) CreateUser(ctx context.Context, req schema.UserCreat
 	s.logger.Info("创建用户", zap.String("username", req.Username), tracing.WithTraceIDField(ctx))
 
 	// 检查用户名是否已存在
-	existingUser, err := s.db.User.Query().
-		Where(user.Or(user.UsernameEQ(req.Username), user.EmailEQ(req.Email))).
-		First(ctx)
-	if err == nil && existingUser != nil {
-		return nil, errors.New("用户名或邮箱已存在")
+	usernameExists, err := s.userRepo.ExistsByUsername(ctx, req.Username)
+	if err != nil {
+		s.logger.Error("检查用户名是否存在失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("检查用户名是否存在失败: %w", err)
 	}
-	if !ent.IsNotFound(err) {
-		s.logger.Error("检查用户是否存在失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("检查用户是否存在失败: %w", err)
+	if usernameExists {
+		return nil, errors.New("用户名已存在")
+	}
+
+	emailExists, err := s.userRepo.ExistsByEmail(ctx, req.Email)
+	if err != nil {
+		s.logger.Error("检查邮箱是否存在失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("检查邮箱是否存在失败: %w", err)
+	}
+	if emailExists {
+		return nil, errors.New("邮箱已存在")
 	}
 
 	// 加密密码
@@ -220,15 +266,15 @@ func (s *UserManageService) CreateUser(ctx context.Context, req schema.UserCreat
 	}
 
 	// 创建用户
-	u, err := s.db.User.Create().
-		SetUsername(req.Username).
-		SetEmail(req.Email).
-		SetPassword(hashedPassword).
-		SetRole(user.Role(req.Role)).
-		SetAvatar(req.Avatar).
-		SetSignature(req.Signature).
-		SetReadme(req.Readme).
-		Save(ctx)
+	u, err := s.userRepo.CreateWithBuilder(ctx, func(c *ent.UserCreate) *ent.UserCreate {
+		return c.SetUsername(req.Username).
+			SetEmail(req.Email).
+			SetPassword(hashedPassword).
+			SetRole(user.Role(req.Role)).
+			SetAvatar(req.Avatar).
+			SetSignature(req.Signature).
+			SetReadme(req.Readme)
+	})
 	if err != nil {
 		s.logger.Error("创建用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("创建用户失败: %w", err)
@@ -243,54 +289,58 @@ func (s *UserManageService) UpdateUser(ctx context.Context, req schema.UserUpdat
 	s.logger.Info("更新用户信息", zap.Int("user_id", req.ID), tracing.WithTraceIDField(ctx))
 
 	// 检查用户是否存在
-	existingUser, err := s.db.User.Get(ctx, req.ID)
+	_, err := s.userRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("用户不存在")
-		}
 		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("获取用户信息失败: %w", err)
 	}
 
 	// 检查用户名和邮箱是否与其他用户冲突
-	if req.Username != "" || req.Email != "" {
-		conflictQuery := s.db.User.Query().
-			Where(
-				user.And(
-					user.IDNEQ(req.ID),
-					user.Or(
-						user.UsernameEQ(req.Username),
-						user.EmailEQ(req.Email),
-					),
-				),
-			)
-		if conflictUser, err := conflictQuery.First(ctx); err == nil && conflictUser != nil {
-			return nil, errors.New("用户名或邮箱已被其他用户使用")
-		} else if !ent.IsNotFound(err) {
-			s.logger.Error("检查用户名邮箱冲突失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-			return nil, fmt.Errorf("检查用户名邮箱冲突失败: %w", err)
+	if req.Username != "" {
+		usernameExists, err := s.userRepo.CountWithCondition(ctx, func(q *ent.UserQuery) *ent.UserQuery {
+			return q.Where(user.And(user.IDNEQ(req.ID), user.UsernameEQ(req.Username)))
+		})
+		if err != nil {
+			s.logger.Error("检查用户名冲突失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			return nil, fmt.Errorf("检查用户名冲突失败: %w", err)
+		}
+		if usernameExists > 0 {
+			return nil, errors.New("用户名已被其他用户使用")
+		}
+	}
+
+	if req.Email != "" {
+		emailExists, err := s.userRepo.CountWithCondition(ctx, func(q *ent.UserQuery) *ent.UserQuery {
+			return q.Where(user.And(user.IDNEQ(req.ID), user.EmailEQ(req.Email)))
+		})
+		if err != nil {
+			s.logger.Error("检查邮箱冲突失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			return nil, fmt.Errorf("检查邮箱冲突失败: %w", err)
+		}
+		if emailExists > 0 {
+			return nil, errors.New("邮箱已被其他用户使用")
 		}
 	}
 
 	// 构建更新操作
-	update := s.db.User.UpdateOne(existingUser)
-	if req.Username != "" {
-		update.SetUsername(req.Username)
-	}
-	if req.Email != "" {
-		update.SetEmail(req.Email)
-	}
-	if req.Avatar != "" {
-		update.SetAvatar(req.Avatar)
-	}
-	if req.Signature != "" {
-		update.SetSignature(req.Signature)
-	}
-	if req.Readme != "" {
-		update.SetReadme(req.Readme)
-	}
-
-	u, err := update.Save(ctx)
+	u, err := s.userRepo.Update(ctx, req.ID, func(u *ent.UserUpdateOne) *ent.UserUpdateOne {
+		if req.Username != "" {
+			u = u.SetUsername(req.Username)
+		}
+		if req.Email != "" {
+			u = u.SetEmail(req.Email)
+		}
+		if req.Avatar != "" {
+			u = u.SetAvatar(req.Avatar)
+		}
+		if req.Signature != "" {
+			u = u.SetSignature(req.Signature)
+		}
+		if req.Readme != "" {
+			u = u.SetReadme(req.Readme)
+		}
+		return u
+	})
 	if err != nil {
 		s.logger.Error("更新用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("更新用户信息失败: %w", err)
@@ -305,11 +355,8 @@ func (s *UserManageService) UpdateUserStatus(ctx context.Context, req schema.Use
 	s.logger.Info("更新用户状态", zap.Int("user_id", req.ID), zap.String("status", req.Status), tracing.WithTraceIDField(ctx))
 
 	// 检查用户是否存在
-	u, err := s.db.User.Get(ctx, req.ID)
+	u, err := s.userRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return errors.New("用户不存在")
-		}
 		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("获取用户信息失败: %w", err)
 	}
@@ -320,9 +367,9 @@ func (s *UserManageService) UpdateUserStatus(ctx context.Context, req schema.Use
 	}
 
 	// 更新用户状态
-	_, err = s.db.User.UpdateOneID(req.ID).
-		SetStatus(user.Status(req.Status)).
-		Save(ctx)
+	_, err = s.userRepo.Update(ctx, req.ID, func(u *ent.UserUpdateOne) *ent.UserUpdateOne {
+		return u.SetStatus(user.Status(req.Status))
+	})
 	if err != nil {
 		s.logger.Error("更新用户状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("更新用户状态失败: %w", err)
@@ -337,19 +384,16 @@ func (s *UserManageService) UpdateUserRole(ctx context.Context, req schema.UserR
 	s.logger.Info("更新用户身份", zap.Int("user_id", req.ID), zap.String("role", req.Role), tracing.WithTraceIDField(ctx))
 
 	// 检查用户是否存在
-	existingUser, err := s.db.User.Get(ctx, req.ID)
+	_, err := s.userRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return errors.New("用户不存在")
-		}
 		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("获取用户信息失败: %w", err)
 	}
 
 	// 更新用户身份
-	_, err = s.db.User.UpdateOne(existingUser).
-		SetRole(user.Role(req.Role)).
-		Save(ctx)
+	_, err = s.userRepo.Update(ctx, req.ID, func(u *ent.UserUpdateOne) *ent.UserUpdateOne {
+		return u.SetRole(user.Role(req.Role))
+	})
 	if err != nil {
 		s.logger.Error("更新用户身份失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("更新用户身份失败: %w", err)
@@ -357,9 +401,7 @@ func (s *UserManageService) UpdateUserRole(ctx context.Context, req schema.UserR
 
 	// 如果用户不再是版主，清除其管理的版块（通过中间表）
 	if user.Role(req.Role) != user.RoleModerator {
-		_, err = s.db.CategoryModerator.Delete().
-			Where(categorymoderator.UserIDEQ(req.ID)).
-			Exec(ctx)
+		err = s.categoryModeratorRepo.DeleteByUserID(ctx, req.ID)
 		if err != nil {
 			s.logger.Error("清除用户管理版块失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 			return fmt.Errorf("清除用户管理版块失败: %w", err)
@@ -375,11 +417,8 @@ func (s *UserManageService) UpdateUserPoints(ctx context.Context, req schema.Use
 	s.logger.Info("更新用户积分", zap.Int("user_id", req.ID), zap.Int("points", req.Points), tracing.WithTraceIDField(ctx))
 
 	// 获取用户当前积分
-	u, err := s.db.User.Get(ctx, req.ID)
+	u, err := s.userRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return errors.New("用户不存在")
-		}
 		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("获取用户信息失败: %w", err)
 	}
@@ -391,9 +430,9 @@ func (s *UserManageService) UpdateUserPoints(ctx context.Context, req schema.Use
 	}
 
 	// 更新用户积分
-	err = s.db.User.UpdateOneID(req.ID).
-		SetPoints(newPoints).
-		Exec(ctx)
+	err = s.userRepo.UpdateFields(ctx, req.ID, func(u *ent.UserUpdateOne) *ent.UserUpdateOne {
+		return u.SetPoints(newPoints)
+	})
 	if err != nil {
 		s.logger.Error("更新用户积分失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("更新用户积分失败: %w", err)
@@ -429,11 +468,8 @@ func (s *UserManageService) UpdateUserCurrency(ctx context.Context, req schema.U
 	s.logger.Info("更新用户货币", zap.Int("user_id", req.ID), zap.Int("currency", req.Currency), tracing.WithTraceIDField(ctx))
 
 	// 获取用户当前货币
-	u, err := s.db.User.Get(ctx, req.ID)
+	u, err := s.userRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return errors.New("用户不存在")
-		}
 		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("获取用户信息失败: %w", err)
 	}
@@ -445,9 +481,9 @@ func (s *UserManageService) UpdateUserCurrency(ctx context.Context, req schema.U
 	}
 
 	// 更新用户货币
-	err = s.db.User.UpdateOneID(req.ID).
-		SetCurrency(newCurrency).
-		Exec(ctx)
+	err = s.userRepo.UpdateFields(ctx, req.ID, func(u *ent.UserUpdateOne) *ent.UserUpdateOne {
+		return u.SetCurrency(newCurrency)
+	})
 	if err != nil {
 		s.logger.Error("更新用户货币失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("更新用户货币失败: %w", err)
@@ -483,11 +519,8 @@ func (s *UserManageService) SetModeratorCategories(ctx context.Context, req sche
 	s.logger.Info("设置版主管理版块", zap.Int("user_id", req.UserID), tracing.WithTraceIDField(ctx))
 
 	// 检查用户是否存在且是版主
-	existingUser, err := s.db.User.Get(ctx, req.UserID)
+	existingUser, err := s.userRepo.GetByID(ctx, req.UserID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return errors.New("用户不存在")
-		}
 		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("获取用户信息失败: %w", err)
 	}
@@ -497,9 +530,7 @@ func (s *UserManageService) SetModeratorCategories(ctx context.Context, req sche
 	}
 
 	// 检查版块是否存在
-	categories, err := s.db.Category.Query().
-		Where(category.IDIn(req.CategoryIDs...)).
-		All(ctx)
+	categories, err := s.categoryRepo.GetByIDs(ctx, req.CategoryIDs)
 	if err != nil {
 		s.logger.Error("获取版块信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("获取版块信息失败: %w", err)
@@ -564,13 +595,8 @@ func (s *UserManageService) GetUserDetail(ctx context.Context, id int) (*schema.
 	s.logger.Info("获取用户详情", zap.Int("user_id", id), tracing.WithTraceIDField(ctx))
 
 	// 获取用户信息
-	u, err := s.db.User.Query().
-		Where(user.ID(id)).
-		Only(ctx)
+	u, err := s.userRepo.GetByID(ctx, id)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("用户不存在")
-		}
 		s.logger.Error("获取用户详情失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("获取用户详情失败: %w", err)
 	}
@@ -579,9 +605,7 @@ func (s *UserManageService) GetUserDetail(ctx context.Context, id int) (*schema.
 	managedCategories := make([]schema.CategoryBasicInfo, 0)
 	if u.Role == user.RoleModerator {
 		// 查询版主关联记录
-		moderatorRecords, err := s.db.CategoryModerator.Query().
-			Where(categorymoderator.UserIDEQ(id)).
-			All(ctx)
+		moderatorRecords, err := s.categoryModeratorRepo.GetByUserID(ctx, id)
 		if err == nil && len(moderatorRecords) > 0 {
 			// 收集版块ID
 			categoryIDs := make([]int, len(moderatorRecords))
@@ -590,9 +614,7 @@ func (s *UserManageService) GetUserDetail(ctx context.Context, id int) (*schema.
 			}
 
 			// 批量查询版块信息
-			categories, err := s.db.Category.Query().
-				Where(category.IDIn(categoryIDs...)).
-				All(ctx)
+			categories, err := s.categoryRepo.GetByIDs(ctx, categoryIDs)
 			if err == nil {
 				for _, cat := range categories {
 					managedCategories = append(managedCategories, schema.CategoryBasicInfo{
@@ -644,29 +666,29 @@ func (s *UserManageService) GetUserDetail(ctx context.Context, id int) (*schema.
 // createBalanceLog Create balance change log | 创建余额变动记录
 func (s *UserManageService) createBalanceLog(ctx context.Context, userID int, logType userbalancelog.Type, amount, beforeAmount, afterAmount int, reason, operatorName string, operatorID *int, relatedID *int, relatedType, ipAddress, userAgent string) error {
 	// 创建余额变动记录
-	createBuilder := s.db.UserBalanceLog.Create().
-		SetUserID(userID).
-		SetType(logType).
-		SetAmount(amount).
-		SetBeforeAmount(beforeAmount).
-		SetAfterAmount(afterAmount).
-		SetReason(reason).
-		SetOperatorName(operatorName).
-		SetIPAddress(ipAddress).
-		SetUserAgent(userAgent)
+	_, err := s.userBalanceLogRepo.Create(ctx, func(c *ent.UserBalanceLogCreate) *ent.UserBalanceLogCreate {
+		c = c.SetUserID(userID).
+			SetType(logType).
+			SetAmount(amount).
+			SetBeforeAmount(beforeAmount).
+			SetAfterAmount(afterAmount).
+			SetReason(reason).
+			SetOperatorName(operatorName).
+			SetIPAddress(ipAddress).
+			SetUserAgent(userAgent)
 
-	// 设置可选字段
-	if operatorID != nil {
-		createBuilder.SetOperatorID(*operatorID)
-	}
-	if relatedID != nil {
-		createBuilder.SetRelatedID(*relatedID)
-	}
-	if relatedType != "" {
-		createBuilder.SetRelatedType(relatedType)
-	}
-
-	_, err := createBuilder.Save(ctx)
+		// 设置可选字段
+		if operatorID != nil {
+			c = c.SetOperatorID(*operatorID)
+		}
+		if relatedID != nil {
+			c = c.SetRelatedID(*relatedID)
+		}
+		if relatedType != "" {
+			c = c.SetRelatedType(relatedType)
+		}
+		return c
+	})
 	if err != nil {
 		s.logger.Error("创建余额变动记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("创建余额变动记录失败: %w", err)
@@ -679,57 +701,59 @@ func (s *UserManageService) createBalanceLog(ctx context.Context, userID int, lo
 func (s *UserManageService) GetUserBalanceLog(ctx context.Context, req schema.UserBalanceLogRequest) (*schema.UserBalanceLogResponse, error) {
 	s.logger.Info("获取用户余额变动记录", zap.Int("user_id", req.UserID), tracing.WithTraceIDField(ctx))
 
-	// 构建查询条件
-	query := s.db.UserBalanceLog.Query()
-
-	// 用户ID筛选
-	if req.UserID > 0 {
-		query = query.Where(userbalancelog.UserID(req.UserID))
-	}
-
-	// 变动类型筛选
-	if req.Type != "" {
-		query = query.Where(userbalancelog.TypeEQ(userbalancelog.Type(req.Type)))
-	}
-
-	// 操作者ID筛选
-	if req.OperatorID > 0 {
-		query = query.Where(userbalancelog.OperatorID(req.OperatorID))
-	}
-
-	// 关联业务类型筛选
-	if req.RelatedType != "" {
-		query = query.Where(userbalancelog.RelatedType(req.RelatedType))
-	}
-
-	// 日期范围筛选
-	if req.StartDate != "" {
-		startTime, err := time.Parse("2006-01-02", req.StartDate)
-		if err == nil {
-			query = query.Where(userbalancelog.CreatedAtGTE(startTime))
+	// 构建查询条件函数
+	conditionFunc := func(q *ent.UserBalanceLogQuery) *ent.UserBalanceLogQuery {
+		// 用户ID筛选
+		if req.UserID > 0 {
+			q = q.Where(userbalancelog.UserID(req.UserID))
 		}
-	}
-	if req.EndDate != "" {
-		endTime, err := time.Parse("2006-01-02", req.EndDate)
-		if err == nil {
-			endTime = endTime.Add(24 * time.Hour) // 包含整天
-			query = query.Where(userbalancelog.CreatedAtLT(endTime))
+
+		// 变动类型筛选
+		if req.Type != "" {
+			q = q.Where(userbalancelog.TypeEQ(userbalancelog.Type(req.Type)))
 		}
+
+		// 操作者ID筛选
+		if req.OperatorID > 0 {
+			q = q.Where(userbalancelog.OperatorID(req.OperatorID))
+		}
+
+		// 关联业务类型筛选
+		if req.RelatedType != "" {
+			q = q.Where(userbalancelog.RelatedType(req.RelatedType))
+		}
+
+		// 日期范围筛选
+		if req.StartDate != "" {
+			startTime, err := time.Parse("2006-01-02", req.StartDate)
+			if err == nil {
+				q = q.Where(userbalancelog.CreatedAtGTE(startTime))
+			}
+		}
+		if req.EndDate != "" {
+			endTime, err := time.Parse("2006-01-02", req.EndDate)
+			if err == nil {
+				endTime = endTime.Add(24 * time.Hour) // 包含整天
+				q = q.Where(userbalancelog.CreatedAtLT(endTime))
+			}
+		}
+		return q
 	}
 
 	// 获取总数
-	total, err := query.Count(ctx)
+	total, err := s.userBalanceLogRepo.Count(ctx, conditionFunc)
 	if err != nil {
 		s.logger.Error("获取余额变动记录总数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("获取余额变动记录总数失败: %w", err)
 	}
 
 	// 分页查询
-	logs, err := query.
-		Order(ent.Desc(userbalancelog.FieldCreatedAt)).
-		Offset((req.Page - 1) * req.PageSize).
-		Limit(req.PageSize).
-		All(ctx)
+	logs, err := s.userBalanceLogRepo.Query(ctx, func(q *ent.UserBalanceLogQuery) *ent.UserBalanceLogQuery {
+		q = conditionFunc(q)
+		return q.Order(ent.Desc(userbalancelog.FieldCreatedAt)).
+			Offset((req.Page - 1) * req.PageSize).
+			Limit(req.PageSize)
+	})
 	if err != nil {
 		s.logger.Error("获取余额变动记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("获取余额变动记录失败: %w", err)
@@ -746,12 +770,9 @@ func (s *UserManageService) GetUserBalanceLog(ctx context.Context, req schema.Us
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
 	}
-	users, err := s.db.User.Query().
-		Where(user.IDIn(userIDList...)).
-		Select(user.FieldID, user.FieldUsername).
-		All(ctx)
+	users, err := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername})
 	if err != nil {
-		s.logger.Warn("批量查询用户信息失败", zap.Error(err))
+		s.logger.Warn("批量查询用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 	}
 	userMap := make(map[int]string)
 	for _, u := range users {
@@ -794,69 +815,62 @@ func (s *UserManageService) GetUserBalanceSummary(ctx context.Context, userID in
 	s.logger.Info("获取用户余额汇总信息", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
 	// 获取用户信息
-	u, err := s.db.User.Get(ctx, userID)
+	u, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("用户不存在")
-		}
 		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("获取用户信息失败: %w", err)
 	}
 
 	// 查询积分变动汇总
-	pointsIn, err := s.db.UserBalanceLog.Query().
-		Where(
+	pointsIn, err := s.userBalanceLogRepo.AggregateSum(ctx, func(q *ent.UserBalanceLogQuery) *ent.UserBalanceLogQuery {
+		return q.Where(
 			userbalancelog.And(
 				userbalancelog.UserID(userID),
 				userbalancelog.TypeEQ(userbalancelog.TypePoints),
 				userbalancelog.AmountGT(0),
 			),
-		).
-		Aggregate(ent.Sum(userbalancelog.FieldAmount)).
-		Int(ctx)
+		)
+	})
 	if err != nil {
 		pointsIn = 0
 	}
 
-	pointsOut, err := s.db.UserBalanceLog.Query().
-		Where(
+	pointsOut, err := s.userBalanceLogRepo.AggregateSum(ctx, func(q *ent.UserBalanceLogQuery) *ent.UserBalanceLogQuery {
+		return q.Where(
 			userbalancelog.And(
 				userbalancelog.UserID(userID),
 				userbalancelog.TypeEQ(userbalancelog.TypePoints),
 				userbalancelog.AmountLT(0),
 			),
-		).
-		Aggregate(ent.Sum(userbalancelog.FieldAmount)).
-		Int(ctx)
+		)
+	})
 	if err != nil {
 		pointsOut = 0
 	}
 
 	// 查询货币变动汇总
-	currencyIn, err := s.db.UserBalanceLog.Query().
-		Where(
+	currencyIn, err := s.userBalanceLogRepo.AggregateSum(ctx, func(q *ent.UserBalanceLogQuery) *ent.UserBalanceLogQuery {
+		return q.Where(
 			userbalancelog.And(
 				userbalancelog.UserID(userID),
 				userbalancelog.TypeEQ(userbalancelog.TypeCurrency),
 				userbalancelog.AmountGT(0),
 			),
-		).
-		Aggregate(ent.Sum(userbalancelog.FieldAmount)).
-		Int(ctx)
+		)
+	})
 	if err != nil {
 		currencyIn = 0
 	}
 
-	currencyOut, err := s.db.UserBalanceLog.Query().
-		Where(
+	currencyOut, err := s.userBalanceLogRepo.AggregateSum(ctx, func(q *ent.UserBalanceLogQuery) *ent.UserBalanceLogQuery {
+		return q.Where(
 			userbalancelog.And(
 				userbalancelog.UserID(userID),
 				userbalancelog.TypeEQ(userbalancelog.TypeCurrency),
 				userbalancelog.AmountLT(0),
 			),
-		).
-		Aggregate(ent.Sum(userbalancelog.FieldAmount)).
-		Int(ctx)
+		)
+	})
 	if err != nil {
 		currencyOut = 0
 	}
@@ -882,13 +896,10 @@ func (s *UserManageService) getUserPostCounts(ctx context.Context, userIDs []int
 		return make(map[int]int)
 	}
 
-	// 使用Ent ORM进行批量查询，避免原生SQL的复杂性
-	// 分别查询每个用户的发帖数
+	// 使用 Repository 进行批量查询
 	result := make(map[int]int)
 	for _, userID := range userIDs {
-		count, err := s.db.Post.Query().
-			Where(post.UserIDEQ(userID)).
-			Count(ctx)
+		count, err := s.postRepo.CountByUserID(ctx, userID)
 		if err != nil {
 			s.logger.Error("查询用户发帖数失败", zap.Int("user_id", userID), zap.Error(err), tracing.WithTraceIDField(ctx))
 			// 失败时使用默认值0，继续处理其他用户
@@ -907,13 +918,10 @@ func (s *UserManageService) getUserCommentCounts(ctx context.Context, userIDs []
 		return make(map[int]int)
 	}
 
-	// 使用Ent ORM进行批量查询，避免原生SQL的复杂性
-	// 分别查询每个用户的评论数
+	// 使用 Repository 进行批量查询
 	result := make(map[int]int)
 	for _, userID := range userIDs {
-		count, err := s.db.Comment.Query().
-			Where(comment.UserIDEQ(userID)).
-			Count(ctx)
+		count, err := s.commentRepo.CountByUserID(ctx, userID)
 		if err != nil {
 			s.logger.Error("查询用户评论数失败", zap.Int("user_id", userID), zap.Error(err), tracing.WithTraceIDField(ctx))
 			// 失败时使用默认值0，继续处理其他用户
@@ -928,9 +936,7 @@ func (s *UserManageService) getUserCommentCounts(ctx context.Context, userIDs []
 
 // GetUserPostCount Query single user's post count | 查询单个用户的发帖数
 func (s *UserManageService) GetUserPostCount(ctx context.Context, userID int) (int, error) {
-	count, err := s.db.Post.Query().
-		Where(post.UserIDEQ(userID)).
-		Count(ctx)
+	count, err := s.postRepo.CountByUserID(ctx, userID)
 	if err != nil {
 		return 0, fmt.Errorf("查询用户发帖数失败: %w", err)
 	}
@@ -939,9 +945,7 @@ func (s *UserManageService) GetUserPostCount(ctx context.Context, userID int) (i
 
 // GetUserCommentCount Query single user's comment count | 查询单个用户的评论数
 func (s *UserManageService) GetUserCommentCount(ctx context.Context, userID int) (int, error) {
-	count, err := s.db.Comment.Query().
-		Where(comment.UserIDEQ(userID)).
-		Count(ctx)
+	count, err := s.commentRepo.CountByUserID(ctx, userID)
 	if err != nil {
 		return 0, fmt.Errorf("查询用户评论数失败: %w", err)
 	}
@@ -953,11 +957,8 @@ func (s *UserManageService) BanUser(ctx context.Context, req schema.UserBanReque
 	s.logger.Info("封禁用户", zap.Int("user_id", req.ID), zap.Int64("duration", req.Duration), tracing.WithTraceIDField(ctx))
 
 	// 检查用户是否存在
-	u, err := s.db.User.Get(ctx, req.ID)
+	u, err := s.userRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return errors.New("用户不存在")
-		}
 		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("获取用户信息失败: %w", err)
 	}
@@ -974,9 +975,9 @@ func (s *UserManageService) BanUser(ctx context.Context, req schema.UserBanReque
 
 	if req.Duration == 0 {
 		// 永久封禁：更新数据库状态
-		_, err = s.db.User.UpdateOneID(req.ID).
-			SetStatus(user.StatusBlocked).
-			Save(ctx)
+		_, err = s.userRepo.Update(ctx, req.ID, func(u *ent.UserUpdateOne) *ent.UserUpdateOne {
+			return u.SetStatus(user.StatusBlocked)
+		})
 		if err != nil {
 			s.logger.Error("永久封禁用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 			return fmt.Errorf("永久封禁用户失败: %w", err)
@@ -1006,11 +1007,8 @@ func (s *UserManageService) UnbanUser(ctx context.Context, req schema.UserUnbanR
 	s.logger.Info("解封用户", zap.Int("user_id", req.ID), tracing.WithTraceIDField(ctx))
 
 	// 检查用户是否存在
-	u, err := s.db.User.Get(ctx, req.ID)
+	u, err := s.userRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return errors.New("用户不存在")
-		}
 		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("获取用户信息失败: %w", err)
 	}
@@ -1022,9 +1020,9 @@ func (s *UserManageService) UnbanUser(ctx context.Context, req schema.UserUnbanR
 
 	// 如果是永久封禁状态，恢复为正常状态
 	if u.Status == user.StatusBlocked {
-		_, err = s.db.User.UpdateOneID(req.ID).
-			SetStatus(user.StatusNormal).
-			Save(ctx)
+		_, err = s.userRepo.Update(ctx, req.ID, func(u *ent.UserUpdateOne) *ent.UserUpdateOne {
+			return u.SetStatus(user.StatusNormal)
+		})
 		if err != nil {
 			s.logger.Error("解封用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 			return fmt.Errorf("解封用户失败: %w", err)

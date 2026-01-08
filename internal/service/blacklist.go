@@ -3,15 +3,14 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"go.uber.org/zap"
 
 	"github.com/PokeForum/PokeForum/ent"
-	"github.com/PokeForum/PokeForum/ent/blacklist"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
+	"github.com/PokeForum/PokeForum/internal/repository"
 	"github.com/PokeForum/PokeForum/internal/schema"
 )
 
@@ -29,15 +28,17 @@ type IBlacklistService interface {
 
 // BlacklistService Blacklist service implementation | 黑名单服务实现
 type BlacklistService struct {
-	db     *ent.Client
-	logger *zap.Logger
+	blacklistRepo repository.IBlacklistRepository
+	userRepo      repository.IUserRepository
+	logger        *zap.Logger
 }
 
 // NewBlacklistService Create blacklist service instance | 创建黑名单服务实例
-func NewBlacklistService(db *ent.Client, logger *zap.Logger) IBlacklistService {
+func NewBlacklistService(blacklistRepo repository.IBlacklistRepository, userRepo repository.IUserRepository, logger *zap.Logger) IBlacklistService {
 	return &BlacklistService{
-		db:     db,
-		logger: logger,
+		blacklistRepo: blacklistRepo,
+		userRepo:      userRepo,
+		logger:        logger,
 	}
 }
 
@@ -51,58 +52,30 @@ func (s *BlacklistService) GetUserBlacklist(ctx context.Context, userID int, pag
 		zap.Int("page_size", pageSize),
 	)
 
-	// Calculate offset | 计算偏移量
-	offset := (page - 1) * pageSize
-
-	// Query total blacklist count | 查询黑名单总数
-	total, err := s.db.Blacklist.Query().
-		Where(blacklist.UserIDEQ(userID)).
-		Count(ctx)
-	if err != nil {
-		s.logger.Error("查询黑名单总数失败",
-			tracing.WithTraceIDField(ctx),
-			zap.Int("user_id", userID),
-			zap.Error(err),
-		)
-		return nil, fmt.Errorf("查询黑名单总数失败: %w", err)
-	}
-
-	// Query blacklist | 查询黑名单列表
-	blacklistItems, err := s.db.Blacklist.Query().
-		Where(blacklist.UserIDEQ(userID)).
-		Order(ent.Desc(blacklist.FieldCreatedAt)).
-		Offset(offset).
-		Limit(pageSize).
-		All(ctx)
+	blacklistItems, total, err := s.blacklistRepo.GetByUserID(ctx, userID, page, pageSize)
 	if err != nil {
 		s.logger.Error("查询黑名单列表失败",
 			tracing.WithTraceIDField(ctx),
 			zap.Int("user_id", userID),
 			zap.Error(err),
 		)
-		return nil, fmt.Errorf("查询黑名单列表失败: %w", err)
+		return nil, err
 	}
 
-	// Collect all blocked user IDs | 收集所有被拉黑用户的ID
 	blockedUserIDs := make([]int, len(blacklistItems))
 	for i, item := range blacklistItems {
 		blockedUserIDs[i] = item.BlockedUserID
 	}
 
-	// Batch query blocked user information | 批量查询被拉黑用户信息
-	blockedUsers, err := s.db.User.Query().
-		Where(user.IDIn(blockedUserIDs...)).
-		Select(user.FieldID, user.FieldUsername, user.FieldAvatar).
-		All(ctx)
+	blockedUsers, err := s.userRepo.GetByIDsWithFields(ctx, blockedUserIDs, []string{user.FieldID, user.FieldUsername, user.FieldAvatar})
 	if err != nil {
 		s.logger.Error("查询被拉黑用户信息失败",
 			tracing.WithTraceIDField(ctx),
 			zap.Error(err),
 		)
-		return nil, fmt.Errorf("查询被拉黑用户信息失败: %w", err)
+		return nil, err
 	}
 
-	// Create mapping from user ID to user information | 创建用户ID到用户信息的映射
 	userMap := make(map[int]*ent.User)
 	for _, u := range blockedUsers {
 		userMap[u.ID] = u
@@ -156,36 +129,28 @@ func (s *BlacklistService) AddToBlacklist(ctx context.Context, userID int, block
 		zap.Int("blocked_user_id", blockedUserID),
 	)
 
-	// Check if blocked user exists | 检查被拉黑用户是否存在
-	exists, err := s.db.User.Query().
-		Where(user.IDEQ(blockedUserID)).
-		Exist(ctx)
+	exists, err := s.userRepo.ExistsByID(ctx, blockedUserID)
 	if err != nil {
 		s.logger.Error("检查被拉黑用户是否存在失败",
 			tracing.WithTraceIDField(ctx),
 			zap.Int("blocked_user_id", blockedUserID),
 			zap.Error(err),
 		)
-		return nil, fmt.Errorf("检查用户是否存在失败: %w", err)
+		return nil, err
 	}
 	if !exists {
 		return nil, errors.New("被拉黑用户不存在")
 	}
 
-	// Check if already in blacklist | 检查是否已经在黑名单中
 	isBlocked, err := s.IsUserBlocked(ctx, userID, blockedUserID)
 	if err != nil {
-		return nil, fmt.Errorf("检查黑名单状态失败: %w", err)
+		return nil, err
 	}
 	if isBlocked {
 		return nil, errors.New("用户已在黑名单中")
 	}
 
-	// Create blacklist record | 创建黑名单记录
-	blacklistItem, err := s.db.Blacklist.Create().
-		SetUserID(userID).
-		SetBlockedUserID(blockedUserID).
-		Save(ctx)
+	blacklistItem, err := s.blacklistRepo.Create(ctx, userID, blockedUserID)
 	if err != nil {
 		s.logger.Error("创建黑名单记录失败",
 			tracing.WithTraceIDField(ctx),
@@ -193,7 +158,7 @@ func (s *BlacklistService) AddToBlacklist(ctx context.Context, userID int, block
 			zap.Int("blocked_user_id", blockedUserID),
 			zap.Error(err),
 		)
-		return nil, fmt.Errorf("创建黑名单记录失败: %w", err)
+		return nil, err
 	}
 
 	result := &schema.UserBlacklistAddResponse{
@@ -222,13 +187,7 @@ func (s *BlacklistService) RemoveFromBlacklist(ctx context.Context, userID int, 
 		zap.Int("blocked_user_id", blockedUserID),
 	)
 
-	// Find and delete blacklist record | 查找并删除黑名单记录
-	affected, err := s.db.Blacklist.Delete().
-		Where(
-			blacklist.UserIDEQ(userID),
-			blacklist.BlockedUserIDEQ(blockedUserID),
-		).
-		Exec(ctx)
+	affected, err := s.blacklistRepo.Delete(ctx, userID, blockedUserID)
 	if err != nil {
 		s.logger.Error("删除黑名单记录失败",
 			tracing.WithTraceIDField(ctx),
@@ -236,7 +195,7 @@ func (s *BlacklistService) RemoveFromBlacklist(ctx context.Context, userID int, 
 			zap.Int("blocked_user_id", blockedUserID),
 			zap.Error(err),
 		)
-		return fmt.Errorf("删除黑名单记录失败: %w", err)
+		return err
 	}
 
 	if affected == 0 {
@@ -261,13 +220,7 @@ func (s *BlacklistService) IsUserBlocked(ctx context.Context, userID int, target
 		zap.Int("target_user_id", targetUserID),
 	)
 
-	// Query blacklist record | 查询黑名单记录
-	exists, err := s.db.Blacklist.Query().
-		Where(
-			blacklist.UserIDEQ(userID),
-			blacklist.BlockedUserIDEQ(targetUserID),
-		).
-		Exist(ctx)
+	exists, err := s.blacklistRepo.Exists(ctx, userID, targetUserID)
 	if err != nil {
 		s.logger.Error("查询黑名单记录失败",
 			tracing.WithTraceIDField(ctx),
@@ -275,7 +228,7 @@ func (s *BlacklistService) IsUserBlocked(ctx context.Context, userID int, target
 			zap.Int("target_user_id", targetUserID),
 			zap.Error(err),
 		)
-		return false, fmt.Errorf("查询黑名单记录失败: %w", err)
+		return false, err
 	}
 
 	return exists, nil

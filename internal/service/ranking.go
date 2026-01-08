@@ -16,6 +16,7 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
+	"github.com/PokeForum/PokeForum/internal/repository"
 	"github.com/PokeForum/PokeForum/internal/schema"
 )
 
@@ -35,17 +36,21 @@ type IRankingService interface {
 
 // RankingService Ranking service implementation | 排行榜服务实现
 type RankingService struct {
-	db    *ent.Client
-	cache cache.ICacheService
-	log   *zap.Logger
+	db           *ent.Client
+	userRepo     repository.IUserRepository
+	categoryRepo repository.ICategoryRepository
+	cache        cache.ICacheService
+	log          *zap.Logger
 }
 
 // NewRankingService Create ranking service instance | 创建排行榜服务实例
-func NewRankingService(db *ent.Client, cache cache.ICacheService, log *zap.Logger) IRankingService {
+func NewRankingService(db *ent.Client, repos *repository.Repositories, cache cache.ICacheService, log *zap.Logger) IRankingService {
 	return &RankingService{
-		db:    db,
-		cache: cache,
-		log:   log,
+		db:           db,
+		userRepo:     repos.User,
+		categoryRepo: repos.Category,
+		cache:        cache,
+		log:          log,
 	}
 }
 
@@ -113,10 +118,7 @@ func (s *RankingService) GetReadingRanking(ctx context.Context, req schema.UserR
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
 	}
-	users, err := s.db.User.Query().
-		Where(user.IDIn(userIDList...)).
-		Select(user.FieldID, user.FieldUsername).
-		All(ctx)
+	users, err := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername})
 	if err != nil {
 		s.log.Warn("批量查询用户信息失败", zap.Error(err))
 	}
@@ -130,10 +132,7 @@ func (s *RankingService) GetReadingRanking(ctx context.Context, req schema.UserR
 	for id := range categoryIDs {
 		categoryIDList = append(categoryIDList, id)
 	}
-	categories, err := s.db.Category.Query().
-		Where(category.IDIn(categoryIDList...)).
-		Select(category.FieldID, category.FieldName).
-		All(ctx)
+	categories, err := s.categoryRepo.GetByIDsWithFields(ctx, categoryIDList, []string{category.FieldID, category.FieldName})
 	if err != nil {
 		s.log.Warn("批量查询版块信息失败", zap.Error(err))
 	}
@@ -226,10 +225,7 @@ func (s *RankingService) GetCommentRanking(ctx context.Context, req schema.UserR
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
 	}
-	users, err := s.db.User.Query().
-		Where(user.IDIn(userIDList...)).
-		Select(user.FieldID, user.FieldUsername, user.FieldAvatar, user.FieldCreatedAt).
-		All(ctx)
+	users, err := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername, user.FieldAvatar, user.FieldCreatedAt})
 	if err != nil {
 		s.log.Warn("批量查询用户信息失败", zap.Error(err))
 	}

@@ -15,6 +15,7 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
+	"github.com/PokeForum/PokeForum/internal/repository"
 	"github.com/PokeForum/PokeForum/internal/schema"
 )
 
@@ -32,17 +33,25 @@ type IDashboardService interface {
 
 // DashboardService Dashboard service implementation | 仪表盘服务实现
 type DashboardService struct {
-	db     *ent.Client
-	cache  cache.ICacheService
-	logger *zap.Logger
+	db           *ent.Client
+	userRepo     repository.IUserRepository
+	postRepo     repository.IPostRepository
+	commentRepo  repository.ICommentRepository
+	categoryRepo repository.ICategoryRepository
+	cache        cache.ICacheService
+	logger       *zap.Logger
 }
 
 // NewDashboardService Create dashboard service instance | 创建仪表盘服务实例
-func NewDashboardService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) IDashboardService {
+func NewDashboardService(db *ent.Client, repos *repository.Repositories, cacheService cache.ICacheService, logger *zap.Logger) IDashboardService {
 	return &DashboardService{
-		db:     db,
-		cache:  cacheService,
-		logger: logger,
+		db:           db,
+		userRepo:     repos.User,
+		postRepo:     repos.Post,
+		commentRepo:  repos.Comment,
+		categoryRepo: repos.Category,
+		cache:        cacheService,
+		logger:       logger,
 	}
 }
 
@@ -97,25 +106,25 @@ func (s *DashboardService) GetDashboardStats(ctx context.Context) (*schema.Dashb
 // getUserStats Get user statistics | 获取用户统计
 func (s *DashboardService) getUserStats(ctx context.Context) (schema.UserStats, error) {
 	// Total user count | 总用户数
-	totalUsers, err := s.db.User.Query().Count(ctx)
+	totalUsers, err := s.userRepo.Count(ctx)
 	if err != nil {
 		return schema.UserStats{}, err
 	}
 
 	// Active user count (users created within 30 days, simplified handling) | 活跃用户数（30天内创建的用户，简化处理）
 	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
-	activeUsers, err := s.db.User.Query().
-		Where(user.CreatedAtGTE(thirtyDaysAgo)).
-		Count(ctx)
+	activeUsers, err := s.userRepo.CountWithCondition(ctx, func(q *ent.UserQuery) *ent.UserQuery {
+		return q.Where(user.CreatedAtGTE(thirtyDaysAgo))
+	})
 	if err != nil {
 		return schema.UserStats{}, err
 	}
 
 	// New user count (today) | 新增用户数（今日）
 	today := time.Now().Truncate(24 * time.Hour)
-	newUsers, err := s.db.User.Query().
-		Where(user.CreatedAtGTE(today)).
-		Count(ctx)
+	newUsers, err := s.userRepo.CountWithCondition(ctx, func(q *ent.UserQuery) *ent.UserQuery {
+		return q.Where(user.CreatedAtGTE(today))
+	})
 	if err != nil {
 		return schema.UserStats{}, err
 	}
@@ -124,17 +133,17 @@ func (s *DashboardService) getUserStats(ctx context.Context) (schema.UserStats, 
 	onlineUsers := int64(0) // 需要根据实际在线用户统计逻辑实现
 
 	// Banned user count | 被封禁用户数
-	bannedUsers, err := s.db.User.Query().
-		Where(user.StatusEQ(user.StatusBlocked)).
-		Count(ctx)
+	bannedUsers, err := s.userRepo.CountWithCondition(ctx, func(q *ent.UserQuery) *ent.UserQuery {
+		return q.Where(user.StatusEQ(user.StatusBlocked))
+	})
 	if err != nil {
 		return schema.UserStats{}, err
 	}
 
 	// Moderator count | 版主数量
-	moderatorCount, err := s.db.User.Query().
-		Where(user.RoleEQ(user.RoleModerator)).
-		Count(ctx)
+	moderatorCount, err := s.userRepo.CountWithCondition(ctx, func(q *ent.UserQuery) *ent.UserQuery {
+		return q.Where(user.RoleEQ(user.RoleModerator))
+	})
 	if err != nil {
 		return schema.UserStats{}, err
 	}
@@ -152,56 +161,56 @@ func (s *DashboardService) getUserStats(ctx context.Context) (schema.UserStats, 
 // getPostStats Get post statistics | 获取帖子统计
 func (s *DashboardService) getPostStats(ctx context.Context) (schema.PostStats, error) {
 	// Total post count | 总帖子数
-	totalPosts, err := s.db.Post.Query().Count(ctx)
+	totalPosts, err := s.postRepo.Count(ctx)
 	if err != nil {
 		return schema.PostStats{}, err
 	}
 
 	// Published post count | 已发布帖子数
-	publishedPosts, err := s.db.Post.Query().
-		Where(post.StatusEQ(post.StatusNormal)).
-		Count(ctx)
+	publishedPosts, err := s.postRepo.CountWithCondition(ctx, func(q *ent.PostQuery) *ent.PostQuery {
+		return q.Where(post.StatusEQ(post.StatusNormal))
+	})
 	if err != nil {
 		return schema.PostStats{}, err
 	}
 
 	// Draft post count | 草稿帖子数
-	draftPosts, err := s.db.Post.Query().
-		Where(post.StatusEQ(post.StatusDraft)).
-		Count(ctx)
+	draftPosts, err := s.postRepo.CountWithCondition(ctx, func(q *ent.PostQuery) *ent.PostQuery {
+		return q.Where(post.StatusEQ(post.StatusDraft))
+	})
 	if err != nil {
 		return schema.PostStats{}, err
 	}
 
 	// Locked post count | 被锁定帖子数
-	lockedPosts, err := s.db.Post.Query().
-		Where(post.StatusEQ(post.StatusLocked)).
-		Count(ctx)
+	lockedPosts, err := s.postRepo.CountWithCondition(ctx, func(q *ent.PostQuery) *ent.PostQuery {
+		return q.Where(post.StatusEQ(post.StatusLocked))
+	})
 	if err != nil {
 		return schema.PostStats{}, err
 	}
 
 	// Essence post count | 精华帖子数
-	essencePosts, err := s.db.Post.Query().
-		Where(post.IsEssenceEQ(true)).
-		Count(ctx)
+	essencePosts, err := s.postRepo.CountWithCondition(ctx, func(q *ent.PostQuery) *ent.PostQuery {
+		return q.Where(post.IsEssenceEQ(true))
+	})
 	if err != nil {
 		return schema.PostStats{}, err
 	}
 
 	// Pinned post count | 置顶帖子数
-	pinnedPosts, err := s.db.Post.Query().
-		Where(post.IsPinnedEQ(true)).
-		Count(ctx)
+	pinnedPosts, err := s.postRepo.CountWithCondition(ctx, func(q *ent.PostQuery) *ent.PostQuery {
+		return q.Where(post.IsPinnedEQ(true))
+	})
 	if err != nil {
 		return schema.PostStats{}, err
 	}
 
 	// Today new post count | 今日新增帖子数
 	today := time.Now().Truncate(24 * time.Hour)
-	todayPosts, err := s.db.Post.Query().
-		Where(post.CreatedAtGTE(today)).
-		Count(ctx)
+	todayPosts, err := s.postRepo.CountWithCondition(ctx, func(q *ent.PostQuery) *ent.PostQuery {
+		return q.Where(post.CreatedAtGTE(today))
+	})
 	if err != nil {
 		return schema.PostStats{}, err
 	}
@@ -220,32 +229,32 @@ func (s *DashboardService) getPostStats(ctx context.Context) (schema.PostStats, 
 // getCommentStats Get comment statistics | 获取评论统计
 func (s *DashboardService) getCommentStats(ctx context.Context) (schema.CommentStats, error) {
 	// Total comment count | 总评论数
-	totalComments, err := s.db.Comment.Query().Count(ctx)
+	totalComments, err := s.commentRepo.Count(ctx)
 	if err != nil {
 		return schema.CommentStats{}, err
 	}
 
 	// Selected comment count | 精选评论数
-	selectedComments, err := s.db.Comment.Query().
-		Where(comment.IsSelectedEQ(true)).
-		Count(ctx)
+	selectedComments, err := s.commentRepo.CountWithCondition(ctx, func(q *ent.CommentQuery) *ent.CommentQuery {
+		return q.Where(comment.IsSelectedEQ(true))
+	})
 	if err != nil {
 		return schema.CommentStats{}, err
 	}
 
 	// Pinned comment count | 置顶评论数
-	pinnedComments, err := s.db.Comment.Query().
-		Where(comment.IsPinnedEQ(true)).
-		Count(ctx)
+	pinnedComments, err := s.commentRepo.CountWithCondition(ctx, func(q *ent.CommentQuery) *ent.CommentQuery {
+		return q.Where(comment.IsPinnedEQ(true))
+	})
 	if err != nil {
 		return schema.CommentStats{}, err
 	}
 
 	// Today new comment count | 今日新增评论数
 	today := time.Now().Truncate(24 * time.Hour)
-	todayComments, err := s.db.Comment.Query().
-		Where(comment.CreatedAtGTE(today)).
-		Count(ctx)
+	todayComments, err := s.commentRepo.CountWithCondition(ctx, func(q *ent.CommentQuery) *ent.CommentQuery {
+		return q.Where(comment.CreatedAtGTE(today))
+	})
 	if err != nil {
 		return schema.CommentStats{}, err
 	}
@@ -261,31 +270,31 @@ func (s *DashboardService) getCommentStats(ctx context.Context) (schema.CommentS
 // getCategoryStats Get category statistics | 获取版块统计
 func (s *DashboardService) getCategoryStats(ctx context.Context) (schema.CategoryStats, error) {
 	// Total category count | 总版块数
-	totalCategories, err := s.db.Category.Query().Count(ctx)
+	totalCategories, err := s.categoryRepo.Count(ctx)
 	if err != nil {
 		return schema.CategoryStats{}, err
 	}
 
 	// Active category count (categories with normal status) | 活跃版块数（正常状态的版块）
-	activeCategories, err := s.db.Category.Query().
-		Where(category.StatusEQ(category.StatusNormal)).
-		Count(ctx)
+	activeCategories, err := s.categoryRepo.CountWithCondition(ctx, func(q *ent.CategoryQuery) *ent.CategoryQuery {
+		return q.Where(category.StatusEQ(category.StatusNormal))
+	})
 	if err != nil {
 		return schema.CategoryStats{}, err
 	}
 
 	// Hidden category count | 隐藏版块数
-	hiddenCategories, err := s.db.Category.Query().
-		Where(category.StatusEQ(category.StatusHidden)).
-		Count(ctx)
+	hiddenCategories, err := s.categoryRepo.CountWithCondition(ctx, func(q *ent.CategoryQuery) *ent.CategoryQuery {
+		return q.Where(category.StatusEQ(category.StatusHidden))
+	})
 	if err != nil {
 		return schema.CategoryStats{}, err
 	}
 
 	// Locked category count | 锁定版块数
-	lockedCategories, err := s.db.Category.Query().
-		Where(category.StatusEQ(category.StatusLocked)).
-		Count(ctx)
+	lockedCategories, err := s.categoryRepo.CountWithCondition(ctx, func(q *ent.CategoryQuery) *ent.CategoryQuery {
+		return q.Where(category.StatusEQ(category.StatusLocked))
+	})
 	if err != nil {
 		return schema.CategoryStats{}, err
 	}
@@ -307,7 +316,7 @@ func (s *DashboardService) getSystemStats(ctx context.Context) (schema.SystemSta
 	todayViews := int64(0) // 需要根据实际今日浏览量统计逻辑实现
 
 	// Total likes (post likes + comment likes) | 总点赞数（帖子点赞数 + 评论点赞数）
-	posts, err := s.db.Post.Query().All(ctx)
+	posts, err := s.postRepo.GetAll(ctx)
 	if err != nil {
 		return schema.SystemStats{}, err
 	}
@@ -317,7 +326,7 @@ func (s *DashboardService) getSystemStats(ctx context.Context) (schema.SystemSta
 		totalPostLikes += int64(p.LikeCount)
 	}
 
-	comments, err := s.db.Comment.Query().All(ctx)
+	comments, err := s.commentRepo.GetAll(ctx)
 	if err != nil {
 		return schema.SystemStats{}, err
 	}
@@ -353,28 +362,25 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 	s.logger.Info("获取最近活动", tracing.WithTraceIDField(ctx))
 
 	// Get recent posts (last 10) | 获取最近帖子（最近10条）
-	recentPosts, err := s.db.Post.Query().
-		Order(ent.Desc(post.FieldCreatedAt)).
-		Limit(10).
-		All(ctx)
+	recentPosts, err := s.postRepo.ListWithCondition(ctx, func(q *ent.PostQuery) *ent.PostQuery {
+		return q.Order(ent.Desc(post.FieldCreatedAt))
+	}, 10)
 	if err != nil {
 		return nil, fmt.Errorf("获取最近帖子失败: %w", err)
 	}
 
 	// Get recent comments (last 10) | 获取最近评论（最近10条）
-	recentComments, err := s.db.Comment.Query().
-		Order(ent.Desc(comment.FieldCreatedAt)).
-		Limit(10).
-		All(ctx)
+	recentComments, err := s.commentRepo.ListWithCondition(ctx, func(q *ent.CommentQuery) *ent.CommentQuery {
+		return q.Order(ent.Desc(comment.FieldCreatedAt))
+	}, 10)
 	if err != nil {
 		return nil, fmt.Errorf("获取最近评论失败: %w", err)
 	}
 
 	// Get new users (last 10) | 获取新用户（最近10个）
-	newUsers, err := s.db.User.Query().
-		Order(ent.Desc(user.FieldCreatedAt)).
-		Limit(10).
-		All(ctx)
+	newUsers, err := s.userRepo.ListWithCondition(ctx, func(q *ent.UserQuery) *ent.UserQuery {
+		return q.Order(ent.Desc(user.FieldCreatedAt))
+	}, 10)
 	if err != nil {
 		return nil, fmt.Errorf("获取新用户失败: %w", err)
 	}
@@ -397,12 +403,9 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
 	}
-	users, err := s.db.User.Query().
-		Where(user.IDIn(userIDList...)).
-		Select(user.FieldID, user.FieldUsername, user.FieldAvatar).
-		All(ctx)
+	users, err := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername, user.FieldAvatar})
 	if err != nil {
-		s.logger.Warn("批量查询用户信息失败", zap.Error(err))
+		s.logger.Warn("批量查询用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 	}
 	type userInfo struct {
 		Username string
@@ -418,12 +421,9 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 	for id := range categoryIDs {
 		categoryIDList = append(categoryIDList, id)
 	}
-	categories, err := s.db.Category.Query().
-		Where(category.IDIn(categoryIDList...)).
-		Select(category.FieldID, category.FieldName).
-		All(ctx)
+	categories, err := s.categoryRepo.GetByIDsWithFields(ctx, categoryIDList, []string{category.FieldID, category.FieldName})
 	if err != nil {
-		s.logger.Warn("批量查询版块信息失败", zap.Error(err))
+		s.logger.Warn("批量查询版块信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 	}
 	categoryMap := make(map[int]string)
 	for _, c := range categories {
@@ -435,12 +435,9 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 	for id := range postIDs {
 		postIDList = append(postIDList, id)
 	}
-	postsData, err := s.db.Post.Query().
-		Where(post.IDIn(postIDList...)).
-		Select(post.FieldID, post.FieldTitle).
-		All(ctx)
+	postsData, err := s.postRepo.GetByIDsWithFields(ctx, postIDList, []string{post.FieldID, post.FieldTitle})
 	if err != nil {
-		s.logger.Warn("批量查询帖子信息失败", zap.Error(err))
+		s.logger.Warn("批量查询帖子信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 	}
 	postMap := make(map[int]string)
 	for _, p := range postsData {
@@ -502,10 +499,9 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 	s.logger.Info("获取热门帖子", tracing.WithTraceIDField(ctx))
 
 	// Get popular posts sorted by view count | 按浏览量排序获取热门帖子
-	popularPosts, err := s.db.Post.Query().
-		Order(ent.Desc(post.FieldViewCount)).
-		Limit(10).
-		All(ctx)
+	popularPosts, err := s.postRepo.ListWithCondition(ctx, func(q *ent.PostQuery) *ent.PostQuery {
+		return q.Order(ent.Desc(post.FieldViewCount))
+	}, 10)
 	if err != nil {
 		return nil, fmt.Errorf("获取热门帖子失败: %w", err)
 	}
@@ -525,12 +521,9 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
 	}
-	users, err := s.db.User.Query().
-		Where(user.IDIn(userIDList...)).
-		Select(user.FieldID, user.FieldUsername, user.FieldAvatar).
-		All(ctx)
+	users, err := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername, user.FieldAvatar})
 	if err != nil {
-		s.logger.Warn("批量查询用户信息失败", zap.Error(err))
+		s.logger.Warn("批量查询用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 	}
 	type userInfo struct {
 		Username string
@@ -546,12 +539,9 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 	for id := range categoryIDs {
 		categoryIDList = append(categoryIDList, id)
 	}
-	categories, err := s.db.Category.Query().
-		Where(category.IDIn(categoryIDList...)).
-		Select(category.FieldID, category.FieldName).
-		All(ctx)
+	categories, err := s.categoryRepo.GetByIDsWithFields(ctx, categoryIDList, []string{category.FieldID, category.FieldName})
 	if err != nil {
-		s.logger.Warn("批量查询版块信息失败", zap.Error(err))
+		s.logger.Warn("批量查询版块信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 	}
 	categoryMap := make(map[int]string)
 	for _, c := range categories {
@@ -562,11 +552,9 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 	// Note: simplified handling, should actually use GroupBy to optimize performance | 注意: 这里简化处理，实际应该使用GroupBy优化性能
 	commentCountMap := make(map[int]int)
 	for _, postID := range postIDs {
-		count, err := s.db.Comment.Query().
-			Where(comment.PostIDEQ(postID)).
-			Count(ctx)
+		count, err := s.commentRepo.CountByPostID(ctx, postID)
 		if err != nil {
-			s.logger.Warn("查询评论数失败", zap.Error(err), zap.Int("postID", postID))
+			s.logger.Warn("查询评论数失败", zap.Error(err), tracing.WithTraceIDField(ctx), zap.Int("postID", postID))
 		}
 		commentCountMap[postID] = count
 	}
@@ -598,10 +586,9 @@ func (s *DashboardService) GetPopularCategories(ctx context.Context) (*schema.Po
 	s.logger.Info("获取热门版块", tracing.WithTraceIDField(ctx))
 
 	// Get popular categories sorted by post count | 按帖子数量排序获取热门版块
-	popularCategories, err := s.db.Category.Query().
-		Order(ent.Desc(category.FieldWeight)).
-		Limit(10).
-		All(ctx)
+	popularCategories, err := s.categoryRepo.ListWithCondition(ctx, func(q *ent.CategoryQuery) *ent.CategoryQuery {
+		return q.Order(ent.Desc(category.FieldWeight))
+	}, 10)
 	if err != nil {
 		return nil, fmt.Errorf("获取热门版块失败: %w", err)
 	}
@@ -610,9 +597,7 @@ func (s *DashboardService) GetPopularCategories(ctx context.Context) (*schema.Po
 	categories := make([]schema.PopularCategory, len(popularCategories))
 	for i, c := range popularCategories {
 		// Get post count for this category | 获取该版块的帖子数量
-		postCount, err := s.db.Post.Query().
-			Where(post.CategoryIDEQ(c.ID)).
-			Count(ctx)
+		postCount, err := s.postRepo.CountByCategoryID(ctx, c.ID)
 		if err != nil {
 			postCount = 0
 		}

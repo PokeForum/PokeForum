@@ -6,11 +6,10 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/PokeForum/PokeForum/ent"
-	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
+	"github.com/PokeForum/PokeForum/internal/repository"
 	"github.com/PokeForum/PokeForum/internal/schema"
 )
 
@@ -22,17 +21,17 @@ type ICategoryService interface {
 
 // CategoryService User-side category service implementation | 用户侧版块服务实现
 type CategoryService struct {
-	db     *ent.Client
-	cache  cache.ICacheService
-	logger *zap.Logger
+	categoryRepo repository.ICategoryRepository
+	cache        cache.ICacheService
+	logger       *zap.Logger
 }
 
 // NewCategoryService Create user-side category service instance | 创建用户侧版块服务实例
-func NewCategoryService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) ICategoryService {
+func NewCategoryService(categoryRepo repository.ICategoryRepository, cacheService cache.ICacheService, logger *zap.Logger) ICategoryService {
 	return &CategoryService{
-		db:     db,
-		cache:  cacheService,
-		logger: logger,
+		categoryRepo: categoryRepo,
+		cache:        cacheService,
+		logger:       logger,
 	}
 }
 
@@ -43,23 +42,12 @@ func NewCategoryService(db *ent.Client, cacheService cache.ICacheService, logger
 func (s *CategoryService) GetUserCategories(ctx context.Context) (*schema.UserCategoryResponse, error) {
 	s.logger.Info("获取用户版块列表", tracing.WithTraceIDField(ctx))
 
-	// Build query conditions, only query categories visible to users | 构建查询条件,只查询用户可见的版块状态
-	categories, err := s.db.Category.Query().Where(
-		category.Or(
-			category.StatusEQ(category.StatusNormal),
-			category.StatusEQ(category.StatusLoginRequired),
-			category.StatusEQ(category.StatusLocked),
-		),
-	).
-		// Order by weight ascending, created time descending | 按权重升序、创建时间降序排列
-		Order(ent.Asc(category.FieldWeight), ent.Desc(category.FieldCreatedAt)).
-		All(ctx)
+	categories, err := s.categoryRepo.GetVisibleCategories(ctx)
 	if err != nil {
 		s.logger.Error("获取用户版块列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("获取版块列表失败: %w", err)
 	}
 
-	// Convert to response format | 转换为响应格式
 	list := make([]schema.UserCategoryListItem, len(categories))
 	for i, cat := range categories {
 		list[i] = schema.UserCategoryListItem{

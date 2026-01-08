@@ -12,6 +12,7 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
+	"github.com/PokeForum/PokeForum/internal/repository"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"go.uber.org/zap"
 )
@@ -36,17 +37,23 @@ type ICommentManageService interface {
 
 // CommentManageService Comment management service implementation | 评论管理服务实现
 type CommentManageService struct {
-	db     *ent.Client
-	cache  cache.ICacheService
-	logger *zap.Logger
+	db          *ent.Client
+	commentRepo repository.ICommentRepository
+	userRepo    repository.IUserRepository
+	postRepo    repository.IPostRepository
+	cache       cache.ICacheService
+	logger      *zap.Logger
 }
 
 // NewCommentManageService Create a comment management service instance | 创建评论管理服务实例
-func NewCommentManageService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) ICommentManageService {
+func NewCommentManageService(db *ent.Client, repos *repository.Repositories, cacheService cache.ICacheService, logger *zap.Logger) ICommentManageService {
 	return &CommentManageService{
-		db:     db,
-		cache:  cacheService,
-		logger: logger,
+		db:          db,
+		commentRepo: repos.Comment,
+		userRepo:    repos.User,
+		postRepo:    repos.Post,
+		cache:       cacheService,
+		logger:      logger,
 	}
 }
 
@@ -54,57 +61,38 @@ func NewCommentManageService(db *ent.Client, cacheService cache.ICacheService, l
 func (s *CommentManageService) GetCommentList(ctx context.Context, req schema.CommentListRequest) (*schema.CommentListResponse, error) {
 	s.logger.Info("获取评论列表", tracing.WithTraceIDField(ctx))
 
-	// Build query conditions | 构建查询条件
-	query := s.db.Comment.Query()
+	// Build query condition function | 构建查询条件函数
+	conditionFunc := func(q *ent.CommentQuery) *ent.CommentQuery {
+		// Keyword search | 关键词搜索
+		if req.Keyword != "" {
+			q = q.Where(comment.ContentContains(req.Keyword))
+		}
 
-	// Keyword search | 关键词搜索
-	if req.Keyword != "" {
-		query = query.Where(comment.ContentContains(req.Keyword))
-	}
+		// Post filter | 帖子筛选
+		if req.PostID > 0 {
+			q = q.Where(comment.PostIDEQ(req.PostID))
+		}
 
-	// Filter by post | 帖子筛选
-	if req.PostID > 0 {
-		query = query.Where(comment.PostIDEQ(req.PostID))
-	}
-
-	// Filter by user | 用户筛选
-	if req.UserID > 0 {
-		query = query.Where(comment.UserIDEQ(req.UserID))
-	}
-
-	// Filter by parent comment | 父评论筛选
-	if req.ParentID != nil {
-		query = query.Where(comment.ParentIDEQ(*req.ParentID))
-	}
-
-	// Filter by selected comments | 精选评论筛选
-	if req.IsSelected != nil {
-		query = query.Where(comment.IsSelectedEQ(*req.IsSelected))
-	}
-
-	// Filter by pinned comments | 置顶评论筛选
-	if req.IsPinned != nil {
-		query = query.Where(comment.IsPinnedEQ(*req.IsPinned))
-	}
-
-	// Filter by reply target user | 回复目标用户筛选
-	if req.ReplyToID > 0 {
-		query = query.Where(comment.ReplyToUserIDEQ(req.ReplyToID))
+		// User filter | 用户筛选
+		if req.UserID > 0 {
+			q = q.Where(comment.UserIDEQ(req.UserID))
+		}
+		return q
 	}
 
 	// Get total count | 获取总数
-	total, err := query.Count(ctx)
+	total, err := s.commentRepo.CountWithCondition(ctx, conditionFunc)
 	if err != nil {
 		s.logger.Error("获取评论总数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("获取评论总数失败: %w", err)
 	}
 
-	// Paginated query, pinned comments first, then sorted by creation time descending | 分页查询，置顶评论在前，然后按创建时间倒序
-	comments, err := query.
-		Order(ent.Desc(comment.FieldIsPinned), ent.Desc(comment.FieldCreatedAt)).
-		Offset((req.Page - 1) * req.PageSize).
-		Limit(req.PageSize).
-		All(ctx)
+	// Paginated query | 分页查询
+	comments, err := s.commentRepo.ListWithCondition(ctx, func(q *ent.CommentQuery) *ent.CommentQuery {
+		q = conditionFunc(q)
+		return q.Order(ent.Desc(comment.FieldCreatedAt)).
+			Offset((req.Page - 1) * req.PageSize)
+	}, req.PageSize)
 	if err != nil {
 		s.logger.Error("获取评论列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("获取评论列表失败: %w", err)
@@ -126,10 +114,7 @@ func (s *CommentManageService) GetCommentList(ctx context.Context, req schema.Co
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
 	}
-	users, _ := s.db.User.Query().
-		Where(user.IDIn(userIDList...)).
-		Select(user.FieldID, user.FieldUsername).
-		All(ctx)
+	users, _ := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername})
 	userMap := make(map[int]string)
 	for _, u := range users {
 		userMap[u.ID] = u.Username
@@ -140,10 +125,7 @@ func (s *CommentManageService) GetCommentList(ctx context.Context, req schema.Co
 	for id := range postIDs {
 		postIDList = append(postIDList, id)
 	}
-	posts, _ := s.db.Post.Query().
-		Where(post.IDIn(postIDList...)).
-		Select(post.FieldID, post.FieldTitle).
-		All(ctx)
+	posts, _ := s.postRepo.GetByIDsWithFields(ctx, postIDList, []string{post.FieldID, post.FieldTitle})
 	postMap := make(map[int]string)
 	for _, p := range posts {
 		postMap[p.ID] = p.Title
@@ -194,9 +176,7 @@ func (s *CommentManageService) CreateComment(ctx context.Context, req schema.Com
 	s.logger.Info("创建评论", zap.String("content", req.Content), zap.Int("user_id", req.UserID), tracing.WithTraceIDField(ctx))
 
 	// Check if user exists | 检查用户是否存在
-	userExists, err := s.db.User.Query().
-		Where(user.IDEQ(req.UserID)).
-		Exist(ctx)
+	userExists, err := s.userRepo.ExistsByID(ctx, req.UserID)
 	if err != nil {
 		s.logger.Error("检查用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("检查用户失败: %w", err)
@@ -206,9 +186,7 @@ func (s *CommentManageService) CreateComment(ctx context.Context, req schema.Com
 	}
 
 	// Check if post exists | 检查帖子是否存在
-	postExists, err := s.db.Post.Query().
-		Where(post.IDEQ(req.PostID)).
-		Exist(ctx)
+	postExists, err := s.postRepo.ExistsByID(ctx, req.PostID)
 	if err != nil {
 		s.logger.Error("检查帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("检查帖子失败: %w", err)
@@ -219,9 +197,7 @@ func (s *CommentManageService) CreateComment(ctx context.Context, req schema.Com
 
 	// Check if parent comment exists (if provided) | 检查父评论是否存在（如果提供了）
 	if req.ParentID != nil {
-		parentExists, err := s.db.Comment.Query().
-			Where(comment.IDEQ(*req.ParentID)).
-			Exist(ctx)
+		parentExists, err := s.commentRepo.ExistsByID(ctx, *req.ParentID)
 		if err != nil {
 			s.logger.Error("检查父评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 			return nil, fmt.Errorf("检查父评论失败: %w", err)
@@ -233,9 +209,7 @@ func (s *CommentManageService) CreateComment(ctx context.Context, req schema.Com
 
 	// Check if reply target user exists (if provided) | 检查回复目标用户是否存在（如果提供了）
 	if req.ReplyToUserID != nil {
-		replyUserExists, err := s.db.User.Query().
-			Where(user.IDEQ(*req.ReplyToUserID)).
-			Exist(ctx)
+		replyUserExists, err := s.userRepo.ExistsByID(ctx, *req.ReplyToUserID)
 		if err != nil {
 			s.logger.Error("检查回复目标用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 			return nil, fmt.Errorf("检查回复目标用户失败: %w", err)
@@ -246,18 +220,10 @@ func (s *CommentManageService) CreateComment(ctx context.Context, req schema.Com
 	}
 
 	// Create comment | 创建评论
-	cmt, err := s.db.Comment.Create().
-		SetPostID(req.PostID).
-		SetUserID(req.UserID).
-		SetNillableParentID(req.ParentID).
-		SetNillableReplyToUserID(req.ReplyToUserID).
-		SetContent(req.Content).
-		SetCommenterIP(req.CommenterIP).
-		SetDeviceInfo(req.DeviceInfo).
-		Save(ctx)
+	cmt, err := s.commentRepo.Create(ctx, req.UserID, req.PostID, req.Content, req.CommenterIP, req.DeviceInfo, req.ParentID, req.ReplyToUserID)
 	if err != nil {
 		s.logger.Error("创建评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("创建评论失败: %w", err)
+		return nil, err
 	}
 
 	s.logger.Info("评论创建成功", zap.Int("id", cmt.ID), tracing.WithTraceIDField(ctx))
@@ -268,23 +234,11 @@ func (s *CommentManageService) CreateComment(ctx context.Context, req schema.Com
 func (s *CommentManageService) UpdateComment(ctx context.Context, req schema.CommentUpdateRequest) (*ent.Comment, error) {
 	s.logger.Info("更新评论信息", zap.Int("id", req.ID), tracing.WithTraceIDField(ctx))
 
-	// Check if comment exists | 检查评论是否存在
-	_, err := s.db.Comment.Get(ctx, req.ID)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("评论不存在")
-		}
-		s.logger.Error("获取评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取评论失败: %w", err)
-	}
-
 	// Update comment content | 更新评论内容
-	updatedComment, err := s.db.Comment.UpdateOneID(req.ID).
-		SetContent(req.Content).
-		Save(ctx)
+	updatedComment, err := s.commentRepo.UpdateContent(ctx, req.ID, req.Content)
 	if err != nil {
 		s.logger.Error("更新评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("更新评论失败: %w", err)
+		return nil, err
 	}
 
 	s.logger.Info("评论更新成功", zap.Int("id", updatedComment.ID), tracing.WithTraceIDField(ctx))
@@ -296,46 +250,32 @@ func (s *CommentManageService) GetCommentDetail(ctx context.Context, id int) (*s
 	s.logger.Info("获取评论详情", zap.Int("id", id), tracing.WithTraceIDField(ctx))
 
 	// Get comment information | 获取评论信息
-	c, err := s.db.Comment.Query().
-		Where(comment.IDEQ(id)).
-		Only(ctx)
+	c, err := s.commentRepo.GetByID(ctx, id)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("评论不存在")
-		}
 		s.logger.Error("获取评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取评论失败: %w", err)
+		return nil, err
 	}
 
 	// Query post information | 查询帖子信息
 	postTitle := ""
-	postData, err := s.db.Post.Query().
-		Where(post.IDEQ(c.PostID)).
-		Select(post.FieldTitle).
-		Only(ctx)
-	if err == nil {
-		postTitle = postData.Title
+	posts, err := s.postRepo.GetByIDsWithFields(ctx, []int{c.PostID}, []string{post.FieldID, post.FieldTitle})
+	if err == nil && len(posts) > 0 {
+		postTitle = posts[0].Title
 	}
 
 	// Query author information | 查询作者信息
 	username := ""
-	author, err := s.db.User.Query().
-		Where(user.IDEQ(c.UserID)).
-		Select(user.FieldUsername).
-		Only(ctx)
-	if err == nil {
-		username = author.Username
+	users, err := s.userRepo.GetByIDsWithFields(ctx, []int{c.UserID}, []string{user.FieldID, user.FieldUsername})
+	if err == nil && len(users) > 0 {
+		username = users[0].Username
 	}
 
 	// Query reply target user information | 查询回复目标用户信息
 	var replyToUsername string
 	if c.ReplyToUserID != 0 {
-		replyToUser, err := s.db.User.Query().
-			Where(user.IDEQ(c.ReplyToUserID)).
-			Select(user.FieldUsername).
-			Only(ctx)
-		if err == nil {
-			replyToUsername = replyToUser.Username
+		replyUsers, err := s.userRepo.GetByIDsWithFields(ctx, []int{c.ReplyToUserID}, []string{user.FieldID, user.FieldUsername})
+		if err == nil && len(replyUsers) > 0 {
+			replyToUsername = replyUsers[0].Username
 		}
 	}
 
@@ -367,25 +307,13 @@ func (s *CommentManageService) GetCommentDetail(ctx context.Context, id int) (*s
 func (s *CommentManageService) SetCommentSelected(ctx context.Context, req schema.CommentSelectedUpdateRequest) error {
 	s.logger.Info("设置评论精选", zap.Int("id", req.ID), zap.Bool("is_selected", req.IsSelected), tracing.WithTraceIDField(ctx))
 
-	// Check if comment exists | 检查评论是否存在
-	exists, err := s.db.Comment.Query().
-		Where(comment.IDEQ(req.ID)).
-		Exist(ctx)
-	if err != nil {
-		s.logger.Error("检查评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return fmt.Errorf("检查评论失败: %w", err)
-	}
-	if !exists {
-		return errors.New("评论不存在")
-	}
-
 	// Set selected status | 设置精选状态
-	_, err = s.db.Comment.UpdateOneID(req.ID).
-		SetIsSelected(req.IsSelected).
-		Save(ctx)
+	_, err := s.commentRepo.Update(ctx, req.ID, func(u *ent.CommentUpdateOne) *ent.CommentUpdateOne {
+		return u.SetIsSelected(req.IsSelected)
+	})
 	if err != nil {
 		s.logger.Error("设置评论精选失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return fmt.Errorf("设置评论精选失败: %w", err)
+		return err
 	}
 
 	s.logger.Info("评论精选设置成功", zap.Int("id", req.ID), tracing.WithTraceIDField(ctx))
@@ -396,25 +324,13 @@ func (s *CommentManageService) SetCommentSelected(ctx context.Context, req schem
 func (s *CommentManageService) SetCommentPin(ctx context.Context, req schema.CommentPinUpdateRequest) error {
 	s.logger.Info("设置评论置顶", zap.Int("id", req.ID), zap.Bool("is_pinned", req.IsPinned), tracing.WithTraceIDField(ctx))
 
-	// Check if comment exists | 检查评论是否存在
-	exists, err := s.db.Comment.Query().
-		Where(comment.IDEQ(req.ID)).
-		Exist(ctx)
-	if err != nil {
-		s.logger.Error("检查评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return fmt.Errorf("检查评论失败: %w", err)
-	}
-	if !exists {
-		return errors.New("评论不存在")
-	}
-
 	// Set pin status | 设置置顶状态
-	_, err = s.db.Comment.UpdateOneID(req.ID).
-		SetIsPinned(req.IsPinned).
-		Save(ctx)
+	_, err := s.commentRepo.Update(ctx, req.ID, func(u *ent.CommentUpdateOne) *ent.CommentUpdateOne {
+		return u.SetIsPinned(req.IsPinned)
+	})
 	if err != nil {
 		s.logger.Error("设置评论置顶失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return fmt.Errorf("设置评论置顶失败: %w", err)
+		return err
 	}
 
 	s.logger.Info("评论置顶设置成功", zap.Int("id", req.ID), tracing.WithTraceIDField(ctx))
@@ -425,23 +341,11 @@ func (s *CommentManageService) SetCommentPin(ctx context.Context, req schema.Com
 func (s *CommentManageService) DeleteComment(ctx context.Context, id int) error {
 	s.logger.Info("删除评论", zap.Int("id", id), tracing.WithTraceIDField(ctx))
 
-	// Check if comment exists | 检查评论是否存在
-	exists, err := s.db.Comment.Query().
-		Where(comment.IDEQ(id)).
-		Exist(ctx)
-	if err != nil {
-		s.logger.Error("检查评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return fmt.Errorf("检查评论失败: %w", err)
-	}
-	if !exists {
-		return errors.New("评论不存在")
-	}
-
 	// Delete comment (physical deletion, because comments don't have a status field) | 删除评论（物理删除，因为评论没有状态字段）
-	err = s.db.Comment.DeleteOneID(id).Exec(ctx)
+	err := s.commentRepo.Delete(ctx, id)
 	if err != nil {
 		s.logger.Error("删除评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return fmt.Errorf("删除评论失败: %w", err)
+		return err
 	}
 
 	s.logger.Info("评论删除成功", zap.Int("id", id), tracing.WithTraceIDField(ctx))

@@ -8,11 +8,11 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/PokeForum/PokeForum/ent"
-	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/stats"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
+	"github.com/PokeForum/PokeForum/internal/repository"
 )
 
 // IPostStatsService Post statistics service interface | 帖子统计服务接口
@@ -61,15 +61,17 @@ type IPostStatsService interface {
 // PostStatsService Post statistics service implementation | 帖子统计服务实现
 type PostStatsService struct {
 	db          *ent.Client
+	postRepo    repository.IPostRepository
 	cache       cache.ICacheService
 	statsHelper *stats.Helper
 	logger      *zap.Logger
 }
 
 // NewPostStatsService Create a post statistics service instance | 创建帖子统计服务实例
-func NewPostStatsService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) IPostStatsService {
+func NewPostStatsService(db *ent.Client, repos *repository.Repositories, cacheService cache.ICacheService, logger *zap.Logger) IPostStatsService {
 	return &PostStatsService{
 		db:          db,
+		postRepo:    repos.Post,
 		cache:       cacheService,
 		statsHelper: stats.NewStatsHelper(cacheService, logger),
 		logger:      logger,
@@ -85,7 +87,7 @@ func (s *PostStatsService) PerformAction(ctx context.Context, userID, postID int
 		tracing.WithTraceIDField(ctx))
 
 	// Check if post exists | 检查帖子是否存在
-	exists, err := s.db.Post.Query().Where(post.IDEQ(postID)).Exist(ctx)
+	exists, err := s.postRepo.ExistsByID(ctx, postID)
 	if err != nil {
 		s.logger.Error("检查帖子是否存在失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("检查帖子是否存在失败: %w", err)
@@ -264,13 +266,10 @@ func (s *PostStatsService) GetStats(ctx context.Context, postID int) (*stats.Sta
 	}
 
 	// Redis cache miss, read from database | Redis未命中,从数据库读取
-	postData, err := s.db.Post.Query().Where(post.IDEQ(postID)).Only(ctx)
+	postData, err := s.postRepo.GetByID(ctx, postID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("帖子不存在")
-		}
 		s.logger.Error("从数据库获取帖子统计失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("从数据库获取帖子统计失败: %w", err)
+		return nil, err
 	}
 
 	result := &stats.Stats{

@@ -18,6 +18,7 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/stats"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
+	"github.com/PokeForum/PokeForum/internal/repository"
 	"github.com/PokeForum/PokeForum/internal/schema"
 )
 
@@ -50,6 +51,10 @@ type IPostService interface {
 // PostService Post service implementation | 帖子服务实现
 type PostService struct {
 	db               *ent.Client
+	postRepo         repository.IPostRepository
+	categoryRepo     repository.ICategoryRepository
+	userRepo         repository.IUserRepository
+	postActionRepo   repository.IPostActionRepository
 	cache            cache.ICacheService
 	logger           *zap.Logger
 	postStatsService IPostStatsService
@@ -57,13 +62,17 @@ type PostService struct {
 }
 
 // NewPostService Create a post service instance | 创建帖子服务实例
-func NewPostService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) IPostService {
+func NewPostService(db *ent.Client, repos *repository.Repositories, cacheService cache.ICacheService, logger *zap.Logger, postStatsService IPostStatsService, settingsService ISettingsService) IPostService {
 	return &PostService{
 		db:               db,
+		postRepo:         repos.Post,
+		categoryRepo:     repos.Category,
+		userRepo:         repos.User,
+		postActionRepo:   repos.PostAction,
 		cache:            cacheService,
 		logger:           logger,
-		postStatsService: NewPostStatsService(db, cacheService, logger),
-		settingsService:  NewSettingsService(db, cacheService, logger),
+		postStatsService: postStatsService,
+		settingsService:  settingsService,
 	}
 }
 
@@ -76,39 +85,22 @@ func (s *PostService) CreatePost(ctx context.Context, userID int, req schema.Use
 		return nil, err
 	}
 
-	// Check if category exists | 检查版块是否存在
-	categoryData, err := s.db.Category.Query().
-		Where(category.IDEQ(req.CategoryID)).
-		Only(ctx)
+	categoryData, err := s.categoryRepo.GetByID(ctx, req.CategoryID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("版块不存在")
-		}
 		s.logger.Error("获取版块失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取版块失败: %w", err)
+		return nil, err
 	}
 
-	// Get user information | 获取用户信息
-	userData, err := s.db.User.Query().
-		Where(user.IDEQ(userID)).
-		Only(ctx)
+	userData, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
 		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取用户信息失败: %w", err)
+		return nil, err
 	}
 
-	// Create post | 创建帖子
-	newPost, err := s.db.Post.Create().
-		SetUserID(userID).
-		SetCategoryID(req.CategoryID).
-		SetTitle(req.Title).
-		SetContent(req.Content).
-		SetReadPermission(req.ReadPermission).
-		SetStatus(post.StatusNormal).
-		Save(ctx)
+	newPost, err := s.postRepo.Create(ctx, userID, req.CategoryID, req.Title, req.Content, req.ReadPermission, post.StatusNormal)
 	if err != nil {
 		s.logger.Error("创建帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("创建帖子失败: %w", err)
+		return nil, err
 	}
 
 	// Build response data | 构建响应数据
@@ -139,39 +131,22 @@ func (s *PostService) CreatePost(ctx context.Context, userID int, req schema.Use
 func (s *PostService) SaveDraft(ctx context.Context, userID int, req schema.UserPostCreateRequest) (*schema.UserPostCreateResponse, error) {
 	s.logger.Info("保存草稿", zap.Int("user_id", userID), zap.Int("category_id", req.CategoryID), zap.String("title", req.Title), tracing.WithTraceIDField(ctx))
 
-	// Check if category exists | 检查版块是否存在
-	categoryData, err := s.db.Category.Query().
-		Where(category.IDEQ(req.CategoryID)).
-		Only(ctx)
+	categoryData, err := s.categoryRepo.GetByID(ctx, req.CategoryID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("版块不存在")
-		}
 		s.logger.Error("获取版块失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取版块失败: %w", err)
+		return nil, err
 	}
 
-	// Get user information | 获取用户信息
-	userData, err := s.db.User.Query().
-		Where(user.IDEQ(userID)).
-		Only(ctx)
+	userData, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
 		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取用户信息失败: %w", err)
+		return nil, err
 	}
 
-	// Create draft | 创建草稿
-	newPost, err := s.db.Post.Create().
-		SetUserID(userID).
-		SetCategoryID(req.CategoryID).
-		SetTitle(req.Title).
-		SetContent(req.Content).
-		SetReadPermission(req.ReadPermission).
-		SetStatus(post.StatusDraft).
-		Save(ctx)
+	newPost, err := s.postRepo.Create(ctx, userID, req.CategoryID, req.Title, req.Content, req.ReadPermission, post.StatusDraft)
 	if err != nil {
 		s.logger.Error("保存草稿失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("保存草稿失败: %w", err)
+		return nil, err
 	}
 
 	// Build response data | 构建响应数据
@@ -207,24 +182,16 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int, req schema.Use
 		return nil, err
 	}
 
-	// Check if post exists | 检查帖子是否存在
-	postData, err := s.db.Post.Query().
-		Where(post.IDEQ(req.ID)).
-		Only(ctx)
+	postData, err := s.postRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("帖子不存在")
-		}
 		s.logger.Error("获取帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取帖子失败: %w", err)
+		return nil, err
 	}
 
-	// Check if the user is the post author | 检查是否为帖子作者
 	if postData.UserID != userID {
 		return nil, errors.New("您不是该帖子的作者")
 	}
 
-	// Check edit permission (can be operated once every three minutes) | 检查编辑权限（每三分钟可操作一次）
 	canEdit, err := s.CheckEditPermission(ctx, userID, req.ID)
 	if err != nil {
 		return nil, err
@@ -233,32 +200,24 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int, req schema.Use
 		return nil, errors.New("帖子编辑过于频繁，请三分钟后再试")
 	}
 
-	// Get user information | 获取用户信息
-	userData, err := s.db.User.Query().
-		Where(user.IDEQ(userID)).
-		Only(ctx)
+	userData, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
 		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取用户信息失败: %w", err)
+		return nil, err
 	}
 
-	// Update post | 更新帖子
-	updatedPost, err := s.db.Post.UpdateOneID(req.ID).
-		SetTitle(req.Title).
-		SetContent(req.Content).
-		SetReadPermission(req.ReadPermission).
-		Save(ctx)
+	updatedPost, err := s.postRepo.Update(ctx, req.ID, func(u *ent.PostUpdateOne) *ent.PostUpdateOne {
+		return u.SetTitle(req.Title).
+			SetContent(req.Content).
+			SetReadPermission(req.ReadPermission)
+	})
 	if err != nil {
 		s.logger.Error("更新帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("更新帖子失败: %w", err)
+		return nil, err
 	}
 
-	// Query category information | 查询版块信息
 	categoryName := ""
-	categoryData, err := s.db.Category.Query().
-		Where(category.IDEQ(updatedPost.CategoryID)).
-		Select(category.FieldName).
-		Only(ctx)
+	categoryData, err := s.categoryRepo.GetByID(ctx, updatedPost.CategoryID)
 	if err == nil {
 		categoryName = categoryData.Name
 	}
@@ -291,24 +250,16 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int, req schema.Use
 func (s *PostService) SetPostPrivate(ctx context.Context, userID int, req schema.UserPostActionRequest) (*schema.UserPostActionResponse, error) {
 	s.logger.Info("设置帖子私有", zap.Int("user_id", userID), zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
 
-	// Check if post exists | 检查帖子是否存在
-	postData, err := s.db.Post.Query().
-		Where(post.IDEQ(req.ID)).
-		Only(ctx)
+	postData, err := s.postRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("帖子不存在")
-		}
 		s.logger.Error("获取帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取帖子失败: %w", err)
+		return nil, err
 	}
 
-	// Check if the user is the post author | 检查是否为帖子作者
 	if postData.UserID != userID {
 		return nil, errors.New("您不是该帖子的作者")
 	}
 
-	// Check private permission (can be operated once every three days) | 检查私有权限（每三日可操作一次）
 	canSetPrivate, err := s.CheckPrivatePermission(ctx, userID, req.ID)
 	if err != nil {
 		return nil, err
@@ -317,19 +268,15 @@ func (s *PostService) SetPostPrivate(ctx context.Context, userID int, req schema
 		return nil, errors.New("帖子私有设置过于频繁，请三天后再试")
 	}
 
-	// Toggle private status | 切换私有状态
 	targetStatus := post.StatusPrivate
 	if postData.Status == post.StatusPrivate {
 		targetStatus = post.StatusNormal
 	}
 
-	// Update post status | 更新帖子状态
-	_, err = s.db.Post.UpdateOneID(req.ID).
-		SetStatus(targetStatus).
-		Save(ctx)
+	err = s.postRepo.UpdateStatus(ctx, req.ID, targetStatus)
 	if err != nil {
 		s.logger.Error("设置帖子私有失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("设置帖子私有失败: %w", err)
+		return nil, err
 	}
 
 	// Build response data | 构建响应数据
@@ -454,43 +401,17 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 		req.Sort = "latest"
 	}
 
-	// Build query conditions | 构建查询条件
-	query := s.db.Post.Query()
-
-	// If category ID is specified | 如果指定了版块ID
-	if req.CategoryID > 0 {
-		query = query.Where(post.CategoryID(req.CategoryID))
-	}
-
-	// Only show posts with normal status | 只显示正常状态的帖子
-	query = query.Where(post.StatusEQ(post.StatusNormal))
-
-	// Set sorting based on sort type | 根据排序方式设置排序
-	switch req.Sort {
-	case "hot":
-		query = query.Order(ent.Desc(post.FieldViewCount), ent.Desc(post.FieldLikeCount))
-	case "essence":
-		query = query.Where(post.IsEssence(true)).Order(ent.Desc(post.FieldCreatedAt))
-	default: // latest
-		query = query.Order(ent.Desc(post.FieldCreatedAt))
-	}
-
-	// Get total count | 获取总数
-	total, err := query.Count(ctx)
+	// Use repository to query posts | 使用 Repository 查询帖子列表
+	posts, total, err := s.postRepo.List(ctx, repository.ListPostOptions{
+		CategoryID: req.CategoryID,
+		Status:     post.StatusNormal,
+		SortBy:     req.Sort,
+		Page:       req.Page,
+		PageSize:   req.PageSize,
+	})
 	if err != nil {
-		s.logger.Error("获取帖子总数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取帖子总数失败: %w", err)
-	}
-
-	// Paginated query | 分页查询
-	offset := (req.Page - 1) * req.PageSize
-	posts, err := query.
-		Offset(offset).
-		Limit(req.PageSize).
-		All(ctx)
-	if err != nil {
-		s.logger.Error("获取帖子列表失败", zap.Error(err))
-		return nil, fmt.Errorf("获取帖子列表失败: %w", err)
+		s.logger.Error("获取帖子列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, err
 	}
 
 	// Collect user IDs and category IDs | 收集用户ID和版块ID
@@ -501,15 +422,11 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 		categoryIDs[p.CategoryID] = true
 	}
 
-	// Batch query user information | 批量查询用户信息
 	userIDList := make([]int, 0, len(userIDs))
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
 	}
-	users, err := s.db.User.Query().
-		Where(user.IDIn(userIDList...)).
-		Select(user.FieldID, user.FieldUsername).
-		All(ctx)
+	users, err := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername})
 	if err != nil {
 		s.logger.Warn("批量查询用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 	}
@@ -518,15 +435,11 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 		userMap[u.ID] = u.Username
 	}
 
-	// Batch query category information | 批量查询版块信息
 	categoryIDList := make([]int, 0, len(categoryIDs))
 	for id := range categoryIDs {
 		categoryIDList = append(categoryIDList, id)
 	}
-	categories, err := s.db.Category.Query().
-		Where(category.IDIn(categoryIDList...)).
-		Select(category.FieldID, category.FieldName).
-		All(ctx)
+	categories, err := s.categoryRepo.GetByIDsWithFields(ctx, categoryIDList, []string{category.FieldID, category.FieldName})
 	if err != nil {
 		s.logger.Warn("批量查询版块信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 	}
@@ -544,23 +457,13 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 		postIDs[i] = p.ID
 	}
 
-	// Batch query user like status (only when user is logged in) | 批量查询用户点赞状态（仅当用户已登录时）
-	var userLikeStatus map[int]map[string]bool // postID -> {like: bool, dislike: bool}
+	var userLikeStatus map[int]map[string]bool
 	if currentUserID != 0 {
-		// Batch query user's like records for these posts | 批量查询用户对这些帖子的点赞记录
-		actions, err := s.db.PostAction.Query().
-			Where(
-				postaction.UserIDEQ(currentUserID),
-				postaction.PostIDIn(postIDs...),
-			).
-			Select(postaction.FieldPostID, postaction.FieldActionType).
-			All(ctx)
+		actions, err := s.postActionRepo.GetUserActionsForPosts(ctx, currentUserID, postIDs)
 		if err != nil {
 			s.logger.Warn("查询用户点赞状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-			// On failure, don't block the process, use default status | 失败时不阻断流程，使用默认状态
 			userLikeStatus = make(map[int]map[string]bool)
 		} else {
-			// Build like status mapping | 构建点赞状态映射
 			userLikeStatus = make(map[int]map[string]bool)
 			for _, action := range actions {
 				if _, exists := userLikeStatus[action.PostID]; !exists {
@@ -575,7 +478,6 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 			}
 		}
 	} else {
-		// Not logged in, all status is false | 未登录用户，所有状态为false
 		userLikeStatus = make(map[int]map[string]bool)
 	}
 
@@ -650,16 +552,10 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDetailRequest) (*schema.UserPostDetailResponse, error) {
 	s.logger.Info("获取帖子详情", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
 
-	// Query post detail | 查询帖子详情
-	postData, err := s.db.Post.Query().
-		Where(post.IDEQ(req.ID)).
-		Only(ctx)
+	postData, err := s.postRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("帖子不存在")
-		}
 		s.logger.Error("获取帖子详情失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取帖子详情失败: %w", err)
+		return nil, err
 	}
 
 	// Update view count (use stats service to reduce database pressure) | 更新浏览数(使用统计服务,减少数据库压力)
@@ -683,22 +579,14 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 		viewCount = statsData.ViewCount
 	}
 
-	// Query author information | 查询作者信息
 	username := ""
-	author, err := s.db.User.Query().
-		Where(user.IDEQ(postData.UserID)).
-		Select(user.FieldUsername).
-		Only(ctx)
+	author, err := s.userRepo.GetByID(ctx, postData.UserID)
 	if err == nil {
 		username = author.Username
 	}
 
-	// Query category information | 查询版块信息
 	categoryName := ""
-	categoryData, err := s.db.Category.Query().
-		Where(category.IDEQ(postData.CategoryID)).
-		Select(category.FieldName).
-		Only(ctx)
+	categoryData, err := s.categoryRepo.GetByID(ctx, postData.CategoryID)
 	if err == nil {
 		categoryName = categoryData.Name
 	}
@@ -706,18 +594,11 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 	// Get current user ID, 0 if not logged in | 获取当前用户ID，如果未登录则为0
 	currentUserID := tracing.GetUserID(ctx)
 
-	// Query user action status (only when user is logged in) | 查询用户操作状态（仅当用户已登录时）
 	userLiked := false
 	userDisliked := false
 	userFavorite := false
 	if currentUserID != 0 {
-		actions, err := s.db.PostAction.Query().
-			Where(
-				postaction.UserIDEQ(currentUserID),
-				postaction.PostIDEQ(req.ID),
-			).
-			Select(postaction.FieldActionType).
-			All(ctx)
+		actions, err := s.postActionRepo.GetUserActionsForPosts(ctx, currentUserID, []int{req.ID})
 		if err != nil {
 			s.logger.Debug("查询用户操作状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		} else {
@@ -843,13 +724,10 @@ func (s *PostService) CheckPrivatePermission(ctx context.Context, userID, postID
 
 // checkUserStatus Check if user status allows operation | 检查用户状态是否允许操作
 func (s *PostService) checkUserStatus(ctx context.Context, userID int) error {
-	userData, err := s.db.User.Query().
-		Where(user.IDEQ(userID)).
-		Select(user.FieldStatus, user.FieldEmailVerified).
-		Only(ctx)
+	userData, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
-		s.logger.Error("获取用户状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return fmt.Errorf("获取用户状态失败: %w", err)
+		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return err
 	}
 
 	switch userData.Status {

@@ -10,18 +10,19 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/PokeForum/PokeForum/ent"
-	"github.com/PokeForum/PokeForum/ent/usersigninlogs"
-	"github.com/PokeForum/PokeForum/ent/usersigninstatus"
 	pkgasynq "github.com/PokeForum/PokeForum/internal/pkg/asynq"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
+	"github.com/PokeForum/PokeForum/internal/repository"
 )
 
 // SigninAsyncTask Sign-in async task handler | 签到异步任务处理器
 // Uses asynq for reliable message queue, ensuring data persistence and fault recovery | 使用asynq实现可靠的消息队列，确保数据持久化和故障恢复
 type SigninAsyncTask struct {
-	db          *ent.Client
-	logger      *zap.Logger
-	taskManager *pkgasynq.TaskManager
+	db               *ent.Client
+	signinStatusRepo repository.IUserSigninStatusRepository
+	signinLogsRepo   repository.IUserSigninLogsRepository
+	logger           *zap.Logger
+	taskManager      *pkgasynq.TaskManager
 }
 
 // SigninTaskPayload Sign-in task payload | 签到任务载荷
@@ -34,11 +35,13 @@ type SigninTaskPayload struct {
 }
 
 // NewSigninAsyncTask Create sign-in async task handler | 创建签到异步任务处理器
-func NewSigninAsyncTask(db *ent.Client, taskManager *pkgasynq.TaskManager, logger *zap.Logger) *SigninAsyncTask {
+func NewSigninAsyncTask(db *ent.Client, repos *repository.Repositories, taskManager *pkgasynq.TaskManager, logger *zap.Logger) *SigninAsyncTask {
 	return &SigninAsyncTask{
-		db:          db,
-		logger:      logger,
-		taskManager: taskManager,
+		db:               db,
+		signinStatusRepo: repos.UserSigninStatus,
+		signinLogsRepo:   repos.UserSigninLogs,
+		logger:           logger,
+		taskManager:      taskManager,
 	}
 }
 
@@ -133,29 +136,18 @@ func (s *SigninAsyncTask) HandleSigninTask(ctx context.Context, t *asynq.Task) e
 
 // updateSigninStatus Update sign-in status table | 更新签到状态表
 func (s *SigninAsyncTask) updateSigninStatus(ctx context.Context, payload *SigninTaskPayload) error {
-	existing, err := s.db.UserSigninStatus.Query().
-		Where(usersigninstatus.UserID(payload.UserID)).
-		Only(ctx)
+	existing, err := s.signinStatusRepo.GetByUserID(ctx, payload.UserID)
 
 	if err != nil {
-		if ent.IsNotFound(err) {
+		if err.Error() == "签到状态不存在" {
 			// Record does not exist, create new record | 记录不存在，创建新记录
-			err = s.db.UserSigninStatus.Create().
-				SetUserID(payload.UserID).
-				SetLastSigninDate(payload.SignDate).
-				SetContinuousDays(payload.ContinuousDays).
-				SetTotalDays(payload.TotalDays).
-				Exec(ctx)
+			err = s.signinStatusRepo.Create(ctx, payload.UserID, payload.SignDate, payload.ContinuousDays, payload.TotalDays)
 		} else {
 			return err
 		}
 	} else {
 		// Record exists, update record | 记录存在，更新记录
-		_, err = s.db.UserSigninStatus.UpdateOne(existing).
-			SetLastSigninDate(payload.SignDate).
-			SetContinuousDays(payload.ContinuousDays).
-			SetTotalDays(payload.TotalDays).
-			Save(ctx)
+		err = s.signinStatusRepo.Update(ctx, existing, payload.SignDate, payload.ContinuousDays, payload.TotalDays)
 	}
 
 	if err != nil {
@@ -175,12 +167,7 @@ func (s *SigninAsyncTask) updateSigninStatus(ctx context.Context, payload *Signi
 // insertSigninLog Insert sign-in log | 插入签到日志
 func (s *SigninAsyncTask) insertSigninLog(ctx context.Context, payload *SigninTaskPayload) error {
 	// Check if signed in today (prevent duplicate insertion) | 检查今日是否已签到（防止重复插入）
-	exists, err := s.db.UserSigninLogs.Query().
-		Where(
-			usersigninlogs.UserID(payload.UserID),
-			usersigninlogs.SignDate(payload.SignDate),
-		).
-		Exist(ctx)
+	exists, err := s.signinLogsRepo.Exists(ctx, payload.UserID, payload.SignDate)
 
 	if err != nil {
 		return err
@@ -195,10 +182,7 @@ func (s *SigninAsyncTask) insertSigninLog(ctx context.Context, payload *SigninTa
 	}
 
 	// Insert new sign-in log | 插入新的签到日志
-	err = s.db.UserSigninLogs.Create().
-		SetUserID(payload.UserID).
-		SetSignDate(payload.SignDate).
-		Exec(ctx)
+	err = s.signinLogsRepo.Create(ctx, payload.UserID, payload.SignDate)
 
 	if err != nil {
 		return err

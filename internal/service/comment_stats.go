@@ -6,11 +6,11 @@ import (
 	"fmt"
 
 	"github.com/PokeForum/PokeForum/ent"
-	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/commentaction"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/stats"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
+	"github.com/PokeForum/PokeForum/internal/repository"
 	"go.uber.org/zap"
 )
 
@@ -55,15 +55,17 @@ type ICommentStatsService interface {
 // CommentStatsService Comment statistics service implementation | 评论统计服务实现
 type CommentStatsService struct {
 	db          *ent.Client
+	commentRepo repository.ICommentRepository
 	cache       cache.ICacheService
 	statsHelper *stats.Helper
 	logger      *zap.Logger
 }
 
 // NewCommentStatsService Create a comment statistics service instance | 创建评论统计服务实例
-func NewCommentStatsService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) ICommentStatsService {
+func NewCommentStatsService(db *ent.Client, repos *repository.Repositories, cacheService cache.ICacheService, logger *zap.Logger) ICommentStatsService {
 	return &CommentStatsService{
 		db:          db,
+		commentRepo: repos.Comment,
 		cache:       cacheService,
 		statsHelper: stats.NewStatsHelper(cacheService, logger),
 		logger:      logger,
@@ -79,7 +81,7 @@ func (s *CommentStatsService) PerformAction(ctx context.Context, userID, comment
 		tracing.WithTraceIDField(ctx))
 
 	// Check if comment exists | 检查评论是否存在
-	exists, err := s.db.Comment.Query().Where(comment.IDEQ(commentID)).Exist(ctx)
+	exists, err := s.commentRepo.ExistsByID(ctx, commentID)
 	if err != nil {
 		s.logger.Error("检查评论是否存在失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("检查评论是否存在失败: %w", err)
@@ -254,13 +256,10 @@ func (s *CommentStatsService) GetStats(ctx context.Context, commentID int) (*sta
 	}
 
 	// Redis cache miss, read from database | Redis未命中,从数据库读取
-	commentData, err := s.db.Comment.Query().Where(comment.IDEQ(commentID)).Only(ctx)
+	commentData, err := s.commentRepo.GetByID(ctx, commentID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("评论不存在")
-		}
 		s.logger.Error("从数据库获取评论统计失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("从数据库获取评论统计失败: %w", err)
+		return nil, err
 	}
 
 	result := &stats.Stats{

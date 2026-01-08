@@ -9,12 +9,12 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/settings"
 	_const "github.com/PokeForum/PokeForum/internal/consts"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/email"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
+	"github.com/PokeForum/PokeForum/internal/repository"
 	"github.com/PokeForum/PokeForum/internal/schema"
 )
 
@@ -62,28 +62,26 @@ type ISettingsService interface {
 
 // SettingsService Settings service implementation | 设置服务实现
 type SettingsService struct {
-	db     *ent.Client
-	cache  cache.ICacheService
-	logger *zap.Logger
+	settingsRepo repository.ISettingsRepository
+	cache        cache.ICacheService
+	logger       *zap.Logger
 }
 
 // NewSettingsService Create settings service instance | 创建设置服务实例
-func NewSettingsService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger) ISettingsService {
+func NewSettingsService(settingsRepo repository.ISettingsRepository, cacheService cache.ICacheService, logger *zap.Logger) ISettingsService {
 	return &SettingsService{
-		db:     db,
-		cache:  cacheService,
-		logger: logger,
+		settingsRepo: settingsRepo,
+		cache:        cacheService,
+		logger:       logger,
 	}
 }
 
 // getSettingsByModule Generic method: Get configuration by module | 通用方法：根据模块获取配置
 func (s *SettingsService) getSettingsByModule(ctx context.Context, module settings.Module) (map[string]string, error) {
-	configs, err := s.db.Settings.Query().
-		Where(settings.ModuleEQ(module)).
-		All(ctx)
+	configs, err := s.settingsRepo.GetByModule(ctx, module)
 	if err != nil {
 		s.logger.Error("查询配置失败", tracing.WithTraceIDField(ctx), zap.String("module", module.String()), zap.Error(err))
-		return nil, fmt.Errorf("查询配置失败: %w", err)
+		return nil, err
 	}
 
 	configMap := make(map[string]string)
@@ -98,41 +96,13 @@ func (s *SettingsService) getSettingsByModule(ctx context.Context, module settin
 
 // upsertSetting Generic method: Update or insert single configuration item | 通用方法：更新或插入单个配置项
 func (s *SettingsService) upsertSetting(ctx context.Context, module settings.Module, key, value string, valueType settings.ValueType) error {
-	existing, err := s.db.Settings.Query().
-		Where(
-			settings.ModuleEQ(module),
-			settings.KeyEQ(key),
-		).
-		First(ctx)
-
-	if err != nil && !ent.IsNotFound(err) {
-		return fmt.Errorf("查询配置失败: %w", err)
+	err := s.settingsRepo.Upsert(ctx, module, key, value, valueType)
+	if err != nil {
+		s.logger.Error("更新或创建配置失败", tracing.WithTraceIDField(ctx), zap.String("key", key), zap.Error(err))
+		return err
 	}
 
-	if existing != nil {
-		// 更新现有配置
-		if _, err := s.db.Settings.UpdateOne(existing).
-			SetValue(value).
-			Save(ctx); err != nil {
-			s.logger.Error("更新配置失败", tracing.WithTraceIDField(ctx), zap.String("key", key), zap.Error(err))
-			return fmt.Errorf("更新配置 %s 失败: %w", key, err)
-		}
-	} else {
-		// 创建新配置
-		if _, err := s.db.Settings.Create().
-			SetModule(module).
-			SetKey(key).
-			SetValue(value).
-			SetValueType(valueType).
-			Save(ctx); err != nil {
-			s.logger.Error("创建配置失败", tracing.WithTraceIDField(ctx), zap.String("key", key), zap.Error(err))
-			return fmt.Errorf("创建配置 %s 失败: %w", key, err)
-		}
-	}
-
-	// Clear corresponding Redis cache | 清理对应的Redis缓存
 	s.ClearSettingCache(ctx, key)
-
 	return nil
 }
 
@@ -489,20 +459,16 @@ func (s *SettingsService) GetSettingByKey(ctx context.Context, key string, defau
 		return cachedValue, nil
 	}
 
-	// Cache miss, query from database | 缓存未命中，从数据库查询
-	setting, err := s.db.Settings.Query().
-		Where(settings.KeyEQ(key)).
-		First(ctx)
+	setting, err := s.settingsRepo.GetByKey(ctx, key)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			// If setting does not exist, cache default value and return default value | 如果设置不存在，缓存默认值并返回默认值
-			if err = s.cache.SetEx(ctx, cacheKey, defaultValue, 300); err != nil {
-				s.logger.Warn("设置缓存默认值失败", tracing.WithTraceIDField(ctx), zap.Error(err))
-			} // Cache for 5 minutes | 缓存5分钟
-			return defaultValue, nil
-		}
 		s.logger.Error("查询设置失败", tracing.WithTraceIDField(ctx), zap.String("key", key), zap.Error(err))
-		return "", fmt.Errorf("查询设置失败: %w", err)
+		return "", err
+	}
+	if setting == nil {
+		if err = s.cache.SetEx(ctx, cacheKey, defaultValue, 300); err != nil {
+			s.logger.Warn("设置缓存默认值失败", tracing.WithTraceIDField(ctx), zap.Error(err))
+		}
+		return defaultValue, nil
 	}
 
 	// Cache query result to Redis, set 1 day expiration time | 将查询结果缓存到Redis，设置1天过期时间

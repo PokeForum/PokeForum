@@ -41,6 +41,7 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/asynq"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/logging"
+	"github.com/PokeForum/PokeForum/internal/repository"
 	"github.com/PokeForum/PokeForum/internal/service"
 	"github.com/PokeForum/PokeForum/internal/utils"
 )
@@ -104,15 +105,18 @@ func RunServer() {
 	// Initialize cache service | 初始化缓存服务
 	cacheService := cache.NewRedisCacheService(configs.Cache, configs.Log)
 
+	// Initialize repositories | 初始化仓储层
+	repos := repository.NewRepositories(configs.DB)
+
 	// Initialize asynq task manager | 初始化asynq任务管理器
 	taskManager := asynq.NewTaskManagerFromRedis(configs.Cache, 10, configs.Log)
 
 	// Register sign-in async task handler | 注册签到异步任务处理器
-	signinAsyncTask := service.NewSigninAsyncTask(configs.DB, taskManager, configs.Log)
+	signinAsyncTask := service.NewSigninAsyncTask(configs.DB, repos, taskManager, configs.Log)
 	signinAsyncTask.RegisterHandler()
 
 	// Register stats sync task handler and scheduled task (sync every 5 minutes) | 注册统计数据同步任务处理器和定时任务(每5分钟同步一次)
-	syncTask := service.NewStatsSyncTask(configs.DB, cacheService, taskManager, configs.Log)
+	syncTask := service.NewStatsSyncTask(configs.DB, repos, cacheService, taskManager, configs.Log)
 	syncTask.RegisterHandler()
 	if err := syncTask.RegisterSchedule(5 * time.Minute); err != nil {
 		configs.Log.Error("Failed to register stats sync scheduled task | 注册统计同步定时任务失败", zap.Error(err))

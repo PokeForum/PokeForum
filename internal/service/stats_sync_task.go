@@ -12,6 +12,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent"
 	pkgasynq "github.com/PokeForum/PokeForum/internal/pkg/asynq"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
+	"github.com/PokeForum/PokeForum/internal/repository"
 )
 
 // StatsSyncTask Statistics data synchronization task | 统计数据同步任务
@@ -30,13 +31,13 @@ type StatsSyncPayload struct {
 }
 
 // NewStatsSyncTask Create statistics data synchronization task instance | 创建统计数据同步任务实例
-func NewStatsSyncTask(db *ent.Client, cacheService cache.ICacheService, taskManager *pkgasynq.TaskManager, logger *zap.Logger) *StatsSyncTask {
+func NewStatsSyncTask(db *ent.Client, repos *repository.Repositories, cacheService cache.ICacheService, taskManager *pkgasynq.TaskManager, logger *zap.Logger) *StatsSyncTask {
 	return &StatsSyncTask{
 		db:                  db,
 		cache:               cacheService,
 		logger:              logger,
-		postStatsService:    NewPostStatsService(db, cacheService, logger),
-		commentStatsService: NewCommentStatsService(db, cacheService, logger),
+		postStatsService:    NewPostStatsService(db, repos, cacheService, logger),
+		commentStatsService: NewCommentStatsService(db, repos, cacheService, logger),
 		taskManager:         taskManager,
 	}
 }
