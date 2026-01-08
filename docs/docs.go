@@ -3885,8 +3885,75 @@ const docTemplate = `{
             }
         },
         "/posts/draft": {
+            "get": {
+                "description": "User gets their draft post list | 用户获取自己的草稿帖子列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]Topic Posts | [用户]主题贴"
+                ],
+                "summary": "Get draft list | 获取草稿列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number, default 1 | 页码,默认1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Items per page, default 20, max 100 | 每页数量,默认20,最大100",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Retrieved successfully | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserPostListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Not logged in | 未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
             "post": {
-                "description": "User saves post draft | 用户保存帖子草稿",
+                "description": "User saves post draft. If ID is provided, updates existing draft; otherwise creates new draft (max 10 drafts per user) | 用户保存帖子草稿。如果提供ID则更新现有草稿，否则创建新草稿（每个用户最多10篇草稿）",
                 "consumes": [
                     "application/json"
                 ],
@@ -3899,7 +3966,7 @@ const docTemplate = `{
                 "summary": "Save draft | 保存草稿",
                 "parameters": [
                     {
-                        "description": "Post information | 帖子信息",
+                        "description": "Post information (id is optional for update) | 帖子信息（id为可选字段，用于更新）",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -3935,6 +4002,68 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Not logged in | 未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "Draft limit reached or insufficient permissions | 草稿数量已达上限或权限不足",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "User deletes their draft post | 用户删除自己的草稿帖子",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]Topic Posts | [用户]主题贴"
+                ],
+                "summary": "Delete draft | 删除草稿",
+                "parameters": [
+                    {
+                        "description": "Draft ID | 草稿ID",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserDraftDeleteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deleted successfully | 删除成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Not logged in | 未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "Insufficient permissions | 权限不足",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -11340,6 +11469,18 @@ const docTemplate = `{
                 }
             }
         },
+        "schema.UserDraftDeleteRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "description": "Draft ID | 草稿ID",
+                    "type": "integer"
+                }
+            }
+        },
         "schema.UserListItem": {
             "type": "object",
             "properties": {
@@ -11516,6 +11657,10 @@ const docTemplate = `{
                     "description": "Post content | 帖子内容",
                     "type": "string",
                     "minLength": 1
+                },
+                "id": {
+                    "description": "Post ID (optional, for updating draft) | 帖子ID（可选，用于更新草稿）",
+                    "type": "integer"
                 },
                 "read_permission": {
                     "description": "Read permission | 阅读限制",
