@@ -7,7 +7,7 @@ import (
 // Client OAuth client implementation | OAuth客户端实现
 type Client struct {
 	providers map[Provider]IProvider // Registered OAuth providers | 已注册的OAuth提供商
-	mu        sync.RWMutex            // Read-write lock to protect providers | 读写锁，保护providers
+	mu        sync.RWMutex           // Read-write lock to protect providers | 读写锁，保护providers
 }
 
 // NewClient Create OAuth client instance | 创建OAuth客户端实例
