@@ -2,6 +2,8 @@ package schema
 
 // UserPostCreateRequest Create post request | 创建帖子请求
 type UserPostCreateRequest struct {
+	// Post ID (optional, for updating draft) | 帖子ID（可选，用于更新草稿）
+	ID int `json:"id,omitempty"`
 	// Category ID | 版块ID
 	CategoryID int `json:"category_id" binding:"required"`
 	// Post title | 帖子标题
@@ -202,4 +204,18 @@ type UserPostDetailResponse struct {
 	CreatedAt string `json:"created_at"`
 	// Update time | 更新时间
 	UpdatedAt string `json:"updated_at"`
+}
+
+// UserDraftListRequest Draft list request | 草稿列表请求
+type UserDraftListRequest struct {
+	// Page number, default 1 | 页码，默认1
+	Page int `form:"page" binding:"min=1"`
+	// Items per page, default 20, max 100 | 每页数量，默认20，最大100
+	PageSize int `form:"page_size" binding:"min=1,max=100"`
+}
+
+// UserDraftDeleteRequest Delete draft request | 删除草稿请求
+type UserDraftDeleteRequest struct {
+	// Draft ID | 草稿ID
+	ID int `json:"id" binding:"required"`
 }

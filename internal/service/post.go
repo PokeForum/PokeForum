@@ -26,8 +26,6 @@ import (
 type IPostService interface {
 	// CreatePost Create a post | 创建帖子
 	CreatePost(ctx context.Context, userID int, req schema.UserPostCreateRequest) (*schema.UserPostCreateResponse, error)
-	// SaveDraft Save a draft | 保存草稿
-	SaveDraft(ctx context.Context, userID int, req schema.UserPostCreateRequest) (*schema.UserPostCreateResponse, error)
 	// UpdatePost Update a post | 更新帖子
 	UpdatePost(ctx context.Context, userID int, req schema.UserPostUpdateRequest) (*schema.UserPostUpdateResponse, error)
 	// SetPostPrivate Set post as private | 设置帖子私有
@@ -42,6 +40,12 @@ type IPostService interface {
 	GetPostList(ctx context.Context, req schema.UserPostListRequest) (*schema.UserPostListResponse, error)
 	// GetPostDetail Get post detail | 获取帖子详情
 	GetPostDetail(ctx context.Context, req schema.UserPostDetailRequest) (*schema.UserPostDetailResponse, error)
+	// GetDraftList Get draft list | 获取草稿列表
+	GetDraftList(ctx context.Context, userID int, req schema.UserDraftListRequest) (*schema.UserPostListResponse, error)
+	// SaveDraft Save a draft | 保存草稿
+	SaveDraft(ctx context.Context, userID int, req schema.UserPostCreateRequest) (*schema.UserPostCreateResponse, error)
+	// DeleteDraft Delete draft | 删除草稿
+	DeleteDraft(ctx context.Context, userID int, req schema.UserDraftDeleteRequest) error
 	// CheckEditPermission Check edit permission (can be operated once every three minutes) | 检查编辑权限（每三分钟可操作一次）
 	CheckEditPermission(ctx context.Context, userID, postID int) (bool, error)
 	// CheckPrivatePermission Check private permission (can be operated once every three days) | 检查私有权限（每三日可操作一次）
@@ -129,8 +133,58 @@ func (s *PostService) CreatePost(ctx context.Context, userID int, req schema.Use
 
 // SaveDraft Save a draft | 保存草稿
 func (s *PostService) SaveDraft(ctx context.Context, userID int, req schema.UserPostCreateRequest) (*schema.UserPostCreateResponse, error) {
-	s.logger.Info("保存草稿", zap.Int("user_id", userID), zap.Int("category_id", req.CategoryID), zap.String("title", req.Title), tracing.WithTraceIDField(ctx))
+	s.logger.Info("保存草稿", zap.Int("user_id", userID), zap.Int("draft_id", req.ID), zap.Int("category_id", req.CategoryID), zap.String("title", req.Title), tracing.WithTraceIDField(ctx))
 
+	var resultPost *ent.Post
+	var err error
+
+	// If ID exists, update existing draft | 如果ID存在，更新现有草稿
+	if req.ID > 0 {
+		// Get draft post | 获取草稿帖子
+		draftPost, err := s.postRepo.GetByIDWithStatus(ctx, req.ID, post.StatusDraft)
+		if err != nil {
+			s.logger.Error("获取草稿失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			return nil, err
+		}
+
+		// Check ownership | 检查所有权
+		if draftPost.UserID != userID {
+			return nil, errors.New("您不是该草稿的作者")
+		}
+
+		// Update draft | 更新草稿
+		resultPost, err = s.postRepo.Update(ctx, req.ID, func(u *ent.PostUpdateOne) *ent.PostUpdateOne {
+			return u.SetCategoryID(req.CategoryID).
+				SetTitle(req.Title).
+				SetContent(req.Content).
+				SetReadPermission(req.ReadPermission)
+		})
+		if err != nil {
+			s.logger.Error("更新草稿失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			return nil, err
+		}
+		s.logger.Info("草稿更新成功", zap.Int("draft_id", req.ID), tracing.WithTraceIDField(ctx))
+	} else {
+		// Create new draft | 创建新草稿
+		// Check draft count limit (max 10 drafts per user) | 检查草稿数量限制（每个用户最多10篇草稿）
+		draftCount, err := s.postRepo.CountByUserIDWithStatus(ctx, userID, post.StatusDraft)
+		if err != nil {
+			s.logger.Error("获取用户草稿数量失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			return nil, err
+		}
+		if draftCount >= 10 {
+			return nil, errors.New("草稿数量已达上限（最多10篇），请删除或发布部分草稿后再试")
+		}
+
+		resultPost, err = s.postRepo.Create(ctx, userID, req.CategoryID, req.Title, req.Content, req.ReadPermission, post.StatusDraft)
+		if err != nil {
+			s.logger.Error("保存草稿失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			return nil, err
+		}
+		s.logger.Info("草稿创建成功", zap.Int("draft_id", resultPost.ID), tracing.WithTraceIDField(ctx))
+	}
+
+	// Get category and user info | 获取版块和用户信息
 	categoryData, err := s.categoryRepo.GetByID(ctx, req.CategoryID)
 	if err != nil {
 		s.logger.Error("获取版块失败", zap.Error(err), tracing.WithTraceIDField(ctx))
@@ -143,33 +197,27 @@ func (s *PostService) SaveDraft(ctx context.Context, userID int, req schema.User
 		return nil, err
 	}
 
-	newPost, err := s.postRepo.Create(ctx, userID, req.CategoryID, req.Title, req.Content, req.ReadPermission, post.StatusDraft)
-	if err != nil {
-		s.logger.Error("保存草稿失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, err
-	}
-
 	// Build response data | 构建响应数据
 	result := &schema.UserPostCreateResponse{
-		ID:             newPost.ID,
-		CategoryID:     newPost.CategoryID,
+		ID:             resultPost.ID,
+		CategoryID:     resultPost.CategoryID,
 		CategoryName:   categoryData.Name,
-		Title:          newPost.Title,
-		Content:        newPost.Content,
+		Title:          resultPost.Title,
+		Content:        resultPost.Content,
 		Username:       userData.Username,
-		ReadPermission: newPost.ReadPermission,
-		ViewCount:      newPost.ViewCount,
-		LikeCount:      newPost.LikeCount,
-		DislikeCount:   newPost.DislikeCount,
-		FavoriteCount:  newPost.FavoriteCount,
-		IsEssence:      newPost.IsEssence,
-		IsPinned:       newPost.IsPinned,
-		Status:         string(newPost.Status),
-		CreatedAt:      newPost.CreatedAt.Format(time_tools.DateTimeFormat),
-		UpdatedAt:      newPost.UpdatedAt.Format(time_tools.DateTimeFormat),
+		ReadPermission: resultPost.ReadPermission,
+		ViewCount:      resultPost.ViewCount,
+		LikeCount:      resultPost.LikeCount,
+		DislikeCount:   resultPost.DislikeCount,
+		FavoriteCount:  resultPost.FavoriteCount,
+		IsEssence:      resultPost.IsEssence,
+		IsPinned:       resultPost.IsPinned,
+		Status:         string(resultPost.Status),
+		CreatedAt:      resultPost.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:      resultPost.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
-	s.logger.Info("草稿保存成功", zap.Int("post_id", newPost.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("草稿保存成功", zap.Int("post_id", resultPost.ID), tracing.WithTraceIDField(ctx))
 	return result, nil
 }
 
@@ -640,6 +688,119 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 
 	s.logger.Info("获取帖子详情成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
 	return result, nil
+}
+
+// GetDraftList Get draft list | 获取草稿列表
+func (s *PostService) GetDraftList(ctx context.Context, userID int, req schema.UserDraftListRequest) (*schema.UserPostListResponse, error) {
+	s.logger.Info("获取草稿列表", zap.Int("user_id", userID), zap.Int("page", req.Page), zap.Int("page_size", req.PageSize), tracing.WithTraceIDField(ctx))
+
+	// Set default values | 设置默认值
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 20
+	}
+
+	// Use repository to query user's draft posts | 使用 Repository 查询用户的草稿帖子
+	posts, total, err := s.postRepo.GetByUserID(ctx, userID, repository.ListPostOptions{
+		Status:   post.StatusDraft,
+		Page:     req.Page,
+		PageSize: req.PageSize,
+	})
+	if err != nil {
+		s.logger.Error("获取草稿列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, err
+	}
+
+	// Collect category IDs | 收集版块ID
+	categoryIDs := make(map[int]bool)
+	for _, p := range posts {
+		categoryIDs[p.CategoryID] = true
+	}
+
+	categoryIDList := make([]int, 0, len(categoryIDs))
+	for id := range categoryIDs {
+		categoryIDList = append(categoryIDList, id)
+	}
+	categories, err := s.categoryRepo.GetByIDsWithFields(ctx, categoryIDList, []string{category.FieldID, category.FieldName})
+	if err != nil {
+		s.logger.Warn("批量查询版块信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+	}
+	categoryMap := make(map[int]string)
+	for _, c := range categories {
+		categoryMap[c.ID] = c.Name
+	}
+
+	// Get user info | 获取用户信息
+	userData, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, err
+	}
+
+	// Convert to response format | 转换为响应格式
+	result := make([]schema.UserPostCreateResponse, len(posts))
+	for i, p := range posts {
+		categoryName := categoryMap[p.CategoryID]
+
+		result[i] = schema.UserPostCreateResponse{
+			ID:             p.ID,
+			CategoryID:     p.CategoryID,
+			CategoryName:   categoryName,
+			Title:          p.Title,
+			Content:        p.Content,
+			Username:       userData.Username,
+			ReadPermission: p.ReadPermission,
+			ViewCount:      p.ViewCount,
+			LikeCount:      p.LikeCount,
+			DislikeCount:   p.DislikeCount,
+			FavoriteCount:  p.FavoriteCount,
+			IsEssence:      p.IsEssence,
+			IsPinned:       p.IsPinned,
+			Status:         string(p.Status),
+			CreatedAt:      p.CreatedAt.Format(time_tools.DateTimeFormat),
+			UpdatedAt:      p.UpdatedAt.Format(time_tools.DateTimeFormat),
+		}
+	}
+
+	totalPages := (total + req.PageSize - 1) / req.PageSize
+
+	s.logger.Info("草稿列表获取成功", zap.Int("total", total), tracing.WithTraceIDField(ctx))
+	return &schema.UserPostListResponse{
+		Posts:      result,
+		Total:      total,
+		Page:       req.Page,
+		PageSize:   req.PageSize,
+		TotalPages: totalPages,
+	}, nil
+}
+
+// DeleteDraft Delete draft | 删除草稿
+func (s *PostService) DeleteDraft(ctx context.Context, userID int, req schema.UserDraftDeleteRequest) error {
+	s.logger.Info("删除草稿", zap.Int("user_id", userID), zap.Int("draft_id", req.ID), tracing.WithTraceIDField(ctx))
+
+	// Get draft post | 获取草稿帖子
+	draftPost, err := s.postRepo.GetByIDWithStatus(ctx, req.ID, post.StatusDraft)
+	if err != nil {
+		s.logger.Error("获取草稿失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return err
+	}
+
+	// Check ownership | 检查所有权
+	if draftPost.UserID != userID {
+		return errors.New("您不是该草稿的作者")
+	}
+
+	// Delete draft | 删除草稿
+	err = s.db.Post.DeleteOneID(req.ID).Exec(ctx)
+	if err != nil {
+		s.logger.Error("删除草稿失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return err
+	}
+
+	s.logger.Info("草稿删除成功", zap.Int("draft_id", req.ID), tracing.WithTraceIDField(ctx))
+	return nil
 }
 
 // CheckEditPermission Check edit permission (can be operated once every three minutes) | 检查编辑权限（每三分钟可操作一次）

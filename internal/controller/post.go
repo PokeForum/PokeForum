@@ -53,8 +53,12 @@ func (ctrl *PostController) getUserID(c *gin.Context) (int, error) {
 func (ctrl *PostController) PostRouter(router *gin.RouterGroup) {
 	// Publish new post | 发布新帖
 	router.POST("", saGin.CheckRole(user.RoleUser.String()), ctrl.CreatePost)
+	// Get draft list | 获取草稿列表
+	router.GET("/draft", saGin.CheckRole(user.RoleUser.String()), ctrl.GetDraftList)
 	// Save draft | 保存草稿
 	router.POST("/draft", saGin.CheckRole(user.RoleUser.String()), ctrl.SaveDraft)
+	// Delete draft | 删除草稿
+	router.DELETE("/draft", saGin.CheckRole(user.RoleUser.String()), ctrl.DeleteDraft)
 	// Edit post | 编辑帖子
 	router.PUT("", saGin.CheckRole(user.RoleUser.String()), ctrl.UpdatePost)
 	// Set post as private | 设置帖子私有
@@ -109,14 +113,15 @@ func (ctrl *PostController) CreatePost(c *gin.Context) {
 
 // SaveDraft Save draft | 保存草稿
 // @Summary Save draft | 保存草稿
-// @Description User saves post draft | 用户保存帖子草稿
+// @Description User saves post draft. If ID is provided, updates existing draft; otherwise creates new draft (max 10 drafts per user) | 用户保存帖子草稿。如果提供ID则更新现有草稿，否则创建新草稿（每个用户最多10篇草稿）
 // @Tags [User]Topic Posts | [用户]主题贴
 // @Accept json
 // @Produce json
-// @Param request body schema.UserPostCreateRequest true "Post information | 帖子信息"
+// @Param request body schema.UserPostCreateRequest true "Post information (id is optional for update) | 帖子信息（id为可选字段，用于更新）"
 // @Success 200 {object} response.Data{data=schema.UserPostCreateResponse} "Saved successfully | 保存成功"
 // @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
 // @Failure 401 {object} response.Data "Not logged in | 未登录"
+// @Failure 403 {object} response.Data "Draft limit reached or insufficient permissions | 草稿数量已达上限或权限不足"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /posts/draft [post]
 func (ctrl *PostController) SaveDraft(c *gin.Context) {
@@ -141,6 +146,80 @@ func (ctrl *PostController) SaveDraft(c *gin.Context) {
 	}
 
 	response.ResSuccess(c, result)
+}
+
+// GetDraftList Get draft list | 获取草稿列表
+// @Summary Get draft list | 获取草稿列表
+// @Description User gets their draft post list | 用户获取自己的草稿帖子列表
+// @Tags [User]Topic Posts | [用户]主题贴
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number, default 1 | 页码,默认1" default(1)
+// @Param page_size query int false "Items per page, default 20, max 100 | 每页数量,默认20,最大100" default(20)
+// @Success 200 {object} response.Data{data=schema.UserPostListResponse} "Retrieved successfully | 获取成功"
+// @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
+// @Failure 401 {object} response.Data "Not logged in | 未登录"
+// @Failure 500 {object} response.Data "Server error | 服务器错误"
+// @Router /posts/draft [get]
+func (ctrl *PostController) GetDraftList(c *gin.Context) {
+	var req schema.UserDraftListRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, err.Error())
+		return
+	}
+
+	// Get user ID | 获取用户ID
+	userID, err := ctrl.getUserID(c)
+	if err != nil {
+		response.ResError(c, response.CodeNeedLogin)
+		return
+	}
+
+	// Call service | 调用服务
+	result, err := ctrl.postService.GetDraftList(c.Request.Context(), userID, req)
+	if err != nil {
+		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
+		return
+	}
+
+	response.ResSuccess(c, result)
+}
+
+// DeleteDraft Delete draft | 删除草稿
+// @Summary Delete draft | 删除草稿
+// @Description User deletes their draft post | 用户删除自己的草稿帖子
+// @Tags [User]Topic Posts | [用户]主题贴
+// @Accept json
+// @Produce json
+// @Param request body schema.UserDraftDeleteRequest true "Draft ID | 草稿ID"
+// @Success 200 {object} response.Data "Deleted successfully | 删除成功"
+// @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
+// @Failure 401 {object} response.Data "Not logged in | 未登录"
+// @Failure 403 {object} response.Data "Insufficient permissions | 权限不足"
+// @Failure 500 {object} response.Data "Server error | 服务器错误"
+// @Router /posts/draft [delete]
+func (ctrl *PostController) DeleteDraft(c *gin.Context) {
+	var req schema.UserDraftDeleteRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, err.Error())
+		return
+	}
+
+	// Get user ID | 获取用户ID
+	userID, err := ctrl.getUserID(c)
+	if err != nil {
+		response.ResError(c, response.CodeNeedLogin)
+		return
+	}
+
+	// Call service | 调用服务
+	err = ctrl.postService.DeleteDraft(c.Request.Context(), userID, req)
+	if err != nil {
+		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
+		return
+	}
+
+	response.ResSuccess(c, nil)
 }
 
 // UpdatePost Edit post | 编辑帖子
