@@ -114,10 +114,12 @@ func (s *CommentManageService) GetCommentList(ctx context.Context, req schema.Co
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
 	}
-	users, _ := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername})
+	users, _ := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername, user.FieldAvatar})
 	userMap := make(map[int]string)
+	avatarMap := make(map[int]string)
 	for _, u := range users {
 		userMap[u.ID] = u.Username
+		avatarMap[u.ID] = u.Avatar
 	}
 
 	// Batch query post information | 批量查询帖子信息
@@ -137,9 +139,12 @@ func (s *CommentManageService) GetCommentList(ctx context.Context, req schema.Co
 		// Get associated information | 获取关联信息
 		postTitle := postMap[c.PostID]
 		username := userMap[c.UserID]
+		avatar := avatarMap[c.UserID]
 		var replyToUsername string
+		var replyToAvatar string
 		if c.ReplyToUserID != 0 {
 			replyToUsername = userMap[c.ReplyToUserID]
+			replyToAvatar = avatarMap[c.ReplyToUserID]
 		}
 
 		list[i] = schema.CommentListItem{
@@ -148,9 +153,11 @@ func (s *CommentManageService) GetCommentList(ctx context.Context, req schema.Co
 			PostTitle:       postTitle,
 			UserID:          c.UserID,
 			Username:        username,
+			Avatar:          avatar,
 			ParentID:        &c.ParentID,
 			ReplyToUserID:   &c.ReplyToUserID,
 			ReplyToUsername: replyToUsername,
+			ReplyToAvatar:   replyToAvatar,
 			Content:         c.Content,
 			LikeCount:       c.LikeCount,
 			DislikeCount:    c.DislikeCount,

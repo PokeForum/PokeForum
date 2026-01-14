@@ -46,23 +46,25 @@ type CommentPinUpdateRequest struct {
 
 // CommentListItem Comment list item response | 评论列表项响应体
 type CommentListItem struct {
-	ID              int    `json:"id" example:"1"`                           // Comment ID | 评论ID
-	PostID          int    `json:"post_id" example:"1"`                      // Post ID | 帖子ID
-	PostTitle       string `json:"post_title" example:"技术分享帖"`               // Post title | 帖子标题
-	UserID          int    `json:"user_id" example:"1"`                      // User ID | 用户ID
-	Username        string `json:"username" example:"testuser"`              // Username | 用户名
-	ParentID        *int   `json:"parent_id" example:"1"`                    // Parent comment ID | 父评论ID
-	ReplyToUserID   *int   `json:"reply_to_user_id" example:"2"`             // Reply target user ID | 回复目标用户ID
-	ReplyToUsername string `json:"reply_to_username" example:"targetuser"`   // Reply target username | 回复目标用户名
-	Content         string `json:"content" example:"很有见地的评论"`                // Comment content | 评论内容
-	LikeCount       int    `json:"like_count" example:"10"`                  // Like count | 点赞数
-	DislikeCount    int    `json:"dislike_count" example:"1"`                // Dislike count | 点踩数
-	IsSelected      bool   `json:"is_selected" example:"true"`               // Whether selected | 是否精选
-	IsPinned        bool   `json:"is_pinned" example:"false"`                // Whether pinned | 是否置顶
-	CommenterIP     string `json:"commenter_ip" example:"192.168.1.1"`       // Commenter IP | 评论者IP
-	DeviceInfo      string `json:"device_info" example:"Chrome/Windows"`     // Device info | 设备信息
-	CreatedAt       string `json:"created_at" example:"2024-01-01 00:00:00"` // Creation time | 创建时间
-	UpdatedAt       string `json:"updated_at" example:"2024-01-01 00:00:00"` // Update time | 更新时间
+	ID              int    `json:"id" example:"1"`                                            // Comment ID | 评论ID
+	PostID          int    `json:"post_id" example:"1"`                                       // Post ID | 帖子ID
+	PostTitle       string `json:"post_title" example:"技术分享帖"`                                // Post title | 帖子标题
+	UserID          int    `json:"user_id" example:"1"`                                       // User ID | 用户ID
+	Username        string `json:"username" example:"testuser"`                               // Username | 用户名
+	Avatar          string `json:"avatar" example:"https://example.com/avatar.jpg"`           // User avatar | 用户头像
+	ParentID        *int   `json:"parent_id" example:"1"`                                     // Parent comment ID | 父评论ID
+	ReplyToUserID   *int   `json:"reply_to_user_id" example:"2"`                              // Reply target user ID | 回复目标用户ID
+	ReplyToUsername string `json:"reply_to_username" example:"targetuser"`                    // Reply target username | 回复目标用户名
+	ReplyToAvatar   string `json:"reply_to_avatar" example:"https://example.com/avatar2.jpg"` // Reply target user avatar | 回复目标用户头像
+	Content         string `json:"content" example:"很有见地的评论"`                                 // Comment content | 评论内容
+	LikeCount       int    `json:"like_count" example:"10"`                                   // Like count | 点赞数
+	DislikeCount    int    `json:"dislike_count" example:"1"`                                 // Dislike count | 点踩数
+	IsSelected      bool   `json:"is_selected" example:"true"`                                // Whether selected | 是否精选
+	IsPinned        bool   `json:"is_pinned" example:"false"`                                 // Whether pinned | 是否置顶
+	CommenterIP     string `json:"commenter_ip" example:"192.168.1.1"`                        // Commenter IP | 评论者IP
+	DeviceInfo      string `json:"device_info" example:"Chrome/Windows"`                      // Device info | 设备信息
+	CreatedAt       string `json:"created_at" example:"2024-01-01 00:00:00"`                  // Creation time | 创建时间
+	UpdatedAt       string `json:"updated_at" example:"2024-01-01 00:00:00"`                  // Update time | 更新时间
 }
 
 // CommentListResponse Comment list response | 评论列表响应体
