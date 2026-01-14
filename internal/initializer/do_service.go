@@ -202,11 +202,4 @@ func InjectorSrv(injector *do.Injector) {
 	do.Provide(injector, func(i *do.Injector) (*sql.DB, error) {
 		return PgDB(), nil
 	})
-
-	// Register PerformanceService | 注册 PerformanceService
-	do.Provide(injector, func(i *do.Injector) (service.IPerformanceService, error) {
-		pgDB := do.MustInvoke[*sql.DB](i)
-		logger := do.MustInvoke[*zap.Logger](i)
-		return service.NewPerformanceService(pgDB, configs.Cache, logger), nil
-	})
 }

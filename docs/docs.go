@@ -5511,140 +5511,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/super/manage/performance/history": {
-            "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "Query historical monitoring data within specified time range | 查询指定时间范围内的历史监控数据",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[Super Admin]Performance Monitoring | [超级管理员]性能监控"
-                ],
-                "summary": "Get historical monitoring data | 获取历史监控数据",
-                "parameters": [
-                    {
-                        "enum": [
-                            "system",
-                            "pgsql",
-                            "redis"
-                        ],
-                        "type": "string",
-                        "default": "system",
-                        "description": "Monitoring module | 监控模块",
-                        "name": "module",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Start timestamp (default 1 hour ago) | 开始时间戳（默认1小时前）",
-                        "name": "start",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "End timestamp (default current time) | 结束时间戳（默认当前时间）",
-                        "name": "end",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "1m",
-                            "5m",
-                            "1h",
-                            "1d"
-                        ],
-                        "type": "string",
-                        "default": "1m",
-                        "description": "Data interval | 数据间隔",
-                        "name": "interval",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success | 获取成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.PerformanceHistoryResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request parameters | 请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error | 服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/super/manage/performance/stream": {
-            "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "Push performance monitoring data in real-time via SSE | 通过 SSE 实时推送性能监控数据",
-                "produces": [
-                    "text/event-stream"
-                ],
-                "tags": [
-                    "[Super Admin]Performance Monitoring | [超级管理员]性能监控"
-                ],
-                "summary": "Performance monitoring SSE stream | 性能监控 SSE 流",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "default": "system,pgsql,redis",
-                        "description": "Monitoring modules, comma separated | 监控模块，逗号分隔",
-                        "name": "modules",
-                        "in": "query"
-                    },
-                    {
-                        "maximum": 60,
-                        "minimum": 1,
-                        "type": "integer",
-                        "default": 3,
-                        "description": "Push interval in seconds | 推送间隔秒数",
-                        "name": "interval",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "SSE data stream | SSE 数据流",
-                        "schema": {
-                            "$ref": "#/definitions/schema.PerformanceWSResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/super/manage/settings/code": {
             "get": {
                 "security": [
@@ -6857,31 +6723,6 @@ const docTemplate = `{
                 "CodeSuccess"
             ]
         },
-        "schema.CPUMetrics": {
-            "type": "object",
-            "properties": {
-                "cores": {
-                    "description": "CPU cores | CPU 核心数",
-                    "type": "integer"
-                },
-                "idle_percent": {
-                    "description": "Idle CPU | 空闲 CPU",
-                    "type": "number"
-                },
-                "system_percent": {
-                    "description": "Kernel mode CPU | 内核态 CPU",
-                    "type": "number"
-                },
-                "usage_percent": {
-                    "description": "Total CPU usage | CPU 总使用率",
-                    "type": "number"
-                },
-                "user_percent": {
-                    "description": "User mode CPU | 用户态 CPU",
-                    "type": "number"
-                }
-            }
-        },
         "schema.CategoryAnnouncementRequest": {
             "type": "object",
             "required": [
@@ -7518,6 +7359,11 @@ const docTemplate = `{
         "schema.CommentListItem": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "description": "User avatar | 用户头像",
+                    "type": "string",
+                    "example": "https://example.com/avatar.jpg"
+                },
                 "commenter_ip": {
                     "description": "Commenter IP | 评论者IP",
                     "type": "string",
@@ -7577,6 +7423,11 @@ const docTemplate = `{
                     "description": "Post title | 帖子标题",
                     "type": "string",
                     "example": "技术分享帖"
+                },
+                "reply_to_avatar": {
+                    "description": "Reply target user avatar | 回复目标用户头像",
+                    "type": "string",
+                    "example": "https://example.com/avatar2.jpg"
                 },
                 "reply_to_user_id": {
                     "description": "Reply target user ID | 回复目标用户ID",
@@ -7803,55 +7654,8 @@ const docTemplate = `{
                 }
             }
         },
-        "schema.DiskMetrics": {
-            "type": "object",
-            "properties": {
-                "free": {
-                    "description": "Free space (bytes) | 可用空间 (bytes)",
-                    "type": "integer"
-                },
-                "read_bytes": {
-                    "description": "Read bytes | 读取字节数",
-                    "type": "integer"
-                },
-                "read_count": {
-                    "description": "Read count | 读取次数",
-                    "type": "integer"
-                },
-                "total": {
-                    "description": "Disk total (bytes) | 磁盘总量 (bytes)",
-                    "type": "integer"
-                },
-                "usage_percent": {
-                    "description": "Usage percentage | 使用率",
-                    "type": "number"
-                },
-                "used": {
-                    "description": "Used space (bytes) | 已用空间 (bytes)",
-                    "type": "integer"
-                },
-                "write_bytes": {
-                    "description": "Write bytes | 写入字节数",
-                    "type": "integer"
-                },
-                "write_count": {
-                    "description": "Write count | 写入次数",
-                    "type": "integer"
-                }
-            }
-        },
         "schema.EmailSMTPConfigRequest": {
             "type": "object",
-            "required": [
-                "address",
-                "connection_validity",
-                "host",
-                "is_enable",
-                "password",
-                "port",
-                "sender",
-                "username"
-            ],
             "properties": {
                 "address": {
                     "description": "Sender email address, used for SMTP authentication and email sending | 发件人邮箱地址，用于SMTP认证和邮件发送",
@@ -8171,23 +7975,6 @@ const docTemplate = `{
                 }
             }
         },
-        "schema.LoadMetrics": {
-            "type": "object",
-            "properties": {
-                "load1": {
-                    "description": "1 minute load | 1分钟负载",
-                    "type": "number"
-                },
-                "load15": {
-                    "description": "15 minute load | 15分钟负载",
-                    "type": "number"
-                },
-                "load5": {
-                    "description": "5 minute load | 5分钟负载",
-                    "type": "number"
-                }
-            }
-        },
         "schema.LoginRequest": {
             "type": "object",
             "required": [
@@ -8222,39 +8009,6 @@ const docTemplate = `{
                 "username": {
                     "description": "Username | 用户名",
                     "type": "string"
-                }
-            }
-        },
-        "schema.MemoryMetrics": {
-            "type": "object",
-            "properties": {
-                "available": {
-                    "description": "Available memory (bytes) | 可用内存 (bytes)",
-                    "type": "integer"
-                },
-                "swap_percent": {
-                    "description": "Swap usage percentage | 交换分区使用率",
-                    "type": "number"
-                },
-                "swap_total": {
-                    "description": "Swap total (bytes) | 交换分区总量 (bytes)",
-                    "type": "integer"
-                },
-                "swap_used": {
-                    "description": "Swap used (bytes) | 交换分区已用 (bytes)",
-                    "type": "integer"
-                },
-                "total": {
-                    "description": "Total memory (bytes) | 总内存 (bytes)",
-                    "type": "integer"
-                },
-                "usage_percent": {
-                    "description": "Memory usage percentage | 内存使用率",
-                    "type": "number"
-                },
-                "used": {
-                    "description": "Used memory (bytes) | 已用内存 (bytes)",
-                    "type": "integer"
                 }
             }
         },
@@ -8413,47 +8167,6 @@ const docTemplate = `{
                     "description": "View count | 浏览数",
                     "type": "integer",
                     "example": 1500
-                }
-            }
-        },
-        "schema.NetworkMetrics": {
-            "type": "object",
-            "properties": {
-                "bytes_recv": {
-                    "description": "Bytes received | 接收字节数",
-                    "type": "integer"
-                },
-                "bytes_sent": {
-                    "description": "Bytes sent | 发送字节数",
-                    "type": "integer"
-                },
-                "connections": {
-                    "description": "Connection count | 连接数",
-                    "type": "integer"
-                },
-                "drop_in": {
-                    "description": "Receive packet drops | 接收丢包数",
-                    "type": "integer"
-                },
-                "drop_out": {
-                    "description": "Send packet drops | 发送丢包数",
-                    "type": "integer"
-                },
-                "err_in": {
-                    "description": "Receive errors | 接收错误数",
-                    "type": "integer"
-                },
-                "err_out": {
-                    "description": "Send errors | 发送错误数",
-                    "type": "integer"
-                },
-                "packets_recv": {
-                    "description": "Packets received | 接收包数",
-                    "type": "integer"
-                },
-                "packets_sent": {
-                    "description": "Packets sent | 发送包数",
-                    "type": "integer"
                 }
             }
         },
@@ -8815,207 +8528,6 @@ const docTemplate = `{
                 }
             }
         },
-        "schema.PerformanceHistoryResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "description": "Historical data | 历史数据",
-                    "type": "array",
-                    "items": {}
-                },
-                "end_time": {
-                    "description": "End time | 结束时间",
-                    "type": "integer"
-                },
-                "interval": {
-                    "description": "Data interval | 数据间隔",
-                    "type": "string"
-                },
-                "module": {
-                    "description": "Module | 模块",
-                    "type": "string"
-                },
-                "start_time": {
-                    "description": "Start time | 开始时间",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.PerformanceWSResponse": {
-            "type": "object",
-            "properties": {
-                "pgsql": {
-                    "description": "PostgreSQL metrics | PostgreSQL 指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.PostgreSQLMetrics"
-                        }
-                    ]
-                },
-                "redis": {
-                    "description": "Redis metrics | Redis 指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.RedisMetrics"
-                        }
-                    ]
-                },
-                "system": {
-                    "description": "System metrics | 系统指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.SystemMetrics"
-                        }
-                    ]
-                },
-                "timestamp": {
-                    "description": "Timestamp | 时间戳",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.PgCache": {
-            "type": "object",
-            "properties": {
-                "blocks_hit": {
-                    "description": "Cache hit blocks | 缓存命中块数",
-                    "type": "integer"
-                },
-                "blocks_read": {
-                    "description": "Disk read blocks | 磁盘读取块数",
-                    "type": "integer"
-                },
-                "hit_ratio": {
-                    "description": "Cache hit ratio | 缓存命中率",
-                    "type": "number"
-                },
-                "temp_bytes": {
-                    "description": "Temporary file size | 临时文件大小",
-                    "type": "integer"
-                },
-                "temp_files": {
-                    "description": "Temporary files | 临时文件数",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.PgConnections": {
-            "type": "object",
-            "properties": {
-                "active": {
-                    "description": "Active connections | 活跃连接数",
-                    "type": "integer"
-                },
-                "idle": {
-                    "description": "Idle connections | 空闲连接数",
-                    "type": "integer"
-                },
-                "idle_in_tx": {
-                    "description": "Idle in transaction connections | 事务中空闲连接数",
-                    "type": "integer"
-                },
-                "max_conn": {
-                    "description": "Max connections | 最大连接数",
-                    "type": "integer"
-                },
-                "total": {
-                    "description": "Total connections | 总连接数",
-                    "type": "integer"
-                },
-                "usage_percent": {
-                    "description": "Connection usage percentage | 连接使用率",
-                    "type": "number"
-                },
-                "waiting": {
-                    "description": "Waiting connections | 等待连接数",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.PgDatabase": {
-            "type": "object",
-            "properties": {
-                "index_size": {
-                    "description": "Index size (bytes) | 索引大小 (bytes)",
-                    "type": "integer"
-                },
-                "size": {
-                    "description": "Database size (bytes) | 数据库大小 (bytes)",
-                    "type": "integer"
-                },
-                "table_count": {
-                    "description": "Table count | 表数量",
-                    "type": "integer"
-                },
-                "table_size": {
-                    "description": "Table size (bytes) | 表大小 (bytes)",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.PgLocks": {
-            "type": "object",
-            "properties": {
-                "access_share": {
-                    "description": "AccessShare locks | AccessShare 锁数",
-                    "type": "integer"
-                },
-                "deadlocks": {
-                    "description": "Deadlock count | 死锁数",
-                    "type": "integer"
-                },
-                "row_excl": {
-                    "description": "RowExclusive locks | RowExclusive 锁数",
-                    "type": "integer"
-                },
-                "row_share": {
-                    "description": "RowShare locks | RowShare 锁数",
-                    "type": "integer"
-                },
-                "total": {
-                    "description": "Total locks | 锁总数",
-                    "type": "integer"
-                },
-                "waiting": {
-                    "description": "Waiting locks | 等待锁数",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.PgReplication": {
-            "type": "object",
-            "properties": {
-                "is_replica": {
-                    "description": "Whether is replica | 是否为副本",
-                    "type": "boolean"
-                },
-                "lag_bytes": {
-                    "description": "Replication lag (bytes) | 复制延迟 (bytes)",
-                    "type": "integer"
-                },
-                "replica_count": {
-                    "description": "Replica count | 副本数量",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.PgTransaction": {
-            "type": "object",
-            "properties": {
-                "committed": {
-                    "description": "Committed transactions | 已提交事务数",
-                    "type": "integer"
-                },
-                "rolled_back": {
-                    "description": "Rolled back transactions | 已回滚事务数",
-                    "type": "integer"
-                },
-                "tps": {
-                    "description": "Transactions per second | 每秒事务数",
-                    "type": "number"
-                }
-            }
-        },
         "schema.PopularCategoriesResponse": {
             "type": "object",
             "properties": {
@@ -9363,6 +8875,11 @@ const docTemplate = `{
         "schema.PostListItem": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "description": "User avatar | 用户头像",
+                    "type": "string",
+                    "example": "https://example.com/avatar.jpg"
+                },
                 "category_id": {
                     "description": "Category ID | 版块ID",
                     "type": "integer",
@@ -9674,59 +9191,6 @@ const docTemplate = `{
                 }
             }
         },
-        "schema.PostgreSQLMetrics": {
-            "type": "object",
-            "properties": {
-                "cache": {
-                    "description": "Cache metrics | 缓存指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.PgCache"
-                        }
-                    ]
-                },
-                "connections": {
-                    "description": "Connection metrics | 连接指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.PgConnections"
-                        }
-                    ]
-                },
-                "database": {
-                    "description": "Database metrics | 数据库指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.PgDatabase"
-                        }
-                    ]
-                },
-                "locks": {
-                    "description": "Lock metrics | 锁指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.PgLocks"
-                        }
-                    ]
-                },
-                "replication": {
-                    "description": "Replication metrics | 复制指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.PgReplication"
-                        }
-                    ]
-                },
-                "transaction": {
-                    "description": "Transaction metrics | 事务指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.PgTransaction"
-                        }
-                    ]
-                }
-            }
-        },
         "schema.PublicConfigResponse": {
             "type": "object",
             "properties": {
@@ -9876,209 +9340,6 @@ const docTemplate = `{
                     "description": "Author username | 作者用户名",
                     "type": "string",
                     "example": "testuser"
-                }
-            }
-        },
-        "schema.RedisConnections": {
-            "type": "object",
-            "properties": {
-                "blocked": {
-                    "description": "Blocked clients | 阻塞客户端数",
-                    "type": "integer"
-                },
-                "connected": {
-                    "description": "Connected clients | 已连接客户端数",
-                    "type": "integer"
-                },
-                "max_clients": {
-                    "description": "Max clients | 最大客户端数",
-                    "type": "integer"
-                },
-                "rejected_conns": {
-                    "description": "Rejected connections | 拒绝连接数",
-                    "type": "integer"
-                },
-                "total_connections": {
-                    "description": "Total connections in history | 历史总连接数",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.RedisKeyspace": {
-            "type": "object",
-            "properties": {
-                "avg_ttl": {
-                    "description": "Average TTL (ms) | 平均 TTL (ms)",
-                    "type": "integer"
-                },
-                "expires_keys": {
-                    "description": "Keys with expiration set | 设置过期的键数",
-                    "type": "integer"
-                },
-                "total_keys": {
-                    "description": "Total keys | 键总数",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.RedisMemory": {
-            "type": "object",
-            "properties": {
-                "fragmentation_ratio": {
-                    "description": "Memory fragmentation ratio | 内存碎片率",
-                    "type": "number"
-                },
-                "max_memory": {
-                    "description": "Max memory (bytes) | 最大内存 (bytes)",
-                    "type": "integer"
-                },
-                "usage_percent": {
-                    "description": "Memory usage percentage | 内存使用率",
-                    "type": "number"
-                },
-                "used": {
-                    "description": "Used memory (bytes) | 已用内存 (bytes)",
-                    "type": "integer"
-                },
-                "used_peak": {
-                    "description": "Memory peak (bytes) | 内存峰值 (bytes)",
-                    "type": "integer"
-                },
-                "used_rss": {
-                    "description": "RSS memory (bytes) | RSS 内存 (bytes)",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.RedisMetrics": {
-            "type": "object",
-            "properties": {
-                "connections": {
-                    "description": "Connection metrics | 连接指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.RedisConnections"
-                        }
-                    ]
-                },
-                "keyspace": {
-                    "description": "Keyspace metrics | 键空间指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.RedisKeyspace"
-                        }
-                    ]
-                },
-                "memory": {
-                    "description": "Memory metrics | 内存指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.RedisMemory"
-                        }
-                    ]
-                },
-                "operations": {
-                    "description": "Operation metrics | 操作指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.RedisOperations"
-                        }
-                    ]
-                },
-                "persistence": {
-                    "description": "Persistence metrics | 持久化指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.RedisPersistence"
-                        }
-                    ]
-                },
-                "replication": {
-                    "description": "Replication metrics | 复制指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.RedisReplication"
-                        }
-                    ]
-                }
-            }
-        },
-        "schema.RedisOperations": {
-            "type": "object",
-            "properties": {
-                "evicted_keys": {
-                    "description": "Evicted keys | 驱逐键数",
-                    "type": "integer"
-                },
-                "expired_keys": {
-                    "description": "Expired keys | 过期键数",
-                    "type": "integer"
-                },
-                "hit_rate": {
-                    "description": "Hit rate | 命中率",
-                    "type": "number"
-                },
-                "hits": {
-                    "description": "Hit count | 命中次数",
-                    "type": "integer"
-                },
-                "misses": {
-                    "description": "Miss count | 未命中次数",
-                    "type": "integer"
-                },
-                "ops_per_sec": {
-                    "description": "Operations per second | 每秒操作数",
-                    "type": "integer"
-                },
-                "total_commands": {
-                    "description": "Total commands | 命令总数",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.RedisPersistence": {
-            "type": "object",
-            "properties": {
-                "aof_current_size": {
-                    "description": "AOF current size | AOF 当前大小",
-                    "type": "integer"
-                },
-                "aof_enabled": {
-                    "description": "Whether AOF is enabled | AOF 是否启用",
-                    "type": "boolean"
-                },
-                "aof_rewrite_in_prog": {
-                    "description": "Whether AOF rewrite is in progress | AOF 重写是否进行中",
-                    "type": "boolean"
-                },
-                "rdb_changes_since": {
-                    "description": "Changes since last save | 上次保存后的变更数",
-                    "type": "integer"
-                },
-                "rdb_last_save_time": {
-                    "description": "Last RDB save time | 上次 RDB 保存时间",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.RedisReplication": {
-            "type": "object",
-            "properties": {
-                "connected_slaves": {
-                    "description": "Connected slaves | 已连接从节点数",
-                    "type": "integer"
-                },
-                "master_last_io": {
-                    "description": "Last communication with master | 上次与主节点通信时间",
-                    "type": "integer"
-                },
-                "master_link_status": {
-                    "description": "Master link status | 主节点连接状态",
-                    "type": "string"
-                },
-                "role": {
-                    "description": "Role (master/slave) | 角色 (master/slave)",
-                    "type": "string"
                 }
             }
         },
@@ -10625,51 +9886,6 @@ const docTemplate = `{
                 },
                 "num_goroutine": {
                     "type": "integer"
-                }
-            }
-        },
-        "schema.SystemMetrics": {
-            "type": "object",
-            "properties": {
-                "cpu": {
-                    "description": "CPU metrics | CPU 指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.CPUMetrics"
-                        }
-                    ]
-                },
-                "disk": {
-                    "description": "Disk metrics | 磁盘指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.DiskMetrics"
-                        }
-                    ]
-                },
-                "load": {
-                    "description": "Load metrics | 负载指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.LoadMetrics"
-                        }
-                    ]
-                },
-                "memory": {
-                    "description": "Memory metrics | 内存指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.MemoryMetrics"
-                        }
-                    ]
-                },
-                "network": {
-                    "description": "Network metrics | 网络指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.NetworkMetrics"
-                        }
-                    ]
                 }
             }
         },

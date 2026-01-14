@@ -1,15 +1,6 @@
 package initializer
 
 import (
-	saGin "github.com/click33/sa-token-go/integrations/gin"
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
-	ginprometheus "github.com/zsais/go-gin-prometheus"
-	"go.uber.org/zap"
-
 	_ "github.com/PokeForum/PokeForum/docs"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/configs"
@@ -17,6 +8,13 @@ import (
 	"github.com/PokeForum/PokeForum/internal/middleware"
 	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 	"github.com/PokeForum/PokeForum/internal/service"
+	saGin "github.com/click33/sa-token-go/integrations/gin"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/samber/do"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	ginprometheus "github.com/zsais/go-gin-prometheus"
 )
 
 func Routers(injector *do.Injector) *gin.Engine {
@@ -48,10 +46,6 @@ func Routers(injector *do.Injector) *gin.Engine {
 	// Register services to the injector | 注册服务到注入器
 	InjectorSrv(injector)
 
-	// Resolve Services | 解析服务
-	// Infrastructure
-	logger := do.MustInvoke[*zap.Logger](injector)
-
 	// Services
 	healthService := do.MustInvoke[service.IHealthService](injector)
 	authService := do.MustInvoke[service.IAuthService](injector)
@@ -69,7 +63,6 @@ func Routers(injector *do.Injector) *gin.Engine {
 	categoryManageService := do.MustInvoke[service.ICategoryManageService](injector)
 	postManageService := do.MustInvoke[service.IPostManageService](injector)
 	commentManageService := do.MustInvoke[service.ICommentManageService](injector)
-	performanceService := do.MustInvoke[service.IPerformanceService](injector)
 	oauthProviderService := do.MustInvoke[service.IOAuthProviderService](injector)
 
 	// Health check route (not affected by rate limiting, outside of api group) | 健康检查路由（不受速率限制影响，在api分组之外）
@@ -213,13 +206,6 @@ func Routers(injector *do.Injector) *gin.Engine {
 	SuperManageGroup := AuthAPIGroup.Group("/super/manage")
 	SuperManageGroup.Use(saGin.CheckRole(user.RoleSuperAdmin.String()))
 	{
-		// Performance Monitoring | 性能监控
-		{
-			PerformanceGroup := SuperManageGroup.Group("/performance")
-			PerformanceCon := controller.NewPerformanceController(performanceService, logger)
-			PerformanceCon.PerformanceRouter(PerformanceGroup)
-		}
-
 		// Settings Management (Unified settings controller, includes all system settings) | 设置管理（统一的设置控制器，包含所有系统设置）
 		SettingsGroup := SuperManageGroup.Group("/settings")
 		SettingsCon := controller.NewSettingsController(settingsService)

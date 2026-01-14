@@ -14,24 +14,6 @@ definitions:
     type: integer
     x-enum-varnames:
     - CodeSuccess
-  schema.CPUMetrics:
-    properties:
-      cores:
-        description: CPU cores | CPU 核心数
-        type: integer
-      idle_percent:
-        description: Idle CPU | 空闲 CPU
-        type: number
-      system_percent:
-        description: Kernel mode CPU | 内核态 CPU
-        type: number
-      usage_percent:
-        description: Total CPU usage | CPU 总使用率
-        type: number
-      user_percent:
-        description: User mode CPU | 用户态 CPU
-        type: number
-    type: object
   schema.CategoryAnnouncementRequest:
     properties:
       category_id:
@@ -525,6 +507,10 @@ definitions:
     type: object
   schema.CommentListItem:
     properties:
+      avatar:
+        description: User avatar | 用户头像
+        example: https://example.com/avatar.jpg
+        type: string
       commenter_ip:
         description: Commenter IP | 评论者IP
         example: 192.168.1.1
@@ -572,6 +558,10 @@ definitions:
       post_title:
         description: Post title | 帖子标题
         example: 技术分享帖
+        type: string
+      reply_to_avatar:
+        description: Reply target user avatar | 回复目标用户头像
+        example: https://example.com/avatar2.jpg
         type: string
       reply_to_user_id:
         description: Reply target user ID | 回复目标用户ID
@@ -730,33 +720,6 @@ definitions:
         - $ref: '#/definitions/schema.UserStats'
         description: User statistics | 用户统计
     type: object
-  schema.DiskMetrics:
-    properties:
-      free:
-        description: Free space (bytes) | 可用空间 (bytes)
-        type: integer
-      read_bytes:
-        description: Read bytes | 读取字节数
-        type: integer
-      read_count:
-        description: Read count | 读取次数
-        type: integer
-      total:
-        description: Disk total (bytes) | 磁盘总量 (bytes)
-        type: integer
-      usage_percent:
-        description: Usage percentage | 使用率
-        type: number
-      used:
-        description: Used space (bytes) | 已用空间 (bytes)
-        type: integer
-      write_bytes:
-        description: Write bytes | 写入字节数
-        type: integer
-      write_count:
-        description: Write count | 写入次数
-        type: integer
-    type: object
   schema.EmailSMTPConfigRequest:
     properties:
       address:
@@ -812,15 +775,6 @@ definitions:
         maxLength: 255
         minLength: 1
         type: string
-    required:
-    - address
-    - connection_validity
-    - host
-    - is_enable
-    - password
-    - port
-    - sender
-    - username
     type: object
   schema.EmailSMTPConfigResponse:
     properties:
@@ -1014,18 +968,6 @@ definitions:
     - name
     - url
     type: object
-  schema.LoadMetrics:
-    properties:
-      load1:
-        description: 1 minute load | 1分钟负载
-        type: number
-      load5:
-        description: 5 minute load | 5分钟负载
-        type: number
-      load15:
-        description: 15 minute load | 15分钟负载
-        type: number
-    type: object
   schema.LoginRequest:
     properties:
       email:
@@ -1052,30 +994,6 @@ definitions:
       username:
         description: Username | 用户名
         type: string
-    type: object
-  schema.MemoryMetrics:
-    properties:
-      available:
-        description: Available memory (bytes) | 可用内存 (bytes)
-        type: integer
-      swap_percent:
-        description: Swap usage percentage | 交换分区使用率
-        type: number
-      swap_total:
-        description: Swap total (bytes) | 交换分区总量 (bytes)
-        type: integer
-      swap_used:
-        description: Swap used (bytes) | 交换分区已用 (bytes)
-        type: integer
-      total:
-        description: Total memory (bytes) | 总内存 (bytes)
-        type: integer
-      usage_percent:
-        description: Memory usage percentage | 内存使用率
-        type: number
-      used:
-        description: Used memory (bytes) | 已用内存 (bytes)
-        type: integer
     type: object
   schema.ModeratorCategoriesResponse:
     properties:
@@ -1196,36 +1114,6 @@ definitions:
       view_count:
         description: View count | 浏览数
         example: 1500
-        type: integer
-    type: object
-  schema.NetworkMetrics:
-    properties:
-      bytes_recv:
-        description: Bytes received | 接收字节数
-        type: integer
-      bytes_sent:
-        description: Bytes sent | 发送字节数
-        type: integer
-      connections:
-        description: Connection count | 连接数
-        type: integer
-      drop_in:
-        description: Receive packet drops | 接收丢包数
-        type: integer
-      drop_out:
-        description: Send packet drops | 发送丢包数
-        type: integer
-      err_in:
-        description: Receive errors | 接收错误数
-        type: integer
-      err_out:
-        description: Send errors | 发送错误数
-        type: integer
-      packets_recv:
-        description: Packets received | 接收包数
-        type: integer
-      packets_sent:
-        description: Packets sent | 发送包数
         type: integer
     type: object
   schema.NewUser:
@@ -1503,145 +1391,6 @@ definitions:
     required:
     - id
     type: object
-  schema.PerformanceHistoryResponse:
-    properties:
-      data:
-        description: Historical data | 历史数据
-        items: {}
-        type: array
-      end_time:
-        description: End time | 结束时间
-        type: integer
-      interval:
-        description: Data interval | 数据间隔
-        type: string
-      module:
-        description: Module | 模块
-        type: string
-      start_time:
-        description: Start time | 开始时间
-        type: integer
-    type: object
-  schema.PerformanceWSResponse:
-    properties:
-      pgsql:
-        allOf:
-        - $ref: '#/definitions/schema.PostgreSQLMetrics'
-        description: PostgreSQL metrics | PostgreSQL 指标
-      redis:
-        allOf:
-        - $ref: '#/definitions/schema.RedisMetrics'
-        description: Redis metrics | Redis 指标
-      system:
-        allOf:
-        - $ref: '#/definitions/schema.SystemMetrics'
-        description: System metrics | 系统指标
-      timestamp:
-        description: Timestamp | 时间戳
-        type: integer
-    type: object
-  schema.PgCache:
-    properties:
-      blocks_hit:
-        description: Cache hit blocks | 缓存命中块数
-        type: integer
-      blocks_read:
-        description: Disk read blocks | 磁盘读取块数
-        type: integer
-      hit_ratio:
-        description: Cache hit ratio | 缓存命中率
-        type: number
-      temp_bytes:
-        description: Temporary file size | 临时文件大小
-        type: integer
-      temp_files:
-        description: Temporary files | 临时文件数
-        type: integer
-    type: object
-  schema.PgConnections:
-    properties:
-      active:
-        description: Active connections | 活跃连接数
-        type: integer
-      idle:
-        description: Idle connections | 空闲连接数
-        type: integer
-      idle_in_tx:
-        description: Idle in transaction connections | 事务中空闲连接数
-        type: integer
-      max_conn:
-        description: Max connections | 最大连接数
-        type: integer
-      total:
-        description: Total connections | 总连接数
-        type: integer
-      usage_percent:
-        description: Connection usage percentage | 连接使用率
-        type: number
-      waiting:
-        description: Waiting connections | 等待连接数
-        type: integer
-    type: object
-  schema.PgDatabase:
-    properties:
-      index_size:
-        description: Index size (bytes) | 索引大小 (bytes)
-        type: integer
-      size:
-        description: Database size (bytes) | 数据库大小 (bytes)
-        type: integer
-      table_count:
-        description: Table count | 表数量
-        type: integer
-      table_size:
-        description: Table size (bytes) | 表大小 (bytes)
-        type: integer
-    type: object
-  schema.PgLocks:
-    properties:
-      access_share:
-        description: AccessShare locks | AccessShare 锁数
-        type: integer
-      deadlocks:
-        description: Deadlock count | 死锁数
-        type: integer
-      row_excl:
-        description: RowExclusive locks | RowExclusive 锁数
-        type: integer
-      row_share:
-        description: RowShare locks | RowShare 锁数
-        type: integer
-      total:
-        description: Total locks | 锁总数
-        type: integer
-      waiting:
-        description: Waiting locks | 等待锁数
-        type: integer
-    type: object
-  schema.PgReplication:
-    properties:
-      is_replica:
-        description: Whether is replica | 是否为副本
-        type: boolean
-      lag_bytes:
-        description: Replication lag (bytes) | 复制延迟 (bytes)
-        type: integer
-      replica_count:
-        description: Replica count | 副本数量
-        type: integer
-    type: object
-  schema.PgTransaction:
-    properties:
-      committed:
-        description: Committed transactions | 已提交事务数
-        type: integer
-      rolled_back:
-        description: Rolled back transactions | 已回滚事务数
-        type: integer
-      tps:
-        description: Transactions per second | 每秒事务数
-        type: number
-    type: object
   schema.PopularCategoriesResponse:
     properties:
       categories:
@@ -1913,6 +1662,10 @@ definitions:
     type: object
   schema.PostListItem:
     properties:
+      avatar:
+        description: User avatar | 用户头像
+        example: https://example.com/avatar.jpg
+        type: string
       category_id:
         description: Category ID | 版块ID
         example: 1
@@ -2154,33 +1907,6 @@ definitions:
     required:
     - id
     type: object
-  schema.PostgreSQLMetrics:
-    properties:
-      cache:
-        allOf:
-        - $ref: '#/definitions/schema.PgCache'
-        description: Cache metrics | 缓存指标
-      connections:
-        allOf:
-        - $ref: '#/definitions/schema.PgConnections'
-        description: Connection metrics | 连接指标
-      database:
-        allOf:
-        - $ref: '#/definitions/schema.PgDatabase'
-        description: Database metrics | 数据库指标
-      locks:
-        allOf:
-        - $ref: '#/definitions/schema.PgLocks'
-        description: Lock metrics | 锁指标
-      replication:
-        allOf:
-        - $ref: '#/definitions/schema.PgReplication'
-        description: Replication metrics | 复制指标
-      transaction:
-        allOf:
-        - $ref: '#/definitions/schema.PgTransaction'
-        description: Transaction metrics | 事务指标
-    type: object
   schema.PublicConfigResponse:
     properties:
       code:
@@ -2290,141 +2016,6 @@ definitions:
       username:
         description: Author username | 作者用户名
         example: testuser
-        type: string
-    type: object
-  schema.RedisConnections:
-    properties:
-      blocked:
-        description: Blocked clients | 阻塞客户端数
-        type: integer
-      connected:
-        description: Connected clients | 已连接客户端数
-        type: integer
-      max_clients:
-        description: Max clients | 最大客户端数
-        type: integer
-      rejected_conns:
-        description: Rejected connections | 拒绝连接数
-        type: integer
-      total_connections:
-        description: Total connections in history | 历史总连接数
-        type: integer
-    type: object
-  schema.RedisKeyspace:
-    properties:
-      avg_ttl:
-        description: Average TTL (ms) | 平均 TTL (ms)
-        type: integer
-      expires_keys:
-        description: Keys with expiration set | 设置过期的键数
-        type: integer
-      total_keys:
-        description: Total keys | 键总数
-        type: integer
-    type: object
-  schema.RedisMemory:
-    properties:
-      fragmentation_ratio:
-        description: Memory fragmentation ratio | 内存碎片率
-        type: number
-      max_memory:
-        description: Max memory (bytes) | 最大内存 (bytes)
-        type: integer
-      usage_percent:
-        description: Memory usage percentage | 内存使用率
-        type: number
-      used:
-        description: Used memory (bytes) | 已用内存 (bytes)
-        type: integer
-      used_peak:
-        description: Memory peak (bytes) | 内存峰值 (bytes)
-        type: integer
-      used_rss:
-        description: RSS memory (bytes) | RSS 内存 (bytes)
-        type: integer
-    type: object
-  schema.RedisMetrics:
-    properties:
-      connections:
-        allOf:
-        - $ref: '#/definitions/schema.RedisConnections'
-        description: Connection metrics | 连接指标
-      keyspace:
-        allOf:
-        - $ref: '#/definitions/schema.RedisKeyspace'
-        description: Keyspace metrics | 键空间指标
-      memory:
-        allOf:
-        - $ref: '#/definitions/schema.RedisMemory'
-        description: Memory metrics | 内存指标
-      operations:
-        allOf:
-        - $ref: '#/definitions/schema.RedisOperations'
-        description: Operation metrics | 操作指标
-      persistence:
-        allOf:
-        - $ref: '#/definitions/schema.RedisPersistence'
-        description: Persistence metrics | 持久化指标
-      replication:
-        allOf:
-        - $ref: '#/definitions/schema.RedisReplication'
-        description: Replication metrics | 复制指标
-    type: object
-  schema.RedisOperations:
-    properties:
-      evicted_keys:
-        description: Evicted keys | 驱逐键数
-        type: integer
-      expired_keys:
-        description: Expired keys | 过期键数
-        type: integer
-      hit_rate:
-        description: Hit rate | 命中率
-        type: number
-      hits:
-        description: Hit count | 命中次数
-        type: integer
-      misses:
-        description: Miss count | 未命中次数
-        type: integer
-      ops_per_sec:
-        description: Operations per second | 每秒操作数
-        type: integer
-      total_commands:
-        description: Total commands | 命令总数
-        type: integer
-    type: object
-  schema.RedisPersistence:
-    properties:
-      aof_current_size:
-        description: AOF current size | AOF 当前大小
-        type: integer
-      aof_enabled:
-        description: Whether AOF is enabled | AOF 是否启用
-        type: boolean
-      aof_rewrite_in_prog:
-        description: Whether AOF rewrite is in progress | AOF 重写是否进行中
-        type: boolean
-      rdb_changes_since:
-        description: Changes since last save | 上次保存后的变更数
-        type: integer
-      rdb_last_save_time:
-        description: Last RDB save time | 上次 RDB 保存时间
-        type: integer
-    type: object
-  schema.RedisReplication:
-    properties:
-      connected_slaves:
-        description: Connected slaves | 已连接从节点数
-        type: integer
-      master_last_io:
-        description: Last communication with master | 上次与主节点通信时间
-        type: integer
-      master_link_status:
-        description: Master link status | 主节点连接状态
-        type: string
-      role:
-        description: Role (master/slave) | 角色 (master/slave)
         type: string
     type: object
   schema.RegisterRequest:
@@ -2847,29 +2438,6 @@ definitions:
         type: integer
       num_goroutine:
         type: integer
-    type: object
-  schema.SystemMetrics:
-    properties:
-      cpu:
-        allOf:
-        - $ref: '#/definitions/schema.CPUMetrics'
-        description: CPU metrics | CPU 指标
-      disk:
-        allOf:
-        - $ref: '#/definitions/schema.DiskMetrics'
-        description: Disk metrics | 磁盘指标
-      load:
-        allOf:
-        - $ref: '#/definitions/schema.LoadMetrics'
-        description: Load metrics | 负载指标
-      memory:
-        allOf:
-        - $ref: '#/definitions/schema.MemoryMetrics'
-        description: Memory metrics | 内存指标
-      network:
-        allOf:
-        - $ref: '#/definitions/schema.NetworkMetrics'
-        description: Network metrics | 网络指标
     type: object
   schema.SystemStats:
     properties:
@@ -7806,94 +7374,6 @@ paths:
       summary: Get sign-in status | 获取签到状态
       tags:
       - '[User]Sign-in | [用户]签到'
-  /super/manage/performance/history:
-    get:
-      consumes:
-      - application/json
-      description: Query historical monitoring data within specified time range |
-        查询指定时间范围内的历史监控数据
-      parameters:
-      - default: system
-        description: Monitoring module | 监控模块
-        enum:
-        - system
-        - pgsql
-        - redis
-        in: query
-        name: module
-        type: string
-      - description: Start timestamp (default 1 hour ago) | 开始时间戳（默认1小时前）
-        in: query
-        name: start
-        type: integer
-      - description: End timestamp (default current time) | 结束时间戳（默认当前时间）
-        in: query
-        name: end
-        type: integer
-      - default: 1m
-        description: Data interval | 数据间隔
-        enum:
-        - 1m
-        - 5m
-        - 1h
-        - 1d
-        in: query
-        name: interval
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Success | 获取成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.PerformanceHistoryResponse'
-              type: object
-        "400":
-          description: Invalid request parameters | 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: Server error | 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
-      summary: Get historical monitoring data | 获取历史监控数据
-      tags:
-      - '[Super Admin]Performance Monitoring | [超级管理员]性能监控'
-  /super/manage/performance/stream:
-    get:
-      description: Push performance monitoring data in real-time via SSE | 通过 SSE
-        实时推送性能监控数据
-      parameters:
-      - default: system,pgsql,redis
-        description: Monitoring modules, comma separated | 监控模块，逗号分隔
-        in: query
-        name: modules
-        type: string
-      - default: 3
-        description: Push interval in seconds | 推送间隔秒数
-        in: query
-        maximum: 60
-        minimum: 1
-        name: interval
-        type: integer
-      produces:
-      - text/event-stream
-      responses:
-        "200":
-          description: SSE data stream | SSE 数据流
-          schema:
-            $ref: '#/definitions/schema.PerformanceWSResponse'
-      security:
-      - Bearer: []
-      summary: Performance monitoring SSE stream | 性能监控 SSE 流
-      tags:
-      - '[Super Admin]Performance Monitoring | [超级管理员]性能监控'
   /super/manage/settings/code:
     get:
       consumes:
