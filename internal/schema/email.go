@@ -4,23 +4,23 @@ package schema
 // Used to receive email SMTP service configuration information submitted from frontend | 用于接收前端提交的邮箱SMTP服务配置信息
 type EmailSMTPConfigRequest struct {
 	// Whether to enable email service, true means enabled, false means disabled | 是否启用邮箱服务，true表示启用，false表示禁用
-	IsEnable bool `json:"is_enable" binding:"required" example:"true"`
+	IsEnable bool `json:"is_enable" example:"true"`
 	// Sender name, displayed in the email sender field | 发件人名称，显示在邮件发件人处
-	Sender string `json:"sender" binding:"required,min=1,max=100" example:"PokeForum"`
+	Sender string `json:"sender" binding:"min=1,max=100" example:"PokeForum"`
 	// Sender email address, used for SMTP authentication and email sending | 发件人邮箱地址，用于SMTP认证和邮件发送
-	Address string `json:"address" binding:"required,email" example:"noreply@example.com"`
+	Address string `json:"address" binding:"email" example:"noreply@example.com"`
 	// SMTP server hostname or IP address | SMTP服务器主机名或IP地址
-	Host string `json:"host" binding:"required,min=1,max=255" example:"smtp.example.com"`
+	Host string `json:"host" binding:"min=1,max=255" example:"smtp.example.com"`
 	// SMTP server port number, common ports are 25, 587, 465, etc. | SMTP服务器端口号，常见端口为25、587、465等
-	Port int `json:"port" binding:"required,min=1,max=65535" example:"587"`
+	Port int `json:"port" binding:"min=1,max=65535" example:"587"`
 	// SMTP username, usually email address or account name | SMTP用户名，通常为邮箱地址或账户名
-	Username string `json:"username" binding:"required,min=1,max=255" example:"user@example.com"`
+	Username string `json:"username" binding:"min=1,max=255" example:"user@example.com"`
 	// SMTP password or authorization code, used for SMTP authentication | SMTP密码或授权码，用于SMTP认证
-	Password string `json:"password" binding:"required,min=1" example:"password123"`
+	Password string `json:"password" binding:"min=1" example:"password123"`
 	// Whether to force SSL encrypted connection, true means using SSL, false means not using | 是否强制使用SSL加密连接，true表示使用SSL，false表示不使用
 	ForcedSSL bool `json:"forced_ssl" example:"false"`
 	// SMTP connection validity period (in seconds), automatically disconnect when no email is sent for a long time | SMTP连接有效期（单位：秒），长时间无邮件发送时自动断开连接
-	ConnectionValidity int `json:"connection_validity" binding:"required,min=10,max=3600" example:"300"`
+	ConnectionValidity int `json:"connection_validity" binding:"min=10,max=3600" example:"300"`
 }
 
 // EmailSMTPConfigResponse SMTP configuration response | SMTP配置响应体
