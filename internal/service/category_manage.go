@@ -172,24 +172,13 @@ func (s *CategoryManageService) UpdateCategory(ctx context.Context, req schema.C
 
 	// Update category | 更新版块
 	updatedCategory, err := s.categoryRepo.Update(ctx, req.ID, func(u *ent.CategoryUpdateOne) *ent.CategoryUpdateOne {
-		if req.Name != "" {
-			u = u.SetName(req.Name)
-		}
-		if req.Slug != "" {
-			u = u.SetSlug(req.Slug)
-		}
-		if req.Description != "" {
-			u = u.SetDescription(req.Description)
-		}
-		if req.Icon != "" {
-			u = u.SetIcon(req.Icon)
-		}
-		if req.Weight != 0 {
-			u = u.SetWeight(req.Weight)
-		}
-		if req.Status != "" {
-			u = u.SetStatus(category.Status(req.Status))
-		}
+		u = u.
+			SetName(req.Name).
+			SetSlug(req.Slug).
+			SetDescription(req.Description).
+			SetIcon(req.Icon).
+			SetWeight(req.Weight).
+			SetStatus(category.Status(req.Status))
 		return u
 	})
 	if err != nil {
