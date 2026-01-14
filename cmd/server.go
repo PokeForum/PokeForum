@@ -154,7 +154,7 @@ func RunServer() {
 		}
 	}()
 
-	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds | 等待终端信号来优雅关闭服务器，为关闭服务器设置10秒超时
+	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 5 seconds | 等待终端信号来优雅关闭服务器，为关闭服务器设置5秒超时
 	quit := make(chan os.Signal, 1) // Create a channel that receives signals | 创建一个接受信号的通道
 
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM) // This will not block here | 此处不会阻塞
@@ -164,14 +164,14 @@ func RunServer() {
 	// Stop asynq task server | 停止asynq任务服务器
 	taskManager.Stop()
 
-	// Create context with 10 second timeout | 创建10秒超时的Context
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// Create context with 5 second timeout | 创建5秒超时的Context
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	// Shutdown injector and release all services | 关闭注入器，释放所有服务
 	if err := injector.Shutdown(); err != nil {
 		configs.Log.Fatal(err.Error())
 	}
-	// Gracefully shutdown server within 10 seconds (finish processing unfinished requests before shutdown), timeout after 10 seconds | 10秒内优雅关闭服务（将未处理完成的请求处理完再关闭服务），超过10秒就超时退出
+	// Gracefully shutdown server within 5 seconds (finish processing unfinished requests before shutdown), timeout after 5 seconds | 5秒内优雅关闭服务（将未处理完成的请求处理完再关闭服务），超过5秒就超时退出
 	if err := srv.Shutdown(ctx); err != nil {
 		configs.Log.Fatal("Service timed out has been shut down: ", zap.Error(err))
 	}
