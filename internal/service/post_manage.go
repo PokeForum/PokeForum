@@ -136,13 +136,15 @@ func (s *PostManageService) GetPostList(ctx context.Context, req schema.PostList
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
 	}
-	users, err := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername})
+	users, err := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername, user.FieldAvatar})
 	if err != nil {
 		s.logger.Warn("批量查询用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 	}
 	userMap := make(map[int]string)
+	avatarMap := make(map[int]string)
 	for _, u := range users {
 		userMap[u.ID] = u.Username
+		avatarMap[u.ID] = u.Avatar
 	}
 
 	// Batch query category information | 批量查询版块信息
@@ -170,12 +172,14 @@ func (s *PostManageService) GetPostList(ctx context.Context, req schema.PostList
 
 		// Get related information | 获取关联信息
 		username := userMap[p.UserID]
+		avatar := avatarMap[p.UserID]
 		categoryName := categoryMap[p.CategoryID]
 
 		list[i] = schema.PostListItem{
 			ID:            p.ID,
 			UserID:        p.UserID,
 			Username:      username,
+			Avatar:        avatar,
 			CategoryID:    p.CategoryID,
 			CategoryName:  categoryName,
 			Title:         p.Title,

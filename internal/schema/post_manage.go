@@ -62,23 +62,24 @@ type PostMoveRequest struct {
 
 // PostListItem Post list item response | 帖子列表项响应体
 type PostListItem struct {
-	ID            int    `json:"id" example:"1"`                           // Post ID | 帖子ID
-	UserID        int    `json:"user_id" example:"1"`                      // User ID | 用户ID
-	Username      string `json:"username" example:"testuser"`              // Username | 用户名
-	CategoryID    int    `json:"category_id" example:"1"`                  // Category ID | 版块ID
-	CategoryName  string `json:"category_name" example:"技术讨论"`             // Category name | 版块名称
-	Title         string `json:"title" example:"技术分享帖"`                    // Post title | 帖子标题
-	Content       string `json:"content" example:"## 技术分享\n这是内容"`          // Post content (first 100 characters) | 帖子内容（截取前100字符）
-	ViewCount     int    `json:"view_count" example:"150"`                 // View count | 浏览数
-	LikeCount     int    `json:"like_count" example:"25"`                  // Like count | 点赞数
-	DislikeCount  int    `json:"dislike_count" example:"2"`                // Dislike count | 点踩数
-	FavoriteCount int    `json:"favorite_count" example:"10"`              // Favorite count | 收藏数
-	IsEssence     bool   `json:"is_essence" example:"true"`                // Whether essence post | 是否精华帖
-	IsPinned      bool   `json:"is_pinned" example:"false"`                // Whether pinned | 是否置顶
-	Status        string `json:"status" example:"Normal"`                  // Post status | 帖子状态
-	PublishIP     string `json:"publish_ip" example:"192.168.1.1"`         // Publish IP | 发布IP
-	CreatedAt     string `json:"created_at" example:"2024-01-01 00:00:00"` // Creation time | 创建时间
-	UpdatedAt     string `json:"updated_at" example:"2024-01-01 00:00:00"` // Update time | 更新时间
+	ID            int    `json:"id" example:"1"`                                  // Post ID | 帖子ID
+	UserID        int    `json:"user_id" example:"1"`                             // User ID | 用户ID
+	Username      string `json:"username" example:"testuser"`                     // Username | 用户名
+	Avatar        string `json:"avatar" example:"https://example.com/avatar.jpg"` // User avatar | 用户头像
+	CategoryID    int    `json:"category_id" example:"1"`                         // Category ID | 版块ID
+	CategoryName  string `json:"category_name" example:"技术讨论"`                    // Category name | 版块名称
+	Title         string `json:"title" example:"技术分享帖"`                           // Post title | 帖子标题
+	Content       string `json:"content" example:"## 技术分享\n这是内容"`                 // Post content (first 100 characters) | 帖子内容（截取前100字符）
+	ViewCount     int    `json:"view_count" example:"150"`                        // View count | 浏览数
+	LikeCount     int    `json:"like_count" example:"25"`                         // Like count | 点赞数
+	DislikeCount  int    `json:"dislike_count" example:"2"`                       // Dislike count | 点踩数
+	FavoriteCount int    `json:"favorite_count" example:"10"`                     // Favorite count | 收藏数
+	IsEssence     bool   `json:"is_essence" example:"true"`                       // Whether essence post | 是否精华帖
+	IsPinned      bool   `json:"is_pinned" example:"false"`                       // Whether pinned | 是否置顶
+	Status        string `json:"status" example:"Normal"`                         // Post status | 帖子状态
+	PublishIP     string `json:"publish_ip" example:"192.168.1.1"`                // Publish IP | 发布IP
+	CreatedAt     string `json:"created_at" example:"2024-01-01 00:00:00"`        // Creation time | 创建时间
+	UpdatedAt     string `json:"updated_at" example:"2024-01-01 00:00:00"`        // Update time | 更新时间
 }
 
 // PostListResponse Post list response | 帖子列表响应体
