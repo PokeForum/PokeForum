@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -404,11 +405,6 @@ func (s *SettingsService) SendTestEmail(ctx context.Context, toEmail string) err
 		return fmt.Errorf("获取SMTP配置失败: %w", err)
 	}
 
-	// Check if email service is enabled | 检查邮箱服务是否启用
-	if !config.IsEnable {
-		return errors.New("邮箱服务未启用")
-	}
-
 	// Check if necessary configuration is complete | 检查必要的配置是否完整
 	if config.Host == "" || config.Port == 0 || config.Username == "" {
 		return errors.New("SMTP配置不完整")
@@ -421,8 +417,12 @@ func (s *SettingsService) SendTestEmail(ctx context.Context, toEmail string) err
 			<h2>邮箱服务测试</h2>
 			<p>这是来自 PokeForum 的测试邮件。</p>
 			<p>如果您收到此邮件，说明邮箱服务配置成功。</p>
+			<p>发送时间: <strong>` + time.Now().Format("2006-01-02 15:04:05") + `</strong></p>
 			<hr>
-			<p>发送时间: <strong>` + fmt.Sprintf("%v", ctx.Value("timestamp")) + `</strong></p>
+			<h2>Email Service Test</h2>
+			<p>This is a test email from PokeForum.</p>
+			<p>If you received this email, it means the email service configuration is successful.</p>
+			<p>Send Time: <strong>` + time.Now().Format("2006-01-02 15:04:05") + `</strong></p>
 		</body>
 	</html>
 	`
