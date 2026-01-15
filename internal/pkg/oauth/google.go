@@ -41,7 +41,7 @@ func (g *GoogleProvider) GetAuthURL(state string, redirectURL string) string {
 }
 
 // ExchangeToken 使用授权码换取访问令牌
-func (g *GoogleProvider) ExchangeToken(ctx context.Context, code string) (*TokenResponse, error) {
+func (g *GoogleProvider) ExchangeToken(ctx context.Context, code string, _ string) (*TokenResponse, error) {
 	return g.ExchangeTokenByForm(ctx, code)
 }
 

@@ -27,7 +27,7 @@ func (f *FIDO2Provider) GetAuthURL(state string, redirectURL string) string {
 }
 
 // ExchangeToken FIDO2不使用Token交换
-func (f *FIDO2Provider) ExchangeToken(ctx context.Context, code string) (*TokenResponse, error) {
+func (f *FIDO2Provider) ExchangeToken(ctx context.Context, code string, _ string) (*TokenResponse, error) {
 	return nil, fmt.Errorf("fido2 does not use token exchange")
 }
 

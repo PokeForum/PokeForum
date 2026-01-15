@@ -59,8 +59,9 @@ type IProvider interface {
 	// ExchangeToken Exchange authorization code for access token | 使用授权码换取访问令牌
 	// ctx: context | ctx: 上下文
 	// code: authorization code | code: 授权码
+	// redirectURI: redirect URI used in authorization request | redirectURI: 授权请求中使用的重定向URI
 	// Returns Token response or error | 返回Token响应或错误
-	ExchangeToken(ctx context.Context, code string) (*TokenResponse, error)
+	ExchangeToken(ctx context.Context, code string, redirectURI string) (*TokenResponse, error)
 
 	// GetUserInfo Get user information | 获取用户信息
 	// ctx: context | ctx: 上下文

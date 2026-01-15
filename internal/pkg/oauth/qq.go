@@ -44,12 +44,14 @@ func (q *QQProvider) GetAuthURL(state string, redirectURL string) string {
 
 // ExchangeToken 使用授权码换取访问令牌
 // QQ返回的是URL编码格式，不是JSON
-func (q *QQProvider) ExchangeToken(ctx context.Context, code string) (*TokenResponse, error) {
+func (q *QQProvider) ExchangeToken(ctx context.Context, code string, redirectURI string) (*TokenResponse, error) {
 	data := url.Values{}
 	data.Set("client_id", q.config.ClientID)
 	data.Set("client_secret", q.config.ClientSecret)
 	data.Set("code", code)
 	data.Set("grant_type", "authorization_code")
+	data.Set("redirect_uri", redirectURI) // 必须与授权请求中的redirect_uri一致 | 必须与授权请求中的redirect_uri一致
+	data.Set("fmt", "json")               // 指定返回JSON格式 | 指定返回JSON格式
 
 	req, err := http.NewRequestWithContext(ctx, "GET", q.config.TokenURL+"?"+data.Encode(), http.NoBody)
 	if err != nil {
@@ -67,27 +69,32 @@ func (q *QQProvider) ExchangeToken(ctx context.Context, code string) (*TokenResp
 		return nil, fmt.Errorf("%w: %v", ErrParseResponse, err)
 	}
 
-	// QQ返回格式: access_token=xxx&expires_in=7776000&refresh_token=xxx
-	params, err := url.ParseQuery(string(body))
-	if err != nil {
+	// QQ返回JSON格式: {"access_token":"xxx","expires_in":"7776000","refresh_token":"xxx"}
+	var tokenResp struct {
+		AccessToken  string `json:"access_token"`
+		ExpiresIn    string `json:"expires_in"` // QQ返回字符串类型 | QQ返回字符串类型
+		RefreshToken string `json:"refresh_token"`
+	}
+	if err := json.Unmarshal(body, &tokenResp); err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrParseResponse, err)
 	}
 
-	accessToken := params.Get("access_token")
-	if accessToken == "" {
+	if tokenResp.AccessToken == "" {
 		return nil, fmt.Errorf("%w: access_token is empty, response: %s", ErrExchangeTokenFailed, string(body))
 	}
 
-	expiresIn := 7776000 // QQ默认90天
-	if params.Get("expires_in") != "" {
-		_, _ = fmt.Sscanf(params.Get("expires_in"), "%d", &expiresIn) //nolint:errcheck // 解析失败保持默认值
+	expiresIn := 7776000 // QQ默认90天 | QQ默认90天
+	if tokenResp.ExpiresIn != "" {
+		if _, err := fmt.Sscanf(tokenResp.ExpiresIn, "%d", &expiresIn); err != nil || expiresIn == 0 {
+			expiresIn = 7776000 // 解析失败保持默认值 | 解析失败保持默认值
+		}
 	}
 
 	return &TokenResponse{
-		AccessToken:  accessToken,
+		AccessToken:  tokenResp.AccessToken,
 		TokenType:    "Bearer",
 		ExpiresIn:    expiresIn,
-		RefreshToken: params.Get("refresh_token"),
+		RefreshToken: tokenResp.RefreshToken,
 	}, nil
 }
 
@@ -203,6 +210,7 @@ func (q *QQProvider) RefreshToken(ctx context.Context, refreshToken string) (*To
 	data.Set("client_secret", q.config.ClientSecret)
 	data.Set("refresh_token", refreshToken)
 	data.Set("grant_type", "refresh_token")
+	data.Set("fmt", "json") // 指定返回JSON格式 | 指定返回JSON格式
 
 	req, err := http.NewRequestWithContext(ctx, "GET", q.config.TokenURL+"?"+data.Encode(), http.NoBody)
 	if err != nil {
@@ -220,26 +228,30 @@ func (q *QQProvider) RefreshToken(ctx context.Context, refreshToken string) (*To
 		return nil, fmt.Errorf("%w: %v", ErrParseResponse, err)
 	}
 
-	params, err := url.ParseQuery(string(body))
-	if err != nil {
+	// QQ返回JSON格式: {"access_token":"xxx","expires_in":7776000,"refresh_token":"xxx"}
+	var tokenResp struct {
+		AccessToken  string `json:"access_token"`
+		ExpiresIn    int    `json:"expires_in"`
+		RefreshToken string `json:"refresh_token"`
+	}
+	if err := json.Unmarshal(body, &tokenResp); err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrParseResponse, err)
 	}
 
-	accessToken := params.Get("access_token")
-	if accessToken == "" {
+	if tokenResp.AccessToken == "" {
 		return nil, fmt.Errorf("%w: access_token is empty", ErrRefreshTokenFailed)
 	}
 
-	expiresIn := 7776000
-	if params.Get("expires_in") != "" {
-		_, _ = fmt.Sscanf(params.Get("expires_in"), "%d", &expiresIn) //nolint:errcheck // 解析失败保持默认值
+	expiresIn := tokenResp.ExpiresIn
+	if expiresIn == 0 {
+		expiresIn = 7776000 // QQ默认90天 | QQ默认90天
 	}
 
 	return &TokenResponse{
-		AccessToken:  accessToken,
+		AccessToken:  tokenResp.AccessToken,
 		TokenType:    "Bearer",
 		ExpiresIn:    expiresIn,
-		RefreshToken: params.Get("refresh_token"),
+		RefreshToken: tokenResp.RefreshToken,
 	}, nil
 }
 

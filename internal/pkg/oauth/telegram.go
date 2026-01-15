@@ -37,7 +37,7 @@ func (t *TelegramProvider) GetAuthURL(state string, redirectURL string) string {
 
 // ExchangeToken Telegram不需要交换Token
 // 用户信息直接通过回调参数返回
-func (t *TelegramProvider) ExchangeToken(ctx context.Context, code string) (*TokenResponse, error) {
+func (t *TelegramProvider) ExchangeToken(ctx context.Context, code string, _ string) (*TokenResponse, error) {
 	return nil, fmt.Errorf("telegram does not use token exchange")
 }
 

@@ -28,12 +28,13 @@ import (
 
 // OAuthState OAuth state parameter structure | OAuth状态参数结构
 type OAuthState struct {
-	Nonce     string `json:"nonce"`      // Random string to prevent replay | 随机字符串，防重放
-	Provider  string `json:"provider"`   // Provider type | 提供商类型
-	Action    string `json:"action"`     // Action type: login/bind | 操作类型: login/bind
-	UserID    int    `json:"user_id"`    // User ID for bind scenario | 绑定场景下的用户ID
-	ClientIP  string `json:"client_ip"`  // Client IP | 客户端IP
-	ExpiresAt int64  `json:"expires_at"` // Expiration timestamp | 过期时间戳
+	Nonce       string `json:"nonce"`        // Random string to prevent replay | 随机字符串，防重放
+	Provider    string `json:"provider"`     // Provider type | 提供商类型
+	Action      string `json:"action"`       // Action type: login/bind | 操作类型: login/bind
+	UserID      int    `json:"user_id"`      // User ID for bind scenario | 绑定场景下的用户ID
+	ClientIP    string `json:"client_ip"`    // Client IP | 客户端IP
+	RedirectURI string `json:"redirect_uri"` // Redirect URI for token exchange | 用于token交换的重定向URI
+	ExpiresAt   int64  `json:"expires_at"`   // Expiration timestamp | 过期时间戳
 }
 
 const (
@@ -137,7 +138,7 @@ func (s *OAuthService) GetAuthorizeURL(ctx context.Context, provider string, req
 	}
 
 	// Generate state | 生成state
-	state, err := s.generateState(ctx, provider, OAuthActionLogin, 0, clientIP)
+	state, err := s.generateState(ctx, provider, OAuthActionLogin, 0, clientIP, req.RedirectURI)
 	if err != nil {
 		s.logger.Error("Failed to generate OAuth state | 生成OAuth state失败",
 			tracing.WithTraceIDField(ctx), zap.Error(err))
@@ -187,7 +188,7 @@ func (s *OAuthService) HandleCallback(ctx context.Context, provider string, req 
 	}
 
 	// Exchange token | 换取token
-	tokenResp, err := p.ExchangeToken(ctx, req.Code)
+	tokenResp, err := p.ExchangeToken(ctx, req.Code, stateData.RedirectURI)
 	if err != nil {
 		s.logger.Error("Failed to exchange OAuth token | 换取OAuth token失败",
 			tracing.WithTraceIDField(ctx), zap.Error(err), zap.String("provider", provider))
@@ -274,7 +275,7 @@ func (s *OAuthService) GetBindURL(ctx context.Context, userID int, provider stri
 	}
 
 	// Generate state | 生成state
-	state, err := s.generateState(ctx, provider, OAuthActionBind, userID, clientIP)
+	state, err := s.generateState(ctx, provider, OAuthActionBind, userID, clientIP, req.RedirectURI)
 	if err != nil {
 		s.logger.Error("Failed to generate OAuth state | 生成OAuth state失败",
 			tracing.WithTraceIDField(ctx), zap.Error(err))
@@ -330,7 +331,7 @@ func (s *OAuthService) HandleBindCallback(ctx context.Context, userID int, provi
 	}
 
 	// Exchange token | 换取token
-	tokenResp, err := p.ExchangeToken(ctx, req.Code)
+	tokenResp, err := p.ExchangeToken(ctx, req.Code, stateData.RedirectURI)
 	if err != nil {
 		s.logger.Error("Failed to exchange OAuth token | 换取OAuth token失败",
 			tracing.WithTraceIDField(ctx), zap.Error(err))
@@ -472,7 +473,7 @@ func (s *OAuthService) getAndRegisterProvider(ctx context.Context, provider stri
 }
 
 // generateState Generate OAuth state | 生成OAuth state
-func (s *OAuthService) generateState(ctx context.Context, provider, action string, userID int, clientIP string) (string, error) {
+func (s *OAuthService) generateState(ctx context.Context, provider, action string, userID int, clientIP, redirectURI string) (string, error) {
 	// Generate nonce | 生成nonce
 	nonceBytes := make([]byte, 16)
 	if _, err := rand.Read(nonceBytes); err != nil {
@@ -482,12 +483,13 @@ func (s *OAuthService) generateState(ctx context.Context, provider, action strin
 
 	// Create state data | 创建state数据
 	stateData := OAuthState{
-		Nonce:     nonce,
-		Provider:  provider,
-		Action:    action,
-		UserID:    userID,
-		ClientIP:  clientIP,
-		ExpiresAt: time.Now().Add(OAuthStateTTL * time.Second).Unix(),
+		Nonce:       nonce,
+		Provider:    provider,
+		Action:      action,
+		UserID:      userID,
+		ClientIP:    clientIP,
+		RedirectURI: redirectURI,
+		ExpiresAt:   time.Now().Add(OAuthStateTTL * time.Second).Unix(),
 	}
 
 	// Serialize state | 序列化state
