@@ -7,6 +7,7 @@ import (
 	"github.com/click33/sa-token-go/stputil"
 	"github.com/gin-gonic/gin"
 
+	"github.com/PokeForum/PokeForum/internal/pkg/oauth"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
@@ -78,7 +79,7 @@ func (ctrl *OAuthController) GetEnabledProviders(c *gin.Context) {
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /auth/oauth/{provider}/authorize [get]
 func (ctrl *OAuthController) GetAuthorizeURL(c *gin.Context) {
-	provider := c.Param("provider")
+	provider := string(oauth.NormalizeProvider(c.Param("provider")))
 	if provider == "" {
 		response.ResErrorWithMsg(c, response.CodeInvalidParam, "provider参数不能为空")
 		return
@@ -113,7 +114,7 @@ func (ctrl *OAuthController) GetAuthorizeURL(c *gin.Context) {
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /auth/oauth/{provider}/callback [post]
 func (ctrl *OAuthController) HandleCallback(c *gin.Context) {
-	provider := c.Param("provider")
+	provider := string(oauth.NormalizeProvider(c.Param("provider")))
 	if provider == "" {
 		response.ResErrorWithMsg(c, response.CodeInvalidParam, "provider参数不能为空")
 		return
@@ -185,7 +186,7 @@ func (ctrl *OAuthController) GetBindURL(c *gin.Context) {
 		return
 	}
 
-	provider := c.Param("provider")
+	provider := string(oauth.NormalizeProvider(c.Param("provider")))
 	if provider == "" {
 		response.ResErrorWithMsg(c, response.CodeInvalidParam, "provider参数不能为空")
 		return
@@ -228,7 +229,7 @@ func (ctrl *OAuthController) HandleBindCallback(c *gin.Context) {
 		return
 	}
 
-	provider := c.Param("provider")
+	provider := string(oauth.NormalizeProvider(c.Param("provider")))
 	if provider == "" {
 		response.ResErrorWithMsg(c, response.CodeInvalidParam, "provider参数不能为空")
 		return
@@ -269,7 +270,7 @@ func (ctrl *OAuthController) Unbind(c *gin.Context) {
 		return
 	}
 
-	provider := c.Param("provider")
+	provider := string(oauth.NormalizeProvider(c.Param("provider")))
 	if provider == "" {
 		response.ResErrorWithMsg(c, response.CodeInvalidParam, "provider参数不能为空")
 		return

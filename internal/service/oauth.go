@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	saGin "github.com/click33/sa-token-go/integrations/gin"
@@ -531,9 +530,6 @@ func (s *OAuthService) validateAndDeleteState(ctx context.Context, state, provid
 	if time.Now().Unix() > stateData.ExpiresAt {
 		return nil, errors.New("授权参数已过期")
 	}
-
-	// Convert to uppercase | 转换大写
-	provider = strings.ToUpper(provider)
 
 	// Validate provider | 验证provider
 	if stateData.Provider != provider {

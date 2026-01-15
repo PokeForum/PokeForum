@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"strings"
 )
 
 // GenerateState Generate random state string | 生成随机state字符串
@@ -59,5 +60,24 @@ func GetAllProviders() []Provider {
 		ProviderGoogle,
 		ProviderTelegram,
 		ProviderFIDO2,
+	}
+}
+
+// NormalizeProvider Normalize provider string to correct enum value | 将 provider 字符串标准化为正确的枚举值
+// Supports case-insensitive matching | 支持大小写不敏感匹配
+func NormalizeProvider(provider string) Provider {
+	switch strings.ToLower(provider) {
+	case "qq":
+		return ProviderQQ
+	case "github":
+		return ProviderGitHub
+	case "google":
+		return ProviderGoogle
+	case "telegram":
+		return ProviderTelegram
+	case "fido2":
+		return ProviderFIDO2
+	default:
+		return Provider(provider)
 	}
 }
