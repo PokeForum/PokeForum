@@ -460,7 +460,10 @@ func (s *OAuthService) getAndRegisterProvider(ctx context.Context, provider stri
 	}
 
 	// Try to register, ignore if already registered | 尝试注册，如果已注册则忽略
-	_ = s.oauthClient.RegisterProvider(oauth.Provider(provider), config)
+	if err := s.oauthClient.RegisterProvider(oauth.Provider(provider), config); err != nil {
+		s.logger.Debug("OAuth provider already registered | OAuth提供商已注册",
+			tracing.WithTraceIDField(ctx), zap.String("provider", provider))
+	}
 
 	return oauthProvider, nil
 }
@@ -509,7 +512,10 @@ func (s *OAuthService) validateAndDeleteState(ctx context.Context, state, provid
 	}
 
 	// Delete state (single use) | 删除state（单次使用）
-	_, _ = s.cache.Del(ctx, key)
+	if _, delErr := s.cache.Del(ctx, key); delErr != nil {
+		s.logger.Warn("Failed to delete OAuth state | 删除OAuth state失败",
+			tracing.WithTraceIDField(ctx), zap.Error(delErr))
+	}
 
 	// Parse state | 解析state
 	var stateData OAuthState
@@ -558,7 +564,7 @@ func (s *OAuthService) canAutoRegister(ctx context.Context) (bool, string) {
 }
 
 // loginExistingUser Login existing user | 登录已存在用户
-func (s *OAuthService) loginExistingUser(ctx context.Context, userID int, provider string, userInfo *oauth.UserInfo, ua, clientIP string) (*schema.OAuthCallbackResponse, error) {
+func (s *OAuthService) loginExistingUser(ctx context.Context, userID int, provider string, _ *oauth.UserInfo, ua, clientIP string) (*schema.OAuthCallbackResponse, error) {
 	// Get user | 获取用户
 	u, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
@@ -703,8 +709,11 @@ func (s *OAuthService) generateUniqueUsername(ctx context.Context, baseUsername,
 		if suffix > 1000 {
 			// Fallback to random suffix | 回退到随机后缀
 			randomBytes := make([]byte, 4)
-			_, _ = rand.Read(randomBytes)
-			username = fmt.Sprintf("%s_%s", baseUsername, hex.EncodeToString(randomBytes))
+			if _, randErr := rand.Read(randomBytes); randErr != nil {
+				username = fmt.Sprintf("%s_%d", baseUsername, time.Now().UnixNano())
+			} else {
+				username = fmt.Sprintf("%s_%s", baseUsername, hex.EncodeToString(randomBytes))
+			}
 			break
 		}
 	}
