@@ -122,30 +122,15 @@ func (s *OAuthProviderService) UpdateProvider(ctx context.Context, req schema.OA
 
 	// Update OAuth provider | 更新OAuth提供商
 	provider, err := s.oauthRepo.Update(ctx, req.ID, func(u *ent.OAuthProviderUpdateOne) *ent.OAuthProviderUpdateOne {
-		if req.ClientID != "" {
-			u = u.SetClientID(req.ClientID)
-		}
-		// Only update ClientSecret when not empty (avoid accidental clearing) | 只有当ClientSecret不为空时才更新（避免意外清空）
+		u = u.SetClientID(req.ClientID).
+			SetAuthURL(req.AuthURL).
+			SetTokenURL(req.TokenURL).
+			SetUserInfoURL(req.UserInfoURL).
+			SetRedirectURL(req.RedirectURL).
+			SetScopes(req.Scopes).
+			SetExtraConfig(req.ExtraConfig)
 		if req.ClientSecret != "" {
 			u = u.SetClientSecret(req.ClientSecret)
-		}
-		if req.AuthURL != "" {
-			u = u.SetAuthURL(req.AuthURL)
-		}
-		if req.TokenURL != "" {
-			u = u.SetTokenURL(req.TokenURL)
-		}
-		if req.UserInfoURL != "" {
-			u = u.SetUserInfoURL(req.UserInfoURL)
-		}
-		if req.RedirectURL != "" {
-			u = u.SetRedirectURL(req.RedirectURL)
-		}
-		if req.Scopes != nil {
-			u = u.SetScopes(req.Scopes)
-		}
-		if req.ExtraConfig != nil {
-			u = u.SetExtraConfig(req.ExtraConfig)
 		}
 		if req.Enabled != nil {
 			u = u.SetEnabled(*req.Enabled)
