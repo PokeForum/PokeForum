@@ -56,8 +56,6 @@ func (c *Client) RegisterProvider(provider Provider, config *Config) error {
 		p, err = NewQQProvider(config)
 	case ProviderGoogle:
 		p, err = NewGoogleProvider(config)
-	case ProviderApple:
-		p, err = NewAppleProvider(config)
 	case ProviderTelegram:
 		p, err = NewTelegramProvider(config)
 	case ProviderFIDO2:

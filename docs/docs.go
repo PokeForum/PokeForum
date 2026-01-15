@@ -8750,7 +8750,6 @@ const docTemplate = `{
                     "enum": [
                         "QQ",
                         "GitHub",
-                        "Apple",
                         "Google",
                         "Telegram",
                         "FIDO2"

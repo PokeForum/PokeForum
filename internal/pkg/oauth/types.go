@@ -11,7 +11,6 @@ type Provider string
 const (
 	ProviderQQ       Provider = "QQ"
 	ProviderGitHub   Provider = "GitHub"
-	ProviderApple    Provider = "Apple"
 	ProviderGoogle   Provider = "Google"
 	ProviderTelegram Provider = "Telegram"
 	ProviderFIDO2    Provider = "FIDO2"

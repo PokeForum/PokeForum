@@ -8,17 +8,17 @@ type OAuthProviderListRequest struct {
 
 // OAuthProviderCreateRequest Create OAuth provider request | 创建OAuth提供商请求体
 type OAuthProviderCreateRequest struct {
-	Provider     string                 `json:"provider" binding:"required,oneof=QQ GitHub Apple Google Telegram FIDO2" example:"GitHub"` // Provider type | 提供商类型
-	ClientID     string                 `json:"client_id" binding:"required" example:"your_client_id"`                                    // Client ID | 客户端ID
-	ClientSecret string                 `json:"client_secret" binding:"required" example:"your_client_secret"`                            // Client secret | 客户端密钥
-	AuthURL      string                 `json:"auth_url" example:"https://github.com/login/oauth/authorize"`                              // Authorization URL | 授权URL
-	TokenURL     string                 `json:"token_url" example:"https://github.com/login/oauth/access_token"`                          // Token URL | Token获取URL
-	UserInfoURL  string                 `json:"user_info_url" example:"https://api.github.com/user"`                                      // User info URL | 用户信息获取URL
-	RedirectURL  string                 `json:"redirect_url" example:"https://example.com/auth/callback"`                                 // Callback URL | 回调URL
-	Scopes       []string               `json:"scopes" example:"user:email"`                                                              // Request scopes | 请求范围
-	ExtraConfig  map[string]interface{} `json:"extra_config"`                                                                             // Extra config parameters | 额外配置参数
-	Enabled      bool                   `json:"enabled" example:"true"`                                                                   // Whether enabled | 是否启用
-	SortOrder    int                    `json:"sort_order" binding:"min=0" example:"0"`                                                   // Sort order | 排序顺序
+	Provider     string                 `json:"provider" binding:"required,oneof=QQ GitHub Google Telegram FIDO2" example:"GitHub"` // Provider type | 提供商类型
+	ClientID     string                 `json:"client_id" binding:"required" example:"your_client_id"`                              // Client ID | 客户端ID
+	ClientSecret string                 `json:"client_secret" binding:"required" example:"your_client_secret"`                      // Client secret | 客户端密钥
+	AuthURL      string                 `json:"auth_url" example:"https://github.com/login/oauth/authorize"`                        // Authorization URL | 授权URL
+	TokenURL     string                 `json:"token_url" example:"https://github.com/login/oauth/access_token"`                    // Token URL | Token获取URL
+	UserInfoURL  string                 `json:"user_info_url" example:"https://api.github.com/user"`                                // User info URL | 用户信息获取URL
+	RedirectURL  string                 `json:"redirect_url" example:"https://example.com/auth/callback"`                           // Callback URL | 回调URL
+	Scopes       []string               `json:"scopes" example:"user:email"`                                                        // Request scopes | 请求范围
+	ExtraConfig  map[string]interface{} `json:"extra_config"`                                                                       // Extra config parameters | 额外配置参数
+	Enabled      bool                   `json:"enabled" example:"true"`                                                             // Whether enabled | 是否启用
+	SortOrder    int                    `json:"sort_order" binding:"min=0" example:"0"`                                             // Sort order | 排序顺序
 }
 
 // OAuthProviderUpdateRequest Update OAuth provider request | 更新OAuth提供商请求体
