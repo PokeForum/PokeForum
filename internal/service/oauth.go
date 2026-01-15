@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	saGin "github.com/click33/sa-token-go/integrations/gin"
@@ -53,8 +54,6 @@ const (
 	OAuthResultRegister = "register"
 	// OAuthResultBindRequired Bind required result | 需要绑定结果
 	OAuthResultBindRequired = "bindRequired"
-	// OAuthResultBind Bind result | 绑定结果
-	OAuthResultBind = "bind"
 )
 
 // IOAuthService OAuth login service interface | OAuth登录服务接口
@@ -459,8 +458,8 @@ func (s *OAuthService) getAndRegisterProvider(ctx context.Context, provider stri
 	}
 
 	// Register provider | 注册提供商
-	if err := s.oauthClient.RegisterProvider(oauth.Provider(provider), config); err != nil {
-		if err == oauth.ErrProviderAlreadyRegistered {
+	if err = s.oauthClient.RegisterProvider(oauth.Provider(provider), config); err != nil {
+		if errors.Is(err, oauth.ErrProviderAlreadyRegistered) {
 			s.logger.Debug("OAuth provider already registered | OAuth提供商已注册",
 				tracing.WithTraceIDField(ctx), zap.String("provider", provider))
 		} else {
@@ -532,6 +531,9 @@ func (s *OAuthService) validateAndDeleteState(ctx context.Context, state, provid
 	if time.Now().Unix() > stateData.ExpiresAt {
 		return nil, errors.New("授权参数已过期")
 	}
+
+	// Convert to uppercase | 转换大写
+	provider = strings.ToUpper(provider)
 
 	// Validate provider | 验证provider
 	if stateData.Provider != provider {
