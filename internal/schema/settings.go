@@ -202,4 +202,5 @@ type PublicConfigResponse struct {
 	Safe    *SafeSettingsResponse    `json:"safe"`
 	Code    *CodeSettingsResponse    `json:"code"`
 	Comment *CommentSettingsResponse `json:"comment"`
+	Signin  *SigninSettingsResponse  `json:"signin"`
 }

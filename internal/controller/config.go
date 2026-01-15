@@ -74,6 +74,12 @@ func (ctrl *ConfigController) GetPublicConfig(c *gin.Context) {
 		return
 	}
 
+	signin, err := ctrl.settingsService.GetSigninSettings(ctx)
+	if err != nil {
+		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
+		return
+	}
+
 	response.ResSuccess(c, schema.PublicConfigResponse{
 		Routine: routine,
 		Home:    home,
@@ -81,5 +87,6 @@ func (ctrl *ConfigController) GetPublicConfig(c *gin.Context) {
 		Safe:    safe,
 		Code:    code,
 		Comment: comment,
+		Signin:  signin,
 	})
 }

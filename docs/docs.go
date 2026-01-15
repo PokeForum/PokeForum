@@ -9785,6 +9785,9 @@ const docTemplate = `{
                 },
                 "seo": {
                     "$ref": "#/definitions/schema.SeoSettingsResponse"
+                },
+                "signin": {
+                    "$ref": "#/definitions/schema.SigninSettingsResponse"
                 }
             }
         },

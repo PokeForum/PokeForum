@@ -2017,6 +2017,8 @@ definitions:
         $ref: '#/definitions/schema.SafeSettingsResponse'
       seo:
         $ref: '#/definitions/schema.SeoSettingsResponse'
+      signin:
+        $ref: '#/definitions/schema.SigninSettingsResponse'
     type: object
   schema.RankingItem:
     properties:
