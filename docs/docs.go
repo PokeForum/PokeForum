@@ -180,6 +180,185 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/oauth/providers": {
+            "get": {
+                "description": "Get all enabled OAuth providers for frontend display | 获取所有已启用的OAuth提供商，用于前端展示",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth | OAuth登录"
+                ],
+                "summary": "Get enabled OAuth providers list | 获取已启用的OAuth提供商列表",
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.OAuthProviderPublicListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/oauth/{provider}/authorize": {
+            "get": {
+                "description": "Get authorization URL for specified OAuth provider | 获取指定OAuth提供商的授权URL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth | OAuth登录"
+                ],
+                "summary": "Get OAuth authorization URL | 获取OAuth授权URL",
+                "parameters": [
+                    {
+                        "enum": [
+                            "QQ",
+                            "GitHub",
+                            "Google"
+                        ],
+                        "type": "string",
+                        "description": "Provider type | 提供商类型",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Frontend callback URL | 前端回调地址",
+                        "name": "redirect_uri",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.OAuthAuthorizeResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/oauth/{provider}/callback": {
+            "post": {
+                "description": "Handle OAuth callback, auto login or register | 处理OAuth回调，自动登录或注册",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth | OAuth登录"
+                ],
+                "summary": "Handle OAuth callback | 处理OAuth回调",
+                "parameters": [
+                    {
+                        "enum": [
+                            "QQ",
+                            "GitHub",
+                            "Google"
+                        ],
+                        "type": "string",
+                        "description": "Provider type | 提供商类型",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "OAuth callback parameters | OAuth回调参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.OAuthCallbackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 处理成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.OAuthCallbackResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/register": {
             "post": {
                 "description": "Create new user account | 创建新用户账户",
@@ -6700,6 +6879,266 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user/oauth/bindlist": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get current user's all OAuth bindings | 获取当前用户的所有OAuth绑定",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]OAuth | [用户]OAuth登录"
+                ],
+                "summary": "Get user OAuth binding list | 获取用户OAuth绑定列表",
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.OAuthUserBindListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/oauth/{provider}": {
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Unbind OAuth account from current user | 从当前用户解绑OAuth账号",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]OAuth | [用户]OAuth登录"
+                ],
+                "summary": "Unbind OAuth account | 解绑OAuth账号",
+                "parameters": [
+                    {
+                        "enum": [
+                            "QQ",
+                            "GitHub",
+                            "Google"
+                        ],
+                        "type": "string",
+                        "description": "Provider type | 提供商类型",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 解绑成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/oauth/{provider}/bindcallback": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Handle OAuth bind callback, bindOAuth account to current user | 处理OAuth绑定回调，将OAuth账号绑定到当前用户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]OAuth | [用户]OAuth登录"
+                ],
+                "summary": "Handle OAuth bind callback | 处理OAuth绑定回调",
+                "parameters": [
+                    {
+                        "enum": [
+                            "QQ",
+                            "GitHub",
+                            "Google"
+                        ],
+                        "type": "string",
+                        "description": "Provider type | 提供商类型",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "OAuth bind callback parameters | OAuth绑定回调参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.OAuthBindCallbackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 绑定成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/oauth/{provider}/bindurl": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get authorization URL for binding OAuth account | 获取绑定OAuth账号的授权URL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]OAuth | [用户]OAuth登录"
+                ],
+                "summary": "Get OAuth bind authorization URL | 获取OAuth绑定授权URL",
+                "parameters": [
+                    {
+                        "enum": [
+                            "QQ",
+                            "GitHub",
+                            "Google"
+                        ],
+                        "type": "string",
+                        "description": "Provider type | 提供商类型",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Frontend callback URL | 前端回调地址",
+                        "name": "redirect_uri",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.OAuthAuthorizeResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -8200,6 +8639,78 @@ const docTemplate = `{
                 }
             }
         },
+        "schema.OAuthAuthorizeResponse": {
+            "type": "object",
+            "properties": {
+                "authorize_url": {
+                    "description": "Full authorization URL | 完整授权URL",
+                    "type": "string"
+                },
+                "state": {
+                    "description": "State parameter (frontend needs to pass back) | state参数(前端需回传)",
+                    "type": "string"
+                }
+            }
+        },
+        "schema.OAuthBindCallbackRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "state"
+            ],
+            "properties": {
+                "code": {
+                    "description": "Authorization code | 授权码",
+                    "type": "string"
+                },
+                "state": {
+                    "description": "State parameter | state参数",
+                    "type": "string"
+                }
+            }
+        },
+        "schema.OAuthCallbackRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "state"
+            ],
+            "properties": {
+                "code": {
+                    "description": "Authorization code | 授权码",
+                    "type": "string"
+                },
+                "state": {
+                    "description": "State parameter | state参数",
+                    "type": "string"
+                }
+            }
+        },
+        "schema.OAuthCallbackResponse": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "description": "Executed action: login/register/bindRequired | 执行的操作: login/register/bindRequired",
+                    "type": "string"
+                },
+                "message": {
+                    "description": "Message | 消息",
+                    "type": "string"
+                },
+                "token": {
+                    "description": "Token (returned for login/register) | Token（登录/注册场景返回）",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "User ID | 用户ID",
+                    "type": "integer"
+                },
+                "username": {
+                    "description": "Username | 用户名",
+                    "type": "string"
+                }
+            }
+        },
         "schema.OAuthProviderCreateRequest": {
             "type": "object",
             "required": [
@@ -8441,6 +8952,33 @@ const docTemplate = `{
                 }
             }
         },
+        "schema.OAuthProviderPublicItem": {
+            "type": "object",
+            "properties": {
+                "provider": {
+                    "description": "Provider type | 提供商类型",
+                    "type": "string",
+                    "example": "GitHub"
+                },
+                "sort_order": {
+                    "description": "Sort order | 排序顺序",
+                    "type": "integer",
+                    "example": 0
+                }
+            }
+        },
+        "schema.OAuthProviderPublicListResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "description": "Provider list | 提供商列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.OAuthProviderPublicItem"
+                    }
+                }
+            }
+        },
         "schema.OAuthProviderStatusUpdateRequest": {
             "type": "object",
             "required": [
@@ -8525,6 +9063,42 @@ const docTemplate = `{
                     "description": "User info URL | 用户信息获取URL",
                     "type": "string",
                     "example": "https://api.github.com/user"
+                }
+            }
+        },
+        "schema.OAuthUserBindItem": {
+            "type": "object",
+            "properties": {
+                "bound_at": {
+                    "description": "Binding time | 绑定时间",
+                    "type": "string",
+                    "example": "2024-01-01 00:00:00"
+                },
+                "provider": {
+                    "description": "Provider type | 提供商类型",
+                    "type": "string",
+                    "example": "GitHub"
+                },
+                "provider_avatar": {
+                    "description": "Provider avatar | 提供商头像",
+                    "type": "string"
+                },
+                "provider_username": {
+                    "description": "Provider username | 提供商用户名",
+                    "type": "string",
+                    "example": "octocat"
+                }
+            }
+        },
+        "schema.OAuthUserBindListResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "description": "Binding list | 绑定列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.OAuthUserBindItem"
+                    }
                 }
             }
         },

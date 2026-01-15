@@ -65,6 +65,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 	postManageService := do.MustInvoke[service.IPostManageService](injector)
 	commentManageService := do.MustInvoke[service.ICommentManageService](injector)
 	oauthProviderService := do.MustInvoke[service.IOAuthProviderService](injector)
+	oauthService := do.MustInvoke[service.IOAuthService](injector)
 
 	// Health check route (not affected by rate limiting, outside of api group) | 健康检查路由（不受速率限制影响，在api分组之外）
 	healthCon := controller.NewHealthController(healthService)
@@ -87,6 +88,11 @@ func Routers(injector *do.Injector) *gin.Engine {
 	AuthGroup.Use(middleware.RateLimit(middleware.AuthRateLimitConfig))
 	AuthCon := controller.NewAuthController(authService)
 	AuthCon.AuthRouter(AuthGroup)
+
+	// OAuth login public routes (no login required) | OAuth登录公开路由（无需登录）
+	OAuthPublicGroup := AuthGroup.Group("/oauth")
+	OAuthCon := controller.NewOAuthController(oauthService)
+	OAuthCon.OAuthPublicRouter(OAuthPublicGroup)
 
 	// Configuration | 配置
 	ConfigGroup := api.Group("/config")
@@ -112,6 +118,10 @@ func Routers(injector *do.Injector) *gin.Engine {
 				BlacklistGroup := ForumGroup.Group("/profile/blacklist")
 				BlacklistCon := controller.NewBlacklistController(blacklistService)
 				BlacklistCon.BlacklistRouter(BlacklistGroup)
+
+				// OAuth user routes | OAuth用户路由
+				OAuthUserGroup := AuthAPIGroup.Group("/user/oauth")
+				OAuthCon.OAuthUserRouter(OAuthUserGroup)
 
 				// TODO Report | 举报
 

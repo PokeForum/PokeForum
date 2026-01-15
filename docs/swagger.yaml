@@ -1139,6 +1139,57 @@ definitions:
         example: newuser
         type: string
     type: object
+  schema.OAuthAuthorizeResponse:
+    properties:
+      authorize_url:
+        description: Full authorization URL | 完整授权URL
+        type: string
+      state:
+        description: State parameter (frontend needs to pass back) | state参数(前端需回传)
+        type: string
+    type: object
+  schema.OAuthBindCallbackRequest:
+    properties:
+      code:
+        description: Authorization code | 授权码
+        type: string
+      state:
+        description: State parameter | state参数
+        type: string
+    required:
+    - code
+    - state
+    type: object
+  schema.OAuthCallbackRequest:
+    properties:
+      code:
+        description: Authorization code | 授权码
+        type: string
+      state:
+        description: State parameter | state参数
+        type: string
+    required:
+    - code
+    - state
+    type: object
+  schema.OAuthCallbackResponse:
+    properties:
+      action:
+        description: 'Executed action: login/register/bindRequired | 执行的操作: login/register/bindRequired'
+        type: string
+      message:
+        description: Message | 消息
+        type: string
+      token:
+        description: Token (returned for login/register) | Token（登录/注册场景返回）
+        type: string
+      user_id:
+        description: User ID | 用户ID
+        type: integer
+      username:
+        description: Username | 用户名
+        type: string
+    type: object
   schema.OAuthProviderCreateRequest:
     properties:
       auth_url:
@@ -1325,6 +1376,25 @@ definitions:
           $ref: '#/definitions/schema.OAuthProviderListItem'
         type: array
     type: object
+  schema.OAuthProviderPublicItem:
+    properties:
+      provider:
+        description: Provider type | 提供商类型
+        example: GitHub
+        type: string
+      sort_order:
+        description: Sort order | 排序顺序
+        example: 0
+        type: integer
+    type: object
+  schema.OAuthProviderPublicListResponse:
+    properties:
+      list:
+        description: Provider list | 提供商列表
+        items:
+          $ref: '#/definitions/schema.OAuthProviderPublicItem'
+        type: array
+    type: object
   schema.OAuthProviderStatusUpdateRequest:
     properties:
       enabled:
@@ -1390,6 +1460,32 @@ definitions:
         type: string
     required:
     - id
+    type: object
+  schema.OAuthUserBindItem:
+    properties:
+      bound_at:
+        description: Binding time | 绑定时间
+        example: "2024-01-01 00:00:00"
+        type: string
+      provider:
+        description: Provider type | 提供商类型
+        example: GitHub
+        type: string
+      provider_avatar:
+        description: Provider avatar | 提供商头像
+        type: string
+      provider_username:
+        description: Provider username | 提供商用户名
+        example: octocat
+        type: string
+    type: object
+  schema.OAuthUserBindListResponse:
+    properties:
+      list:
+        description: Binding list | 绑定列表
+        items:
+          $ref: '#/definitions/schema.OAuthUserBindItem'
+        type: array
     type: object
   schema.PopularCategoriesResponse:
     properties:
@@ -4001,6 +4097,117 @@ paths:
       summary: User logout | 用户退出登录
       tags:
       - Authentication | 认证
+  /auth/oauth/{provider}/authorize:
+    get:
+      consumes:
+      - application/json
+      description: Get authorization URL for specified OAuth provider | 获取指定OAuth提供商的授权URL
+      parameters:
+      - description: Provider type | 提供商类型
+        enum:
+        - QQ
+        - GitHub
+        - Google
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: Frontend callback URL | 前端回调地址
+        in: query
+        name: redirect_uri
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success | 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.OAuthAuthorizeResponse'
+              type: object
+        "400":
+          description: Invalid request parameters | 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: Server error | 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: Get OAuth authorization URL | 获取OAuth授权URL
+      tags:
+      - OAuth | OAuth登录
+  /auth/oauth/{provider}/callback:
+    post:
+      consumes:
+      - application/json
+      description: Handle OAuth callback, auto login or register | 处理OAuth回调，自动登录或注册
+      parameters:
+      - description: Provider type | 提供商类型
+        enum:
+        - QQ
+        - GitHub
+        - Google
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: OAuth callback parameters | OAuth回调参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.OAuthCallbackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success | 处理成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.OAuthCallbackResponse'
+              type: object
+        "400":
+          description: Invalid request parameters | 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: Server error | 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: Handle OAuth callback | 处理OAuth回调
+      tags:
+      - OAuth | OAuth登录
+  /auth/oauth/providers:
+    get:
+      consumes:
+      - application/json
+      description: Get all enabled OAuth providers for frontend display | 获取所有已启用的OAuth提供商，用于前端展示
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success | 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.OAuthProviderPublicListResponse'
+              type: object
+        "500":
+          description: Server error | 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: Get enabled OAuth providers list | 获取已启用的OAuth提供商列表
+      tags:
+      - OAuth | OAuth登录
   /auth/register:
     post:
       consumes:
@@ -8098,6 +8305,170 @@ paths:
       summary: Update sign-in settings | 更新签到设置
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
+  /user/oauth/{provider}:
+    delete:
+      consumes:
+      - application/json
+      description: Unbind OAuth account from current user | 从当前用户解绑OAuth账号
+      parameters:
+      - description: Provider type | 提供商类型
+        enum:
+        - QQ
+        - GitHub
+        - Google
+        in: path
+        name: provider
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success | 解绑成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: Invalid request parameters | 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: Unauthorized | 未登录
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: Server error | 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: Unbind OAuth account | 解绑OAuth账号
+      tags:
+      - '[User]OAuth | [用户]OAuth登录'
+  /user/oauth/{provider}/bindcallback:
+    post:
+      consumes:
+      - application/json
+      description: Handle OAuth bind callback, bindOAuth account to current user |
+        处理OAuth绑定回调，将OAuth账号绑定到当前用户
+      parameters:
+      - description: Provider type | 提供商类型
+        enum:
+        - QQ
+        - GitHub
+        - Google
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: OAuth bind callback parameters | OAuth绑定回调参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.OAuthBindCallbackRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success | 绑定成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: Invalid request parameters | 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: Unauthorized | 未登录
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: Server error | 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: Handle OAuth bind callback | 处理OAuth绑定回调
+      tags:
+      - '[User]OAuth | [用户]OAuth登录'
+  /user/oauth/{provider}/bindurl:
+    get:
+      consumes:
+      - application/json
+      description: Get authorization URL for binding OAuth account | 获取绑定OAuth账号的授权URL
+      parameters:
+      - description: Provider type | 提供商类型
+        enum:
+        - QQ
+        - GitHub
+        - Google
+        in: path
+        name: provider
+        required: true
+        type: string
+      - description: Frontend callback URL | 前端回调地址
+        in: query
+        name: redirect_uri
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success | 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.OAuthAuthorizeResponse'
+              type: object
+        "400":
+          description: Invalid request parameters | 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: Unauthorized | 未登录
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: Server error | 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: Get OAuth bind authorization URL | 获取OAuth绑定授权URL
+      tags:
+      - '[User]OAuth | [用户]OAuth登录'
+  /user/oauth/bindlist:
+    get:
+      consumes:
+      - application/json
+      description: Get current user's all OAuth bindings | 获取当前用户的所有OAuth绑定
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success | 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.OAuthUserBindListResponse'
+              type: object
+        "401":
+          description: Unauthorized | 未登录
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: Server error | 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      security:
+      - Bearer: []
+      summary: Get user OAuth binding list | 获取用户OAuth绑定列表
+      tags:
+      - '[User]OAuth | [用户]OAuth登录'
 schemes:
 - http
 - https

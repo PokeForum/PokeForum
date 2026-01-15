@@ -18,6 +18,7 @@ type Repositories struct {
 	UserSigninStatus  IUserSigninStatusRepository
 	UserSigninLogs    IUserSigninLogsRepository
 	OAuthProvider     IOAuthProviderRepository
+	UserOAuth         IUserOAuthRepository
 	CategoryModerator ICategoryModeratorRepository
 	UserBalanceLog    IUserBalanceLogRepository
 }
@@ -37,6 +38,7 @@ func NewRepositories(db *ent.Client) *Repositories {
 		UserSigninStatus:  NewUserSigninStatusRepository(db),
 		UserSigninLogs:    NewUserSigninLogsRepository(db),
 		OAuthProvider:     NewOAuthProviderRepository(db),
+		UserOAuth:         NewUserOAuthRepository(db),
 		CategoryModerator: NewCategoryModeratorRepository(db),
 		UserBalanceLog:    NewUserBalanceLogRepository(db),
 	}

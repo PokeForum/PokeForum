@@ -413,7 +413,7 @@ func (s *SettingsService) SendTestEmail(ctx context.Context, toEmail string) err
 	// Build email content | 构建邮件内容
 	htmlBody := `
 	<html>
-		<body>
+		<body>y
 			<h2>邮箱服务测试</h2>
 			<p>这是来自 PokeForum 的测试邮件。</p>
 			<p>如果您收到此邮件，说明邮箱服务配置成功。</p>

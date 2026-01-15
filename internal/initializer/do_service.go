@@ -163,6 +163,15 @@ func InjectorSrv(injector *do.Injector) {
 		cacheService := do.MustInvoke[cache.ICacheService](i)
 		return service.NewOAuthProviderService(db, repos, cacheService, logger), nil
 	})
+	// Register OAuthService | 注册 OAuthService
+	do.Provide(injector, func(i *do.Injector) (service.IOAuthService, error) {
+		db := do.MustInvoke[*ent.Client](i)
+		repos := do.MustInvoke[*repository.Repositories](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		cacheService := do.MustInvoke[cache.ICacheService](i)
+		settingsService := do.MustInvoke[service.ISettingsService](i)
+		return service.NewOAuthService(db, repos.User, repos.UserOAuth, repos.OAuthProvider, cacheService, logger, settingsService), nil
+	})
 
 	// Register RedisLock | 注册 RedisLock
 	do.Provide(injector, func(i *do.Injector) (*cache.RedisLock, error) {
