@@ -22,7 +22,7 @@ func NewFIDO2Provider(config *Config) (IProvider, error) {
 }
 
 // GetAuthURL FIDO2不使用授权URL
-func (f *FIDO2Provider) GetAuthURL(state string) string {
+func (f *FIDO2Provider) GetAuthURL(state string, redirectURL string) string {
 	return ""
 }
 

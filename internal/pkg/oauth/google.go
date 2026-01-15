@@ -32,12 +32,12 @@ func NewGoogleProvider(config *Config) (IProvider, error) {
 }
 
 // GetAuthURL 获取Google授权URL
-func (g *GoogleProvider) GetAuthURL(state string) string {
+func (g *GoogleProvider) GetAuthURL(state string, redirectURL string) string {
 	extraParams := map[string]string{
 		"access_type": "offline", // 获取refresh_token
 		"prompt":      "consent",
 	}
-	return g.BuildAuthURL(state, extraParams)
+	return g.BuildAuthURL(state, redirectURL, extraParams)
 }
 
 // ExchangeToken 使用授权码换取访问令牌

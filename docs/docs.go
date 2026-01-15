@@ -8756,11 +8756,6 @@ const docTemplate = `{
                     ],
                     "example": "GitHub"
                 },
-                "redirect_url": {
-                    "description": "Callback URL | 回调URL",
-                    "type": "string",
-                    "example": "https://example.com/auth/callback"
-                },
                 "scopes": {
                     "description": "Request scopes | 请求范围",
                     "type": "array",
@@ -8832,11 +8827,6 @@ const docTemplate = `{
                     "type": "string",
                     "example": "GitHub"
                 },
-                "redirect_url": {
-                    "description": "Callback URL | 回调URL",
-                    "type": "string",
-                    "example": "https://example.com/auth/callback"
-                },
                 "scopes": {
                     "description": "Request scopes | 请求范围",
                     "type": "array",
@@ -8901,11 +8891,6 @@ const docTemplate = `{
                     "description": "Provider type | 提供商类型",
                     "type": "string",
                     "example": "GitHub"
-                },
-                "redirect_url": {
-                    "description": "Callback URL | 回调URL",
-                    "type": "string",
-                    "example": "https://example.com/auth/callback"
                 },
                 "scopes": {
                     "description": "Request scopes | 请求范围",
@@ -9031,11 +9016,6 @@ const docTemplate = `{
                     "description": "Provider ID | 提供商ID",
                     "type": "integer",
                     "example": 1
-                },
-                "redirect_url": {
-                    "description": "Callback URL | 回调URL",
-                    "type": "string",
-                    "example": "https://example.com/auth/callback"
                 },
                 "scopes": {
                     "description": "Request scopes | 请求范围",

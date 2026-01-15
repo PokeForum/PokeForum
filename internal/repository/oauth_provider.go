@@ -19,7 +19,7 @@ type IOAuthProviderRepository interface {
 	// ExistsByID Check if provider exists by ID | 检查提供商是否存在
 	ExistsByID(ctx context.Context, id int) (bool, error)
 	// Create Create OAuth provider | 创建OAuth提供商
-	Create(ctx context.Context, provider, clientID, clientSecret, authURL, tokenURL, userInfoURL, redirectURL string, scopes []string, extraConfig map[string]interface{}, enabled bool, sortOrder int) (*ent.OAuthProvider, error)
+	Create(ctx context.Context, provider, clientID, clientSecret, authURL, tokenURL, userInfoURL string, scopes []string, extraConfig map[string]interface{}, enabled bool, sortOrder int) (*ent.OAuthProvider, error)
 	// Update Update OAuth provider | 更新OAuth提供商
 	Update(ctx context.Context, id int, updateFn func(*ent.OAuthProviderUpdateOne) *ent.OAuthProviderUpdateOne) (*ent.OAuthProvider, error)
 	// UpdateStatus Update OAuth provider status | 更新OAuth提供商状态
@@ -82,7 +82,7 @@ func (r *OAuthProviderRepository) ExistsByID(ctx context.Context, id int) (bool,
 }
 
 // Create Create OAuth provider | 创建OAuth提供商
-func (r *OAuthProviderRepository) Create(ctx context.Context, provider, clientID, clientSecret, authURL, tokenURL, userInfoURL, redirectURL string, scopes []string, extraConfig map[string]interface{}, enabled bool, sortOrder int) (*ent.OAuthProvider, error) {
+func (r *OAuthProviderRepository) Create(ctx context.Context, provider, clientID, clientSecret, authURL, tokenURL, userInfoURL string, scopes []string, extraConfig map[string]interface{}, enabled bool, sortOrder int) (*ent.OAuthProvider, error) {
 	return r.db.OAuthProvider.Create().
 		SetProvider(oauthprovider.Provider(provider)).
 		SetClientID(clientID).
@@ -90,7 +90,6 @@ func (r *OAuthProviderRepository) Create(ctx context.Context, provider, clientID
 		SetAuthURL(authURL).
 		SetTokenURL(tokenURL).
 		SetUserInfoURL(userInfoURL).
-		SetRedirectURL(redirectURL).
 		SetScopes(scopes).
 		SetExtraConfig(extraConfig).
 		SetEnabled(enabled).

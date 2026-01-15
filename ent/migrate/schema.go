@@ -189,7 +189,6 @@ var (
 		{Name: "auth_url", Type: field.TypeString, Nullable: true},
 		{Name: "token_url", Type: field.TypeString, Nullable: true},
 		{Name: "user_info_url", Type: field.TypeString, Nullable: true},
-		{Name: "redirect_url", Type: field.TypeString, Nullable: true},
 		{Name: "scopes", Type: field.TypeJSON, Nullable: true},
 		{Name: "extra_config", Type: field.TypeJSON, Nullable: true},
 		{Name: "enabled", Type: field.TypeBool, Default: false},
@@ -209,12 +208,12 @@ var (
 			{
 				Name:    "oauthprovider_enabled",
 				Unique:  false,
-				Columns: []*schema.Column{OauthProvidersColumns[12]},
+				Columns: []*schema.Column{OauthProvidersColumns[11]},
 			},
 			{
 				Name:    "oauthprovider_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{OauthProvidersColumns[13]},
+				Columns: []*schema.Column{OauthProvidersColumns[12]},
 			},
 		},
 	}

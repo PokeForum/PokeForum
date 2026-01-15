@@ -154,7 +154,7 @@ func (s *OAuthService) GetAuthorizeURL(ctx context.Context, provider string, req
 		return nil, errors.New("OAuth提供商未配置")
 	}
 
-	authURL := p.GetAuthURL(state)
+	authURL := p.GetAuthURL(state, req.RedirectURI)
 
 	s.logger.Info("Generated OAuth authorize URL | 生成OAuth授权URL",
 		tracing.WithTraceIDField(ctx),
@@ -289,7 +289,7 @@ func (s *OAuthService) GetBindURL(ctx context.Context, userID int, provider stri
 		return nil, errors.New("OAuth提供商未配置")
 	}
 
-	authURL := p.GetAuthURL(state)
+	authURL := p.GetAuthURL(state, req.RedirectURI)
 
 	s.logger.Info("Generated OAuth bind URL | 生成OAuth绑定URL",
 		tracing.WithTraceIDField(ctx),
@@ -454,15 +454,20 @@ func (s *OAuthService) getAndRegisterProvider(ctx context.Context, provider stri
 		AuthURL:      oauthProvider.AuthURL,
 		TokenURL:     oauthProvider.TokenURL,
 		UserInfoURL:  oauthProvider.UserInfoURL,
-		RedirectURL:  oauthProvider.RedirectURL,
 		Scopes:       oauthProvider.Scopes,
 		ExtraConfig:  oauthProvider.ExtraConfig,
 	}
 
-	// Try to register, ignore if already registered | 尝试注册，如果已注册则忽略
+	// Register provider | 注册提供商
 	if err := s.oauthClient.RegisterProvider(oauth.Provider(provider), config); err != nil {
-		s.logger.Debug("OAuth provider already registered | OAuth提供商已注册",
-			tracing.WithTraceIDField(ctx), zap.String("provider", provider))
+		if err == oauth.ErrProviderAlreadyRegistered {
+			s.logger.Debug("OAuth provider already registered | OAuth提供商已注册",
+				tracing.WithTraceIDField(ctx), zap.String("provider", provider))
+		} else {
+			s.logger.Error("Failed to register OAuth provider | 注册OAuth提供商失败",
+				tracing.WithTraceIDField(ctx), zap.Error(err), zap.String("provider", provider))
+			return nil, fmt.Errorf("注册OAuth提供商失败: %w", err)
+		}
 	}
 
 	return oauthProvider, nil

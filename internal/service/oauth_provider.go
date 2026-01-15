@@ -70,7 +70,6 @@ func (s *OAuthProviderService) GetProviderList(ctx context.Context, req schema.O
 			AuthURL:     provider.AuthURL,
 			TokenURL:    provider.TokenURL,
 			UserInfoURL: provider.UserInfoURL,
-			RedirectURL: provider.RedirectURL,
 			Scopes:      provider.Scopes,
 			Enabled:     provider.Enabled,
 			SortOrder:   provider.SortOrder,
@@ -99,7 +98,7 @@ func (s *OAuthProviderService) CreateProvider(ctx context.Context, req schema.OA
 	}
 
 	// Create OAuth provider | 创建OAuth提供商
-	provider, err := s.oauthRepo.Create(ctx, req.Provider, req.ClientID, req.ClientSecret, req.AuthURL, req.TokenURL, req.UserInfoURL, req.RedirectURL, req.Scopes, req.ExtraConfig, req.Enabled, req.SortOrder)
+	provider, err := s.oauthRepo.Create(ctx, req.Provider, req.ClientID, req.ClientSecret, req.AuthURL, req.TokenURL, req.UserInfoURL, req.Scopes, req.ExtraConfig, req.Enabled, req.SortOrder)
 	if err != nil {
 		s.logger.Error("Failed to create OAuth provider | 创建OAuth提供商失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, fmt.Errorf("创建OAuth提供商失败: %w", err)
@@ -126,7 +125,6 @@ func (s *OAuthProviderService) UpdateProvider(ctx context.Context, req schema.OA
 			SetAuthURL(req.AuthURL).
 			SetTokenURL(req.TokenURL).
 			SetUserInfoURL(req.UserInfoURL).
-			SetRedirectURL(req.RedirectURL).
 			SetScopes(req.Scopes).
 			SetExtraConfig(req.ExtraConfig)
 		if req.ClientSecret != "" {
@@ -201,7 +199,6 @@ func (s *OAuthProviderService) GetProviderDetail(ctx context.Context, id int) (*
 		AuthURL:      provider.AuthURL,
 		TokenURL:     provider.TokenURL,
 		UserInfoURL:  provider.UserInfoURL,
-		RedirectURL:  provider.RedirectURL,
 		Scopes:       provider.Scopes,
 		ExtraConfig:  provider.ExtraConfig,
 		Enabled:      provider.Enabled,

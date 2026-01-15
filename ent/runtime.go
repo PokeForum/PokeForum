@@ -206,11 +206,11 @@ func init() {
 	// oauthprovider.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	oauthprovider.UpdateDefaultUpdatedAt = oauthproviderDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// oauthproviderDescEnabled is the schema descriptor for enabled field.
-	oauthproviderDescEnabled := oauthproviderFields[10].Descriptor()
+	oauthproviderDescEnabled := oauthproviderFields[9].Descriptor()
 	// oauthprovider.DefaultEnabled holds the default value on creation for the enabled field.
 	oauthprovider.DefaultEnabled = oauthproviderDescEnabled.Default.(bool)
 	// oauthproviderDescSortOrder is the schema descriptor for sort_order field.
-	oauthproviderDescSortOrder := oauthproviderFields[11].Descriptor()
+	oauthproviderDescSortOrder := oauthproviderFields[10].Descriptor()
 	// oauthprovider.DefaultSortOrder holds the default value on creation for the sort_order field.
 	oauthprovider.DefaultSortOrder = oauthproviderDescSortOrder.Default.(int)
 	// oauthprovider.SortOrderValidator is a validator for the "sort_order" field. It is called by the builders before save.

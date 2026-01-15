@@ -38,8 +38,8 @@ func NewQQProvider(config *Config) (IProvider, error) {
 }
 
 // GetAuthURL 获取QQ授权URL
-func (q *QQProvider) GetAuthURL(state string) string {
-	return q.BuildAuthURL(state, nil)
+func (q *QQProvider) GetAuthURL(state string, redirectURL string) string {
+	return q.BuildAuthURL(state, redirectURL, nil)
 }
 
 // ExchangeToken 使用授权码换取访问令牌
@@ -49,7 +49,6 @@ func (q *QQProvider) ExchangeToken(ctx context.Context, code string) (*TokenResp
 	data.Set("client_id", q.config.ClientID)
 	data.Set("client_secret", q.config.ClientSecret)
 	data.Set("code", code)
-	data.Set("redirect_uri", q.config.RedirectURL)
 	data.Set("grant_type", "authorization_code")
 
 	req, err := http.NewRequestWithContext(ctx, "GET", q.config.TokenURL+"?"+data.Encode(), http.NoBody)

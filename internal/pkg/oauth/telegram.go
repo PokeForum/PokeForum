@@ -28,11 +28,11 @@ func NewTelegramProvider(config *Config) (IProvider, error) {
 
 // GetAuthURL 获取Telegram授权URL
 // Telegram使用Widget，不需要授权URL
-func (t *TelegramProvider) GetAuthURL(state string) string {
+func (t *TelegramProvider) GetAuthURL(state string, redirectURL string) string {
 	// Telegram使用Widget嵌入到页面中
 	// 返回Widget的配置信息
 	return fmt.Sprintf("https://telegram.org/auth?bot_id=%s&origin=%s&request_access=write",
-		t.config.ClientID, t.config.RedirectURL)
+		t.config.ClientID, redirectURL)
 }
 
 // ExchangeToken Telegram不需要交换Token

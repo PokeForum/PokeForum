@@ -1222,10 +1222,6 @@ definitions:
         - FIDO2
         example: GitHub
         type: string
-      redirect_url:
-        description: Callback URL | 回调URL
-        example: https://example.com/auth/callback
-        type: string
       scopes:
         description: Request scopes | 请求范围
         example:
@@ -1285,10 +1281,6 @@ definitions:
         description: Provider type | 提供商类型
         example: GitHub
         type: string
-      redirect_url:
-        description: Callback URL | 回调URL
-        example: https://example.com/auth/callback
-        type: string
       scopes:
         description: Request scopes | 请求范围
         example:
@@ -1338,10 +1330,6 @@ definitions:
       provider:
         description: Provider type | 提供商类型
         example: GitHub
-        type: string
-      redirect_url:
-        description: Callback URL | 回调URL
-        example: https://example.com/auth/callback
         type: string
       scopes:
         description: Request scopes | 请求范围
@@ -1433,10 +1421,6 @@ definitions:
         description: Provider ID | 提供商ID
         example: 1
         type: integer
-      redirect_url:
-        description: Callback URL | 回调URL
-        example: https://example.com/auth/callback
-        type: string
       scopes:
         description: Request scopes | 请求范围
         example:

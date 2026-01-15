@@ -121,9 +121,5 @@ func validateConfig(config *Config) error {
 		return ErrMissingRequiredField
 	}
 
-	if config.RedirectURL == "" {
-		return ErrMissingRequiredField
-	}
-
 	return nil
 }

@@ -3934,7 +3934,6 @@ type OAuthProviderMutation struct {
 	auth_url      *string
 	token_url     *string
 	user_info_url *string
-	redirect_url  *string
 	scopes        *[]string
 	appendscopes  []string
 	extra_config  *map[string]interface{}
@@ -4404,55 +4403,6 @@ func (m *OAuthProviderMutation) ResetUserInfoURL() {
 	delete(m.clearedFields, oauthprovider.FieldUserInfoURL)
 }
 
-// SetRedirectURL sets the "redirect_url" field.
-func (m *OAuthProviderMutation) SetRedirectURL(s string) {
-	m.redirect_url = &s
-}
-
-// RedirectURL returns the value of the "redirect_url" field in the mutation.
-func (m *OAuthProviderMutation) RedirectURL() (r string, exists bool) {
-	v := m.redirect_url
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldRedirectURL returns the old "redirect_url" field's value of the OAuthProvider entity.
-// If the OAuthProvider object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *OAuthProviderMutation) OldRedirectURL(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRedirectURL is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRedirectURL requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRedirectURL: %w", err)
-	}
-	return oldValue.RedirectURL, nil
-}
-
-// ClearRedirectURL clears the value of the "redirect_url" field.
-func (m *OAuthProviderMutation) ClearRedirectURL() {
-	m.redirect_url = nil
-	m.clearedFields[oauthprovider.FieldRedirectURL] = struct{}{}
-}
-
-// RedirectURLCleared returns if the "redirect_url" field was cleared in this mutation.
-func (m *OAuthProviderMutation) RedirectURLCleared() bool {
-	_, ok := m.clearedFields[oauthprovider.FieldRedirectURL]
-	return ok
-}
-
-// ResetRedirectURL resets all changes to the "redirect_url" field.
-func (m *OAuthProviderMutation) ResetRedirectURL() {
-	m.redirect_url = nil
-	delete(m.clearedFields, oauthprovider.FieldRedirectURL)
-}
-
 // SetScopes sets the "scopes" field.
 func (m *OAuthProviderMutation) SetScopes(s []string) {
 	m.scopes = &s
@@ -4693,7 +4643,7 @@ func (m *OAuthProviderMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OAuthProviderMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 12)
 	if m.created_at != nil {
 		fields = append(fields, oauthprovider.FieldCreatedAt)
 	}
@@ -4717,9 +4667,6 @@ func (m *OAuthProviderMutation) Fields() []string {
 	}
 	if m.user_info_url != nil {
 		fields = append(fields, oauthprovider.FieldUserInfoURL)
-	}
-	if m.redirect_url != nil {
-		fields = append(fields, oauthprovider.FieldRedirectURL)
 	}
 	if m.scopes != nil {
 		fields = append(fields, oauthprovider.FieldScopes)
@@ -4757,8 +4704,6 @@ func (m *OAuthProviderMutation) Field(name string) (ent.Value, bool) {
 		return m.TokenURL()
 	case oauthprovider.FieldUserInfoURL:
 		return m.UserInfoURL()
-	case oauthprovider.FieldRedirectURL:
-		return m.RedirectURL()
 	case oauthprovider.FieldScopes:
 		return m.Scopes()
 	case oauthprovider.FieldExtraConfig:
@@ -4792,8 +4737,6 @@ func (m *OAuthProviderMutation) OldField(ctx context.Context, name string) (ent.
 		return m.OldTokenURL(ctx)
 	case oauthprovider.FieldUserInfoURL:
 		return m.OldUserInfoURL(ctx)
-	case oauthprovider.FieldRedirectURL:
-		return m.OldRedirectURL(ctx)
 	case oauthprovider.FieldScopes:
 		return m.OldScopes(ctx)
 	case oauthprovider.FieldExtraConfig:
@@ -4866,13 +4809,6 @@ func (m *OAuthProviderMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUserInfoURL(v)
-		return nil
-	case oauthprovider.FieldRedirectURL:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetRedirectURL(v)
 		return nil
 	case oauthprovider.FieldScopes:
 		v, ok := value.([]string)
@@ -4962,9 +4898,6 @@ func (m *OAuthProviderMutation) ClearedFields() []string {
 	if m.FieldCleared(oauthprovider.FieldUserInfoURL) {
 		fields = append(fields, oauthprovider.FieldUserInfoURL)
 	}
-	if m.FieldCleared(oauthprovider.FieldRedirectURL) {
-		fields = append(fields, oauthprovider.FieldRedirectURL)
-	}
 	if m.FieldCleared(oauthprovider.FieldScopes) {
 		fields = append(fields, oauthprovider.FieldScopes)
 	}
@@ -4999,9 +4932,6 @@ func (m *OAuthProviderMutation) ClearField(name string) error {
 		return nil
 	case oauthprovider.FieldUserInfoURL:
 		m.ClearUserInfoURL()
-		return nil
-	case oauthprovider.FieldRedirectURL:
-		m.ClearRedirectURL()
 		return nil
 	case oauthprovider.FieldScopes:
 		m.ClearScopes()
@@ -5040,9 +4970,6 @@ func (m *OAuthProviderMutation) ResetField(name string) error {
 		return nil
 	case oauthprovider.FieldUserInfoURL:
 		m.ResetUserInfoURL()
-		return nil
-	case oauthprovider.FieldRedirectURL:
-		m.ResetRedirectURL()
 		return nil
 	case oauthprovider.FieldScopes:
 		m.ResetScopes()

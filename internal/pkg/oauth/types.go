@@ -24,7 +24,6 @@ type Config struct {
 	AuthURL      string                 // Authorization URL | 授权URL
 	TokenURL     string                 // Token acquisition URL | Token获取URL
 	UserInfoURL  string                 // User info acquisition URL | 用户信息获取URL
-	RedirectURL  string                 // Callback URL | 回调URL
 	Scopes       []string               // Request scope | 请求范围
 	ExtraConfig  map[string]interface{} // Extra configuration parameters | 额外配置参数
 }
@@ -53,8 +52,9 @@ type UserInfo struct {
 type IProvider interface {
 	// GetAuthURL Get authorization URL | 获取授权URL
 	// state: random string to prevent CSRF attacks | state: 用于防止CSRF攻击的随机字符串
+	// redirectURL: callback URL from frontend | redirectURL: 前端传入的回调URL
 	// Returns the authorization URL that users should visit | 返回用户应该访问的授权URL
-	GetAuthURL(state string) string
+	GetAuthURL(state string, redirectURL string) string
 
 	// ExchangeToken Exchange authorization code for access token | 使用授权码换取访问令牌
 	// ctx: context | ctx: 上下文

@@ -124,20 +124,6 @@ func (_c *OAuthProviderCreate) SetNillableUserInfoURL(v *string) *OAuthProviderC
 	return _c
 }
 
-// SetRedirectURL sets the "redirect_url" field.
-func (_c *OAuthProviderCreate) SetRedirectURL(v string) *OAuthProviderCreate {
-	_c.mutation.SetRedirectURL(v)
-	return _c
-}
-
-// SetNillableRedirectURL sets the "redirect_url" field if the given value is not nil.
-func (_c *OAuthProviderCreate) SetNillableRedirectURL(v *string) *OAuthProviderCreate {
-	if v != nil {
-		_c.SetRedirectURL(*v)
-	}
-	return _c
-}
-
 // SetScopes sets the "scopes" field.
 func (_c *OAuthProviderCreate) SetScopes(v []string) *OAuthProviderCreate {
 	_c.mutation.SetScopes(v)
@@ -332,10 +318,6 @@ func (_c *OAuthProviderCreate) createSpec() (*OAuthProvider, *sqlgraph.CreateSpe
 	if value, ok := _c.mutation.UserInfoURL(); ok {
 		_spec.SetField(oauthprovider.FieldUserInfoURL, field.TypeString, value)
 		_node.UserInfoURL = value
-	}
-	if value, ok := _c.mutation.RedirectURL(); ok {
-		_spec.SetField(oauthprovider.FieldRedirectURL, field.TypeString, value)
-		_node.RedirectURL = value
 	}
 	if value, ok := _c.mutation.Scopes(); ok {
 		_spec.SetField(oauthprovider.FieldScopes, field.TypeJSON, value)

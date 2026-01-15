@@ -30,8 +30,6 @@ const (
 	FieldTokenURL = "token_url"
 	// FieldUserInfoURL holds the string denoting the user_info_url field in the database.
 	FieldUserInfoURL = "user_info_url"
-	// FieldRedirectURL holds the string denoting the redirect_url field in the database.
-	FieldRedirectURL = "redirect_url"
 	// FieldScopes holds the string denoting the scopes field in the database.
 	FieldScopes = "scopes"
 	// FieldExtraConfig holds the string denoting the extra_config field in the database.
@@ -55,7 +53,6 @@ var Columns = []string{
 	FieldAuthURL,
 	FieldTokenURL,
 	FieldUserInfoURL,
-	FieldRedirectURL,
 	FieldScopes,
 	FieldExtraConfig,
 	FieldEnabled,
@@ -161,11 +158,6 @@ func ByTokenURL(opts ...sql.OrderTermOption) OrderOption {
 // ByUserInfoURL orders the results by the user_info_url field.
 func ByUserInfoURL(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUserInfoURL, opts...).ToFunc()
-}
-
-// ByRedirectURL orders the results by the redirect_url field.
-func ByRedirectURL(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldRedirectURL, opts...).ToFunc()
 }
 
 // ByEnabled orders the results by the enabled field.

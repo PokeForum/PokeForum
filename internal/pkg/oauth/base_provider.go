@@ -35,10 +35,10 @@ func (b *BaseProvider) GetConfig() *Config {
 
 // BuildAuthURL 构建授权URL
 // 通用的授权URL构建逻辑
-func (b *BaseProvider) BuildAuthURL(state string, extraParams map[string]string) string {
+func (b *BaseProvider) BuildAuthURL(state string, redirectURL string, extraParams map[string]string) string {
 	params := url.Values{}
 	params.Set("client_id", b.config.ClientID)
-	params.Set("redirect_uri", b.config.RedirectURL)
+	params.Set("redirect_uri", redirectURL)
 	params.Set("state", state)
 	params.Set("response_type", "code")
 
@@ -55,19 +55,11 @@ func (b *BaseProvider) BuildAuthURL(state string, extraParams map[string]string)
 	return fmt.Sprintf("%s?%s", b.config.AuthURL, params.Encode())
 }
 
-// ExchangeTokenByForm 通过表单方式交换Token
-// 适用于大多数OAuth提供商
-func (b *BaseProvider) ExchangeTokenByForm(ctx context.Context, code string) (*TokenResponse, error) {
-	data := url.Values{}
-	data.Set("client_id", b.config.ClientID)
-	data.Set("client_secret", b.config.ClientSecret)
-	data.Set("code", code)
-	data.Set("redirect_uri", b.config.RedirectURL)
-	data.Set("grant_type", "authorization_code")
-
+// doTokenExchange 执行Token交换/刷新的通用逻辑
+func (b *BaseProvider) doTokenExchange(ctx context.Context, data url.Values, errOnFailed error) (*TokenResponse, error) {
 	req, err := http.NewRequestWithContext(ctx, "POST", b.config.TokenURL, strings.NewReader(data.Encode()))
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrExchangeTokenFailed, err)
+		return nil, fmt.Errorf("%w: %v", errOnFailed, err)
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -81,7 +73,7 @@ func (b *BaseProvider) ExchangeTokenByForm(ctx context.Context, code string) (*T
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body) //nolint:errcheck // 错误处理时读取body失败不影响主错误返回
-		return nil, fmt.Errorf("%w: status=%d, body=%s", ErrExchangeTokenFailed, resp.StatusCode, string(body))
+		return nil, fmt.Errorf("%w: status=%d, body=%s", errOnFailed, resp.StatusCode, string(body))
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -102,7 +94,7 @@ func (b *BaseProvider) ExchangeTokenByForm(ctx context.Context, code string) (*T
 	}
 
 	if tokenResp.AccessToken == "" {
-		return nil, fmt.Errorf("%w: access_token is empty", ErrExchangeTokenFailed)
+		return nil, fmt.Errorf("%w: access_token is empty", errOnFailed)
 	}
 
 	return &TokenResponse{
@@ -113,6 +105,29 @@ func (b *BaseProvider) ExchangeTokenByForm(ctx context.Context, code string) (*T
 		Scope:        tokenResp.Scope,
 		ExpiresAt:    time.Now().Add(time.Duration(tokenResp.ExpiresIn) * time.Second),
 	}, nil
+}
+
+// ExchangeTokenByForm 通过表单方式交换Token
+// 适用于大多数OAuth提供商
+func (b *BaseProvider) ExchangeTokenByForm(ctx context.Context, code string) (*TokenResponse, error) {
+	data := url.Values{}
+	data.Set("client_id", b.config.ClientID)
+	data.Set("client_secret", b.config.ClientSecret)
+	data.Set("code", code)
+	data.Set("grant_type", "authorization_code")
+
+	return b.doTokenExchange(ctx, data, ErrExchangeTokenFailed)
+}
+
+// RefreshTokenByForm 通过表单方式刷新Token
+func (b *BaseProvider) RefreshTokenByForm(ctx context.Context, refreshToken string) (*TokenResponse, error) {
+	data := url.Values{}
+	data.Set("client_id", b.config.ClientID)
+	data.Set("client_secret", b.config.ClientSecret)
+	data.Set("refresh_token", refreshToken)
+	data.Set("grant_type", "refresh_token")
+
+	return b.doTokenExchange(ctx, data, ErrRefreshTokenFailed)
 }
 
 // GetUserInfoByJSON 通过JSON方式获取用户信息
@@ -148,64 +163,6 @@ func (b *BaseProvider) GetUserInfoByJSON(ctx context.Context, accessToken string
 	}
 
 	return userInfo, nil
-}
-
-// RefreshTokenByForm 通过表单方式刷新Token
-func (b *BaseProvider) RefreshTokenByForm(ctx context.Context, refreshToken string) (*TokenResponse, error) {
-	data := url.Values{}
-	data.Set("client_id", b.config.ClientID)
-	data.Set("client_secret", b.config.ClientSecret)
-	data.Set("refresh_token", refreshToken)
-	data.Set("grant_type", "refresh_token")
-
-	req, err := http.NewRequestWithContext(ctx, "POST", b.config.TokenURL, strings.NewReader(data.Encode()))
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrRefreshTokenFailed, err)
-	}
-
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Accept", "application/json")
-
-	resp, err := b.httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrNetworkRequest, err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body) //nolint:errcheck // 错误处理时读取body失败不影响主错误返回
-		return nil, fmt.Errorf("%w: status=%d, body=%s", ErrRefreshTokenFailed, resp.StatusCode, string(body))
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrParseResponse, err)
-	}
-
-	var tokenResp struct {
-		AccessToken  string `json:"access_token"`
-		TokenType    string `json:"token_type"`
-		ExpiresIn    int    `json:"expires_in"`
-		RefreshToken string `json:"refresh_token"`
-		Scope        string `json:"scope"`
-	}
-
-	if err := json.Unmarshal(body, &tokenResp); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrParseResponse, err)
-	}
-
-	if tokenResp.AccessToken == "" {
-		return nil, fmt.Errorf("%w: access_token is empty", ErrRefreshTokenFailed)
-	}
-
-	return &TokenResponse{
-		AccessToken:  tokenResp.AccessToken,
-		TokenType:    tokenResp.TokenType,
-		ExpiresIn:    tokenResp.ExpiresIn,
-		RefreshToken: tokenResp.RefreshToken,
-		Scope:        tokenResp.Scope,
-		ExpiresAt:    time.Now().Add(time.Duration(tokenResp.ExpiresIn) * time.Second),
-	}, nil
 }
 
 // ValidateTokenByUserInfo 通过获取用户信息来验证Token

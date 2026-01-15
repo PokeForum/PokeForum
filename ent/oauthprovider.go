@@ -34,8 +34,6 @@ type OAuthProvider struct {
 	TokenURL string `json:"token_url,omitempty"`
 	// UserInfoURL holds the value of the "user_info_url" field.
 	UserInfoURL string `json:"user_info_url,omitempty"`
-	// RedirectURL holds the value of the "redirect_url" field.
-	RedirectURL string `json:"redirect_url,omitempty"`
 	// Scopes holds the value of the "scopes" field.
 	Scopes []string `json:"scopes,omitempty"`
 	// ExtraConfig holds the value of the "extra_config" field.
@@ -58,7 +56,7 @@ func (*OAuthProvider) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case oauthprovider.FieldID, oauthprovider.FieldSortOrder:
 			values[i] = new(sql.NullInt64)
-		case oauthprovider.FieldProvider, oauthprovider.FieldClientID, oauthprovider.FieldClientSecret, oauthprovider.FieldAuthURL, oauthprovider.FieldTokenURL, oauthprovider.FieldUserInfoURL, oauthprovider.FieldRedirectURL:
+		case oauthprovider.FieldProvider, oauthprovider.FieldClientID, oauthprovider.FieldClientSecret, oauthprovider.FieldAuthURL, oauthprovider.FieldTokenURL, oauthprovider.FieldUserInfoURL:
 			values[i] = new(sql.NullString)
 		case oauthprovider.FieldCreatedAt, oauthprovider.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -130,12 +128,6 @@ func (_m *OAuthProvider) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field user_info_url", values[i])
 			} else if value.Valid {
 				_m.UserInfoURL = value.String
-			}
-		case oauthprovider.FieldRedirectURL:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field redirect_url", values[i])
-			} else if value.Valid {
-				_m.RedirectURL = value.String
 			}
 		case oauthprovider.FieldScopes:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -223,9 +215,6 @@ func (_m *OAuthProvider) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("user_info_url=")
 	builder.WriteString(_m.UserInfoURL)
-	builder.WriteString(", ")
-	builder.WriteString("redirect_url=")
-	builder.WriteString(_m.RedirectURL)
 	builder.WriteString(", ")
 	builder.WriteString("scopes=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Scopes))

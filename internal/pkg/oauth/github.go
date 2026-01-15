@@ -32,8 +32,8 @@ func NewGitHubProvider(config *Config) (IProvider, error) {
 }
 
 // GetAuthURL 获取GitHub授权URL
-func (g *GitHubProvider) GetAuthURL(state string) string {
-	return g.BuildAuthURL(state, nil)
+func (g *GitHubProvider) GetAuthURL(state string, redirectURL string) string {
+	return g.BuildAuthURL(state, redirectURL, nil)
 }
 
 // ExchangeToken 使用授权码换取访问令牌

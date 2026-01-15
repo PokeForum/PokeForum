@@ -37,9 +37,6 @@ func (OAuthProvider) Fields() []ent.Field {
 		// User info URL | 用户信息获取URL
 		field.String("user_info_url").
 			Optional(),
-		// Redirect URL | 回调URL
-		field.String("redirect_url").
-			Optional(),
 		// Request scopes, stored in JSON array format | 请求范围（Scopes），JSON数组格式存储
 		field.JSON("scopes", []string{}).
 			Optional(),
