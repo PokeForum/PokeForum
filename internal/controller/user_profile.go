@@ -55,7 +55,7 @@ func (ctrl *UserProfileController) getUserID(c *gin.Context) (int, error) {
 	// Get token from Header | 从Header中获取token
 	token := c.GetHeader("Authorization")
 	if token == "" {
-		return 0, fmt.Errorf("未找到Authorization header")
+		return 0, fmt.Errorf("authorization header not found | 未找到Authorization header")
 	}
 
 	// Use stputil to get logged-in user ID | 使用stputil获取登录用户ID
@@ -88,14 +88,14 @@ func (ctrl *UserProfileController) GetProfileOverview(c *gin.Context) {
 	// Get current logged-in user ID | 获取当前登录用户ID
 	currentUserID, err := ctrl.getUserID(c)
 	if err != nil {
-		response.ResErrorWithMsg(c, 401, "获取用户信息失败", err.Error())
+		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
 	}
 
 	// Parse user ID from query parameters | 解析查询参数中的用户ID
 	var req schema.UserProfileOverviewRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
 		return
 	}
 
@@ -138,14 +138,14 @@ func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
 	// Get current logged-in user ID | 获取当前登录用户ID
 	currentUserID, err := ctrl.getUserID(c)
 	if err != nil {
-		response.ResErrorWithMsg(c, 401, "获取用户信息失败", err.Error())
+		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
 	}
 
 	// Parse request parameters | 解析请求参数
 	var req schema.UserProfilePostsRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
 		return
 	}
 
@@ -187,14 +187,14 @@ func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
 	// Get current logged-in user ID | 获取当前登录用户ID
 	currentUserID, err := ctrl.getUserID(c)
 	if err != nil {
-		response.ResErrorWithMsg(c, 401, "获取用户信息失败", err.Error())
+		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
 	}
 
 	// Parse request parameters | 解析请求参数
 	var req schema.UserProfileCommentsRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
 		return
 	}
 
@@ -236,14 +236,14 @@ func (ctrl *UserProfileController) GetUserFavorites(c *gin.Context) {
 	// Get current logged-in user ID | 获取当前登录用户ID
 	currentUserID, err := ctrl.getUserID(c)
 	if err != nil {
-		response.ResErrorWithMsg(c, 401, "获取用户信息失败", err.Error())
+		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
 	}
 
 	// Parse request parameters | 解析请求参数
 	var req schema.UserProfileFavoritesRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
 		return
 	}
 
@@ -283,14 +283,14 @@ func (ctrl *UserProfileController) UpdatePassword(c *gin.Context) {
 	// Get user ID | 获取用户ID
 	userID, err := ctrl.getUserID(c)
 	if err != nil {
-		response.ResErrorWithMsg(c, 401, "获取用户信息失败", err.Error())
+		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
 	}
 
 	// Parse request parameters | 解析请求参数
 	var req schema.UserUpdatePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
 		return
 	}
 
@@ -321,14 +321,14 @@ func (ctrl *UserProfileController) UpdateAvatar(c *gin.Context) {
 	// Get user ID | 获取用户ID
 	userID, err := ctrl.getUserID(c)
 	if err != nil {
-		response.ResErrorWithMsg(c, 401, "获取用户信息失败", err.Error())
+		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
 	}
 
 	// Parse request parameters | 解析请求参数
 	var req schema.UserUpdateAvatarRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
 		return
 	}
 
@@ -360,21 +360,21 @@ func (ctrl *UserProfileController) UpdateUsername(c *gin.Context) {
 	// Get user ID | 获取用户ID
 	userID, err := ctrl.getUserID(c)
 	if err != nil {
-		response.ResErrorWithMsg(c, 401, "获取用户信息失败", err.Error())
+		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
 	}
 
 	// Parse request parameters | 解析请求参数
 	var req schema.UserUpdateUsernameRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
 		return
 	}
 
 	// Call service to update username | 调用服务修改用户名
 	result, err := ctrl.userProfileService.UpdateUsername(c.Request.Context(), userID, req)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "修改用户名失败", err.Error())
+		response.ResErrorWithMsg(c, 500, "Failed to update username | 修改用户名失败", err.Error())
 		return
 	}
 
@@ -405,9 +405,9 @@ func (ctrl *UserProfileController) SendEmailVerifyCode(c *gin.Context) {
 	result, err := ctrl.userProfileService.SendEmailVerifyCode(c.Request.Context(), userID)
 	if err != nil {
 		if err.Error() == "发送次数过多，请1小时后再试" {
-			response.ResErrorWithMsg(c, response.CodeTooManyRequests, "发送频率过高", err.Error())
+			response.ResErrorWithMsg(c, response.CodeTooManyRequests, "Too many requests | 发送频率过高", err.Error())
 		} else {
-			response.ResErrorWithMsg(c, response.CodeGenericError, "发送验证码失败", err.Error())
+			response.ResErrorWithMsg(c, response.CodeGenericError, "Failed to send verification code | 发送验证码失败", err.Error())
 		}
 		return
 	}
@@ -450,9 +450,9 @@ func (ctrl *UserProfileController) VerifyEmail(c *gin.Context) {
 		if err.Error() == "验证码不存在或已过期" ||
 			err.Error() == "验证码错误" ||
 			err.Error() == "邮箱地址不匹配" {
-			response.ResErrorWithMsg(c, response.CodeInvalidParam, "验证失败", err.Error())
+			response.ResErrorWithMsg(c, response.CodeInvalidParam, "Verification failed | 验证失败", err.Error())
 		} else {
-			response.ResErrorWithMsg(c, response.CodeGenericError, "验证邮箱失败", err.Error())
+			response.ResErrorWithMsg(c, response.CodeGenericError, "Failed to verify email | 验证邮箱失败", err.Error())
 		}
 		return
 	}

@@ -19,9 +19,9 @@ type Check struct {
 
 // SystemInfo System information | 系统信息
 type SystemInfo struct {
-	GoVersion    string `json:"go_version"`
-	NumGoroutine int    `json:"num_goroutine"`
-	NumCPU       int    `json:"num_cpu"`
-	MemAlloc     string `json:"mem_alloc"`
-	MemSys       string `json:"mem_sys"`
+	GoVersion    string `json:"go_version"`    // Go version | Go版本
+	NumGoroutine int    `json:"num_goroutine"` // Number of goroutines | 协程数量
+	NumCPU       int    `json:"num_cpu"`       // Number of CPU cores | CPU核心数
+	MemAlloc     string `json:"mem_alloc"`     // Memory allocation | 内存分配
+	MemSys       string `json:"mem_sys"`       // System memory | 系统内存
 }

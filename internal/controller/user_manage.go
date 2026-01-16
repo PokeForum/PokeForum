@@ -31,7 +31,7 @@ func NewUserManageController(userManageService service.IUserManageService) *User
 func (ctrl *UserManageController) getUserID(c *gin.Context) (int, error) {
 	token := c.GetHeader("Authorization")
 	if token == "" {
-		return 0, fmt.Errorf("未找到Authorization header")
+		return 0, fmt.Errorf("authorization header not found | 未找到Authorization header")
 	}
 
 	loginID, err := stputil.GetLoginID(token)

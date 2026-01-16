@@ -42,7 +42,7 @@ func (ctrl *SigninController) getUserID(c *gin.Context) (int, error) {
 	// Get token from Header | 从Header中获取token
 	token := c.GetHeader("Authorization")
 	if token == "" {
-		return 0, fmt.Errorf("未找到Authorization header")
+		return 0, fmt.Errorf("authorization header not found | 未找到Authorization header")
 	}
 
 	// Use stputil to get logged-in user ID | 使用stputil获取登录用户ID
@@ -77,7 +77,7 @@ func (ctrl *SigninController) Signin(c *gin.Context) {
 	// Get user ID | 获取用户ID
 	userID, err := ctrl.getUserID(c)
 	if err != nil {
-		response.ResErrorWithMsg(c, 401, "获取用户信息失败", err.Error())
+		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
 	}
 
@@ -106,7 +106,7 @@ func (ctrl *SigninController) GetSigninStatus(c *gin.Context) {
 	// Get user ID | 获取用户ID
 	userID, err := ctrl.getUserID(c)
 	if err != nil {
-		response.ResErrorWithMsg(c, 401, "获取用户信息失败", err.Error())
+		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
 	}
 
@@ -141,7 +141,7 @@ func (ctrl *SigninController) GetDailyRanking(c *gin.Context) {
 	if limitStr := c.Query("limit"); limitStr != "" {
 		parsedLimit, err := strconv.Atoi(limitStr)
 		if err != nil || parsedLimit < 1 || parsedLimit > 100 {
-			response.ResErrorWithMsg(c, response.CodeInvalidParam, "限制数量必须是1-100之间的整数")
+			response.ResErrorWithMsg(c, response.CodeInvalidParam, "Limit must be an integer between 1-100 | 限制数量必须是1-100之间的整数")
 			return
 		}
 		limit = parsedLimit
@@ -179,7 +179,7 @@ func (ctrl *SigninController) GetContinuousRanking(c *gin.Context) {
 	if limitStr := c.Query("limit"); limitStr != "" {
 		parsedLimit, err := strconv.Atoi(limitStr)
 		if err != nil || parsedLimit < 1 || parsedLimit > 100 {
-			response.ResErrorWithMsg(c, response.CodeInvalidParam, "限制数量必须是1-100之间的整数")
+			response.ResErrorWithMsg(c, response.CodeInvalidParam, "Limit must be an integer between 1-100 | 限制数量必须是1-100之间的整数")
 			return
 		}
 		limit = parsedLimit

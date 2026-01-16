@@ -11,13 +11,13 @@ import (
 	"go.uber.org/zap"
 )
 
-// RedisCacheService Redis缓存服务实现
+// RedisCacheService Redis cache service implementation | Redis缓存服务实现
 type RedisCacheService struct {
-	client *redis.Client // Redis客户端
-	logger *zap.Logger   // 日志记录器
+	client *redis.Client // Redis client | Redis客户端
+	logger *zap.Logger   // Logger | 日志记录器
 }
 
-// NewRedisCacheService 创建Redis缓存服务实例
+// NewRedisCacheService Create Redis cache service instance | 创建Redis缓存服务实例
 func NewRedisCacheService(client *redis.Client, logger *zap.Logger) ICacheService {
 	return &RedisCacheService{
 		client: client,
@@ -25,7 +25,7 @@ func NewRedisCacheService(client *redis.Client, logger *zap.Logger) ICacheServic
 	}
 }
 
-// Get 获取缓存值
+// Get Get cache value | 获取缓存值
 func (r *RedisCacheService) Get(ctx context.Context, key string) (string, error) {
 	value, err := r.client.Get(ctx, key).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
@@ -35,7 +35,7 @@ func (r *RedisCacheService) Get(ctx context.Context, key string) (string, error)
 	return value, nil
 }
 
-// Set 设置缓存值（永久有效）
+// Set Set cache value (permanent) | 设置缓存值（永久有效）
 func (r *RedisCacheService) Set(ctx context.Context, key string, value interface{}) error {
 	err := r.client.Set(ctx, key, value, 0).Err()
 	if err != nil {
@@ -45,7 +45,7 @@ func (r *RedisCacheService) Set(ctx context.Context, key string, value interface
 	return nil
 }
 
-// SetEx 设置缓存值并指定过期时间（秒）
+// SetEx Set cache value and specify expiration time (seconds) | 设置缓存值并指定过期时间（秒）
 func (r *RedisCacheService) SetEx(ctx context.Context, key string, value interface{}, expiration int) error {
 	err := r.client.Set(ctx, key, value, time.Duration(expiration)*time.Second).Err()
 	if err != nil {
@@ -55,12 +55,12 @@ func (r *RedisCacheService) SetEx(ctx context.Context, key string, value interfa
 	return nil
 }
 
-// SetExDuration 设置缓存值并指定过期时间（使用Duration）
+// SetExDuration Set cache value and specify expiration time (using Duration) | 设置缓存值并指定过期时间（使用Duration）
 func (r *RedisCacheService) SetExDuration(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
 	return r.SetEx(ctx, key, value, int(expiration.Seconds()))
 }
 
-// Del 删除缓存
+// Del Delete cache | 删除缓存
 func (r *RedisCacheService) Del(ctx context.Context, keys ...string) (int, error) {
 	if len(keys) == 0 {
 		return 0, nil
@@ -74,7 +74,7 @@ func (r *RedisCacheService) Del(ctx context.Context, keys ...string) (int, error
 	return int(count), nil
 }
 
-// Exists 检查缓存是否存在
+// Exists Check if cache exists | 检查缓存是否存在
 func (r *RedisCacheService) Exists(ctx context.Context, key string) (bool, error) {
 	count, err := r.client.Exists(ctx, key).Result()
 	if err != nil {
@@ -84,7 +84,7 @@ func (r *RedisCacheService) Exists(ctx context.Context, key string) (bool, error
 	return count > 0, nil
 }
 
-// Expire 设置缓存过期时间
+// Expire Set cache expiration time | 设置缓存过期时间
 func (r *RedisCacheService) Expire(ctx context.Context, key string, expiration int) (bool, error) {
 	success, err := r.client.Expire(ctx, key, time.Duration(expiration)*time.Second).Result()
 	if err != nil {
@@ -94,7 +94,7 @@ func (r *RedisCacheService) Expire(ctx context.Context, key string, expiration i
 	return success, nil
 }
 
-// TTL 获取缓存剩余过期时间
+// TTL Get cache remaining expiration time | 获取缓存剩余过期时间
 func (r *RedisCacheService) TTL(ctx context.Context, key string) (int, error) {
 	ttl, err := r.client.TTL(ctx, key).Result()
 	if err != nil {
@@ -104,7 +104,7 @@ func (r *RedisCacheService) TTL(ctx context.Context, key string) (int, error) {
 	return int(ttl.Seconds()), nil
 }
 
-// Incr 自增操作
+// Incr Increment operation | 自增操作
 func (r *RedisCacheService) Incr(ctx context.Context, key string) (int64, error) {
 	value, err := r.client.Incr(ctx, key).Result()
 	if err != nil {
@@ -114,7 +114,7 @@ func (r *RedisCacheService) Incr(ctx context.Context, key string) (int64, error)
 	return value, nil
 }
 
-// Decr 自减操作
+// Decr Decrement operation | 自减操作
 func (r *RedisCacheService) Decr(ctx context.Context, key string) (int64, error) {
 	value, err := r.client.Decr(ctx, key).Result()
 	if err != nil {
@@ -124,7 +124,7 @@ func (r *RedisCacheService) Decr(ctx context.Context, key string) (int64, error)
 	return value, nil
 }
 
-// HGet 获取哈希表字段值
+// HGet Get hash field value | 获取哈希表字段值
 func (r *RedisCacheService) HGet(ctx context.Context, key, field string) (string, error) {
 	value, err := r.client.HGet(ctx, key, field).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
@@ -134,7 +134,7 @@ func (r *RedisCacheService) HGet(ctx context.Context, key, field string) (string
 	return value, nil
 }
 
-// HSet 设置哈希表字段值
+// HSet Set hash field value | 设置哈希表字段值
 func (r *RedisCacheService) HSet(ctx context.Context, key, field string, value interface{}) error {
 	err := r.client.HSet(ctx, key, field, value).Err()
 	if err != nil {
@@ -144,7 +144,7 @@ func (r *RedisCacheService) HSet(ctx context.Context, key, field string, value i
 	return nil
 }
 
-// HDel 删除哈希表字段
+// HDel Delete hash field | 删除哈希表字段
 func (r *RedisCacheService) HDel(ctx context.Context, key string, fields ...string) (int, error) {
 	if len(fields) == 0 {
 		return 0, nil
@@ -158,7 +158,7 @@ func (r *RedisCacheService) HDel(ctx context.Context, key string, fields ...stri
 	return int(count), nil
 }
 
-// HGetAll 获取哈希表所有字段和值
+// HGetAll Get all hash fields and values | 获取哈希表所有字段和值
 func (r *RedisCacheService) HGetAll(ctx context.Context, key string) (map[string]string, error) {
 	values, err := r.client.HGetAll(ctx, key).Result()
 	if err != nil {
@@ -168,7 +168,7 @@ func (r *RedisCacheService) HGetAll(ctx context.Context, key string) (map[string
 	return values, nil
 }
 
-// HIncrBy 哈希表字段自增
+// HIncrBy Hash field increment | 哈希表字段自增
 func (r *RedisCacheService) HIncrBy(ctx context.Context, key, field string, increment int64) (int64, error) {
 	value, err := r.client.HIncrBy(ctx, key, field, increment).Result()
 	if err != nil {
@@ -178,7 +178,7 @@ func (r *RedisCacheService) HIncrBy(ctx context.Context, key, field string, incr
 	return value, nil
 }
 
-// HMGet 批量获取哈希表字段值
+// HMGet Batch get hash field values | 批量获取哈希表字段值
 func (r *RedisCacheService) HMGet(ctx context.Context, key string, fields ...string) ([]string, error) {
 	if len(fields) == 0 {
 		return []string{}, nil
@@ -190,7 +190,7 @@ func (r *RedisCacheService) HMGet(ctx context.Context, key string, fields ...str
 		return nil, fmt.Errorf("批量获取哈希表字段值失败: %w", err)
 	}
 
-	// 转换为[]string
+	// Convert to []string | 转换为[]string
 	result := make([]string, len(values))
 	for i, v := range values {
 		if v != nil {
@@ -202,7 +202,7 @@ func (r *RedisCacheService) HMGet(ctx context.Context, key string, fields ...str
 	return result, nil
 }
 
-// HMSet 批量设置哈希表字段值
+// HMSet Batch set hash field values | 批量设置哈希表字段值
 func (r *RedisCacheService) HMSet(ctx context.Context, key string, fieldValues map[string]interface{}) error {
 	if len(fieldValues) == 0 {
 		return nil
@@ -216,7 +216,7 @@ func (r *RedisCacheService) HMSet(ctx context.Context, key string, fieldValues m
 	return nil
 }
 
-// SAdd 向集合添加成员
+// SAdd Add member to set | 向集合添加成员
 func (r *RedisCacheService) SAdd(ctx context.Context, key string, members ...interface{}) (int, error) {
 	if len(members) == 0 {
 		return 0, nil
@@ -230,7 +230,7 @@ func (r *RedisCacheService) SAdd(ctx context.Context, key string, members ...int
 	return int(count), nil
 }
 
-// SMembers 获取集合所有成员
+// SMembers Get all set members | 获取集合所有成员
 func (r *RedisCacheService) SMembers(ctx context.Context, key string) ([]string, error) {
 	members, err := r.client.SMembers(ctx, key).Result()
 	if err != nil {
@@ -240,7 +240,7 @@ func (r *RedisCacheService) SMembers(ctx context.Context, key string) ([]string,
 	return members, nil
 }
 
-// SRem 从集合移除成员
+// SRem Remove member from set | 从集合移除成员
 func (r *RedisCacheService) SRem(ctx context.Context, key string, members ...interface{}) (int, error) {
 	if len(members) == 0 {
 		return 0, nil
@@ -254,7 +254,7 @@ func (r *RedisCacheService) SRem(ctx context.Context, key string, members ...int
 	return int(count), nil
 }
 
-// SCard 获取集合成员数量
+// SCard Get set member count | 获取集合成员数量
 func (r *RedisCacheService) SCard(ctx context.Context, key string) (int64, error) {
 	count, err := r.client.SCard(ctx, key).Result()
 	if err != nil {
@@ -264,7 +264,7 @@ func (r *RedisCacheService) SCard(ctx context.Context, key string) (int64, error
 	return count, nil
 }
 
-// SIsMember 判断成员是否在集合中
+// SIsMember Check if member is in set | 判断成员是否在集合中
 func (r *RedisCacheService) SIsMember(ctx context.Context, key string, member interface{}) (bool, error) {
 	exists, err := r.client.SIsMember(ctx, key, member).Result()
 	if err != nil {
@@ -274,7 +274,7 @@ func (r *RedisCacheService) SIsMember(ctx context.Context, key string, member in
 	return exists, nil
 }
 
-// ZAdd 向有序集合添加成员
+// ZAdd Add member to sorted set | 向有序集合添加成员
 func (r *RedisCacheService) ZAdd(ctx context.Context, key string, member string, score float64) error {
 	err := r.client.ZAdd(ctx, key, redis.Z{Score: score, Member: member}).Err()
 	if err != nil {
@@ -284,7 +284,7 @@ func (r *RedisCacheService) ZAdd(ctx context.Context, key string, member string,
 	return nil
 }
 
-// ZRevRangeWithScores 按分数从高到低获取有序集合成员
+// ZRevRangeWithScores Get sorted set members from high to low by score | 按分数从高到低获取有序集合成员
 func (r *RedisCacheService) ZRevRangeWithScores(ctx context.Context, key string, start, stop int64) ([]ZMember, error) {
 	result, err := r.client.ZRevRangeWithScores(ctx, key, start, stop).Result()
 	if err != nil {
@@ -306,7 +306,7 @@ func (r *RedisCacheService) ZRevRangeWithScores(ctx context.Context, key string,
 	return members, nil
 }
 
-// ZRevRank 获取成员在有序集合中的排名（从高到低）
+// ZRevRank Get member rank in sorted set (from high to low) | 获取成员在有序集合中的排名（从高到低）
 func (r *RedisCacheService) ZRevRank(ctx context.Context, key string, member string) (int64, error) {
 	rank, err := r.client.ZRevRank(ctx, key, member).Result()
 	if err != nil {
@@ -319,7 +319,7 @@ func (r *RedisCacheService) ZRevRank(ctx context.Context, key string, member str
 	return rank, nil
 }
 
-// XAdd 向Stream添加消息
+// XAdd Add message to Stream | 向Stream添加消息
 func (r *RedisCacheService) XAdd(ctx context.Context, stream string, values map[string]interface{}) (string, error) {
 	messageID, err := r.client.XAdd(ctx, &redis.XAddArgs{
 		Stream: stream,
@@ -334,9 +334,9 @@ func (r *RedisCacheService) XAdd(ctx context.Context, stream string, values map[
 	return messageID, nil
 }
 
-// XReadGroup 从消费者组读取消息
+// XReadGroup Read messages from consumer group | 从消费者组读取消息
 func (r *RedisCacheService) XReadGroup(ctx context.Context, group, consumer string, streams map[string]string, count int64, block time.Duration) ([]map[string]interface{}, error) {
-	// 构建streams参数
+	// Build streams parameter | 构建streams参数
 	streamKeys := make([]string, 0, len(streams))
 	for key := range streams {
 		streamKeys = append(streamKeys, key)
@@ -374,7 +374,7 @@ func (r *RedisCacheService) XReadGroup(ctx context.Context, group, consumer stri
 	return messages, nil
 }
 
-// XAck 确认消息已处理
+// XAck Acknowledge message processed | 确认消息已处理
 func (r *RedisCacheService) XAck(ctx context.Context, stream, group string, ids ...string) (int64, error) {
 	count, err := r.client.XAck(ctx, stream, group, ids...).Result()
 	if err != nil {
@@ -390,7 +390,7 @@ func (r *RedisCacheService) XAck(ctx context.Context, stream, group string, ids 
 	return count, nil
 }
 
-// XPending 查看待处理消息
+// XPending Query pending messages | 查询待处理消息
 func (r *RedisCacheService) XPending(ctx context.Context, stream, group string) (map[string]interface{}, error) {
 	result, err := r.client.XPending(ctx, stream, group).Result()
 	if err != nil {
@@ -414,7 +414,7 @@ func (r *RedisCacheService) XPending(ctx context.Context, stream, group string) 
 	}, nil
 }
 
-// XDel 删除Stream中的消息
+// XDel Delete message from Stream | 删除Stream中的消息
 func (r *RedisCacheService) XDel(ctx context.Context, stream string, ids ...string) (int64, error) {
 	count, err := r.client.XDel(ctx, stream, ids...).Result()
 	if err != nil {
@@ -429,11 +429,11 @@ func (r *RedisCacheService) XDel(ctx context.Context, stream string, ids ...stri
 	return count, nil
 }
 
-// XGroupCreate 创建消费者组
+// XGroupCreate Create consumer group | 创建消费者组
 func (r *RedisCacheService) XGroupCreate(ctx context.Context, stream, group, id string) error {
 	err := r.client.XGroupCreateMkStream(ctx, stream, group, id).Err()
 	if err != nil {
-		// 如果消费者组已存在，则忽略错误
+		// If consumer group already exists, ignore error | 如果消费者组已存在，则忽略错误
 		if strings.Contains(err.Error(), "BUSYGROUP Consumer Group name already exists") {
 			r.logger.Debug("消费者组已存在", zap.String("stream", stream), zap.String("group", group))
 			return nil
@@ -446,7 +446,7 @@ func (r *RedisCacheService) XGroupCreate(ctx context.Context, stream, group, id 
 	return nil
 }
 
-// XLen 获取Stream长度
+// XLen Get Stream length | 获取Stream长度
 func (r *RedisCacheService) XLen(ctx context.Context, stream string) (int64, error) {
 	length, err := r.client.XLen(ctx, stream).Result()
 	if err != nil {

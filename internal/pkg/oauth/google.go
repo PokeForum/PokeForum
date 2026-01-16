@@ -5,14 +5,14 @@ import (
 	"fmt"
 )
 
-// GoogleProvider Google OAuth提供商
+// GoogleProvider Google OAuth provider | Google OAuth提供商
 type GoogleProvider struct {
 	*BaseProvider
 }
 
-// NewGoogleProvider 创建Google OAuth提供商实例
+// NewGoogleProvider Create Google OAuth provider instance | 创建Google OAuth提供商实例
 func NewGoogleProvider(config *Config) (IProvider, error) {
-	// 设置Google默认配置
+	// Set Google default configuration | 设置Google默认配置
 	if config.AuthURL == "" {
 		config.AuthURL = "https://accounts.google.com/o/oauth2/auth"
 	}
@@ -31,48 +31,48 @@ func NewGoogleProvider(config *Config) (IProvider, error) {
 	}, nil
 }
 
-// GetAuthURL 获取Google授权URL
+// GetAuthURL Get Google authorization URL | 获取Google授权URL
 func (g *GoogleProvider) GetAuthURL(state string, redirectURL string) string {
 	extraParams := map[string]string{
-		"access_type": "offline", // 获取refresh_token
+		"access_type": "offline", // Get refresh_token | 获取refresh_token
 		"prompt":      "consent",
 	}
 	return g.BuildAuthURL(state, redirectURL, extraParams)
 }
 
-// ExchangeToken 使用授权码换取访问令牌
+// ExchangeToken Exchange authorization code for access token | 使用授权码换取访问令牌
 func (g *GoogleProvider) ExchangeToken(ctx context.Context, code string, _ string) (*TokenResponse, error) {
 	return g.ExchangeTokenByForm(ctx, code)
 }
 
-// GetUserInfo 获取Google用户信息
+// GetUserInfo Get Google user information | 获取Google用户信息
 func (g *GoogleProvider) GetUserInfo(ctx context.Context, accessToken string) (*UserInfo, error) {
 	userInfoMap, err := g.GetUserInfoByJSON(ctx, accessToken)
 	if err != nil {
 		return nil, err
 	}
 
-	// 解析Google用户信息
+	// Parse Google user information | 解析Google用户信息
 	userInfo := &UserInfo{
 		ExtraData: userInfoMap,
 	}
 
-	// Google用户ID
+	// Google user ID | Google用户ID
 	if id, ok := userInfoMap["id"].(string); ok {
 		userInfo.ProviderUserID = id
 	}
 
-	// 用户名
+	// Username | 用户名
 	if name, ok := userInfoMap["name"].(string); ok {
 		userInfo.Username = name
 	}
 
-	// 邮箱
+	// Email | 邮箱
 	if email, ok := userInfoMap["email"].(string); ok {
 		userInfo.Email = email
 	}
 
-	// 头像
+	// Avatar | 头像
 	if picture, ok := userInfoMap["picture"].(string); ok {
 		userInfo.Avatar = picture
 	}
@@ -84,12 +84,12 @@ func (g *GoogleProvider) GetUserInfo(ctx context.Context, accessToken string) (*
 	return userInfo, nil
 }
 
-// RefreshToken 刷新访问令牌
+// RefreshToken Refresh access token | 刷新访问令牌
 func (g *GoogleProvider) RefreshToken(ctx context.Context, refreshToken string) (*TokenResponse, error) {
 	return g.RefreshTokenByForm(ctx, refreshToken)
 }
 
-// ValidateToken 验证访问令牌是否有效
+// ValidateToken Validate if access token is valid | 验证访问令牌是否有效
 func (g *GoogleProvider) ValidateToken(ctx context.Context, accessToken string) (bool, error) {
 	return g.ValidateTokenByUserInfo(ctx, accessToken)
 }

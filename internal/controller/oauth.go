@@ -81,7 +81,7 @@ func (ctrl *OAuthController) GetEnabledProviders(c *gin.Context) {
 func (ctrl *OAuthController) GetAuthorizeURL(c *gin.Context) {
 	provider := string(oauth.NormalizeProvider(c.Param("provider")))
 	if provider == "" {
-		response.ResErrorWithMsg(c, response.CodeInvalidParam, "provider参数不能为空")
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "provider parameter cannot be empty | provider参数不能为空")
 		return
 	}
 
@@ -116,7 +116,7 @@ func (ctrl *OAuthController) GetAuthorizeURL(c *gin.Context) {
 func (ctrl *OAuthController) HandleCallback(c *gin.Context) {
 	provider := string(oauth.NormalizeProvider(c.Param("provider")))
 	if provider == "" {
-		response.ResErrorWithMsg(c, response.CodeInvalidParam, "provider参数不能为空")
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "provider parameter cannot be empty | provider参数不能为空")
 		return
 	}
 
@@ -188,7 +188,7 @@ func (ctrl *OAuthController) GetBindURL(c *gin.Context) {
 
 	provider := string(oauth.NormalizeProvider(c.Param("provider")))
 	if provider == "" {
-		response.ResErrorWithMsg(c, response.CodeInvalidParam, "provider参数不能为空")
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "provider parameter cannot be empty | provider参数不能为空")
 		return
 	}
 
@@ -231,7 +231,7 @@ func (ctrl *OAuthController) HandleBindCallback(c *gin.Context) {
 
 	provider := string(oauth.NormalizeProvider(c.Param("provider")))
 	if provider == "" {
-		response.ResErrorWithMsg(c, response.CodeInvalidParam, "provider参数不能为空")
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "provider parameter cannot be empty | provider参数不能为空")
 		return
 	}
 
@@ -272,7 +272,7 @@ func (ctrl *OAuthController) Unbind(c *gin.Context) {
 
 	provider := string(oauth.NormalizeProvider(c.Param("provider")))
 	if provider == "" {
-		response.ResErrorWithMsg(c, response.CodeInvalidParam, "provider参数不能为空")
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "provider parameter cannot be empty | provider参数不能为空")
 		return
 	}
 
@@ -288,7 +288,7 @@ func (ctrl *OAuthController) Unbind(c *gin.Context) {
 func (ctrl *OAuthController) getCurrentUserID(c *gin.Context) (int, error) {
 	token := c.GetHeader("Authorization")
 	if token == "" {
-		return 0, fmt.Errorf("未找到Authorization header")
+		return 0, fmt.Errorf("authorization header not found | 未找到Authorization header")
 	}
 
 	loginID, err := stputil.GetLoginID(token)
