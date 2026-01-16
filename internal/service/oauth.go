@@ -354,6 +354,7 @@ func (s *OAuthService) HandleBindCallback(ctx context.Context, userID int, provi
 		return errors.New("查询绑定信息失败")
 	}
 	if existingBinding != nil {
+		s.logger.Debug("查询条件", tracing.WithTraceIDField(ctx), zap.String("provider", provider), zap.String("provider_user_id", userInfo.ProviderUserID))
 		return errors.New("该OAuth账号已被其他用户绑定")
 	}
 
