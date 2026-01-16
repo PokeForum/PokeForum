@@ -145,7 +145,9 @@ func (s *CategoryManageService) CreateCategory(ctx context.Context, req schema.C
 	}
 
 	// 清除用户版块列表缓存
-	_, _ = s.cache.Del(ctx, _const.UserCategoryListCacheKey)
+	if _, err := s.cache.Del(ctx, _const.UserCategoryListCacheKey); err != nil {
+		s.logger.Warn("清除用户版块列表缓存失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+	}
 
 	s.logger.Info("版块创建成功", zap.Int("id", categories.ID), tracing.WithTraceIDField(ctx))
 	return categories, nil
@@ -191,7 +193,9 @@ func (s *CategoryManageService) UpdateCategory(ctx context.Context, req schema.C
 	}
 
 	// 清除用户版块列表缓存
-	_, _ = s.cache.Del(ctx, _const.UserCategoryListCacheKey)
+	if _, err := s.cache.Del(ctx, _const.UserCategoryListCacheKey); err != nil {
+		s.logger.Warn("清除用户版块列表缓存失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+	}
 
 	s.logger.Info("版块更新成功", zap.Int("id", updatedCategory.ID), tracing.WithTraceIDField(ctx))
 	return updatedCategory, nil
@@ -221,7 +225,9 @@ func (s *CategoryManageService) UpdateCategoryStatus(ctx context.Context, req sc
 	}
 
 	// 清除用户版块列表缓存
-	_, _ = s.cache.Del(ctx, _const.UserCategoryListCacheKey)
+	if _, err := s.cache.Del(ctx, _const.UserCategoryListCacheKey); err != nil {
+		s.logger.Warn("清除用户版块列表缓存失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+	}
 
 	s.logger.Info("版块状态更新成功", zap.Int("id", req.ID), tracing.WithTraceIDField(ctx))
 	return nil
@@ -388,7 +394,9 @@ func (s *CategoryManageService) DeleteCategory(ctx context.Context, id int) erro
 	}
 
 	// 清除用户版块列表缓存
-	_, _ = s.cache.Del(ctx, _const.UserCategoryListCacheKey)
+	if _, err := s.cache.Del(ctx, _const.UserCategoryListCacheKey); err != nil {
+		s.logger.Warn("清除用户版块列表缓存失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+	}
 
 	s.logger.Info("版块删除成功", zap.Int("id", id), tracing.WithTraceIDField(ctx))
 	return nil

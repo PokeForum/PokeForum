@@ -79,8 +79,14 @@ func (s *CategoryService) GetUserCategories(ctx context.Context) (*schema.UserCa
 	}
 
 	// 写入缓存，30天过期
-	resultJSON, _ := json.Marshal(result)
-	_ = s.cache.SetEx(ctx, _const.UserCategoryListCacheKey, resultJSON, 30*24*60*60)
+	resultJSON, err := json.Marshal(result)
+	if err != nil {
+		s.logger.Warn("序列化用户版块列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+	} else {
+		if err := s.cache.SetEx(ctx, _const.UserCategoryListCacheKey, resultJSON, 30*24*60*60); err != nil {
+			s.logger.Warn("写入用户版块列表缓存失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		}
+	}
 
 	return result, nil
 }
