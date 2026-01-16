@@ -2,29 +2,28 @@ package oauth
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/go-resty/resty/v2"
 )
 
 // BaseProvider OAuth基础提供商
 // 提供通用的HTTP请求方法和Token处理逻辑
 type BaseProvider struct {
-	config     *Config      // OAuth配置
-	httpClient *http.Client // HTTP客户端
+	config     *Config       // OAuth配置
+	httpClient *resty.Client // HTTP客户端
 }
 
 // NewBaseProvider 创建基础提供商实例
 func NewBaseProvider(config *Config) *BaseProvider {
 	return &BaseProvider{
 		config: config,
-		httpClient: &http.Client{
-			Timeout: 30 * time.Second,
-		},
+		httpClient: resty.New().
+			SetTimeout(30*time.Second).
+			SetHeader("Accept", "application/json"),
 	}
 }
 
@@ -57,30 +56,6 @@ func (b *BaseProvider) BuildAuthURL(state string, redirectURL string, extraParam
 
 // doTokenExchange 执行Token交换/刷新的通用逻辑
 func (b *BaseProvider) doTokenExchange(ctx context.Context, data url.Values, errOnFailed error) (*TokenResponse, error) {
-	req, err := http.NewRequestWithContext(ctx, "POST", b.config.TokenURL, strings.NewReader(data.Encode()))
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", errOnFailed, err)
-	}
-
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Accept", "application/json")
-
-	resp, err := b.httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrNetworkRequest, err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body) //nolint:errcheck // 错误处理时读取body失败不影响主错误返回
-		return nil, fmt.Errorf("%w: status=%d, body=%s", errOnFailed, resp.StatusCode, string(body))
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrParseResponse, err)
-	}
-
 	var tokenResp struct {
 		AccessToken  string `json:"access_token"`
 		TokenType    string `json:"token_type"`
@@ -89,8 +64,19 @@ func (b *BaseProvider) doTokenExchange(ctx context.Context, data url.Values, err
 		Scope        string `json:"scope"`
 	}
 
-	if err := json.Unmarshal(body, &tokenResp); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrParseResponse, err)
+	resp, err := b.httpClient.R().
+		SetContext(ctx).
+		SetHeader("Content-Type", "application/x-www-form-urlencoded").
+		SetBody(data.Encode()).
+		SetResult(&tokenResp).
+		Post(b.config.TokenURL)
+
+	if err != nil {
+		return nil, fmt.Errorf("%w: %v", ErrNetworkRequest, err)
+	}
+
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("%w: status=%d, body=%s", errOnFailed, resp.StatusCode(), resp.String())
 	}
 
 	if tokenResp.AccessToken == "" {
@@ -133,33 +119,21 @@ func (b *BaseProvider) RefreshTokenByForm(ctx context.Context, refreshToken stri
 // GetUserInfoByJSON 通过JSON方式获取用户信息
 // 发送带Bearer Token的GET请求
 func (b *BaseProvider) GetUserInfoByJSON(ctx context.Context, accessToken string) (map[string]interface{}, error) {
-	req, err := http.NewRequestWithContext(ctx, "GET", b.config.UserInfoURL, http.NoBody)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrGetUserInfoFailed, err)
-	}
+	var userInfo map[string]interface{}
 
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
-	req.Header.Set("Accept", "application/json")
+	resp, err := b.httpClient.R().
+		SetContext(ctx).
+		SetAuthToken(accessToken).
+		SetHeader("Authorization", "Bearer "+accessToken).
+		SetResult(&userInfo).
+		Get(b.config.UserInfoURL)
 
-	resp, err := b.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrNetworkRequest, err)
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body) //nolint:errcheck // 错误处理时读取body失败不影响主错误返回
-		return nil, fmt.Errorf("%w: status=%d, body=%s", ErrGetUserInfoFailed, resp.StatusCode, string(body))
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrParseResponse, err)
-	}
-
-	var userInfo map[string]interface{}
-	if err := json.Unmarshal(body, &userInfo); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrParseResponse, err)
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("%w: status=%d, body=%s", ErrGetUserInfoFailed, resp.StatusCode(), resp.String())
 	}
 
 	return userInfo, nil
