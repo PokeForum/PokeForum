@@ -91,11 +91,10 @@ type Provider string
 
 // Provider values.
 const (
-	ProviderQQ       Provider = "QQ"
-	ProviderGitHub   Provider = "GitHub"
-	ProviderGoogle   Provider = "Google"
-	ProviderTelegram Provider = "Telegram"
-	ProviderFIDO2    Provider = "FIDO2"
+	ProviderQQ     Provider = "QQ"
+	ProviderGitHub Provider = "GitHub"
+	ProviderGoogle Provider = "Google"
+	ProviderFIDO2  Provider = "FIDO2"
 )
 
 func (pr Provider) String() string {
@@ -105,7 +104,7 @@ func (pr Provider) String() string {
 // ProviderValidator is a validator for the "provider" field enum values. It is called by the builders before save.
 func ProviderValidator(pr Provider) error {
 	switch pr {
-	case ProviderQQ, ProviderGitHub, ProviderGoogle, ProviderTelegram, ProviderFIDO2:
+	case ProviderQQ, ProviderGitHub, ProviderGoogle, ProviderFIDO2:
 		return nil
 	default:
 		return fmt.Errorf("oauthprovider: invalid enum value for provider field: %q", pr)

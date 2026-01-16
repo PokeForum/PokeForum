@@ -9,11 +9,10 @@ import (
 type Provider string
 
 const (
-	ProviderQQ       Provider = "QQ"
-	ProviderGitHub   Provider = "GitHub"
-	ProviderGoogle   Provider = "Google"
-	ProviderTelegram Provider = "Telegram"
-	ProviderFIDO2    Provider = "FIDO2"
+	ProviderQQ     Provider = "QQ"
+	ProviderGitHub Provider = "GitHub"
+	ProviderGoogle Provider = "Google"
+	ProviderFIDO2  Provider = "FIDO2"
 )
 
 // Config OAuth configuration information | OAuth配置信息

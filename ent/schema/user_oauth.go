@@ -21,9 +21,9 @@ func (UserOAuth) Fields() []ent.Field {
 		// User ID, associated with users table | 用户ID，关联users表
 		field.Int("user_id").
 			Positive(),
-		// OAuth provider: QQ, GitHub, Google, Telegram, FIDO2 | OAuth提供商：QQ、GitHub、Google、Telegram、FIDO2
+		// OAuth provider: QQ, GitHub, Google, FIDO2 | OAuth提供商：QQ、GitHub、Google、FIDO2
 		field.Enum("provider").
-			Values("QQ", "GitHub", "Google", "Telegram", "FIDO2"),
+			Values("QQ", "GitHub", "Google", "FIDO2"),
 		// Third-party platform user unique identifier (OpenID, UnionID, etc.) | 第三方平台的用户唯一标识（OpenID、UnionID等）
 		field.String("provider_user_id").
 			NotEmpty(),

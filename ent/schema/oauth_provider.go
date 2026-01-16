@@ -18,9 +18,9 @@ func (OAuthProvider) Fields() []ent.Field {
 		// Provider ID, database primary key auto-increment | 提供商ID，数据库主键自增
 		field.Int("id").
 			Positive(),
-		// Provider name: QQ, GitHub, Google, Telegram, FIDO2 | 提供商名称：QQ、GitHub、Google、Telegram、FIDO2
+		// Provider name: QQ, GitHub, Google, FIDO2 | 提供商名称：QQ、GitHub、Google、FIDO2
 		field.Enum("provider").
-			Values("QQ", "GitHub", "Google", "Telegram", "FIDO2"),
+			Values("QQ", "GitHub", "Google", "FIDO2"),
 		// Client ID | 客户端ID（Client ID）
 		field.String("client_id").
 			Optional(),

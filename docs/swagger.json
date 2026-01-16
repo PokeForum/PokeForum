@@ -8749,7 +8749,6 @@
                         "QQ",
                         "GitHub",
                         "Google",
-                        "Telegram",
                         "FIDO2"
                     ],
                     "example": "GitHub"
@@ -10427,18 +10426,23 @@
             "type": "object",
             "properties": {
                 "go_version": {
+                    "description": "Go version | Go版本",
                     "type": "string"
                 },
                 "mem_alloc": {
+                    "description": "Memory allocation | 内存分配",
                     "type": "string"
                 },
                 "mem_sys": {
+                    "description": "System memory | 系统内存",
                     "type": "string"
                 },
                 "num_cpu": {
+                    "description": "Number of CPU cores | CPU核心数",
                     "type": "integer"
                 },
                 "num_goroutine": {
+                    "description": "Number of goroutines | 协程数量",
                     "type": "integer"
                 }
             }

@@ -27,7 +27,7 @@ func ValidateState(expectedState, actualState string) bool {
 // IsProviderSupported Check if provider is supported | 检查提供商是否支持
 func IsProviderSupported(provider Provider) bool {
 	switch provider {
-	case ProviderQQ, ProviderGitHub, ProviderGoogle, ProviderTelegram, ProviderFIDO2:
+	case ProviderQQ, ProviderGitHub, ProviderGoogle, ProviderFIDO2:
 		return true
 	default:
 		return false
@@ -43,8 +43,6 @@ func GetProviderName(provider Provider) string {
 		return "GitHub"
 	case ProviderGoogle:
 		return "Google"
-	case ProviderTelegram:
-		return "Telegram"
 	case ProviderFIDO2:
 		return "FIDO2"
 	default:
@@ -58,7 +56,6 @@ func GetAllProviders() []Provider {
 		ProviderQQ,
 		ProviderGitHub,
 		ProviderGoogle,
-		ProviderTelegram,
 		ProviderFIDO2,
 	}
 }
@@ -73,8 +70,6 @@ func NormalizeProvider(provider string) Provider {
 		return ProviderGitHub
 	case "google":
 		return ProviderGoogle
-	case "telegram":
-		return ProviderTelegram
 	case "fido2":
 		return ProviderFIDO2
 	default:
