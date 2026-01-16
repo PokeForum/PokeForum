@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"go.uber.org/zap"
 
+	_const "github.com/PokeForum/PokeForum/internal/consts"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
@@ -42,6 +44,17 @@ func NewCategoryService(categoryRepo repository.ICategoryRepository, cacheServic
 func (s *CategoryService) GetUserCategories(ctx context.Context) (*schema.UserCategoryResponse, error) {
 	s.logger.Info("获取用户版块列表", tracing.WithTraceIDField(ctx))
 
+	// 先尝试从缓存获取
+	cachedData, err := s.cache.Get(ctx, _const.UserCategoryListCacheKey)
+	if err == nil && cachedData != "" {
+		s.logger.Info("从缓存获取用户版块列表", tracing.WithTraceIDField(ctx))
+		var result schema.UserCategoryResponse
+		if err := json.Unmarshal([]byte(cachedData), &result); err == nil {
+			return &result, nil
+		}
+	}
+
+	// 缓存未命中，从数据库查询
 	categories, err := s.categoryRepo.GetVisibleCategories(ctx)
 	if err != nil {
 		s.logger.Error("获取用户版块列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
@@ -61,7 +74,13 @@ func (s *CategoryService) GetUserCategories(ctx context.Context) (*schema.UserCa
 		}
 	}
 
-	return &schema.UserCategoryResponse{
+	result := &schema.UserCategoryResponse{
 		List: list,
-	}, nil
+	}
+
+	// 写入缓存，30天过期
+	resultJSON, _ := json.Marshal(result)
+	_ = s.cache.SetEx(ctx, _const.UserCategoryListCacheKey, resultJSON, 30*24*60*60)
+
+	return result, nil
 }

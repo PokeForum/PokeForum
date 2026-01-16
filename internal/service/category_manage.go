@@ -10,6 +10,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/category"
 	"github.com/PokeForum/PokeForum/ent/user"
+	_const "github.com/PokeForum/PokeForum/internal/consts"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
@@ -143,6 +144,9 @@ func (s *CategoryManageService) CreateCategory(ctx context.Context, req schema.C
 		return nil, fmt.Errorf("创建版块失败: %w", err)
 	}
 
+	// 清除用户版块列表缓存
+	_, _ = s.cache.Del(ctx, _const.UserCategoryListCacheKey)
+
 	s.logger.Info("版块创建成功", zap.Int("id", categories.ID), tracing.WithTraceIDField(ctx))
 	return categories, nil
 }
@@ -186,6 +190,9 @@ func (s *CategoryManageService) UpdateCategory(ctx context.Context, req schema.C
 		return nil, fmt.Errorf("更新版块失败: %w", err)
 	}
 
+	// 清除用户版块列表缓存
+	_, _ = s.cache.Del(ctx, _const.UserCategoryListCacheKey)
+
 	s.logger.Info("版块更新成功", zap.Int("id", updatedCategory.ID), tracing.WithTraceIDField(ctx))
 	return updatedCategory, nil
 }
@@ -212,6 +219,9 @@ func (s *CategoryManageService) UpdateCategoryStatus(ctx context.Context, req sc
 		s.logger.Error("更新版块状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("更新版块状态失败: %w", err)
 	}
+
+	// 清除用户版块列表缓存
+	_, _ = s.cache.Del(ctx, _const.UserCategoryListCacheKey)
 
 	s.logger.Info("版块状态更新成功", zap.Int("id", req.ID), tracing.WithTraceIDField(ctx))
 	return nil
@@ -376,6 +386,9 @@ func (s *CategoryManageService) DeleteCategory(ctx context.Context, id int) erro
 		s.logger.Error("删除版块失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return fmt.Errorf("删除版块失败: %w", err)
 	}
+
+	// 清除用户版块列表缓存
+	_, _ = s.cache.Del(ctx, _const.UserCategoryListCacheKey)
 
 	s.logger.Info("版块删除成功", zap.Int("id", id), tracing.WithTraceIDField(ctx))
 	return nil
