@@ -3789,7 +3789,7 @@ const docTemplate = `{
         },
         "/posts": {
             "get": {
-                "description": "Get post list with pagination and sorting support | 获取帖子列表,支持分页和排序",
+                "description": "Get post list with pagination and sorting support. Supports filtering by category (via ID or slug) and keyword search on title | 获取帖子列表,支持分页和排序。支持通过版块ID或slug筛选,以及标题关键词搜索",
                 "consumes": [
                     "application/json"
                 ],
@@ -3805,6 +3805,18 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Category ID | 版块ID",
                         "name": "category_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Category slug | 版块slug",
+                        "name": "slug",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Keyword for title search | 标题关键词搜索",
+                        "name": "keyword",
                         "in": "query"
                     },
                     {

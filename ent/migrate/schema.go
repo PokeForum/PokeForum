@@ -3,6 +3,7 @@
 package migrate
 
 import (
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/schema/field"
 )
@@ -277,6 +278,17 @@ var (
 				Name:    "post_category_id_status_created_at",
 				Unique:  false,
 				Columns: []*schema.Column{PostsColumns[4], PostsColumns[15], PostsColumns[1]},
+			},
+			{
+				Name:    "post_title",
+				Unique:  false,
+				Columns: []*schema.Column{PostsColumns[5]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "gin_trgm_ops",
+					Types: map[string]string{
+						"postgres": "GIN",
+					},
+				},
 			},
 		},
 	}

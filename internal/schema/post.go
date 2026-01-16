@@ -134,6 +134,10 @@ type UserPostActionResponse struct {
 type UserPostListRequest struct {
 	// Category ID, optional | 版块ID，可选
 	CategoryID int `form:"category_id,omitempty"`
+	// Category slug, optional | 版块slug，可选
+	Slug string `form:"slug,omitempty"`
+	// Keyword for title search, optional | 标题关键词搜索，可选
+	Keyword string `form:"keyword,omitempty"`
 	// Page number, default 1 | 页码，默认1
 	Page int `form:"page" binding:"min=1"`
 	// Items per page, default 20, max 100 | 每页数量，默认20，最大100

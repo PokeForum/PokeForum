@@ -436,7 +436,7 @@ func (s *PostService) FavoritePost(ctx context.Context, userID int, req schema.U
 
 // GetPostList Get post list | 获取帖子列表
 func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRequest) (*schema.UserPostListResponse, error) {
-	s.logger.Info("获取帖子列表", zap.Int("category_id", req.CategoryID), zap.Int("page", req.Page), zap.Int("page_size", req.PageSize), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取帖子列表", zap.Int("category_id", req.CategoryID), zap.String("slug", req.Slug), zap.String("keyword", req.Keyword), zap.Int("page", req.Page), zap.Int("page_size", req.PageSize), tracing.WithTraceIDField(ctx))
 
 	// Set default values | 设置默认值
 	if req.Page <= 0 {
@@ -449,9 +449,28 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 		req.Sort = "latest"
 	}
 
+	// Resolve category ID from slug if provided | 如果提供了slug则解析为category_id
+	categoryID := req.CategoryID
+	if req.Slug != "" && categoryID == 0 {
+		categoryData, err := s.categoryRepo.GetBySlug(ctx, req.Slug)
+		if err != nil {
+			s.logger.Warn("通过slug获取版块失败", zap.String("slug", req.Slug), zap.Error(err), tracing.WithTraceIDField(ctx))
+			// slug不存在时返回空列表 | Return empty list when slug not found
+			return &schema.UserPostListResponse{
+				Posts:      []schema.UserPostCreateResponse{},
+				Total:      0,
+				Page:       req.Page,
+				PageSize:   req.PageSize,
+				TotalPages: 0,
+			}, nil
+		}
+		categoryID = categoryData.ID
+	}
+
 	// Use repository to query posts | 使用 Repository 查询帖子列表
 	posts, total, err := s.postRepo.List(ctx, repository.ListPostOptions{
-		CategoryID: req.CategoryID,
+		CategoryID: categoryID,
+		Keyword:    req.Keyword,
 		Status:     post.StatusNormal,
 		SortBy:     req.Sort,
 		Page:       req.Page,

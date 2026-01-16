@@ -6376,12 +6376,21 @@ paths:
     get:
       consumes:
       - application/json
-      description: Get post list with pagination and sorting support | 获取帖子列表,支持分页和排序
+      description: Get post list with pagination and sorting support. Supports filtering
+        by category (via ID or slug) and keyword search on title | 获取帖子列表,支持分页和排序。支持通过版块ID或slug筛选,以及标题关键词搜索
       parameters:
       - description: Category ID | 版块ID
         in: query
         name: category_id
         type: integer
+      - description: Category slug | 版块slug
+        in: query
+        name: slug
+        type: string
+      - description: Keyword for title search | 标题关键词搜索
+        in: query
+        name: keyword
+        type: string
       - default: 1
         description: Page number, default 1 | 页码,默认1
         in: query

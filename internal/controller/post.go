@@ -408,11 +408,13 @@ func (ctrl *PostController) FavoritePost(c *gin.Context) {
 
 // GetPostList Get post list | 获取帖子列表
 // @Summary Get post list | 获取帖子列表
-// @Description Get post list with pagination and sorting support | 获取帖子列表,支持分页和排序
+// @Description Get post list with pagination and sorting support. Supports filtering by category (via ID or slug) and keyword search on title | 获取帖子列表,支持分页和排序。支持通过版块ID或slug筛选,以及标题关键词搜索
 // @Tags [User]Topic Posts | [用户]主题贴
 // @Accept json
 // @Produce json
 // @Param category_id query int false "Category ID | 版块ID"
+// @Param slug query string false "Category slug | 版块slug"
+// @Param keyword query string false "Keyword for title search | 标题关键词搜索"
 // @Param page query int false "Page number, default 1 | 页码,默认1" default(1)
 // @Param page_size query int false "Items per page, default 20, max 100 | 每页数量,默认20,最大100" default(20)
 // @Param sort query string false "Sort method: latest (newest), hot (popular), essence (featured) | 排序方式:latest(最新)、hot(热门)、essence(精华)" default(latest)

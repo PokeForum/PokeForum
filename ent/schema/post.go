@@ -2,6 +2,8 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
+	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 )
@@ -86,7 +88,18 @@ func (Post) Indexes() []ent.Index {
 		index.Fields("last_edited_at"),
 		// Create composite index to optimize post queries within categories | 创建复合索引优化版块内帖子查询
 		index.Fields("category_id", "status", "created_at"),
+		// GIN index for title field to support fast fuzzy search | 为 title 字段创建 GIN 索引以支持快速模糊搜索
+		index.Fields("title").
+			Annotations(entsql.IndexTypes(map[string]string{
+				"postgres": "GIN",
+			})).
+			Annotations(entsql.OpClass("gin_trgm_ops")),
 	}
+}
+
+// Annotations of the Post.
+func (Post) Annotations() []schema.Annotation {
+	return nil
 }
 
 // Mixin of the Post.

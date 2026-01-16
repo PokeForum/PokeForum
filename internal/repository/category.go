@@ -12,6 +12,8 @@ import (
 type ICategoryRepository interface {
 	// GetByID Get category by ID | 根据ID获取版块
 	GetByID(ctx context.Context, id int) (*ent.Category, error)
+	// GetBySlug Get category by slug | 根据slug获取版块
+	GetBySlug(ctx context.Context, slug string) (*ent.Category, error)
 	// GetByIDs Batch get categories by IDs | 批量根据ID获取版块
 	GetByIDs(ctx context.Context, ids []int) ([]*ent.Category, error)
 	// GetByIDsWithFields Batch get categories by IDs with specified fields | 批量根据ID获取版块（指定字段）
@@ -50,6 +52,20 @@ func NewCategoryRepository(db *ent.Client) ICategoryRepository {
 func (r *CategoryRepository) GetByID(ctx context.Context, id int) (*ent.Category, error) {
 	cat, err := r.db.Category.Query().
 		Where(category.IDEQ(id)).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, fmt.Errorf("版块不存在")
+		}
+		return nil, fmt.Errorf("查询版块失败: %w", err)
+	}
+	return cat, nil
+}
+
+// GetBySlug Get category by slug | 根据slug获取版块
+func (r *CategoryRepository) GetBySlug(ctx context.Context, slug string) (*ent.Category, error) {
+	cat, err := r.db.Category.Query().
+		Where(category.SlugEQ(slug)).
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {

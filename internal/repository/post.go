@@ -49,6 +49,8 @@ type IPostRepository interface {
 // ListPostOptions Post list query options | 帖子列表查询选项
 type ListPostOptions struct {
 	CategoryID int         // Category ID filter | 版块ID筛选
+	Slug       string      // Category slug filter | 版块slug筛选
+	Keyword    string      // Keyword for title search | 标题关键词搜索
 	Status     post.Status // Status filter | 状态筛选
 	SortBy     string      // Sort field: latest, hot, essence | 排序字段
 	Page       int         // Page number | 页码
@@ -140,6 +142,11 @@ func (r *PostRepository) List(ctx context.Context, opts ListPostOptions) ([]*ent
 		query = query.Where(post.CategoryID(opts.CategoryID))
 	}
 
+	// Apply keyword filter for title fuzzy search | 应用关键词模糊搜索
+	if opts.Keyword != "" {
+		query = query.Where(post.TitleContainsFold(opts.Keyword))
+	}
+
 	// Apply status filter | 应用状态筛选
 	if opts.Status != "" {
 		query = query.Where(post.StatusEQ(opts.Status))
@@ -156,7 +163,7 @@ func (r *PostRepository) List(ctx context.Context, opts ListPostOptions) ([]*ent
 	}
 
 	// Get total count | 获取总数
-	total, err := query.Count(ctx)
+	total, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, 0, fmt.Errorf("获取帖子总数失败: %w", err)
 	}
