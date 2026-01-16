@@ -14,7 +14,7 @@ type GoogleProvider struct {
 func NewGoogleProvider(config *Config) (IProvider, error) {
 	// Set Google default configuration | 设置Google默认配置
 	if config.AuthURL == "" {
-		config.AuthURL = "https://accounts.google.com/o/oauth2/auth"
+		config.AuthURL = "https://accounts.google.com/o/oauth2/v2/auth"
 	}
 	if config.TokenURL == "" {
 		config.TokenURL = "https://oauth2.googleapis.com/token"
