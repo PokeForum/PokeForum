@@ -49,6 +49,9 @@ type ISettingsService interface {
 	GetSigninSettings(ctx context.Context) (*schema.SigninSettingsResponse, error)
 	UpdateSigninSettings(ctx context.Context, req schema.SigninSettingsRequest) error
 
+	// GetPublicConfig Get public configuration (with 30-day cache) | 获取公开配置（30天缓存）
+	GetPublicConfig(ctx context.Context) (*schema.PublicConfigResponse, error)
+
 	// GetSMTPConfig Email settings | 邮箱设置
 	GetSMTPConfig(ctx context.Context) (*schema.EmailSMTPConfigResponse, error)
 	UpdateSMTPConfig(ctx context.Context, req schema.EmailSMTPConfigRequest) error
@@ -145,7 +148,13 @@ func (s *SettingsService) UpdateRoutineSettings(ctx context.Context, req schema.
 		_const.RoutineIsCloseCopyright:      strconv.FormatBool(req.IsCloseCopyright),
 	}
 
-	return s.batchUpsertSettings(ctx, settings.ModuleSite, configItems)
+	if err := s.batchUpsertSettings(ctx, settings.ModuleSite, configItems); err != nil {
+		return err
+	}
+
+	// Clear public config cache | 清理公开配置缓存
+	s.clearPublicConfigCache(ctx)
+	return nil
 }
 
 // GetHomeSettings Get home page settings | 获取首页设置
@@ -203,7 +212,13 @@ func (s *SettingsService) UpdateHomeSettings(ctx context.Context, req schema.Hom
 		configItems[_const.HomeLinks] = "[]"
 	}
 
-	return s.batchUpsertSettings(ctx, settings.ModuleHomePage, configItems)
+	if err := s.batchUpsertSettings(ctx, settings.ModuleHomePage, configItems); err != nil {
+		return err
+	}
+
+	// Clear public config cache | 清理公开配置缓存
+	s.clearPublicConfigCache(ctx)
+	return nil
 }
 
 // GetCommentSettings Get comment settings | 获取评论设置
@@ -230,7 +245,13 @@ func (s *SettingsService) UpdateCommentSettings(ctx context.Context, req schema.
 		_const.CommentKeywordBlacklist: req.KeywordBlacklist,
 	}
 
-	return s.batchUpsertSettings(ctx, settings.ModuleComment, configItems)
+	if err := s.batchUpsertSettings(ctx, settings.ModuleComment, configItems); err != nil {
+		return err
+	}
+
+	// Clear public config cache | 清理公开配置缓存
+	s.clearPublicConfigCache(ctx)
+	return nil
 }
 
 // GetSeoSettings Get SEO settings | 获取SEO设置
@@ -257,7 +278,13 @@ func (s *SettingsService) UpdateSeoSettings(ctx context.Context, req schema.SeoS
 		_const.SeoWebSiteDescription: req.WebSiteDescription,
 	}
 
-	return s.batchUpsertSettings(ctx, settings.ModuleSeo, configItems)
+	if err := s.batchUpsertSettings(ctx, settings.ModuleSeo, configItems); err != nil {
+		return err
+	}
+
+	// Clear public config cache | 清理公开配置缓存
+	s.clearPublicConfigCache(ctx)
+	return nil
 }
 
 // GetCodeSettings Get code configuration | 获取代码配置
@@ -284,7 +311,13 @@ func (s *SettingsService) UpdateCodeSettings(ctx context.Context, req schema.Cod
 		_const.CodeCustomizationCSS: req.CustomizationCSS,
 	}
 
-	return s.batchUpsertSettings(ctx, settings.ModuleSite, configItems)
+	if err := s.batchUpsertSettings(ctx, settings.ModuleSite, configItems); err != nil {
+		return err
+	}
+
+	// Clear public config cache | 清理公开配置缓存
+	s.clearPublicConfigCache(ctx)
+	return nil
 }
 
 // GetSafeSettings Get security settings | 获取安全设置
@@ -313,7 +346,13 @@ func (s *SettingsService) UpdateSafeSettings(ctx context.Context, req schema.Saf
 		_const.SafeVerifyEmail:            strconv.FormatBool(req.VerifyEmail),
 	}
 
-	return s.batchUpsertSettings(ctx, settings.ModuleSecurity, configItems)
+	if err := s.batchUpsertSettings(ctx, settings.ModuleSecurity, configItems); err != nil {
+		return err
+	}
+
+	// Clear public config cache | 清理公开配置缓存
+	s.clearPublicConfigCache(ctx)
+	return nil
 }
 
 // GetSMTPConfig Get SMTP configuration | 获取SMTP配置
@@ -526,7 +565,13 @@ func (s *SettingsService) UpdateSigninSettings(ctx context.Context, req schema.S
 		_const.SigninExperienceReward: strconv.FormatFloat(req.ExperienceReward, 'f', 2, 64),
 	}
 
-	return s.batchUpsertSettings(ctx, settings.ModuleSignin, configItems)
+	if err := s.batchUpsertSettings(ctx, settings.ModuleSignin, configItems); err != nil {
+		return err
+	}
+
+	// Clear public config cache | 清理公开配置缓存
+	s.clearPublicConfigCache(ctx)
+	return nil
 }
 
 // parseIntWithDefault Parse integer string, return default value on failure | 解析整数字符串，失败时返回默认值
@@ -537,10 +582,89 @@ func (s *SettingsService) parseIntWithDefault(str string, defaultValue int) int 
 	return defaultValue
 }
 
+// GetPublicConfig Get public configuration (with 30-day cache) | 获取公开配置（30天缓存）
+func (s *SettingsService) GetPublicConfig(ctx context.Context) (*schema.PublicConfigResponse, error) {
+	// Cache key | 缓存键
+	cacheKey := "public:config"
+
+	// Try to get from cache first | 先尝试从缓存获取
+	cachedData, err := s.cache.Get(ctx, cacheKey)
+	if err == nil && cachedData != "" {
+		var result schema.PublicConfigResponse
+		if err := json.Unmarshal([]byte(cachedData), &result); err == nil {
+			s.logger.Debug("从缓存获取公开配置成功", tracing.WithTraceIDField(ctx))
+			return &result, nil
+		}
+	}
+
+	// Get all configurations in parallel | 并行获取所有配置
+	routine, err := s.GetRoutineSettings(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	home, err := s.GetHomeSettings(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	seo, err := s.GetSeoSettings(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	safe, err := s.GetSafeSettings(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	code, err := s.GetCodeSettings(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	comment, err := s.GetCommentSettings(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	signin, err := s.GetSigninSettings(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &schema.PublicConfigResponse{
+		Routine: routine,
+		Home:    home,
+		Seo:     seo,
+		Safe:    safe,
+		Code:    code,
+		Comment: comment,
+		Signin:  signin,
+	}
+
+	// Cache the result for 30 days | 缓存结果30天（2592000秒）
+	if data, err := json.Marshal(result); err == nil {
+		if cacheErr := s.cache.SetEx(ctx, cacheKey, data, 2592000); cacheErr != nil {
+			s.logger.Warn("缓存公开配置失败", tracing.WithTraceIDField(ctx), zap.Error(cacheErr))
+		}
+	}
+
+	return result, nil
+}
+
 // ClearSettingCache Clear Redis cache for specified setting - public method | 清理指定设置的Redis缓存 - 公共方法
 func (s *SettingsService) ClearSettingCache(ctx context.Context, key string) {
 	cacheKey := _const.GetSettingKey(key)
 	if _, err := s.cache.Del(ctx, cacheKey); err != nil {
 		s.logger.Warn("清理设置缓存失败", zap.String("key", key), zap.Error(err))
+	}
+}
+
+// clearPublicConfigCache Clear public configuration cache | 清理公开配置缓存
+func (s *SettingsService) clearPublicConfigCache(ctx context.Context) {
+	cacheKey := "public:config"
+	if _, err := s.cache.Del(ctx, cacheKey); err != nil {
+		s.logger.Warn("清理公开配置缓存失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 	}
 }

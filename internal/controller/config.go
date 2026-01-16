@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
-	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 )
 
@@ -37,56 +36,12 @@ func (ctrl *ConfigController) ConfigRouter(router *gin.RouterGroup) {
 func (ctrl *ConfigController) GetPublicConfig(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	// Get all configurations in parallel | 并行获取所有配置
-	routine, err := ctrl.settingsService.GetRoutineSettings(ctx)
+	// Get public configuration (with 30-day cache) | 获取公开配置（30天缓存）
+	result, err := ctrl.settingsService.GetPublicConfig(ctx)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
 
-	home, err := ctrl.settingsService.GetHomeSettings(ctx)
-	if err != nil {
-		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
-		return
-	}
-
-	seo, err := ctrl.settingsService.GetSeoSettings(ctx)
-	if err != nil {
-		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
-		return
-	}
-
-	safe, err := ctrl.settingsService.GetSafeSettings(ctx)
-	if err != nil {
-		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
-		return
-	}
-
-	code, err := ctrl.settingsService.GetCodeSettings(ctx)
-	if err != nil {
-		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
-		return
-	}
-
-	comment, err := ctrl.settingsService.GetCommentSettings(ctx)
-	if err != nil {
-		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
-		return
-	}
-
-	signin, err := ctrl.settingsService.GetSigninSettings(ctx)
-	if err != nil {
-		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
-		return
-	}
-
-	response.ResSuccess(c, schema.PublicConfigResponse{
-		Routine: routine,
-		Home:    home,
-		Seo:     seo,
-		Safe:    safe,
-		Code:    code,
-		Comment: comment,
-		Signin:  signin,
-	})
+	response.ResSuccess(c, result)
 }

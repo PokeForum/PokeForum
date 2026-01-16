@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"crypto/rand"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -87,6 +88,21 @@ func NewUserProfileService(db *ent.Client, repos *repository.Repositories, cache
 func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int, isOwner bool) (*schema.UserProfileOverviewResponse, error) {
 	s.logger.Info("获取用户个人中心概览", zap.Int("user_id", userID), zap.Bool("is_owner", isOwner), tracing.WithTraceIDField(ctx))
 
+	// Cache key | 缓存键
+	cacheKey := fmt.Sprintf("user:profile:overview:%d", userID)
+
+	// If querying other user's profile, try to get from cache first | 如果查询他人个人中心，先尝试从缓存获取
+	if !isOwner {
+		cachedData, err := s.cache.Get(ctx, cacheKey)
+		if err == nil && cachedData != "" {
+			var result schema.UserProfileOverviewResponse
+			if err := json.Unmarshal([]byte(cachedData), &result); err == nil {
+				s.logger.Debug("从缓存获取用户个人中心概览成功", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+				return &result, nil
+			}
+		}
+	}
+
 	// 查询用户信息
 	userData, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
@@ -133,6 +149,15 @@ func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int,
 		result.EmailVerified = false
 		result.Points = 0
 		result.Currency = 0
+	}
+
+	// If querying other user's profile, cache the result for 1 day | 如果查询他人个人中心，缓存结果1天
+	if !isOwner {
+		if data, err := json.Marshal(result); err == nil {
+			if cacheErr := s.cache.SetEx(ctx, cacheKey, data, 86400); cacheErr != nil {
+				s.logger.Warn("缓存用户个人中心概览失败", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx), zap.Error(cacheErr))
+			}
+		}
 	}
 
 	s.logger.Info("获取用户个人中心概览成功", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
@@ -569,6 +594,9 @@ func (s *UserProfileService) UpdatePassword(ctx context.Context, userID int, req
 		return nil, err
 	}
 
+	// 清除用户个人中心缓存
+	s.clearProfileOverviewCache(ctx, userID)
+
 	result := &schema.UserUpdatePasswordResponse{
 		Success: true,
 		Message: "密码修改成功，请重新登录",
@@ -588,6 +616,9 @@ func (s *UserProfileService) UpdateAvatar(ctx context.Context, userID int, req s
 		s.logger.Error("更新头像失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, err
 	}
+
+	// 清除用户个人中心缓存
+	s.clearProfileOverviewCache(ctx, userID)
 
 	result := &schema.UserUpdateAvatarResponse{
 		Success:   true,
@@ -627,6 +658,9 @@ func (s *UserProfileService) UpdateUsername(ctx context.Context, userID int, req
 		s.logger.Error("更新用户名失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, err
 	}
+
+	// 清除用户个人中心缓存
+	s.clearProfileOverviewCache(ctx, userID)
 
 	result := &schema.UserUpdateUsernameResponse{
 		Success:  true,
@@ -848,4 +882,12 @@ func (s *UserProfileService) sendVerificationEmail(ctx context.Context, email, c
 	}
 
 	return nil
+}
+
+// clearProfileOverviewCache Clear user profile overview cache | 清除用户个人中心概览缓存
+func (s *UserProfileService) clearProfileOverviewCache(ctx context.Context, userID int) {
+	cacheKey := fmt.Sprintf("user:profile:overview:%d", userID)
+	if _, err := s.cache.Del(ctx, cacheKey); err != nil {
+		s.logger.Warn("清除用户个人中心概览缓存失败", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx), zap.Error(err))
+	}
 }
