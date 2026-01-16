@@ -168,12 +168,6 @@ func (_c *UserBalanceLogCreate) SetNillableUserAgent(v *string) *UserBalanceLogC
 	return _c
 }
 
-// SetID sets the "id" field.
-func (_c *UserBalanceLogCreate) SetID(v int) *UserBalanceLogCreate {
-	_c.mutation.SetID(v)
-	return _c
-}
-
 // Mutation returns the UserBalanceLogMutation object of the builder.
 func (_c *UserBalanceLogCreate) Mutation() *UserBalanceLogMutation {
 	return _c.mutation
@@ -260,11 +254,6 @@ func (_c *UserBalanceLogCreate) check() error {
 			return &ValidationError{Name: "reason", err: fmt.Errorf(`ent: validator failed for field "UserBalanceLog.reason": %w`, err)}
 		}
 	}
-	if v, ok := _c.mutation.ID(); ok {
-		if err := userbalancelog.IDValidator(v); err != nil {
-			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "UserBalanceLog.id": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -279,10 +268,8 @@ func (_c *UserBalanceLogCreate) sqlSave(ctx context.Context) (*UserBalanceLog, e
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = int(id)
-	}
+	id := _spec.ID.Value.(int64)
+	_node.ID = int(id)
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
 	return _node, nil
@@ -293,10 +280,6 @@ func (_c *UserBalanceLogCreate) createSpec() (*UserBalanceLog, *sqlgraph.CreateS
 		_node = &UserBalanceLog{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(userbalancelog.Table, sqlgraph.NewFieldSpec(userbalancelog.FieldID, field.TypeInt))
 	)
-	if id, ok := _c.mutation.ID(); ok {
-		_node.ID = id
-		_spec.ID.Value = id
-	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(userbalancelog.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -401,7 +384,7 @@ func (_c *UserBalanceLogCreateBulk) Save(ctx context.Context) ([]*UserBalanceLog
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
+				if specs[i].ID.Value != nil {
 					id := specs[i].ID.Value.(int64)
 					nodes[i].ID = int(id)
 				}

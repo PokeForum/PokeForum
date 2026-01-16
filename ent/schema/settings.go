@@ -14,9 +14,6 @@ type Settings struct {
 // Fields of the Settings.
 func (Settings) Fields() []ent.Field {
 	return []ent.Field{
-		// System settings ID, database primary key auto-increment | 系统设置ID，数据库主键自增
-		field.Int("id").
-			Positive(),
 		// Module enumeration: Site, HomePage, Comment, Seo, Security, Function, Signin | 模块枚举：Site、HomePage、Comment、Seo、Security、Function、Signin
 		field.Enum("module").
 			Values("Site", "HomePage", "Comment", "Seo", "Security", "Function", "Signin"),

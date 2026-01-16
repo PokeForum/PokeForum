@@ -95,12 +95,13 @@ func (b *BaseProvider) doTokenExchange(ctx context.Context, data url.Values, err
 
 // ExchangeTokenByForm Exchange Token via form | 通过表单方式交换Token
 // Suitable for most OAuth providers | 适用于大多数OAuth提供商
-func (b *BaseProvider) ExchangeTokenByForm(ctx context.Context, code string) (*TokenResponse, error) {
+func (b *BaseProvider) ExchangeTokenByForm(ctx context.Context, code string, redirectURI string) (*TokenResponse, error) {
 	data := url.Values{}
 	data.Set("client_id", b.config.ClientID)
 	data.Set("client_secret", b.config.ClientSecret)
 	data.Set("code", code)
 	data.Set("grant_type", "authorization_code")
+	data.Set("redirect_uri", redirectURI)
 
 	return b.doTokenExchange(ctx, data, ErrExchangeTokenFailed)
 }

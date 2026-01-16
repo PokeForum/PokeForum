@@ -71,8 +71,6 @@ var (
 	UserIDValidator func(int) error
 	// ProviderUserIDValidator is a validator for the "provider_user_id" field. It is called by the builders before save.
 	ProviderUserIDValidator func(string) error
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int) error
 )
 
 // Provider defines the type for the "provider" enum field.

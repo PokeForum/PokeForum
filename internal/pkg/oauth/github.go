@@ -37,8 +37,8 @@ func (g *GitHubProvider) GetAuthURL(state string, redirectURL string) string {
 }
 
 // ExchangeToken Exchange authorization code for access token | 使用授权码换取访问令牌
-func (g *GitHubProvider) ExchangeToken(ctx context.Context, code string, _ string) (*TokenResponse, error) {
-	return g.ExchangeTokenByForm(ctx, code)
+func (g *GitHubProvider) ExchangeToken(ctx context.Context, code string, redirectURI string) (*TokenResponse, error) {
+	return g.ExchangeTokenByForm(ctx, code, redirectURI)
 }
 
 // GetUserInfo Get GitHub user information | 获取GitHub用户信息

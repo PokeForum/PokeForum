@@ -15,9 +15,6 @@ type UserOAuth struct {
 // Fields of the UserOAuth.
 func (UserOAuth) Fields() []ent.Field {
 	return []ent.Field{
-		// Binding record ID, database primary key auto-increment | 绑定记录ID，数据库主键自增
-		field.Int("id").
-			Positive(),
 		// User ID, associated with users table | 用户ID，关联users表
 		field.Int("user_id").
 			Positive(),

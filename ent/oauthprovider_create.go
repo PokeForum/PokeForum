@@ -164,12 +164,6 @@ func (_c *OAuthProviderCreate) SetNillableSortOrder(v *int) *OAuthProviderCreate
 	return _c
 }
 
-// SetID sets the "id" field.
-func (_c *OAuthProviderCreate) SetID(v int) *OAuthProviderCreate {
-	_c.mutation.SetID(v)
-	return _c
-}
-
 // Mutation returns the OAuthProviderMutation object of the builder.
 func (_c *OAuthProviderCreate) Mutation() *OAuthProviderMutation {
 	return _c.mutation
@@ -250,11 +244,6 @@ func (_c *OAuthProviderCreate) check() error {
 			return &ValidationError{Name: "sort_order", err: fmt.Errorf(`ent: validator failed for field "OAuthProvider.sort_order": %w`, err)}
 		}
 	}
-	if v, ok := _c.mutation.ID(); ok {
-		if err := oauthprovider.IDValidator(v); err != nil {
-			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "OAuthProvider.id": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -269,10 +258,8 @@ func (_c *OAuthProviderCreate) sqlSave(ctx context.Context) (*OAuthProvider, err
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = int(id)
-	}
+	id := _spec.ID.Value.(int64)
+	_node.ID = int(id)
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
 	return _node, nil
@@ -283,10 +270,6 @@ func (_c *OAuthProviderCreate) createSpec() (*OAuthProvider, *sqlgraph.CreateSpe
 		_node = &OAuthProvider{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(oauthprovider.Table, sqlgraph.NewFieldSpec(oauthprovider.FieldID, field.TypeInt))
 	)
-	if id, ok := _c.mutation.ID(); ok {
-		_node.ID = id
-		_spec.ID.Value = id
-	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(oauthprovider.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -383,7 +366,7 @@ func (_c *OAuthProviderCreateBulk) Save(ctx context.Context) ([]*OAuthProvider, 
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
+				if specs[i].ID.Value != nil {
 					id := specs[i].ID.Value.(int64)
 					nodes[i].ID = int(id)
 				}

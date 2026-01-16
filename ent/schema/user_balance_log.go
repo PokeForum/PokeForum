@@ -14,9 +14,6 @@ type UserBalanceLog struct {
 // Fields of the UserBalanceLog.
 func (UserBalanceLog) Fields() []ent.Field {
 	return []ent.Field{
-		// Primary key ID | 主键ID
-		field.Int("id").
-			Positive(),
 		// User ID, reference to user table | 用户ID，关联到用户表
 		field.Int("user_id").
 			Positive().

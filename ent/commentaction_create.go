@@ -66,12 +66,6 @@ func (_c *CommentActionCreate) SetActionType(v commentaction.ActionType) *Commen
 	return _c
 }
 
-// SetID sets the "id" field.
-func (_c *CommentActionCreate) SetID(v int) *CommentActionCreate {
-	_c.mutation.SetID(v)
-	return _c
-}
-
 // Mutation returns the CommentActionMutation object of the builder.
 func (_c *CommentActionCreate) Mutation() *CommentActionMutation {
 	return _c.mutation
@@ -149,11 +143,6 @@ func (_c *CommentActionCreate) check() error {
 			return &ValidationError{Name: "action_type", err: fmt.Errorf(`ent: validator failed for field "CommentAction.action_type": %w`, err)}
 		}
 	}
-	if v, ok := _c.mutation.ID(); ok {
-		if err := commentaction.IDValidator(v); err != nil {
-			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "CommentAction.id": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -168,10 +157,8 @@ func (_c *CommentActionCreate) sqlSave(ctx context.Context) (*CommentAction, err
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = int(id)
-	}
+	id := _spec.ID.Value.(int64)
+	_node.ID = int(id)
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
 	return _node, nil
@@ -182,10 +169,6 @@ func (_c *CommentActionCreate) createSpec() (*CommentAction, *sqlgraph.CreateSpe
 		_node = &CommentAction{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(commentaction.Table, sqlgraph.NewFieldSpec(commentaction.FieldID, field.TypeInt))
 	)
-	if id, ok := _c.mutation.ID(); ok {
-		_node.ID = id
-		_spec.ID.Value = id
-	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(commentaction.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -254,7 +237,7 @@ func (_c *CommentActionCreateBulk) Save(ctx context.Context) ([]*CommentAction, 
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
+				if specs[i].ID.Value != nil {
 					id := specs[i].ID.Value.(int64)
 					nodes[i].ID = int(id)
 				}

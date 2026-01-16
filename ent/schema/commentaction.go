@@ -14,9 +14,6 @@ type CommentAction struct {
 // Fields of the CommentAction.
 func (CommentAction) Fields() []ent.Field {
 	return []ent.Field{
-		// Primary key ID | 主键ID
-		field.Int("id").
-			Positive(),
 		// User ID, foreign key reference to User table | 用户ID，外键关联到User表
 		field.Int("user_id").
 			Positive(),

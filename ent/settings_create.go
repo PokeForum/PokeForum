@@ -88,12 +88,6 @@ func (_c *SettingsCreate) SetNillableValueType(v *settings.ValueType) *SettingsC
 	return _c
 }
 
-// SetID sets the "id" field.
-func (_c *SettingsCreate) SetID(v int) *SettingsCreate {
-	_c.mutation.SetID(v)
-	return _c
-}
-
 // Mutation returns the SettingsMutation object of the builder.
 func (_c *SettingsCreate) Mutation() *SettingsMutation {
 	return _c.mutation
@@ -175,11 +169,6 @@ func (_c *SettingsCreate) check() error {
 			return &ValidationError{Name: "value_type", err: fmt.Errorf(`ent: validator failed for field "Settings.value_type": %w`, err)}
 		}
 	}
-	if v, ok := _c.mutation.ID(); ok {
-		if err := settings.IDValidator(v); err != nil {
-			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Settings.id": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -194,10 +183,8 @@ func (_c *SettingsCreate) sqlSave(ctx context.Context) (*Settings, error) {
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = int(id)
-	}
+	id := _spec.ID.Value.(int64)
+	_node.ID = int(id)
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
 	return _node, nil
@@ -208,10 +195,6 @@ func (_c *SettingsCreate) createSpec() (*Settings, *sqlgraph.CreateSpec) {
 		_node = &Settings{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(settings.Table, sqlgraph.NewFieldSpec(settings.FieldID, field.TypeInt))
 	)
-	if id, ok := _c.mutation.ID(); ok {
-		_node.ID = id
-		_spec.ID.Value = id
-	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(settings.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -284,7 +267,7 @@ func (_c *SettingsCreateBulk) Save(ctx context.Context) ([]*Settings, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
+				if specs[i].ID.Value != nil {
 					id := specs[i].ID.Value.(int64)
 					nodes[i].ID = int(id)
 				}

@@ -82,8 +82,6 @@ var (
 	DefaultSortOrder int
 	// SortOrderValidator is a validator for the "sort_order" field. It is called by the builders before save.
 	SortOrderValidator func(int) error
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int) error
 )
 
 // Provider defines the type for the "provider" enum field.

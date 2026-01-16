@@ -14,9 +14,6 @@ type Category struct {
 // Fields of the Category.
 func (Category) Fields() []ent.Field {
 	return []ent.Field{
-		// Primary key ID | 主键ID
-		field.Int("id").
-			Positive(),
 		// Category name | 版块名称
 		field.String("name").
 			NotEmpty(),

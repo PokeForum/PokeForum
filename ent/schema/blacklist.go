@@ -14,9 +14,6 @@ type Blacklist struct {
 // Fields of the Blacklist.
 func (Blacklist) Fields() []ent.Field {
 	return []ent.Field{
-		// Blacklist record ID, database primary key auto-increment | 黑名单记录ID，数据库主键自增
-		field.Int("id").
-			Positive(),
 		// User ID, the user who performed the blocking action | 用户ID，执行拉黑操作的用户
 		field.Int("user_id").
 			Positive().

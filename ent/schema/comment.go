@@ -14,9 +14,6 @@ type Comment struct {
 // Fields of the Comment.
 func (Comment) Fields() []ent.Field {
 	return []ent.Field{
-		// Primary key ID | 主键ID
-		field.Int("id").
-			Positive(),
 		// Post ID, foreign key to Post table | 帖子ID，外键关联到Post表
 		field.Int("post_id").
 			Positive(),

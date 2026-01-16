@@ -108,6 +108,9 @@ func (r *UserOAuthRepository) Create(ctx context.Context, userID int, provider, 
 
 	binding, err := creator.Save(ctx)
 	if err != nil {
+		if ent.IsConstraintError(err) {
+			return nil, fmt.Errorf("该OAuth账号已被其他用户绑定")
+		}
 		return nil, fmt.Errorf("创建OAuth绑定失败: %w", err)
 	}
 	return binding, nil

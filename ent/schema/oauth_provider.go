@@ -15,9 +15,6 @@ type OAuthProvider struct {
 // Fields of the OAuthProvider.
 func (OAuthProvider) Fields() []ent.Field {
 	return []ent.Field{
-		// Provider ID, database primary key auto-increment | 提供商ID，数据库主键自增
-		field.Int("id").
-			Positive(),
 		// Provider name: QQ, GitHub, Google, FIDO2 | 提供商名称：QQ、GitHub、Google、FIDO2
 		field.Enum("provider").
 			Values("QQ", "GitHub", "Google", "FIDO2"),

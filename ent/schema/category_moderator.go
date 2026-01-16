@@ -15,9 +15,6 @@ type CategoryModerator struct {
 // Fields of the CategoryModerator.
 func (CategoryModerator) Fields() []ent.Field {
 	return []ent.Field{
-		// Primary key ID | 主键ID
-		field.Int("id").
-			Positive(),
 		// Category ID | 版块ID
 		field.Int("category_id").
 			Positive().

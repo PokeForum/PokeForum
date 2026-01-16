@@ -14,9 +14,6 @@ type User struct {
 // Fields of the User.
 func (User) Fields() []ent.Field {
 	return []ent.Field{
-		// User ID, database primary key auto-increment | 用户ID，数据库主键自增
-		field.Int("id").
-			Positive(),
 		// Email, unique and not empty | 邮箱，唯一且不为空
 		field.String("email").
 			Unique().

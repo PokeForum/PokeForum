@@ -102,8 +102,6 @@ var (
 	DefaultCurrency int
 	// CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	CurrencyValidator func(int) error
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int) error
 )
 
 // Status defines the type for the "status" enum field.

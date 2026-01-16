@@ -85,11 +85,13 @@ build: build-linux-amd64
 build-linux-arm64:
 	@echo "Building for Linux ARM64..."
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o $(APP_NAME)-linux-arm64 -ldflags '$(LDFLAGS) -extldflags "-static"'
+	@upx $(APP_NAME)-linux-arm64 || true
 
 ## build-linux-amd64: 构建 Linux AMD64 版本
 build-linux-amd64:
 	@echo "Building for Linux AMD64..."
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $(APP_NAME)-linux-amd64 -ldflags '$(LDFLAGS) -extldflags "-static"'
+	@upx $(APP_NAME)-linux-amd64 || true
 
 ## build-darwin: 构建 macOS 版本
 build-darwin:
