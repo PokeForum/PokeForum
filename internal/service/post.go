@@ -513,7 +513,9 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 	// Collect user IDs and category IDs | 收集用户ID和版块ID
 	userIDs := make(map[int]bool)
 	categoryIDs := make(map[int]bool)
-	allPosts := append(pinnedPosts, posts...)
+	allPosts := make([]*ent.Post, 0, len(pinnedPosts)+len(posts))
+	allPosts = append(allPosts, pinnedPosts...)
+	allPosts = append(allPosts, posts...)
 	for _, p := range allPosts {
 		userIDs[p.UserID] = true
 		categoryIDs[p.CategoryID] = true
