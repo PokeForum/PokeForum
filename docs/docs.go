@@ -9167,6 +9167,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "技术分享帖"
                 },
+                "user_id": {
+                    "description": "Author ID | 作者 ID",
+                    "type": "integer",
+                    "example": 1
+                },
                 "username": {
                     "description": "Author username | 作者用户名",
                     "type": "string",
@@ -9918,6 +9923,11 @@ const docTemplate = `{
                     "description": "Post title | 帖子标题",
                     "type": "string",
                     "example": "技术分享帖"
+                },
+                "user_id": {
+                    "description": "Author ID | 作者 ID",
+                    "type": "integer",
+                    "example": 1
                 },
                 "username": {
                     "description": "Author username | 作者用户名",
@@ -11481,6 +11491,10 @@ const docTemplate = `{
         "schema.UserPostCreateResponse": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "description": "Author avatar | 作者头像",
+                    "type": "string"
+                },
                 "category_id": {
                     "description": "Category ID | 版块ID",
                     "type": "integer"
@@ -11545,6 +11559,10 @@ const docTemplate = `{
                     "description": "Whether current user has favorited | 当前用户是否已收藏",
                     "type": "boolean"
                 },
+                "user_id": {
+                    "description": "Author ID | 作者 ID",
+                    "type": "integer"
+                },
                 "user_liked": {
                     "description": "Whether current user has liked | 当前用户是否已点赞",
                     "type": "boolean"
@@ -11562,6 +11580,10 @@ const docTemplate = `{
         "schema.UserPostDetailResponse": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "description": "Author avatar | 作者头像",
+                    "type": "string"
+                },
                 "category_id": {
                     "description": "Category ID | 版块ID",
                     "type": "integer"
@@ -11711,6 +11733,10 @@ const docTemplate = `{
         "schema.UserPostUpdateResponse": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "description": "Author avatar | 作者头像",
+                    "type": "string"
+                },
                 "category_id": {
                     "description": "Category ID | 版块ID",
                     "type": "integer"
@@ -11774,6 +11800,10 @@ const docTemplate = `{
                 "user_favorited": {
                     "description": "Whether current user has favorited | 当前用户是否已收藏",
                     "type": "boolean"
+                },
+                "user_id": {
+                    "description": "Author ID | 作者 ID",
+                    "type": "integer"
                 },
                 "user_liked": {
                     "description": "Whether current user has liked | 当前用户是否已点赞",

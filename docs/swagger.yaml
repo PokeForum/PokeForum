@@ -1526,6 +1526,10 @@ definitions:
         description: Post title | 帖子标题
         example: 技术分享帖
         type: string
+      user_id:
+        description: Author ID | 作者 ID
+        example: 1
+        type: integer
       username:
         description: Author username | 作者用户名
         example: testuser
@@ -2106,6 +2110,10 @@ definitions:
         description: Post title | 帖子标题
         example: 技术分享帖
         type: string
+      user_id:
+        description: Author ID | 作者 ID
+        example: 1
+        type: integer
       username:
         description: Author username | 作者用户名
         example: testuser
@@ -3304,6 +3312,9 @@ definitions:
     type: object
   schema.UserPostCreateResponse:
     properties:
+      avatar:
+        description: Author avatar | 作者头像
+        type: string
       category_id:
         description: Category ID | 版块ID
         type: integer
@@ -3352,6 +3363,9 @@ definitions:
       user_favorited:
         description: Whether current user has favorited | 当前用户是否已收藏
         type: boolean
+      user_id:
+        description: Author ID | 作者 ID
+        type: integer
       user_liked:
         description: Whether current user has liked | 当前用户是否已点赞
         type: boolean
@@ -3364,6 +3378,9 @@ definitions:
     type: object
   schema.UserPostDetailResponse:
     properties:
+      avatar:
+        description: Author avatar | 作者头像
+        type: string
       category_id:
         description: Category ID | 版块ID
         type: integer
@@ -3474,6 +3491,9 @@ definitions:
     type: object
   schema.UserPostUpdateResponse:
     properties:
+      avatar:
+        description: Author avatar | 作者头像
+        type: string
       category_id:
         description: Category ID | 版块ID
         type: integer
@@ -3522,6 +3542,9 @@ definitions:
       user_favorited:
         description: Whether current user has favorited | 当前用户是否已收藏
         type: boolean
+      user_id:
+        description: Author ID | 作者 ID
+        type: integer
       user_liked:
         description: Whether current user has liked | 当前用户是否已点赞
         type: boolean

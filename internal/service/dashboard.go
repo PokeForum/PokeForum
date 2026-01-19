@@ -450,6 +450,7 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 		ui := userMap[p.UserID]
 		posts[i] = schema.RecentPost{
 			ID:           p.ID,
+			UserID:       p.UserID,
 			Title:        p.Title,
 			Username:     ui.Username,
 			Avatar:       ui.Avatar,
@@ -565,6 +566,7 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 		ui := userMap[p.UserID]
 		posts[i] = schema.PopularPost{
 			ID:           p.ID,
+			UserID:       p.UserID,
 			Title:        p.Title,
 			Username:     ui.Username,
 			Avatar:       ui.Avatar,

@@ -26,8 +26,12 @@ type UserPostCreateResponse struct {
 	Title string `json:"title"`
 	// Post content | 帖子内容
 	Content string `json:"content"`
+	// Author ID | 作者 ID
+	UserID int `json:"user_id"`
 	// Author username | 作者用户名
 	Username string `json:"username"`
+	// Author avatar | 作者头像
+	Avatar string `json:"avatar"`
 	// Read permission | 阅读限制
 	ReadPermission string `json:"read_permission,omitempty"`
 	// View count | 浏览数
@@ -80,8 +84,12 @@ type UserPostUpdateResponse struct {
 	Title string `json:"title"`
 	// Post content | 帖子内容
 	Content string `json:"content"`
+	// Author ID | 作者 ID
+	UserID int `json:"user_id"`
 	// Author username | 作者用户名
 	Username string `json:"username"`
+	// Author avatar | 作者头像
+	Avatar string `json:"avatar"`
 	// Read permission | 阅读限制
 	ReadPermission string `json:"read_permission,omitempty"`
 	// View count | 浏览数
@@ -184,6 +192,8 @@ type UserPostDetailResponse struct {
 	UserID int `json:"user_id"`
 	// Author username | 作者用户名
 	Username string `json:"username"`
+	// Author avatar | 作者头像
+	Avatar string `json:"avatar"`
 	// Read permission | 阅读限制
 	ReadPermission string `json:"read_permission,omitempty"`
 	// View count | 浏览数

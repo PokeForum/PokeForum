@@ -71,6 +71,7 @@ type RecentActivityResponse struct {
 // RecentPost Recent post | 最近帖子
 type RecentPost struct {
 	ID           int    `json:"id" example:"1"`                                  // Post ID | 帖子ID
+	UserID       int    `json:"user_id" example:"1"`                             // Author ID | 作者 ID
 	Title        string `json:"title" example:"技术分享帖"`                           // Post title | 帖子标题
 	Username     string `json:"username" example:"testuser"`                     // Author username | 作者用户名
 	Avatar       string `json:"avatar" example:"https://example.com/avatar.png"` // Author avatar | 作者头像
@@ -105,6 +106,7 @@ type PopularPostsResponse struct {
 // PopularPost Popular post | 热门帖子
 type PopularPost struct {
 	ID           int    `json:"id" example:"1"`                                  // Post ID | 帖子ID
+	UserID       int    `json:"user_id" example:"1"`                             // Author ID | 作者 ID
 	Title        string `json:"title" example:"技术分享帖"`                           // Post title | 帖子标题
 	Username     string `json:"username" example:"testuser"`                     // Author username | 作者用户名
 	Avatar       string `json:"avatar" example:"https://example.com/avatar.png"` // Author avatar | 作者头像

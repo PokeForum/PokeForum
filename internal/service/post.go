@@ -525,13 +525,25 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
 	}
-	users, err := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername})
+	users, err := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername, user.FieldAvatar})
 	if err != nil {
 		s.logger.Warn("批量查询用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 	}
-	userMap := make(map[int]string)
+	userMap := make(map[int]struct {
+		ID       int
+		Username string
+		Avatar   string
+	})
 	for _, u := range users {
-		userMap[u.ID] = u.Username
+		userMap[u.ID] = struct {
+			ID       int
+			Username string
+			Avatar   string
+		}{
+			ID:       u.ID,
+			Username: u.Username,
+			Avatar:   u.Avatar,
+		}
 	}
 
 	categoryIDList := make([]int, 0, len(categoryIDs))
@@ -590,7 +602,7 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 
 	// Helper function to convert post to response | 帖子转响应的辅助函数
 	convertPost := func(p *ent.Post) schema.UserPostCreateResponse {
-		username := userMap[p.UserID]
+		userInfo := userMap[p.UserID]
 		categoryName := categoryMap[p.CategoryID]
 
 		// Prefer real-time stats data | 优先使用实时统计数据
@@ -619,7 +631,9 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 			CategoryName:   categoryName,
 			Title:          p.Title,
 			Content:        p.Content,
-			Username:       username,
+			UserID:         userInfo.ID,
+			Username:       userInfo.Username,
+			Avatar:         userInfo.Avatar,
 			ReadPermission: p.ReadPermission,
 			ViewCount:      viewCount,
 			LikeCount:      likeCount,
