@@ -408,7 +408,7 @@ func (ctrl *PostController) FavoritePost(c *gin.Context) {
 
 // GetPostList Get post list | 获取帖子列表
 // @Summary Get post list | 获取帖子列表
-// @Description Get post list with pagination and sorting support. Supports filtering by category (via ID or slug) and keyword search on title | 获取帖子列表,支持分页和排序。支持通过版块ID或slug筛选,以及标题关键词搜索
+// @Description Get post list with pagination and sorting support. Supports filtering by category (via ID or slug) and keyword search on title. Pinned posts are returned separately in pinned_posts field | 获取帖子列表,支持分页和排序。支持通过版块ID或slug筛选,以及标题关键词搜索。置顶帖子单独返回在pinned_posts字段中
 // @Tags [User]Topic Posts | [用户]主题贴
 // @Accept json
 // @Produce json

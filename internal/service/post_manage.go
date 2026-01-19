@@ -115,7 +115,7 @@ func (s *PostManageService) GetPostList(ctx context.Context, req schema.PostList
 	// Paginated query, pinned posts first, then sorted by creation time descending | 分页查询，置顶帖在前，然后按创建时间倒序
 	posts, err := s.postRepo.ListWithCondition(ctx, func(q *ent.PostQuery) *ent.PostQuery {
 		q = conditionFunc(q)
-		return q.Order(ent.Desc(post.FieldIsPinned), ent.Desc(post.FieldCreatedAt)).
+		return q.Order(ent.Desc(post.FieldCreatedAt)).
 			Offset((req.Page - 1) * req.PageSize)
 	}, req.PageSize)
 	if err != nil {
@@ -190,6 +190,7 @@ func (s *PostManageService) GetPostList(ctx context.Context, req schema.PostList
 			FavoriteCount: p.FavoriteCount,
 			IsEssence:     p.IsEssence,
 			IsPinned:      p.IsPinned,
+			PinScope:      p.PinScope.String(),
 			Status:        p.Status.String(),
 			PublishIP:     p.PublishIP,
 			CreatedAt:     p.CreatedAt.Format(time_tools.DateTimeFormat),
@@ -335,6 +336,7 @@ func (s *PostManageService) GetPostDetail(ctx context.Context, id int) (*schema.
 		FavoriteCount:  p.FavoriteCount,
 		IsEssence:      p.IsEssence,
 		IsPinned:       p.IsPinned,
+		PinScope:       p.PinScope.String(),
 		Status:         p.Status.String(),
 		PublishIP:      p.PublishIP,
 		CreatedAt:      p.CreatedAt.Format(time_tools.DateTimeFormat),
@@ -363,11 +365,19 @@ func (s *PostManageService) SetPostEssence(ctx context.Context, req schema.PostE
 
 // SetPostPin Set post as pinned | 设置帖子置顶
 func (s *PostManageService) SetPostPin(ctx context.Context, req schema.PostPinUpdateRequest) error {
-	s.logger.Info("设置帖子置顶", zap.Int("id", req.ID), zap.Bool("is_pinned", req.IsPinned), tracing.WithTraceIDField(ctx))
+	s.logger.Info("设置帖子置顶", zap.Int("id", req.ID), zap.Bool("is_pinned", req.IsPinned), zap.String("pin_scope", req.PinScope), tracing.WithTraceIDField(ctx))
 
-	// Set pinned status | 设置置顶状态
+	// Set pinned status and pin scope | 设置置顶状态和置顶范围
 	_, err := s.postRepo.Update(ctx, req.ID, func(u *ent.PostUpdateOne) *ent.PostUpdateOne {
-		return u.SetIsPinned(req.IsPinned)
+		u = u.SetIsPinned(req.IsPinned)
+		// Set pin scope | 设置置顶范围
+		if req.IsPinned {
+			u = u.SetPinScope(post.PinScope(req.PinScope))
+		} else {
+			// If unpinning, set pin scope to None | 如果取消置顶，将置顶范围设为None
+			u = u.SetPinScope(post.PinScopeNone)
+		}
+		return u
 	})
 	if err != nil {
 		s.logger.Error("设置帖子置顶失败", zap.Error(err), tracing.WithTraceIDField(ctx))

@@ -54,6 +54,10 @@ func (Post) Fields() []ent.Field {
 		// Whether it's pinned, default false | 是否置顶，默认false
 		field.Bool("is_pinned").
 			Default(false),
+		// Pin scope: None, Home, Category, Global | 置顶范围：None、首页置顶、板块置顶、全局置顶
+		field.Enum("pin_scope").
+			Values("None", "Home", "Category", "Global").
+			Default("None"),
 		// Publish IP | 发布IP
 		field.String("publish_ip").
 			Optional(),
@@ -84,6 +88,7 @@ func (Post) Indexes() []ent.Index {
 		index.Fields("status"),
 		index.Fields("is_essence"),
 		index.Fields("is_pinned"),
+		index.Fields("pin_scope"),
 		// Create index for last edited time | 为最后编辑时间创建索引
 		index.Fields("last_edited_at"),
 		// Create composite index to optimize post queries within categories | 创建复合索引优化版块内帖子查询

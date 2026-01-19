@@ -148,6 +148,8 @@ type UserPostListRequest struct {
 
 // UserPostListResponse Post list response | 帖子列表响应
 type UserPostListResponse struct {
+	// Pinned posts list | 置顶帖子列表
+	PinnedPosts []UserPostCreateResponse `json:"pinned_posts"`
 	// Post list | 帖子列表
 	Posts []UserPostCreateResponse `json:"posts"`
 	// Total count | 总数

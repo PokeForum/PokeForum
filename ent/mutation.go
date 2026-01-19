@@ -5024,6 +5024,7 @@ type PostMutation struct {
 	addfavorite_count *int
 	is_essence        *bool
 	is_pinned         *bool
+	pin_scope         *post.PinScope
 	publish_ip        *string
 	status            *post.Status
 	last_edited_at    *time.Time
@@ -5732,6 +5733,42 @@ func (m *PostMutation) ResetIsPinned() {
 	m.is_pinned = nil
 }
 
+// SetPinScope sets the "pin_scope" field.
+func (m *PostMutation) SetPinScope(ps post.PinScope) {
+	m.pin_scope = &ps
+}
+
+// PinScope returns the value of the "pin_scope" field in the mutation.
+func (m *PostMutation) PinScope() (r post.PinScope, exists bool) {
+	v := m.pin_scope
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPinScope returns the old "pin_scope" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldPinScope(ctx context.Context) (v post.PinScope, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPinScope is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPinScope requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPinScope: %w", err)
+	}
+	return oldValue.PinScope, nil
+}
+
+// ResetPinScope resets all changes to the "pin_scope" field.
+func (m *PostMutation) ResetPinScope() {
+	m.pin_scope = nil
+}
+
 // SetPublishIP sets the "publish_ip" field.
 func (m *PostMutation) SetPublishIP(s string) {
 	m.publish_ip = &s
@@ -5900,7 +5937,7 @@ func (m *PostMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PostMutation) Fields() []string {
-	fields := make([]string, 0, 16)
+	fields := make([]string, 0, 17)
 	if m.created_at != nil {
 		fields = append(fields, post.FieldCreatedAt)
 	}
@@ -5939,6 +5976,9 @@ func (m *PostMutation) Fields() []string {
 	}
 	if m.is_pinned != nil {
 		fields = append(fields, post.FieldIsPinned)
+	}
+	if m.pin_scope != nil {
+		fields = append(fields, post.FieldPinScope)
 	}
 	if m.publish_ip != nil {
 		fields = append(fields, post.FieldPublishIP)
@@ -5983,6 +6023,8 @@ func (m *PostMutation) Field(name string) (ent.Value, bool) {
 		return m.IsEssence()
 	case post.FieldIsPinned:
 		return m.IsPinned()
+	case post.FieldPinScope:
+		return m.PinScope()
 	case post.FieldPublishIP:
 		return m.PublishIP()
 	case post.FieldStatus:
@@ -6024,6 +6066,8 @@ func (m *PostMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldIsEssence(ctx)
 	case post.FieldIsPinned:
 		return m.OldIsPinned(ctx)
+	case post.FieldPinScope:
+		return m.OldPinScope(ctx)
 	case post.FieldPublishIP:
 		return m.OldPublishIP(ctx)
 	case post.FieldStatus:
@@ -6129,6 +6173,13 @@ func (m *PostMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetIsPinned(v)
+		return nil
+	case post.FieldPinScope:
+		v, ok := value.(post.PinScope)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPinScope(v)
 		return nil
 	case post.FieldPublishIP:
 		v, ok := value.(string)
@@ -6334,6 +6385,9 @@ func (m *PostMutation) ResetField(name string) error {
 		return nil
 	case post.FieldIsPinned:
 		m.ResetIsPinned()
+		return nil
+	case post.FieldPinScope:
+		m.ResetPinScope()
 		return nil
 	case post.FieldPublishIP:
 		m.ResetPublishIP()

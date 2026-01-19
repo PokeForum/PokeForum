@@ -48,9 +48,9 @@ type PostEssenceUpdateRequest struct {
 
 // PostPinUpdateRequest Set post pinned request | 设置帖子置顶请求体
 type PostPinUpdateRequest struct {
-	ID       int    `json:"id" binding:"required" example:"1"` // Post ID | 帖子ID
-	IsPinned bool   `json:"is_pinned" example:"true"`          // Whether pinned | 是否置顶
-	Reason   string `json:"reason" example:"重要公告"`             // Operation reason | 操作原因
+	ID       int    `json:"id" binding:"required" example:"1"`                                                                  // Post ID | 帖子ID
+	IsPinned bool   `json:"is_pinned" example:"true"`                                                                           // Whether pinned | 是否置顶
+	PinScope string `json:"pin_scope" binding:"required_unless=is_pinned false,oneof=None Home Category Global" example:"Home"` // Pin scope | 置顶范围：None、Home、Category、Global
 }
 
 // PostMoveRequest Move post to another category request | 移动帖子到其他版块请求体
@@ -76,6 +76,7 @@ type PostListItem struct {
 	FavoriteCount int    `json:"favorite_count" example:"10"`                     // Favorite count | 收藏数
 	IsEssence     bool   `json:"is_essence" example:"true"`                       // Whether essence post | 是否精华帖
 	IsPinned      bool   `json:"is_pinned" example:"false"`                       // Whether pinned | 是否置顶
+	PinScope      string `json:"pin_scope" example:"None"`                        // Pin scope | 置顶范围：None、Home、Category、Global
 	Status        string `json:"status" example:"Normal"`                         // Post status | 帖子状态
 	PublishIP     string `json:"publish_ip" example:"192.168.1.1"`                // Publish IP | 发布IP
 	CreatedAt     string `json:"created_at" example:"2024-01-01 00:00:00"`        // Creation time | 创建时间
@@ -106,6 +107,7 @@ type PostDetailResponse struct {
 	FavoriteCount  int    `json:"favorite_count" example:"10"`              // Favorite count | 收藏数
 	IsEssence      bool   `json:"is_essence" example:"true"`                // Whether essence post | 是否精华帖
 	IsPinned       bool   `json:"is_pinned" example:"false"`                // Whether pinned | 是否置顶
+	PinScope       string `json:"pin_scope" example:"None"`                 // Pin scope | 置顶范围：None、Home、Category、Global
 	Status         string `json:"status" example:"Normal"`                  // Post status | 帖子状态
 	PublishIP      string `json:"publish_ip" example:"192.168.1.1"`         // Publish IP | 发布IP
 	CreatedAt      string `json:"created_at" example:"2024-01-01 00:00:00"` // Creation time | 创建时间

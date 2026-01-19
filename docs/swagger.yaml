@@ -1648,6 +1648,10 @@ definitions:
         description: Like count | 点赞数
         example: 25
         type: integer
+      pin_scope:
+        description: Pin scope | 置顶范围：None、Home、Category、Global
+        example: None
+        type: string
       publish_ip:
         description: Publish IP | 发布IP
         example: 192.168.1.1
@@ -1786,6 +1790,10 @@ definitions:
         description: Like count | 点赞数
         example: 25
         type: integer
+      pin_scope:
+        description: Pin scope | 置顶范围：None、Home、Category、Global
+        example: None
+        type: string
       publish_ip:
         description: Publish IP | 发布IP
         example: 192.168.1.1
@@ -1894,9 +1902,14 @@ definitions:
         description: Whether pinned | 是否置顶
         example: true
         type: boolean
-      reason:
-        description: Operation reason | 操作原因
-        example: 重要公告
+      pin_scope:
+        description: Pin scope | 置顶范围：None、Home、Category、Global
+        enum:
+        - None
+        - Home
+        - Category
+        - Global
+        example: Home
         type: string
     required:
     - id
@@ -3420,6 +3433,11 @@ definitions:
       page_size:
         description: Items per page | 每页数量
         type: integer
+      pinned_posts:
+        description: Pinned posts list | 置顶帖子列表
+        items:
+          $ref: '#/definitions/schema.UserPostCreateResponse'
+        type: array
       posts:
         description: Post list | 帖子列表
         items:
@@ -5437,7 +5455,7 @@ paths:
     put:
       consumes:
       - application/json
-      description: Set or cancel pinned status of a post | 设置或取消帖子的置顶状态
+      description: Set or cancel pinned status of a post with pin scope | 设置或取消帖子的置顶状态及置顶范围
       parameters:
       - description: Pin information | 置顶信息
         in: body
@@ -6377,7 +6395,8 @@ paths:
       consumes:
       - application/json
       description: Get post list with pagination and sorting support. Supports filtering
-        by category (via ID or slug) and keyword search on title | 获取帖子列表,支持分页和排序。支持通过版块ID或slug筛选,以及标题关键词搜索
+        by category (via ID or slug) and keyword search on title. Pinned posts are
+        returned separately in pinned_posts field | 获取帖子列表,支持分页和排序。支持通过版块ID或slug筛选,以及标题关键词搜索。置顶帖子单独返回在pinned_posts字段中
       parameters:
       - description: Category ID | 版块ID
         in: query

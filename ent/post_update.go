@@ -236,6 +236,20 @@ func (_u *PostUpdate) SetNillableIsPinned(v *bool) *PostUpdate {
 	return _u
 }
 
+// SetPinScope sets the "pin_scope" field.
+func (_u *PostUpdate) SetPinScope(v post.PinScope) *PostUpdate {
+	_u.mutation.SetPinScope(v)
+	return _u
+}
+
+// SetNillablePinScope sets the "pin_scope" field if the given value is not nil.
+func (_u *PostUpdate) SetNillablePinScope(v *post.PinScope) *PostUpdate {
+	if v != nil {
+		_u.SetPinScope(*v)
+	}
+	return _u
+}
+
 // SetPublishIP sets the "publish_ip" field.
 func (_u *PostUpdate) SetPublishIP(v string) *PostUpdate {
 	_u.mutation.SetPublishIP(v)
@@ -373,6 +387,11 @@ func (_u *PostUpdate) check() error {
 			return &ValidationError{Name: "favorite_count", err: fmt.Errorf(`ent: validator failed for field "Post.favorite_count": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.PinScope(); ok {
+		if err := post.PinScopeValidator(v); err != nil {
+			return &ValidationError{Name: "pin_scope", err: fmt.Errorf(`ent: validator failed for field "Post.pin_scope": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Status(); ok {
 		if err := post.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Post.status": %w`, err)}
@@ -449,6 +468,9 @@ func (_u *PostUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.IsPinned(); ok {
 		_spec.SetField(post.FieldIsPinned, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.PinScope(); ok {
+		_spec.SetField(post.FieldPinScope, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.PublishIP(); ok {
 		_spec.SetField(post.FieldPublishIP, field.TypeString, value)
@@ -693,6 +715,20 @@ func (_u *PostUpdateOne) SetNillableIsPinned(v *bool) *PostUpdateOne {
 	return _u
 }
 
+// SetPinScope sets the "pin_scope" field.
+func (_u *PostUpdateOne) SetPinScope(v post.PinScope) *PostUpdateOne {
+	_u.mutation.SetPinScope(v)
+	return _u
+}
+
+// SetNillablePinScope sets the "pin_scope" field if the given value is not nil.
+func (_u *PostUpdateOne) SetNillablePinScope(v *post.PinScope) *PostUpdateOne {
+	if v != nil {
+		_u.SetPinScope(*v)
+	}
+	return _u
+}
+
 // SetPublishIP sets the "publish_ip" field.
 func (_u *PostUpdateOne) SetPublishIP(v string) *PostUpdateOne {
 	_u.mutation.SetPublishIP(v)
@@ -843,6 +879,11 @@ func (_u *PostUpdateOne) check() error {
 			return &ValidationError{Name: "favorite_count", err: fmt.Errorf(`ent: validator failed for field "Post.favorite_count": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.PinScope(); ok {
+		if err := post.PinScopeValidator(v); err != nil {
+			return &ValidationError{Name: "pin_scope", err: fmt.Errorf(`ent: validator failed for field "Post.pin_scope": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.Status(); ok {
 		if err := post.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Post.status": %w`, err)}
@@ -936,6 +977,9 @@ func (_u *PostUpdateOne) sqlSave(ctx context.Context) (_node *Post, err error) {
 	}
 	if value, ok := _u.mutation.IsPinned(); ok {
 		_spec.SetField(post.FieldIsPinned, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.PinScope(); ok {
+		_spec.SetField(post.FieldPinScope, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.PublishIP(); ok {
 		_spec.SetField(post.FieldPublishIP, field.TypeString, value)

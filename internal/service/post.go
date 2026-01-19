@@ -457,24 +457,53 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 			s.logger.Warn("通过slug获取版块失败", zap.String("slug", req.Slug), zap.Error(err), tracing.WithTraceIDField(ctx))
 			// slug不存在时返回空列表 | Return empty list when slug not found
 			return &schema.UserPostListResponse{
-				Posts:      []schema.UserPostCreateResponse{},
-				Total:      0,
-				Page:       req.Page,
-				PageSize:   req.PageSize,
-				TotalPages: 0,
+				PinnedPosts: []schema.UserPostCreateResponse{},
+				Posts:       []schema.UserPostCreateResponse{},
+				Total:       0,
+				Page:        req.Page,
+				PageSize:    req.PageSize,
+				TotalPages:  0,
 			}, nil
 		}
 		categoryID = categoryData.ID
 	}
 
-	// Use repository to query posts | 使用 Repository 查询帖子列表
+	// Determine pin scopes based on category | 根据版块确定置顶范围
+	var pinScopes []post.PinScope
+	var pinnedPosts []*ent.Post
+	if categoryID == 0 {
+		// No category filter: query Home and Global pinned posts | 无版块筛选：查询首页置顶和全局置顶
+		pinScopes = []post.PinScope{post.PinScopeHome, post.PinScopeGlobal}
+	} else {
+		// Has category filter: query Category and Global pinned posts | 有版块筛选：查询板块置顶和全局置顶
+		pinScopes = []post.PinScope{post.PinScopeCategory, post.PinScopeGlobal}
+	}
+
+	// Query pinned posts only on first page and without keyword search | 仅在第一页且无关键词搜索时查询置顶帖子
+	if req.Page <= 1 && req.Keyword == "" {
+		var pinnedErr error
+		pinnedPosts, _, pinnedErr = s.postRepo.List(ctx, repository.ListPostOptions{
+			CategoryID: categoryID,
+			Keyword:    req.Keyword,
+			Status:     post.StatusNormal,
+			PinScopes:  pinScopes,
+			SortBy:     "latest",
+		})
+		if pinnedErr != nil {
+			s.logger.Error("获取置顶帖子列表失败", zap.Error(pinnedErr), tracing.WithTraceIDField(ctx))
+			return nil, pinnedErr
+		}
+	}
+
+	// Use repository to query posts (exclude pinned) | 使用 Repository 查询帖子列表（排除置顶）
 	posts, total, err := s.postRepo.List(ctx, repository.ListPostOptions{
-		CategoryID: categoryID,
-		Keyword:    req.Keyword,
-		Status:     post.StatusNormal,
-		SortBy:     req.Sort,
-		Page:       req.Page,
-		PageSize:   req.PageSize,
+		CategoryID:    categoryID,
+		Keyword:       req.Keyword,
+		Status:        post.StatusNormal,
+		SortBy:        req.Sort,
+		Page:          req.Page,
+		PageSize:      req.PageSize,
+		ExcludePinned: true,
 	})
 	if err != nil {
 		s.logger.Error("获取帖子列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
@@ -484,7 +513,8 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 	// Collect user IDs and category IDs | 收集用户ID和版块ID
 	userIDs := make(map[int]bool)
 	categoryIDs := make(map[int]bool)
-	for _, p := range posts {
+	allPosts := append(pinnedPosts, posts...)
+	for _, p := range allPosts {
 		userIDs[p.UserID] = true
 		categoryIDs[p.CategoryID] = true
 	}
@@ -519,8 +549,8 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 	currentUserID := tracing.GetUserID(ctx)
 
 	// Get post ID list | 获取帖子ID列表
-	postIDs := make([]int, len(posts))
-	for i, p := range posts {
+	postIDs := make([]int, len(allPosts))
+	for i, p := range allPosts {
 		postIDs[i] = p.ID
 	}
 
@@ -556,9 +586,8 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 		statsMap = make(map[int]*stats.Stats)
 	}
 
-	// Convert to response format | 转换为响应格式
-	result := make([]schema.UserPostCreateResponse, len(posts))
-	for i, p := range posts {
+	// Helper function to convert post to response | 帖子转响应的辅助函数
+	convertPost := func(p *ent.Post) schema.UserPostCreateResponse {
 		username := userMap[p.UserID]
 		categoryName := categoryMap[p.CategoryID]
 
@@ -582,7 +611,7 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 			userDisliked = status["dislike"]
 		}
 
-		result[i] = schema.UserPostCreateResponse{
+		return schema.UserPostCreateResponse{
 			ID:             p.ID,
 			CategoryID:     p.CategoryID,
 			CategoryName:   categoryName,
@@ -604,14 +633,27 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 		}
 	}
 
+	// Convert pinned posts to response format | 转换置顶帖子为响应格式
+	pinnedResult := make([]schema.UserPostCreateResponse, len(pinnedPosts))
+	for i, p := range pinnedPosts {
+		pinnedResult[i] = convertPost(p)
+	}
+
+	// Convert normal posts to response format | 转换普通帖子为响应格式
+	result := make([]schema.UserPostCreateResponse, len(posts))
+	for i, p := range posts {
+		result[i] = convertPost(p)
+	}
+
 	totalPages := (total + req.PageSize - 1) / req.PageSize
 
 	return &schema.UserPostListResponse{
-		Posts:      result,
-		Total:      total,
-		Page:       req.Page,
-		PageSize:   req.PageSize,
-		TotalPages: totalPages,
+		PinnedPosts: pinnedResult,
+		Posts:       result,
+		Total:       total,
+		Page:        req.Page,
+		PageSize:    req.PageSize,
+		TotalPages:  totalPages,
 	}, nil
 }
 

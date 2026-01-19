@@ -40,6 +40,8 @@ const (
 	FieldIsEssence = "is_essence"
 	// FieldIsPinned holds the string denoting the is_pinned field in the database.
 	FieldIsPinned = "is_pinned"
+	// FieldPinScope holds the string denoting the pin_scope field in the database.
+	FieldPinScope = "pin_scope"
 	// FieldPublishIP holds the string denoting the publish_ip field in the database.
 	FieldPublishIP = "publish_ip"
 	// FieldStatus holds the string denoting the status field in the database.
@@ -66,6 +68,7 @@ var Columns = []string{
 	FieldFavoriteCount,
 	FieldIsEssence,
 	FieldIsPinned,
+	FieldPinScope,
 	FieldPublishIP,
 	FieldStatus,
 	FieldLastEditedAt,
@@ -119,6 +122,34 @@ var (
 	// DefaultIsPinned holds the default value on creation for the "is_pinned" field.
 	DefaultIsPinned bool
 )
+
+// PinScope defines the type for the "pin_scope" enum field.
+type PinScope string
+
+// PinScopeNone is the default value of the PinScope enum.
+const DefaultPinScope = PinScopeNone
+
+// PinScope values.
+const (
+	PinScopeNone     PinScope = "None"
+	PinScopeHome     PinScope = "Home"
+	PinScopeCategory PinScope = "Category"
+	PinScopeGlobal   PinScope = "Global"
+)
+
+func (ps PinScope) String() string {
+	return string(ps)
+}
+
+// PinScopeValidator is a validator for the "pin_scope" field enum values. It is called by the builders before save.
+func PinScopeValidator(ps PinScope) error {
+	switch ps {
+	case PinScopeNone, PinScopeHome, PinScopeCategory, PinScopeGlobal:
+		return nil
+	default:
+		return fmt.Errorf("post: invalid enum value for pin_scope field: %q", ps)
+	}
+}
 
 // Status defines the type for the "status" enum field.
 type Status string
@@ -220,6 +251,11 @@ func ByIsEssence(opts ...sql.OrderTermOption) OrderOption {
 // ByIsPinned orders the results by the is_pinned field.
 func ByIsPinned(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsPinned, opts...).ToFunc()
+}
+
+// ByPinScope orders the results by the pin_scope field.
+func ByPinScope(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPinScope, opts...).ToFunc()
 }
 
 // ByPublishIP orders the results by the publish_ip field.

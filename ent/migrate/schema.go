@@ -234,6 +234,7 @@ var (
 		{Name: "favorite_count", Type: field.TypeInt, Default: 0},
 		{Name: "is_essence", Type: field.TypeBool, Default: false},
 		{Name: "is_pinned", Type: field.TypeBool, Default: false},
+		{Name: "pin_scope", Type: field.TypeEnum, Enums: []string{"None", "Home", "Category", "Global"}, Default: "None"},
 		{Name: "publish_ip", Type: field.TypeString, Nullable: true},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"Normal", "Locked", "Draft", "Private", "Ban"}, Default: "Normal"},
 		{Name: "last_edited_at", Type: field.TypeTime, Nullable: true},
@@ -257,7 +258,7 @@ var (
 			{
 				Name:    "post_status",
 				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[15]},
+				Columns: []*schema.Column{PostsColumns[16]},
 			},
 			{
 				Name:    "post_is_essence",
@@ -270,14 +271,19 @@ var (
 				Columns: []*schema.Column{PostsColumns[13]},
 			},
 			{
+				Name:    "post_pin_scope",
+				Unique:  false,
+				Columns: []*schema.Column{PostsColumns[14]},
+			},
+			{
 				Name:    "post_last_edited_at",
 				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[16]},
+				Columns: []*schema.Column{PostsColumns[17]},
 			},
 			{
 				Name:    "post_category_id_status_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[4], PostsColumns[15], PostsColumns[1]},
+				Columns: []*schema.Column{PostsColumns[4], PostsColumns[16], PostsColumns[1]},
 			},
 			{
 				Name:    "post_title",

@@ -48,13 +48,15 @@ type IPostRepository interface {
 
 // ListPostOptions Post list query options | 帖子列表查询选项
 type ListPostOptions struct {
-	CategoryID int         // Category ID filter | 版块ID筛选
-	Slug       string      // Category slug filter | 版块slug筛选
-	Keyword    string      // Keyword for title search | 标题关键词搜索
-	Status     post.Status // Status filter | 状态筛选
-	SortBy     string      // Sort field: latest, hot, essence | 排序字段
-	Page       int         // Page number | 页码
-	PageSize   int         // Page size | 每页数量
+	CategoryID    int             // Category ID filter | 版块ID筛选
+	Slug          string          // Category slug filter | 版块slug筛选
+	Keyword       string          // Keyword for title search | 标题关键词搜索
+	Status        post.Status     // Status filter | 状态筛选
+	SortBy        string          // Sort field: latest, hot, essence | 排序字段
+	Page          int             // Page number | 页码
+	PageSize      int             // Page size | 每页数量
+	ExcludePinned bool            // Exclude pinned posts | 排除置顶帖子
+	PinScopes     []post.PinScope // Pin scope filter | 置顶范围筛选
 }
 
 // PostRepository Post repository implementation | 帖子仓储实现
@@ -150,6 +152,16 @@ func (r *PostRepository) List(ctx context.Context, opts ListPostOptions) ([]*ent
 	// Apply status filter | 应用状态筛选
 	if opts.Status != "" {
 		query = query.Where(post.StatusEQ(opts.Status))
+	}
+
+	// Exclude pinned posts | 排除置顶帖子
+	if opts.ExcludePinned {
+		query = query.Where(post.IsPinnedEQ(false))
+	}
+
+	// Apply pin scope filter | 应用置顶范围筛选
+	if len(opts.PinScopes) > 0 {
+		query = query.Where(post.IsPinnedEQ(true), post.PinScopeIn(opts.PinScopes...))
 	}
 
 	// Apply sorting | 应用排序

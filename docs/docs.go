@@ -2230,7 +2230,7 @@ const docTemplate = `{
         },
         "/manage/posts/pin": {
             "put": {
-                "description": "Set or cancel pinned status of a post | 设置或取消帖子的置顶状态",
+                "description": "Set or cancel pinned status of a post with pin scope | 设置或取消帖子的置顶状态及置顶范围",
                 "consumes": [
                     "application/json"
                 ],
@@ -3789,7 +3789,7 @@ const docTemplate = `{
         },
         "/posts": {
             "get": {
-                "description": "Get post list with pagination and sorting support. Supports filtering by category (via ID or slug) and keyword search on title | 获取帖子列表,支持分页和排序。支持通过版块ID或slug筛选,以及标题关键词搜索",
+                "description": "Get post list with pagination and sorting support. Supports filtering by category (via ID or slug) and keyword search on title. Pinned posts are returned separately in pinned_posts field | 获取帖子列表,支持分页和排序。支持通过版块ID或slug筛选,以及标题关键词搜索。置顶帖子单独返回在pinned_posts字段中",
                 "consumes": [
                     "application/json"
                 ],
@@ -9319,6 +9319,11 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 25
                 },
+                "pin_scope": {
+                    "description": "Pin scope | 置顶范围：None、Home、Category、Global",
+                    "type": "string",
+                    "example": "None"
+                },
                 "publish_ip": {
                     "description": "Publish IP | 发布IP",
                     "type": "string",
@@ -9494,6 +9499,11 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 25
                 },
+                "pin_scope": {
+                    "description": "Pin scope | 置顶范围：None、Home、Category、Global",
+                    "type": "string",
+                    "example": "None"
+                },
                 "publish_ip": {
                     "description": "Publish IP | 发布IP",
                     "type": "string",
@@ -9641,10 +9651,16 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": true
                 },
-                "reason": {
-                    "description": "Operation reason | 操作原因",
+                "pin_scope": {
+                    "description": "Pin scope | 置顶范围：None、Home、Category、Global",
                     "type": "string",
-                    "example": "重要公告"
+                    "enum": [
+                        "None",
+                        "Home",
+                        "Category",
+                        "Global"
+                    ],
+                    "example": "Home"
                 }
             }
         },
@@ -11638,6 +11654,13 @@ const docTemplate = `{
                 "page_size": {
                     "description": "Items per page | 每页数量",
                     "type": "integer"
+                },
+                "pinned_posts": {
+                    "description": "Pinned posts list | 置顶帖子列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.UserPostCreateResponse"
+                    }
                 },
                 "posts": {
                     "description": "Post list | 帖子列表",

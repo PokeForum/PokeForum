@@ -674,6 +674,26 @@ func IsPinnedNEQ(v bool) predicate.Post {
 	return predicate.Post(sql.FieldNEQ(FieldIsPinned, v))
 }
 
+// PinScopeEQ applies the EQ predicate on the "pin_scope" field.
+func PinScopeEQ(v PinScope) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldPinScope, v))
+}
+
+// PinScopeNEQ applies the NEQ predicate on the "pin_scope" field.
+func PinScopeNEQ(v PinScope) predicate.Post {
+	return predicate.Post(sql.FieldNEQ(FieldPinScope, v))
+}
+
+// PinScopeIn applies the In predicate on the "pin_scope" field.
+func PinScopeIn(vs ...PinScope) predicate.Post {
+	return predicate.Post(sql.FieldIn(FieldPinScope, vs...))
+}
+
+// PinScopeNotIn applies the NotIn predicate on the "pin_scope" field.
+func PinScopeNotIn(vs ...PinScope) predicate.Post {
+	return predicate.Post(sql.FieldNotIn(FieldPinScope, vs...))
+}
+
 // PublishIPEQ applies the EQ predicate on the "publish_ip" field.
 func PublishIPEQ(v string) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldPublishIP, v))

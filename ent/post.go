@@ -43,6 +43,8 @@ type Post struct {
 	IsEssence bool `json:"is_essence,omitempty"`
 	// IsPinned holds the value of the "is_pinned" field.
 	IsPinned bool `json:"is_pinned,omitempty"`
+	// PinScope holds the value of the "pin_scope" field.
+	PinScope post.PinScope `json:"pin_scope,omitempty"`
 	// PublishIP holds the value of the "publish_ip" field.
 	PublishIP string `json:"publish_ip,omitempty"`
 	// Status holds the value of the "status" field.
@@ -61,7 +63,7 @@ func (*Post) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case post.FieldID, post.FieldUserID, post.FieldCategoryID, post.FieldViewCount, post.FieldLikeCount, post.FieldDislikeCount, post.FieldFavoriteCount:
 			values[i] = new(sql.NullInt64)
-		case post.FieldTitle, post.FieldContent, post.FieldReadPermission, post.FieldPublishIP, post.FieldStatus:
+		case post.FieldTitle, post.FieldContent, post.FieldReadPermission, post.FieldPinScope, post.FieldPublishIP, post.FieldStatus:
 			values[i] = new(sql.NullString)
 		case post.FieldCreatedAt, post.FieldUpdatedAt, post.FieldLastEditedAt:
 			values[i] = new(sql.NullTime)
@@ -164,6 +166,12 @@ func (_m *Post) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.IsPinned = value.Bool
 			}
+		case post.FieldPinScope:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field pin_scope", values[i])
+			} else if value.Valid {
+				_m.PinScope = post.PinScope(value.String)
+			}
 		case post.FieldPublishIP:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field publish_ip", values[i])
@@ -256,6 +264,9 @@ func (_m *Post) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_pinned=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsPinned))
+	builder.WriteString(", ")
+	builder.WriteString("pin_scope=")
+	builder.WriteString(fmt.Sprintf("%v", _m.PinScope))
 	builder.WriteString(", ")
 	builder.WriteString("publish_ip=")
 	builder.WriteString(_m.PublishIP)

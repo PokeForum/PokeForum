@@ -296,7 +296,7 @@ func (ctrl *PostManageController) SetPostEssence(c *gin.Context) {
 
 // SetPostPin Set post as pinned | 设置帖子置顶
 // @Summary Set post as pinned | 设置帖子置顶
-// @Description Set or cancel pinned status of a post | 设置或取消帖子的置顶状态
+// @Description Set or cancel pinned status of a post with pin scope | 设置或取消帖子的置顶状态及置顶范围
 // @Tags [Admin]Post Management | [管理员]主题贴管理
 // @Accept json
 // @Produce json

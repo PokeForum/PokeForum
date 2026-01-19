@@ -170,6 +170,20 @@ func (_c *PostCreate) SetNillableIsPinned(v *bool) *PostCreate {
 	return _c
 }
 
+// SetPinScope sets the "pin_scope" field.
+func (_c *PostCreate) SetPinScope(v post.PinScope) *PostCreate {
+	_c.mutation.SetPinScope(v)
+	return _c
+}
+
+// SetNillablePinScope sets the "pin_scope" field if the given value is not nil.
+func (_c *PostCreate) SetNillablePinScope(v *post.PinScope) *PostCreate {
+	if v != nil {
+		_c.SetPinScope(*v)
+	}
+	return _c
+}
+
 // SetPublishIP sets the "publish_ip" field.
 func (_c *PostCreate) SetPublishIP(v string) *PostCreate {
 	_c.mutation.SetPublishIP(v)
@@ -283,6 +297,10 @@ func (_c *PostCreate) defaults() {
 		v := post.DefaultIsPinned
 		_c.mutation.SetIsPinned(v)
 	}
+	if _, ok := _c.mutation.PinScope(); !ok {
+		v := post.DefaultPinScope
+		_c.mutation.SetPinScope(v)
+	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := post.DefaultStatus
 		_c.mutation.SetStatus(v)
@@ -366,6 +384,14 @@ func (_c *PostCreate) check() error {
 	}
 	if _, ok := _c.mutation.IsPinned(); !ok {
 		return &ValidationError{Name: "is_pinned", err: errors.New(`ent: missing required field "Post.is_pinned"`)}
+	}
+	if _, ok := _c.mutation.PinScope(); !ok {
+		return &ValidationError{Name: "pin_scope", err: errors.New(`ent: missing required field "Post.pin_scope"`)}
+	}
+	if v, ok := _c.mutation.PinScope(); ok {
+		if err := post.PinScopeValidator(v); err != nil {
+			return &ValidationError{Name: "pin_scope", err: fmt.Errorf(`ent: validator failed for field "Post.pin_scope": %w`, err)}
+		}
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Post.status"`)}
@@ -452,6 +478,10 @@ func (_c *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsPinned(); ok {
 		_spec.SetField(post.FieldIsPinned, field.TypeBool, value)
 		_node.IsPinned = value
+	}
+	if value, ok := _c.mutation.PinScope(); ok {
+		_spec.SetField(post.FieldPinScope, field.TypeEnum, value)
+		_node.PinScope = value
 	}
 	if value, ok := _c.mutation.PublishIP(); ok {
 		_spec.SetField(post.FieldPublishIP, field.TypeString, value)
