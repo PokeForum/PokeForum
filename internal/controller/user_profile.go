@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"strconv"
 
 	saGin "github.com/click33/sa-token-go/integrations/gin"
@@ -28,8 +27,7 @@ func NewUserProfileController(userProfileService service.IUserProfileService) *U
 
 // UserProfileRouter User profile related route registration | 用户个人中心相关路由注册
 func (ctrl *UserProfileController) UserProfileRouter(router *gin.RouterGroup) {
-	router.Use(saGin.CheckRole(user.RoleUser.String()))
-
+	// Public routes (support guest access with user_id parameter) | 公开路由（支持游客访问，需传user_id参数）
 	// Get profile overview | 获取个人中心概览
 	router.GET("/overview", ctrl.GetProfileOverview)
 	// Get user posts list | 获取用户主题帖列表
@@ -38,6 +36,9 @@ func (ctrl *UserProfileController) UserProfileRouter(router *gin.RouterGroup) {
 	router.GET("/comments", ctrl.GetUserComments)
 	// Get user favorites list | 获取用户收藏列表
 	router.GET("/favorites", ctrl.GetUserFavorites)
+
+	// Private routes (require login) | 私有路由（需要登录）
+	router.Use(saGin.CheckRole(user.RoleUser.String()))
 	// Update password | 修改密码
 	router.PUT("/password", ctrl.UpdatePassword)
 	// Update avatar | 修改头像
@@ -51,11 +52,13 @@ func (ctrl *UserProfileController) UserProfileRouter(router *gin.RouterGroup) {
 }
 
 // getUserID Get token from Header and parse user ID | 从Header中获取token并解析用户ID
+// Returns 0 if not logged in (guest mode) | 未登录时返回0（游客模式）
 func (ctrl *UserProfileController) getUserID(c *gin.Context) (int, error) {
 	// Get token from Header | 从Header中获取token
 	token := c.GetHeader("Authorization")
 	if token == "" {
-		return 0, fmt.Errorf("authorization header not found | 未找到Authorization header")
+		// Guest mode, return 0 | 游客模式，返回0
+		return 0, nil
 	}
 
 	// Use stputil to get logged-in user ID | 使用stputil获取登录用户ID
@@ -85,7 +88,7 @@ func (ctrl *UserProfileController) getUserID(c *gin.Context) (int, error) {
 // @Failure 500 {object} response.Data "Internal server error | 服务器内部错误"
 // @Router /profile/overview [get]
 func (ctrl *UserProfileController) GetProfileOverview(c *gin.Context) {
-	// Get current logged-in user ID | 获取当前登录用户ID
+	// Get current logged-in user ID (0 for guest) | 获取当前登录用户ID（0表示游客）
 	currentUserID, err := ctrl.getUserID(c)
 	if err != nil {
 		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
@@ -100,13 +103,25 @@ func (ctrl *UserProfileController) GetProfileOverview(c *gin.Context) {
 	}
 
 	// Determine target user ID to query | 确定要查询的用户ID
-	targetUserID := currentUserID
-	if req.UserID > 0 {
-		targetUserID = req.UserID
-	}
+	var targetUserID int
+	var isOwner bool
 
-	// Determine if querying own profile | 判断是否为本人
-	isOwner := targetUserID == currentUserID
+	if currentUserID == 0 {
+		// Guest mode, must provide user_id | 游客模式，必须提供user_id
+		if req.UserID <= 0 {
+			response.ResErrorWithMsg(c, 400, "user_id is required for guest access | 游客访问时必须提供user_id参数", "")
+			return
+		}
+		targetUserID = req.UserID
+		isOwner = false
+	} else {
+		// Logged-in user | 已登录用户
+		targetUserID = currentUserID
+		if req.UserID > 0 {
+			targetUserID = req.UserID
+		}
+		isOwner = targetUserID == currentUserID
+	}
 
 	// Call service to get profile overview | 调用服务获取个人中心概览
 	result, err := ctrl.userProfileService.GetProfileOverview(c.Request.Context(), targetUserID, isOwner)
@@ -135,7 +150,7 @@ func (ctrl *UserProfileController) GetProfileOverview(c *gin.Context) {
 // @Failure 500 {object} response.Data "Internal server error | 服务器内部错误"
 // @Router /profile/posts [get]
 func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
-	// Get current logged-in user ID | 获取当前登录用户ID
+	// Get current logged-in user ID (0 for guest) | 获取当前登录用户ID（0表示游客）
 	currentUserID, err := ctrl.getUserID(c)
 	if err != nil {
 		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
@@ -150,13 +165,25 @@ func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
 	}
 
 	// Determine target user ID to query | 确定要查询的用户ID
-	targetUserID := currentUserID
-	if req.UserID > 0 {
-		targetUserID = req.UserID
-	}
+	var targetUserID int
+	var isOwner bool
 
-	// Determine if querying own profile | 判断是否为本人
-	isOwner := targetUserID == currentUserID
+	if currentUserID == 0 {
+		// Guest mode, must provide user_id | 游客模式，必须提供user_id
+		if req.UserID <= 0 {
+			response.ResErrorWithMsg(c, 400, "user_id is required for guest access | 游客访问时必须提供user_id参数", "")
+			return
+		}
+		targetUserID = req.UserID
+		isOwner = false
+	} else {
+		// Logged-in user | 已登录用户
+		targetUserID = currentUserID
+		if req.UserID > 0 {
+			targetUserID = req.UserID
+		}
+		isOwner = targetUserID == currentUserID
+	}
 
 	// Call service to get user posts list | 调用服务获取用户主题帖列表
 	result, err := ctrl.userProfileService.GetUserPosts(c.Request.Context(), targetUserID, req, isOwner)
@@ -184,7 +211,7 @@ func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
 // @Failure 500 {object} response.Data "Internal server error | 服务器内部错误"
 // @Router /profile/comments [get]
 func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
-	// Get current logged-in user ID | 获取当前登录用户ID
+	// Get current logged-in user ID (0 for guest) | 获取当前登录用户ID（0表示游客）
 	currentUserID, err := ctrl.getUserID(c)
 	if err != nil {
 		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
@@ -199,13 +226,25 @@ func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
 	}
 
 	// Determine target user ID to query | 确定要查询的用户ID
-	targetUserID := currentUserID
-	if req.UserID > 0 {
-		targetUserID = req.UserID
-	}
+	var targetUserID int
+	var isOwner bool
 
-	// Determine if querying own profile | 判断是否为本人
-	isOwner := targetUserID == currentUserID
+	if currentUserID == 0 {
+		// Guest mode, must provide user_id | 游客模式，必须提供user_id
+		if req.UserID <= 0 {
+			response.ResErrorWithMsg(c, 400, "user_id is required for guest access | 游客访问时必须提供user_id参数", "")
+			return
+		}
+		targetUserID = req.UserID
+		isOwner = false
+	} else {
+		// Logged-in user | 已登录用户
+		targetUserID = currentUserID
+		if req.UserID > 0 {
+			targetUserID = req.UserID
+		}
+		isOwner = targetUserID == currentUserID
+	}
 
 	// Call service to get user comments list | 调用服务获取用户评论列表
 	result, err := ctrl.userProfileService.GetUserComments(c.Request.Context(), targetUserID, req, isOwner)
@@ -233,7 +272,7 @@ func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
 // @Failure 500 {object} response.Data "Internal server error | 服务器内部错误"
 // @Router /profile/favorites [get]
 func (ctrl *UserProfileController) GetUserFavorites(c *gin.Context) {
-	// Get current logged-in user ID | 获取当前登录用户ID
+	// Get current logged-in user ID (0 for guest) | 获取当前登录用户ID（0表示游客）
 	currentUserID, err := ctrl.getUserID(c)
 	if err != nil {
 		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
@@ -248,13 +287,25 @@ func (ctrl *UserProfileController) GetUserFavorites(c *gin.Context) {
 	}
 
 	// Determine target user ID to query | 确定要查询的用户ID
-	targetUserID := currentUserID
-	if req.UserID > 0 {
-		targetUserID = req.UserID
-	}
+	var targetUserID int
+	var isOwner bool
 
-	// Determine if querying own profile | 判断是否为本人
-	isOwner := targetUserID == currentUserID
+	if currentUserID == 0 {
+		// Guest mode, must provide user_id | 游客模式，必须提供user_id
+		if req.UserID <= 0 {
+			response.ResErrorWithMsg(c, 400, "user_id is required for guest access | 游客访问时必须提供user_id参数", "")
+			return
+		}
+		targetUserID = req.UserID
+		isOwner = false
+	} else {
+		// Logged-in user | 已登录用户
+		targetUserID = currentUserID
+		if req.UserID > 0 {
+			targetUserID = req.UserID
+		}
+		isOwner = targetUserID == currentUserID
+	}
 
 	// Call service to get user favorites list | 调用服务获取用户收藏列表
 	result, err := ctrl.userProfileService.GetUserFavorites(c.Request.Context(), targetUserID, req, isOwner)
