@@ -748,6 +748,7 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 		Content:        postData.Content,
 		UserID:         postData.UserID,
 		Username:       username,
+		Avatar:         author.Avatar,
 		ReadPermission: postData.ReadPermission,
 		ViewCount:      viewCount,
 		LikeCount:      likeCount,
