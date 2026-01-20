@@ -53,6 +53,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 	settingsService := do.MustInvoke[service.ISettingsService](injector)
 	userProfileService := do.MustInvoke[service.IUserProfileService](injector)
 	blacklistService := do.MustInvoke[service.IBlacklistService](injector)
+	userFollowService := do.MustInvoke[service.IUserFollowService](injector)
 	rankingService := do.MustInvoke[service.IRankingService](injector)
 	categoryService := do.MustInvoke[service.ICategoryService](injector)
 	postService := do.MustInvoke[service.IPostService](injector)
@@ -118,6 +119,10 @@ func Routers(injector *do.Injector) *gin.Engine {
 				BlacklistGroup := ForumGroup.Group("/profile/blacklist")
 				BlacklistCon := controller.NewBlacklistController(blacklistService)
 				BlacklistCon.BlacklistRouter(BlacklistGroup)
+
+				// User Follow | 用户关注
+				UserFollowCon := controller.NewUserFollowController(userFollowService)
+				UserFollowCon.UserFollowRouter(ForumGroup)
 
 				// OAuth user routes | OAuth用户路由
 				OAuthUserGroup := AuthAPIGroup.Group("/user/oauth")

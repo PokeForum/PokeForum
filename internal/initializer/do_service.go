@@ -145,7 +145,8 @@ func InjectorSrv(injector *do.Injector) {
 		cacheService := do.MustInvoke[cache.ICacheService](i)
 		settingsService := do.MustInvoke[service.ISettingsService](i)
 		userManageService := do.MustInvoke[service.IUserManageService](i)
-		return service.NewUserProfileService(db, repos, cacheService, logger, settingsService, userManageService), nil
+		userFollowService := do.MustInvoke[service.IUserFollowService](i)
+		return service.NewUserProfileService(db, repos, cacheService, logger, settingsService, userManageService, userFollowService), nil
 	})
 	// Register RankingService | 注册 RankingService
 	do.Provide(injector, func(i *do.Injector) (service.IRankingService, error) {
@@ -185,6 +186,13 @@ func InjectorSrv(injector *do.Injector) {
 		repos := do.MustInvoke[*repository.Repositories](i)
 		logger := do.MustInvoke[*zap.Logger](i)
 		return service.NewBlacklistService(repos.Blacklist, repos.User, logger), nil
+	})
+
+	// Register UserFollowService | 注册 UserFollowService
+	do.Provide(injector, func(i *do.Injector) (service.IUserFollowService, error) {
+		repos := do.MustInvoke[*repository.Repositories](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		return service.NewUserFollowService(repos.UserFollow, repos.User, repos.Blacklist, logger), nil
 	})
 
 	// Register SigninService | 注册 SigninService

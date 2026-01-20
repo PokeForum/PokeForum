@@ -3164,6 +3164,100 @@ definitions:
     required:
     - id
     type: object
+  schema.UserFollowItem:
+    properties:
+      avatar:
+        example: https://example.com/avatar.jpg
+        type: string
+      followed_at:
+        example: "2024-01-20 12:00:00"
+        type: string
+      is_following:
+        description: 当前用户是否关注此人
+        example: true
+        type: boolean
+      is_mutual:
+        description: 是否互相关注
+        example: false
+        type: boolean
+      signature:
+        example: 这是个性签名
+        type: string
+      user_id:
+        example: 123
+        type: integer
+      username:
+        example: username
+        type: string
+    type: object
+  schema.UserFollowRequest:
+    properties:
+      following_id:
+        example: 123
+        minimum: 1
+        type: integer
+    required:
+    - following_id
+    type: object
+  schema.UserFollowResponse:
+    properties:
+      following_id:
+        example: 123
+        type: integer
+      message:
+        example: 关注成功
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  schema.UserFollowStatusResponse:
+    properties:
+      is_follower:
+        description: 目标用户是否关注当前用户
+        example: false
+        type: boolean
+      is_following:
+        description: 当前用户是否关注目标用户
+        example: true
+        type: boolean
+      is_mutual:
+        description: 是否互相关注
+        example: false
+        type: boolean
+    type: object
+  schema.UserFollowersResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/schema.UserFollowItem'
+        type: array
+      page:
+        example: 1
+        type: integer
+      page_size:
+        example: 20
+        type: integer
+      total:
+        example: 100
+        type: integer
+    type: object
+  schema.UserFollowingResponse:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/schema.UserFollowItem'
+        type: array
+      page:
+        example: 1
+        type: integer
+      page_size:
+        example: 20
+        type: integer
+      total:
+        example: 50
+        type: integer
+    type: object
   schema.UserListItem:
     properties:
       avatar:
@@ -3689,6 +3783,14 @@ definitions:
         description: Whether email verified | 邮箱是否已验证
         example: true
         type: boolean
+      followers_count:
+        description: Followers count | 粉丝数
+        example: 30
+        type: integer
+      following_count:
+        description: Following count | 关注数
+        example: 25
+        type: integer
       id:
         description: User ID | 用户ID
         example: 1
@@ -3912,6 +4014,18 @@ definitions:
         type: string
     required:
     - id
+    type: object
+  schema.UserUnfollowResponse:
+    properties:
+      following_id:
+        example: 123
+        type: integer
+      message:
+        example: 取消关注成功
+        type: string
+      success:
+        example: true
+        type: boolean
     type: object
   schema.UserUpdateAvatarRequest:
     properties:
@@ -7228,6 +7342,218 @@ paths:
       summary: Get user favorites list | 获取用户收藏列表
       tags:
       - '[User]Profile | [用户]个人中心'
+  /profile/follow:
+    post:
+      consumes:
+      - application/json
+      description: Follow a specified user | 关注指定用户
+      parameters:
+      - description: Follow user request | 关注用户请求
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.UserFollowRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Followed successfully | 关注成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserFollowResponse'
+              type: object
+        "400":
+          description: Invalid request parameters | 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: Unauthorized | 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: Internal server error | 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: Follow user | 关注用户
+      tags:
+      - '[User] User Follow | [用户个人中心] 用户关注'
+  /profile/follow/{user_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Unfollow a specified user | 取消关注指定用户
+      parameters:
+      - description: User ID to unfollow | 要取消关注的用户ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Unfollowed successfully | 取消关注成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserUnfollowResponse'
+              type: object
+        "400":
+          description: Invalid request parameters | 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: Unauthorized | 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: Internal server error | 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: Unfollow user | 取消关注用户
+      tags:
+      - '[User] User Follow | [用户个人中心] 用户关注'
+  /profile/follow/status/{user_id}:
+    get:
+      consumes:
+      - application/json
+      description: Get the follow status between current user and specified user |
+        获取当前用户与指定用户之间的关注状态
+      parameters:
+      - description: Target user ID | 目标用户ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success | 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserFollowStatusResponse'
+              type: object
+        "400":
+          description: Invalid request parameters | 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: Unauthorized | 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: Internal server error | 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: Get follow status | 获取关注状态
+      tags:
+      - '[User] User Follow | [用户个人中心] 用户关注'
+  /profile/followers:
+    get:
+      consumes:
+      - application/json
+      description: Get the specified user's followers list, supports pagination. If
+        user_id is not provided, returns current user's followers | 获取指定用户的粉丝列表，支持分页。如果不提供user_id，则返回当前登录用户的粉丝列表
+      parameters:
+      - description: User ID, default to current user | 用户ID，默认为当前用户
+        in: query
+        name: user_id
+        type: integer
+      - default: 1
+        description: Page number | 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page | 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success | 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserFollowersResponse'
+              type: object
+        "400":
+          description: Invalid request parameters | 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: Unauthorized | 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: Internal server error | 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: Get user followers list | 获取用户粉丝列表
+      tags:
+      - '[User] User Follow | [用户个人中心] 用户关注'
+  /profile/following:
+    get:
+      consumes:
+      - application/json
+      description: Get the specified user's following list, supports pagination. If
+        user_id is not provided, returns current user's following | 获取指定用户的关注列表，支持分页。如果不提供user_id，则返回当前登录用户的关注列表
+      parameters:
+      - description: User ID, default to current user | 用户ID，默认为当前用户
+        in: query
+        name: user_id
+        type: integer
+      - default: 1
+        description: Page number | 页码
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page | 每页数量
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success | 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.UserFollowingResponse'
+              type: object
+        "400":
+          description: Invalid request parameters | 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "401":
+          description: Unauthorized | 未授权
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: Internal server error | 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: Get user following list | 获取用户关注列表
+      tags:
+      - '[User] User Follow | [用户个人中心] 用户关注'
   /profile/overview:
     get:
       consumes:

@@ -440,6 +440,47 @@ var (
 			},
 		},
 	}
+	// UserFollowsColumns holds the columns for the "user_follows" table.
+	UserFollowsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "follower_id", Type: field.TypeInt},
+		{Name: "following_id", Type: field.TypeInt},
+	}
+	// UserFollowsTable holds the schema information for the "user_follows" table.
+	UserFollowsTable = &schema.Table{
+		Name:       "user_follows",
+		Columns:    UserFollowsColumns,
+		PrimaryKey: []*schema.Column{UserFollowsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "userfollow_follower_id_following_id",
+				Unique:  true,
+				Columns: []*schema.Column{UserFollowsColumns[3], UserFollowsColumns[4]},
+			},
+			{
+				Name:    "userfollow_following_id",
+				Unique:  false,
+				Columns: []*schema.Column{UserFollowsColumns[4]},
+			},
+			{
+				Name:    "userfollow_follower_id",
+				Unique:  false,
+				Columns: []*schema.Column{UserFollowsColumns[3]},
+			},
+			{
+				Name:    "userfollow_following_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{UserFollowsColumns[4], UserFollowsColumns[1]},
+			},
+			{
+				Name:    "userfollow_follower_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{UserFollowsColumns[3], UserFollowsColumns[1]},
+			},
+		},
+	}
 	// UserLoginLogsColumns holds the columns for the "user_login_logs" table.
 	UserLoginLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -583,6 +624,7 @@ var (
 		SettingsTable,
 		UsersTable,
 		UserBalanceLogsTable,
+		UserFollowsTable,
 		UserLoginLogsTable,
 		UserOauthsTable,
 		UserSigninLogsTable,

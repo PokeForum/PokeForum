@@ -25,6 +25,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/settings"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
+	"github.com/PokeForum/PokeForum/ent/userfollow"
 	"github.com/PokeForum/PokeForum/ent/userloginlog"
 	"github.com/PokeForum/PokeForum/ent/useroauth"
 	"github.com/PokeForum/PokeForum/ent/usersigninlogs"
@@ -58,6 +59,8 @@ type Client struct {
 	User *UserClient
 	// UserBalanceLog is the client for interacting with the UserBalanceLog builders.
 	UserBalanceLog *UserBalanceLogClient
+	// UserFollow is the client for interacting with the UserFollow builders.
+	UserFollow *UserFollowClient
 	// UserLoginLog is the client for interacting with the UserLoginLog builders.
 	UserLoginLog *UserLoginLogClient
 	// UserOAuth is the client for interacting with the UserOAuth builders.
@@ -88,6 +91,7 @@ func (c *Client) init() {
 	c.Settings = NewSettingsClient(c.config)
 	c.User = NewUserClient(c.config)
 	c.UserBalanceLog = NewUserBalanceLogClient(c.config)
+	c.UserFollow = NewUserFollowClient(c.config)
 	c.UserLoginLog = NewUserLoginLogClient(c.config)
 	c.UserOAuth = NewUserOAuthClient(c.config)
 	c.UserSigninLogs = NewUserSigninLogsClient(c.config)
@@ -195,6 +199,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Settings:          NewSettingsClient(cfg),
 		User:              NewUserClient(cfg),
 		UserBalanceLog:    NewUserBalanceLogClient(cfg),
+		UserFollow:        NewUserFollowClient(cfg),
 		UserLoginLog:      NewUserLoginLogClient(cfg),
 		UserOAuth:         NewUserOAuthClient(cfg),
 		UserSigninLogs:    NewUserSigninLogsClient(cfg),
@@ -229,6 +234,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		Settings:          NewSettingsClient(cfg),
 		User:              NewUserClient(cfg),
 		UserBalanceLog:    NewUserBalanceLogClient(cfg),
+		UserFollow:        NewUserFollowClient(cfg),
 		UserLoginLog:      NewUserLoginLogClient(cfg),
 		UserOAuth:         NewUserOAuthClient(cfg),
 		UserSigninLogs:    NewUserSigninLogsClient(cfg),
@@ -264,7 +270,8 @@ func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Blacklist, c.Category, c.CategoryModerator, c.Comment, c.CommentAction,
 		c.OAuthProvider, c.Post, c.PostAction, c.Settings, c.User, c.UserBalanceLog,
-		c.UserLoginLog, c.UserOAuth, c.UserSigninLogs, c.UserSigninStatus,
+		c.UserFollow, c.UserLoginLog, c.UserOAuth, c.UserSigninLogs,
+		c.UserSigninStatus,
 	} {
 		n.Use(hooks...)
 	}
@@ -276,7 +283,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Blacklist, c.Category, c.CategoryModerator, c.Comment, c.CommentAction,
 		c.OAuthProvider, c.Post, c.PostAction, c.Settings, c.User, c.UserBalanceLog,
-		c.UserLoginLog, c.UserOAuth, c.UserSigninLogs, c.UserSigninStatus,
+		c.UserFollow, c.UserLoginLog, c.UserOAuth, c.UserSigninLogs,
+		c.UserSigninStatus,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -307,6 +315,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	case *UserBalanceLogMutation:
 		return c.UserBalanceLog.mutate(ctx, m)
+	case *UserFollowMutation:
+		return c.UserFollow.mutate(ctx, m)
 	case *UserLoginLogMutation:
 		return c.UserLoginLog.mutate(ctx, m)
 	case *UserOAuthMutation:
@@ -1783,6 +1793,139 @@ func (c *UserBalanceLogClient) mutate(ctx context.Context, m *UserBalanceLogMuta
 	}
 }
 
+// UserFollowClient is a client for the UserFollow schema.
+type UserFollowClient struct {
+	config
+}
+
+// NewUserFollowClient returns a client for the UserFollow from the given config.
+func NewUserFollowClient(c config) *UserFollowClient {
+	return &UserFollowClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `userfollow.Hooks(f(g(h())))`.
+func (c *UserFollowClient) Use(hooks ...Hook) {
+	c.hooks.UserFollow = append(c.hooks.UserFollow, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `userfollow.Intercept(f(g(h())))`.
+func (c *UserFollowClient) Intercept(interceptors ...Interceptor) {
+	c.inters.UserFollow = append(c.inters.UserFollow, interceptors...)
+}
+
+// Create returns a builder for creating a UserFollow entity.
+func (c *UserFollowClient) Create() *UserFollowCreate {
+	mutation := newUserFollowMutation(c.config, OpCreate)
+	return &UserFollowCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of UserFollow entities.
+func (c *UserFollowClient) CreateBulk(builders ...*UserFollowCreate) *UserFollowCreateBulk {
+	return &UserFollowCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *UserFollowClient) MapCreateBulk(slice any, setFunc func(*UserFollowCreate, int)) *UserFollowCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &UserFollowCreateBulk{err: fmt.Errorf("calling to UserFollowClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*UserFollowCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &UserFollowCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for UserFollow.
+func (c *UserFollowClient) Update() *UserFollowUpdate {
+	mutation := newUserFollowMutation(c.config, OpUpdate)
+	return &UserFollowUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *UserFollowClient) UpdateOne(_m *UserFollow) *UserFollowUpdateOne {
+	mutation := newUserFollowMutation(c.config, OpUpdateOne, withUserFollow(_m))
+	return &UserFollowUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *UserFollowClient) UpdateOneID(id int) *UserFollowUpdateOne {
+	mutation := newUserFollowMutation(c.config, OpUpdateOne, withUserFollowID(id))
+	return &UserFollowUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for UserFollow.
+func (c *UserFollowClient) Delete() *UserFollowDelete {
+	mutation := newUserFollowMutation(c.config, OpDelete)
+	return &UserFollowDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *UserFollowClient) DeleteOne(_m *UserFollow) *UserFollowDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *UserFollowClient) DeleteOneID(id int) *UserFollowDeleteOne {
+	builder := c.Delete().Where(userfollow.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &UserFollowDeleteOne{builder}
+}
+
+// Query returns a query builder for UserFollow.
+func (c *UserFollowClient) Query() *UserFollowQuery {
+	return &UserFollowQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeUserFollow},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a UserFollow entity by its id.
+func (c *UserFollowClient) Get(ctx context.Context, id int) (*UserFollow, error) {
+	return c.Query().Where(userfollow.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *UserFollowClient) GetX(ctx context.Context, id int) *UserFollow {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *UserFollowClient) Hooks() []Hook {
+	return c.hooks.UserFollow
+}
+
+// Interceptors returns the client interceptors.
+func (c *UserFollowClient) Interceptors() []Interceptor {
+	return c.inters.UserFollow
+}
+
+func (c *UserFollowClient) mutate(ctx context.Context, m *UserFollowMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&UserFollowCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&UserFollowUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&UserFollowUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&UserFollowDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown UserFollow mutation op: %q", m.Op())
+	}
+}
+
 // UserLoginLogClient is a client for the UserLoginLog schema.
 type UserLoginLogClient struct {
 	config
@@ -2319,12 +2462,12 @@ func (c *UserSigninStatusClient) mutate(ctx context.Context, m *UserSigninStatus
 type (
 	hooks struct {
 		Blacklist, Category, CategoryModerator, Comment, CommentAction, OAuthProvider,
-		Post, PostAction, Settings, User, UserBalanceLog, UserLoginLog, UserOAuth,
-		UserSigninLogs, UserSigninStatus []ent.Hook
+		Post, PostAction, Settings, User, UserBalanceLog, UserFollow, UserLoginLog,
+		UserOAuth, UserSigninLogs, UserSigninStatus []ent.Hook
 	}
 	inters struct {
 		Blacklist, Category, CategoryModerator, Comment, CommentAction, OAuthProvider,
-		Post, PostAction, Settings, User, UserBalanceLog, UserLoginLog, UserOAuth,
-		UserSigninLogs, UserSigninStatus []ent.Interceptor
+		Post, PostAction, Settings, User, UserBalanceLog, UserFollow, UserLoginLog,
+		UserOAuth, UserSigninLogs, UserSigninStatus []ent.Interceptor
 	}
 )

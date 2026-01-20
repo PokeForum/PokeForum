@@ -5086,6 +5086,344 @@ const docTemplate = `{
                 }
             }
         },
+        "/profile/follow": {
+            "post": {
+                "description": "Follow a specified user | 关注指定用户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User] User Follow | [用户个人中心] 用户关注"
+                ],
+                "summary": "Follow user | 关注用户",
+                "parameters": [
+                    {
+                        "description": "Follow user request | 关注用户请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserFollowRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Followed successfully | 关注成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserFollowResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/follow/status/{user_id}": {
+            "get": {
+                "description": "Get the follow status between current user and specified user | 获取当前用户与指定用户之间的关注状态",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User] User Follow | [用户个人中心] 用户关注"
+                ],
+                "summary": "Get follow status | 获取关注状态",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Target user ID | 目标用户ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserFollowStatusResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/follow/{user_id}": {
+            "delete": {
+                "description": "Unfollow a specified user | 取消关注指定用户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User] User Follow | [用户个人中心] 用户关注"
+                ],
+                "summary": "Unfollow user | 取消关注用户",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID to unfollow | 要取消关注的用户ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Unfollowed successfully | 取消关注成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserUnfollowResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/followers": {
+            "get": {
+                "description": "Get the specified user's followers list, supports pagination. If user_id is not provided, returns current user's followers | 获取指定用户的粉丝列表，支持分页。如果不提供user_id，则返回当前登录用户的粉丝列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User] User Follow | [用户个人中心] 用户关注"
+                ],
+                "summary": "Get user followers list | 获取用户粉丝列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID, default to current user | 用户ID，默认为当前用户",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number | 页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Items per page | 每页数量",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserFollowersResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/following": {
+            "get": {
+                "description": "Get the specified user's following list, supports pagination. If user_id is not provided, returns current user's following | 获取指定用户的关注列表，支持分页。如果不提供user_id，则返回当前登录用户的关注列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User] User Follow | [用户个人中心] 用户关注"
+                ],
+                "summary": "Get user following list | 获取用户关注列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID, default to current user | 用户ID，默认为当前用户",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number | 页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Items per page | 每页数量",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserFollowingResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
         "/profile/overview": {
             "get": {
                 "description": "Get personal information and statistics for specified user, retrieves current logged-in user if user_id not provided | 获取指定用户的个人信息和统计数据，不传user_id则获取当前登录用户信息",
@@ -11295,6 +11633,137 @@ const docTemplate = `{
                 }
             }
         },
+        "schema.UserFollowItem": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string",
+                    "example": "https://example.com/avatar.jpg"
+                },
+                "followed_at": {
+                    "type": "string",
+                    "example": "2024-01-20 12:00:00"
+                },
+                "is_following": {
+                    "description": "当前用户是否关注此人",
+                    "type": "boolean",
+                    "example": true
+                },
+                "is_mutual": {
+                    "description": "是否互相关注",
+                    "type": "boolean",
+                    "example": false
+                },
+                "signature": {
+                    "type": "string",
+                    "example": "这是个性签名"
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 123
+                },
+                "username": {
+                    "type": "string",
+                    "example": "username"
+                }
+            }
+        },
+        "schema.UserFollowRequest": {
+            "type": "object",
+            "required": [
+                "following_id"
+            ],
+            "properties": {
+                "following_id": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 123
+                }
+            }
+        },
+        "schema.UserFollowResponse": {
+            "type": "object",
+            "properties": {
+                "following_id": {
+                    "type": "integer",
+                    "example": 123
+                },
+                "message": {
+                    "type": "string",
+                    "example": "关注成功"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "schema.UserFollowStatusResponse": {
+            "type": "object",
+            "properties": {
+                "is_follower": {
+                    "description": "目标用户是否关注当前用户",
+                    "type": "boolean",
+                    "example": false
+                },
+                "is_following": {
+                    "description": "当前用户是否关注目标用户",
+                    "type": "boolean",
+                    "example": true
+                },
+                "is_mutual": {
+                    "description": "是否互相关注",
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
+        "schema.UserFollowersResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.UserFollowItem"
+                    }
+                },
+                "page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "page_size": {
+                    "type": "integer",
+                    "example": 20
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 100
+                }
+            }
+        },
+        "schema.UserFollowingResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.UserFollowItem"
+                    }
+                },
+                "page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "page_size": {
+                    "type": "integer",
+                    "example": 20
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 50
+                }
+            }
+        },
         "schema.UserListItem": {
             "type": "object",
             "properties": {
@@ -11995,6 +12464,16 @@ const docTemplate = `{
                     "type": "boolean",
                     "example": true
                 },
+                "followers_count": {
+                    "description": "Followers count | 粉丝数",
+                    "type": "integer",
+                    "example": 30
+                },
+                "following_count": {
+                    "description": "Following count | 关注数",
+                    "type": "integer",
+                    "example": 25
+                },
                 "id": {
                     "description": "User ID | 用户ID",
                     "type": "integer",
@@ -12286,6 +12765,23 @@ const docTemplate = `{
                     "description": "Unban reason | 解封原因",
                     "type": "string",
                     "example": "申诉通过"
+                }
+            }
+        },
+        "schema.UserUnfollowResponse": {
+            "type": "object",
+            "properties": {
+                "following_id": {
+                    "type": "integer",
+                    "example": 123
+                },
+                "message": {
+                    "type": "string",
+                    "example": "取消关注成功"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },

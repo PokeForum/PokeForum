@@ -62,6 +62,7 @@ type UserProfileService struct {
 	commentRepo       repository.ICommentRepository
 	categoryRepo      repository.ICategoryRepository
 	postActionRepo    repository.IPostActionRepository
+	followService     IUserFollowService
 	cache             cache.ICacheService
 	logger            *zap.Logger
 	settings          ISettingsService
@@ -69,7 +70,7 @@ type UserProfileService struct {
 }
 
 // NewUserProfileService Create user profile service instance | 创建用户个人中心服务实例
-func NewUserProfileService(db *ent.Client, repos *repository.Repositories, cacheService cache.ICacheService, logger *zap.Logger, settingsService ISettingsService, userManageService IUserManageService) IUserProfileService {
+func NewUserProfileService(db *ent.Client, repos *repository.Repositories, cacheService cache.ICacheService, logger *zap.Logger, settingsService ISettingsService, userManageService IUserManageService, followService IUserFollowService) IUserProfileService {
 	return &UserProfileService{
 		db:                db,
 		userRepo:          repos.User,
@@ -77,6 +78,7 @@ func NewUserProfileService(db *ent.Client, repos *repository.Repositories, cache
 		commentRepo:       repos.Comment,
 		categoryRepo:      repos.Category,
 		postActionRepo:    repos.PostAction,
+		followService:     followService,
 		cache:             cacheService,
 		logger:            logger,
 		settings:          settingsService,
@@ -123,18 +125,28 @@ func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int,
 		commentCount = 0
 	}
 
+	// 实时查询用户的粉丝数和关注数
+	followersCount, followingCount, err := s.followService.GetFollowCounts(ctx, userData.ID)
+	if err != nil {
+		s.logger.Error("查询用户关注数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		followersCount = 0
+		followingCount = 0
+	}
+
 	// 构建响应数据
 	result := &schema.UserProfileOverviewResponse{
-		ID:           userData.ID,
-		Username:     userData.Username,
-		Avatar:       userData.Avatar,
-		Signature:    userData.Signature,
-		Readme:       userData.Readme,
-		PostCount:    postCount,
-		CommentCount: commentCount,
-		Status:       string(userData.Status),
-		Role:         string(userData.Role),
-		CreatedAt:    userData.CreatedAt.Format(time_tools.DateTimeFormat),
+		ID:             userData.ID,
+		Username:       userData.Username,
+		Avatar:         userData.Avatar,
+		Signature:      userData.Signature,
+		Readme:         userData.Readme,
+		PostCount:      postCount,
+		CommentCount:   commentCount,
+		FollowersCount: followersCount,
+		FollowingCount: followingCount,
+		Status:         string(userData.Status),
+		Role:           string(userData.Role),
+		CreatedAt:      userData.CreatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	// 只有本人才能看到敏感数据

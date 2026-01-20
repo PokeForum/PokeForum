@@ -2,20 +2,22 @@ package schema
 
 // UserProfileOverviewResponse User profile overview response | 用户个人中心概览响应体
 type UserProfileOverviewResponse struct {
-	ID            int    `json:"id" example:"1"`                                  // User ID | 用户ID
-	Username      string `json:"username" example:"testuser"`                     // Username | 用户名
-	Email         string `json:"email" example:"test@example.com"`                // Email | 邮箱
-	Avatar        string `json:"avatar" example:"https://example.com/avatar.jpg"` // Avatar URL | 头像URL
-	Signature     string `json:"signature" example:"这是我的个性签名"`                    // Signature | 签名
-	Readme        string `json:"readme" example:"# 关于我\n这是我的自我介绍"`                // README | README
-	EmailVerified bool   `json:"email_verified" example:"true"`                   // Whether email verified | 邮箱是否已验证
-	Points        int    `json:"points" example:"100"`                            // Points | 积分
-	Currency      int    `json:"currency" example:"50"`                           // Currency | 货币
-	PostCount     int    `json:"post_count" example:"10"`                         // Post count | 帖子数
-	CommentCount  int    `json:"comment_count" example:"20"`                      // Comment count | 评论数
-	Status        string `json:"status" example:"Normal"`                         // User status | 用户状态
-	Role          string `json:"role" example:"User"`                             // User role | 用户身份
-	CreatedAt     string `json:"created_at" example:"2024-01-01 00:00:00"`        // Creation time | 创建时间
+	ID             int    `json:"id" example:"1"`                                  // User ID | 用户ID
+	Username       string `json:"username" example:"testuser"`                     // Username | 用户名
+	Email          string `json:"email" example:"test@example.com"`                // Email | 邮箱
+	Avatar         string `json:"avatar" example:"https://example.com/avatar.jpg"` // Avatar URL | 头像URL
+	Signature      string `json:"signature" example:"这是我的个性签名"`                    // Signature | 签名
+	Readme         string `json:"readme" example:"# 关于我\n这是我的自我介绍"`                // README | README
+	EmailVerified  bool   `json:"email_verified" example:"true"`                   // Whether email verified | 邮箱是否已验证
+	Points         int    `json:"points" example:"100"`                            // Points | 积分
+	Currency       int    `json:"currency" example:"50"`                           // Currency | 货币
+	PostCount      int    `json:"post_count" example:"10"`                         // Post count | 帖子数
+	CommentCount   int    `json:"comment_count" example:"20"`                      // Comment count | 评论数
+	FollowersCount int    `json:"followers_count" example:"30"`                    // Followers count | 粉丝数
+	FollowingCount int    `json:"following_count" example:"25"`                    // Following count | 关注数
+	Status         string `json:"status" example:"Normal"`                         // User status | 用户状态
+	Role           string `json:"role" example:"User"`                             // User role | 用户身份
+	CreatedAt      string `json:"created_at" example:"2024-01-01 00:00:00"`        // Creation time | 创建时间
 }
 
 // UserProfileOverviewRequest User profile overview request | 用户个人中心概览请求体

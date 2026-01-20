@@ -39,6 +39,9 @@ type User func(*sql.Selector)
 // UserBalanceLog is the predicate function for userbalancelog builders.
 type UserBalanceLog func(*sql.Selector)
 
+// UserFollow is the predicate function for userfollow builders.
+type UserFollow func(*sql.Selector)
+
 // UserLoginLog is the predicate function for userloginlog builders.
 type UserLoginLog func(*sql.Selector)
 

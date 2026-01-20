@@ -17,6 +17,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/settings"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
+	"github.com/PokeForum/PokeForum/ent/userfollow"
 	"github.com/PokeForum/PokeForum/ent/userloginlog"
 	"github.com/PokeForum/PokeForum/ent/useroauth"
 	"github.com/PokeForum/PokeForum/ent/usersigninlogs"
@@ -376,6 +377,29 @@ func init() {
 	userbalancelogDescReason := userbalancelogFields[5].Descriptor()
 	// userbalancelog.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
 	userbalancelog.ReasonValidator = userbalancelogDescReason.Validators[0].(func(string) error)
+	userfollowMixin := schema.UserFollow{}.Mixin()
+	userfollowMixinFields0 := userfollowMixin[0].Fields()
+	_ = userfollowMixinFields0
+	userfollowFields := schema.UserFollow{}.Fields()
+	_ = userfollowFields
+	// userfollowDescCreatedAt is the schema descriptor for created_at field.
+	userfollowDescCreatedAt := userfollowMixinFields0[0].Descriptor()
+	// userfollow.DefaultCreatedAt holds the default value on creation for the created_at field.
+	userfollow.DefaultCreatedAt = userfollowDescCreatedAt.Default.(func() time.Time)
+	// userfollowDescUpdatedAt is the schema descriptor for updated_at field.
+	userfollowDescUpdatedAt := userfollowMixinFields0[1].Descriptor()
+	// userfollow.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	userfollow.DefaultUpdatedAt = userfollowDescUpdatedAt.Default.(func() time.Time)
+	// userfollow.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	userfollow.UpdateDefaultUpdatedAt = userfollowDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// userfollowDescFollowerID is the schema descriptor for follower_id field.
+	userfollowDescFollowerID := userfollowFields[0].Descriptor()
+	// userfollow.FollowerIDValidator is a validator for the "follower_id" field. It is called by the builders before save.
+	userfollow.FollowerIDValidator = userfollowDescFollowerID.Validators[0].(func(int) error)
+	// userfollowDescFollowingID is the schema descriptor for following_id field.
+	userfollowDescFollowingID := userfollowFields[1].Descriptor()
+	// userfollow.FollowingIDValidator is a validator for the "following_id" field. It is called by the builders before save.
+	userfollow.FollowingIDValidator = userfollowDescFollowingID.Validators[0].(func(int) error)
 	userloginlogMixin := schema.UserLoginLog{}.Mixin()
 	userloginlogMixinFields0 := userloginlogMixin[0].Fields()
 	_ = userloginlogMixinFields0

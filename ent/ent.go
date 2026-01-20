@@ -23,6 +23,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/settings"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
+	"github.com/PokeForum/PokeForum/ent/userfollow"
 	"github.com/PokeForum/PokeForum/ent/userloginlog"
 	"github.com/PokeForum/PokeForum/ent/useroauth"
 	"github.com/PokeForum/PokeForum/ent/usersigninlogs"
@@ -98,6 +99,7 @@ func checkColumn(t, c string) error {
 			settings.Table:          settings.ValidColumn,
 			user.Table:              user.ValidColumn,
 			userbalancelog.Table:    userbalancelog.ValidColumn,
+			userfollow.Table:        userfollow.ValidColumn,
 			userloginlog.Table:      userloginlog.ValidColumn,
 			useroauth.Table:         useroauth.ValidColumn,
 			usersigninlogs.Table:    usersigninlogs.ValidColumn,
