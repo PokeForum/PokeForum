@@ -20,6 +20,11 @@ import (
 	"github.com/PokeForum/PokeForum/internal/schema"
 )
 
+const (
+	balanceLogTypePoints     = "points"
+	balanceLogTypeExperience = "experience"
+)
+
 // SigninService Sign-in service implementation | 签到服务实现
 type SigninService struct {
 	db                   *ent.Client
@@ -586,7 +591,7 @@ func (s *SigninService) updateUserBalance(ctx context.Context, userID int64, poi
 	}
 
 	// 记录积分变动日志
-	err = s.createBalanceLog(ctx, userID, "points", points, "签到奖励")
+	err = s.createBalanceLog(ctx, userID, balanceLogTypePoints, points, "签到奖励")
 	if err != nil {
 		s.logger.Error("记录积分变动日志失败",
 			zap.Int64("user_id", userID),
@@ -596,7 +601,7 @@ func (s *SigninService) updateUserBalance(ctx context.Context, userID int64, poi
 	}
 
 	// 记录经验变动日志
-	err = s.createBalanceLog(ctx, userID, "experience", experience, "签到奖励")
+	err = s.createBalanceLog(ctx, userID, balanceLogTypeExperience, experience, "签到奖励")
 	if err != nil {
 		s.logger.Error("记录经验变动日志失败",
 			zap.Int64("user_id", userID),
@@ -619,11 +624,11 @@ func (s *SigninService) createBalanceLog(ctx context.Context, userID int64, logT
 	var beforeAmount, afterAmount int
 	var enumType userbalancelog.Type
 	switch logType {
-	case "points":
+	case balanceLogTypePoints:
 		beforeAmount = u.Points
 		afterAmount = u.Points + amount
 		enumType = userbalancelog.TypePoints
-	case "experience":
+	case balanceLogTypeExperience:
 		beforeAmount = u.Experience
 		afterAmount = u.Experience + amount
 		enumType = userbalancelog.TypeExperience

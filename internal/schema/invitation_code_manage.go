@@ -15,13 +15,13 @@ type InvitationCodeCreateRequest struct {
 	CreatorID  int    `json:"creator_id" binding:"required,min=1" example:"1"`                       // Creator user ID | 创建者用户ID
 	Mode       string `json:"mode" binding:"required,oneof=direct points currency" example:"direct"` // Generation mode | 生成方式
 	CostAmount int    `json:"cost_amount" binding:"min=0" example:"0"`                               // Cost amount | 消耗数量
-	Remark     string `json:"remark" binding:"max=500" example="管理员手动创建"`                            // Remark | 备注
+	Remark     string `json:"remark" binding:"max=500" example:"Created by admin"`                   // Remark | 备注
 }
 
 // InvitationCodeUpdateRequest Update invitation code request | 更新邀请码请求体
 type InvitationCodeUpdateRequest struct {
-	ID     int    `json:"id" binding:"required" example:"1"`       // Invitation code ID | 邀请码ID
-	Remark string `json:"remark" binding:"max=500" example="更新备注"` // Remark | 备注
+	ID     int    `json:"id" binding:"required" example:"1"`                // Invitation code ID | 邀请码ID
+	Remark string `json:"remark" binding:"max=500" example:"Update remark"` // Remark | 备注
 }
 
 // InvitationCodeStatusUpdateRequest Update invitation code status request | 更新邀请码状态请求体
@@ -43,7 +43,7 @@ type InvitationCodeListItem struct {
 	UsedAt         string `json:"used_at,omitempty" example:"2024-01-01 12:00:00"` // Used at timestamp | 使用时间
 	UsedIP         string `json:"used_ip,omitempty" example:"192.168.1.1"`         // Used IP address | 使用时的IP地址
 	UsedUserAgent  string `json:"used_user_agent,omitempty" example:"Mozilla/5.0"` // Used user agent | 使用时的用户代理
-	Remark         string `json:"remark" example:"管理员手动创建"`                        // Remark | 备注
+	Remark         string `json:"remark" example:"Created by admin"`               // Remark | 备注
 	CreatedAt      string `json:"created_at" example:"2024-01-01 00:00:00"`        // Creation time | 创建时间
 	UpdatedAt      string `json:"updated_at" example:"2024-01-01 00:00:00"`        // Update time | 更新时间
 }
@@ -68,7 +68,7 @@ type InvitationCodeDetailResponse struct {
 	UsedAt         string `json:"used_at,omitempty" example:"2024-01-01 12:00:00"` // Used at timestamp | 使用时间
 	UsedIP         string `json:"used_ip,omitempty" example:"192.168.1.1"`         // Used IP address | 使用时的IP地址
 	UsedUserAgent  string `json:"used_user_agent,omitempty" example:"Mozilla/5.0"` // Used user agent | 使用时的用户代理
-	Remark         string `json:"remark" example:"管理员手动创建"`                        // Remark | 备注
+	Remark         string `json:"remark" example:"Created by admin"`               // Remark | 备注
 	CreatedAt      string `json:"created_at" example:"2024-01-01 00:00:00"`        // Creation time | 创建时间
 	UpdatedAt      string `json:"updated_at" example:"2024-01-01 00:00:00"`        // Update time | 更新时间
 }

@@ -16,6 +16,11 @@ import (
 	"github.com/PokeForum/PokeForum/internal/repository"
 )
 
+const (
+	generationModePoints   = "points"
+	generationModeCurrency = "currency"
+)
+
 // IInvitationCodeService Invitation code service interface | 邀请码服务接口
 type IInvitationCodeService interface {
 	// IsInvitationCodeEnabled Check if invitation code is enabled | 检查是否启用邀请码
@@ -156,9 +161,9 @@ func (s *InvitationCodeService) GenerateCode(ctx context.Context, userID int, us
 	// Deduct cost if needed | 如果需要，扣除费用
 	mode := settings.Mode
 	cost := settings.Cost
-	if mode == "points" || mode == "currency" {
+	if mode == generationModePoints || mode == generationModeCurrency {
 		if cost > 0 {
-			if err := s.deductCost(ctx, userID, username, mode, cost); err != nil {
+			if err := s.deductCost(ctx, userID, mode, cost); err != nil {
 				return nil, err
 			}
 		}
@@ -175,9 +180,9 @@ func (s *InvitationCodeService) GenerateCode(ctx context.Context, userID int, us
 	// Determine generation mode enum | 确定生成模式枚举
 	var genMode invitationcode.GenerationMode
 	switch mode {
-	case "points":
+	case generationModePoints:
 		genMode = invitationcode.GenerationModePoints
-	case "currency":
+	case generationModeCurrency:
 		genMode = invitationcode.GenerationModeCurrency
 	default:
 		genMode = invitationcode.GenerationModeDirect
@@ -236,14 +241,14 @@ func (s *InvitationCodeService) GetUserCodes(ctx context.Context, userID int, pa
 }
 
 // deductCost Deduct cost from user | 从用户扣除费用
-func (s *InvitationCodeService) deductCost(ctx context.Context, userID int, username, mode string, cost int) error {
+func (s *InvitationCodeService) deductCost(ctx context.Context, userID int, mode string, cost int) error {
 	user, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil || user == nil {
 		return errors.New("用户不存在")
 	}
 
 	switch mode {
-	case "points":
+	case generationModePoints:
 		currentBalance := user.Points
 		if currentBalance < cost {
 			return errors.New("积分不足")
@@ -252,7 +257,7 @@ func (s *InvitationCodeService) deductCost(ctx context.Context, userID int, user
 		if err = s.userRepo.UpdatePoints(ctx, userID, newBalance); err != nil {
 			return errors.New("扣除积分失败")
 		}
-	case "currency":
+	case generationModeCurrency:
 		currentBalance := user.Currency
 		if currentBalance < cost {
 			return errors.New("货币不足")
