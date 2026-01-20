@@ -9,6 +9,9 @@ import (
 	"github.com/PokeForum/PokeForum/ent/usersigninstatus"
 )
 
+// ErrSigninStatusNotFound Sign-in status not found error | 签到状态不存在错误
+var ErrSigninStatusNotFound = errors.New("签到状态不存在")
+
 // IUserSigninStatusRepository User signin status repository interface | 用户签到状态仓储接口
 type IUserSigninStatusRepository interface {
 	// GetByUserID Get user signin status by user ID | 根据用户ID获取签到状态
@@ -36,7 +39,7 @@ func (r *UserSigninStatusRepository) GetByUserID(ctx context.Context, userID int
 		Only(ctx)
 	if err != nil {
 		if ent.IsNotFound(err) {
-			return nil, errors.New("签到状态不存在")
+			return nil, ErrSigninStatusNotFound
 		}
 		return nil, err
 	}

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -139,7 +140,7 @@ func (s *SigninAsyncTask) updateSigninStatus(ctx context.Context, payload *Signi
 	existing, err := s.signinStatusRepo.GetByUserID(ctx, payload.UserID)
 
 	if err != nil {
-		if err.Error() == "签到状态不存在" {
+		if errors.Is(err, repository.ErrSigninStatusNotFound) {
 			// Record does not exist, create new record | 记录不存在，创建新记录
 			err = s.signinStatusRepo.Create(ctx, payload.UserID, payload.SignDate, payload.ContinuousDays, payload.TotalDays)
 		} else {
