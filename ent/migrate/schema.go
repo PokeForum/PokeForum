@@ -335,7 +335,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "module", Type: field.TypeEnum, Enums: []string{"Site", "HomePage", "Comment", "Seo", "Security", "Function", "Signin"}},
+		{Name: "module", Type: field.TypeEnum, Enums: []string{"Site", "HomePage", "Comment", "Seo", "Security", "Function", "Signin", "InvitationCode"}},
 		{Name: "key", Type: field.TypeString},
 		{Name: "value", Type: field.TypeString, Nullable: true},
 		{Name: "value_type", Type: field.TypeEnum, Enums: []string{"string", "number", "boolean", "json", "text"}, Default: "string"},

@@ -194,13 +194,50 @@ type SigninSettingsResponse struct {
 	ExperienceReward float64 `json:"experience_reward" example:"1.0"`
 }
 
+// InvitationCodeSettingsRequest Invitation code settings request | 邀请码设置请求体
+type InvitationCodeSettingsRequest struct {
+	// Whether to enable invitation code | 是否启用邀请码
+	IsEnable bool `json:"is_enable" example:"true"`
+	// Invitation code mode: direct, points, currency | 邀请码模式：direct、points、currency
+	Mode string `json:"mode" binding:"required,oneof=direct points currency" example:"direct"`
+	// Invitation code cost (only for points, currency) | 邀请码费用（限积分、货币模式）
+	Cost int `json:"cost" binding:"omitempty,min=0,max=10000" example:"100"`
+	// Whether to enable invitation code reward | 是否启用邀请码奖励
+	RewardIsEnable bool `json:"reward_is_enable" example:"true"`
+	// Referral bonus points | 邀请人奖励积分
+	ReferralBonus int `json:"referral_bonus" binding:"omitempty,min=0,max=10000" example:"50"`
+	// Invitee reward points | 被邀请人奖励积分
+	InviteeReward int `json:"invitee_reward" binding:"omitempty,min=0,max=10000" example:"20"`
+	// Maximum number of invitation codes a user can generate | 用户最大可生成邀请码数量
+	MaxGenerationCount int `json:"max_generation_count" binding:"omitempty,min=1,max=1000" example:"10"`
+}
+
+// InvitationCodeSettingsResponse Invitation code settings response | 邀请码设置响应体
+type InvitationCodeSettingsResponse struct {
+	// Whether to enable invitation code | 是否启用邀请码
+	IsEnable bool `json:"is_enable" example:"true"`
+	// Invitation code mode: direct, points, currency | 邀请码模式：direct、points、currency
+	Mode string `json:"mode" example:"direct"`
+	// Invitation code cost (only for points, currency) | 邀请码费用（限积分、货币模式）
+	Cost int `json:"cost" example:"100"`
+	// Whether to enable invitation code reward | 是否启用邀请码奖励
+	RewardIsEnable bool `json:"reward_is_enable" example:"true"`
+	// Referral bonus points | 邀请人奖励积分
+	ReferralBonus int `json:"referral_bonus" example:"50"`
+	// Invitee reward points | 被邀请人奖励积分
+	InviteeReward int `json:"invitee_reward" example:"20"`
+	// Maximum number of invitation codes a user can generate | 用户最大可生成邀请码数量
+	MaxGenerationCount int `json:"max_generation_count" example:"10"`
+}
+
 // PublicConfigResponse Public configuration response (client-accessible configuration) | 公开配置响应体（客户端可获取的配置）
 type PublicConfigResponse struct {
-	Routine *RoutineSettingsResponse `json:"routine"`
-	Home    *HomeSettingsResponse    `json:"home"`
-	Seo     *SeoSettingsResponse     `json:"seo"`
-	Safe    *SafeSettingsResponse    `json:"safe"`
-	Code    *CodeSettingsResponse    `json:"code"`
-	Comment *CommentSettingsResponse `json:"comment"`
-	Signin  *SigninSettingsResponse  `json:"signin"`
+	Routine        *RoutineSettingsResponse        `json:"routine"`
+	Home           *HomeSettingsResponse           `json:"home"`
+	Seo            *SeoSettingsResponse            `json:"seo"`
+	Safe           *SafeSettingsResponse           `json:"safe"`
+	Code           *CodeSettingsResponse           `json:"code"`
+	Comment        *CommentSettingsResponse        `json:"comment"`
+	Signin         *SigninSettingsResponse         `json:"signin"`
+	InvitationCode *InvitationCodeSettingsResponse `json:"invitation_code"`
 }

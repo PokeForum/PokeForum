@@ -6483,6 +6483,101 @@ const docTemplate = `{
                 }
             }
         },
+        "/super/manage/settings/invitation-code": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Get invitation code feature related configuration including mode, cost, reward, etc. | 获取邀请码功能相关配置，包括模式、费用、奖励等",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
+                ],
+                "summary": "Get invitation code settings | 获取邀请码设置",
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.InvitationCodeSettingsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Update invitation code feature related configuration | 更新邀请码功能相关配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
+                ],
+                "summary": "Update invitation code settings | 更新邀请码设置",
+                "parameters": [
+                    {
+                        "description": "Invitation code settings information | 邀请码设置信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.InvitationCodeSettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated successfully | 更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
         "/super/manage/settings/oauth": {
             "get": {
                 "security": [
@@ -8737,6 +8832,102 @@ const docTemplate = `{
                 }
             }
         },
+        "schema.InvitationCodeSettingsRequest": {
+            "type": "object",
+            "required": [
+                "mode"
+            ],
+            "properties": {
+                "cost": {
+                    "description": "Invitation code cost (only for points, currency) | 邀请码费用（限积分、货币模式）",
+                    "type": "integer",
+                    "maximum": 10000,
+                    "minimum": 0,
+                    "example": 100
+                },
+                "invitee_reward": {
+                    "description": "Invitee reward points | 被邀请人奖励积分",
+                    "type": "integer",
+                    "maximum": 10000,
+                    "minimum": 0,
+                    "example": 20
+                },
+                "is_enable": {
+                    "description": "Whether to enable invitation code | 是否启用邀请码",
+                    "type": "boolean",
+                    "example": true
+                },
+                "max_generation_count": {
+                    "description": "Maximum number of invitation codes a user can generate | 用户最大可生成邀请码数量",
+                    "type": "integer",
+                    "maximum": 1000,
+                    "minimum": 1,
+                    "example": 10
+                },
+                "mode": {
+                    "description": "Invitation code mode: direct, points, currency | 邀请码模式：direct、points、currency",
+                    "type": "string",
+                    "enum": [
+                        "direct",
+                        "points",
+                        "currency"
+                    ],
+                    "example": "direct"
+                },
+                "referral_bonus": {
+                    "description": "Referral bonus points | 邀请人奖励积分",
+                    "type": "integer",
+                    "maximum": 10000,
+                    "minimum": 0,
+                    "example": 50
+                },
+                "reward_is_enable": {
+                    "description": "Whether to enable invitation code reward | 是否启用邀请码奖励",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "schema.InvitationCodeSettingsResponse": {
+            "type": "object",
+            "properties": {
+                "cost": {
+                    "description": "Invitation code cost (only for points, currency) | 邀请码费用（限积分、货币模式）",
+                    "type": "integer",
+                    "example": 100
+                },
+                "invitee_reward": {
+                    "description": "Invitee reward points | 被邀请人奖励积分",
+                    "type": "integer",
+                    "example": 20
+                },
+                "is_enable": {
+                    "description": "Whether to enable invitation code | 是否启用邀请码",
+                    "type": "boolean",
+                    "example": true
+                },
+                "max_generation_count": {
+                    "description": "Maximum number of invitation codes a user can generate | 用户最大可生成邀请码数量",
+                    "type": "integer",
+                    "example": 10
+                },
+                "mode": {
+                    "description": "Invitation code mode: direct, points, currency | 邀请码模式：direct、points、currency",
+                    "type": "string",
+                    "example": "direct"
+                },
+                "referral_bonus": {
+                    "description": "Referral bonus points | 邀请人奖励积分",
+                    "type": "integer",
+                    "example": 50
+                },
+                "reward_is_enable": {
+                    "description": "Whether to enable invitation code reward | 是否启用邀请码奖励",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "schema.LinkItem": {
             "type": "object",
             "required": [
@@ -10125,6 +10316,9 @@ const docTemplate = `{
                 },
                 "home": {
                     "$ref": "#/definitions/schema.HomeSettingsResponse"
+                },
+                "invitation_code": {
+                    "$ref": "#/definitions/schema.InvitationCodeSettingsResponse"
                 },
                 "routine": {
                     "$ref": "#/definitions/schema.RoutineSettingsResponse"

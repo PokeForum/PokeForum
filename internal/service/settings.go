@@ -49,6 +49,10 @@ type ISettingsService interface {
 	GetSigninSettings(ctx context.Context) (*schema.SigninSettingsResponse, error)
 	UpdateSigninSettings(ctx context.Context, req schema.SigninSettingsRequest) error
 
+	// GetInvitationCodeSettings Invitation code settings | 邀请码设置
+	GetInvitationCodeSettings(ctx context.Context) (*schema.InvitationCodeSettingsResponse, error)
+	UpdateInvitationCodeSettings(ctx context.Context, req schema.InvitationCodeSettingsRequest) error
+
 	// GetPublicConfig Get public configuration (with 30-day cache) | 获取公开配置（30天缓存）
 	GetPublicConfig(ctx context.Context) (*schema.PublicConfigResponse, error)
 
@@ -582,6 +586,47 @@ func (s *SettingsService) parseIntWithDefault(str string, defaultValue int) int 
 	return defaultValue
 }
 
+// GetInvitationCodeSettings Get invitation code settings | 获取邀请码设置
+func (s *SettingsService) GetInvitationCodeSettings(ctx context.Context) (*schema.InvitationCodeSettingsResponse, error) {
+	configMap, err := s.getSettingsByModule(ctx, settings.ModuleInvitationCode)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := &schema.InvitationCodeSettingsResponse{
+		IsEnable:           configMap[_const.InvitationCodeIsEnable] == _const.SettingBoolTrue.String(),
+		Mode:               configMap[_const.InvitationCodeMode],
+		Cost:               s.parseIntWithDefault(configMap[_const.InvitationCodeCost], 0),
+		RewardIsEnable:     configMap[_const.InvitationCodeRewardIsEnable] == _const.SettingBoolTrue.String(),
+		ReferralBonus:      s.parseIntWithDefault(configMap[_const.InvitationCodeReferralBonus], 0),
+		InviteeReward:      s.parseIntWithDefault(configMap[_const.InvitationCodeInviteeReward], 0),
+		MaxGenerationCount: s.parseIntWithDefault(configMap[_const.InvitationCodeMaxGenerationCount], 10), // Default 10 | 默认10个
+	}
+
+	return resp, nil
+}
+
+// UpdateInvitationCodeSettings Update invitation code settings | 更新邀请码设置
+func (s *SettingsService) UpdateInvitationCodeSettings(ctx context.Context, req schema.InvitationCodeSettingsRequest) error {
+	configItems := map[string]string{
+		_const.InvitationCodeIsEnable:           strconv.FormatBool(req.IsEnable),
+		_const.InvitationCodeMode:               req.Mode,
+		_const.InvitationCodeCost:               strconv.Itoa(req.Cost),
+		_const.InvitationCodeRewardIsEnable:     strconv.FormatBool(req.RewardIsEnable),
+		_const.InvitationCodeReferralBonus:      strconv.Itoa(req.ReferralBonus),
+		_const.InvitationCodeInviteeReward:      strconv.Itoa(req.InviteeReward),
+		_const.InvitationCodeMaxGenerationCount: strconv.Itoa(req.MaxGenerationCount),
+	}
+
+	if err := s.batchUpsertSettings(ctx, settings.ModuleInvitationCode, configItems); err != nil {
+		return err
+	}
+
+	// Clear public config cache | 清理公开配置缓存
+	s.clearPublicConfigCache(ctx)
+	return nil
+}
+
 // GetPublicConfig Get public configuration (with 30-day cache) | 获取公开配置（30天缓存）
 func (s *SettingsService) GetPublicConfig(ctx context.Context) (*schema.PublicConfigResponse, error) {
 	// Cache key | 缓存键
@@ -633,14 +678,20 @@ func (s *SettingsService) GetPublicConfig(ctx context.Context) (*schema.PublicCo
 		return nil, err
 	}
 
+	invitationCode, err := s.GetInvitationCodeSettings(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	result := &schema.PublicConfigResponse{
-		Routine: routine,
-		Home:    home,
-		Seo:     seo,
-		Safe:    safe,
-		Code:    code,
-		Comment: comment,
-		Signin:  signin,
+		Routine:        routine,
+		Home:           home,
+		Seo:            seo,
+		Safe:           safe,
+		Code:           code,
+		Comment:        comment,
+		Signin:         signin,
+		InvitationCode: invitationCode,
 	}
 
 	// Cache the result for 30 days | 缓存结果30天（2592000秒）

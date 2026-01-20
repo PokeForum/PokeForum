@@ -14,9 +14,9 @@ type Settings struct {
 // Fields of the Settings.
 func (Settings) Fields() []ent.Field {
 	return []ent.Field{
-		// Module enumeration: Site, HomePage, Comment, Seo, Security, Function, Signin | 模块枚举：Site、HomePage、Comment、Seo、Security、Function、Signin
+		// Module enumeration: Site, HomePage, Comment, Seo, Security, Function, Signin, InvitationCode | 模块枚举：Site、HomePage、Comment、Seo、Security、Function、Signin、InvitationCode
 		field.Enum("module").
-			Values("Site", "HomePage", "Comment", "Seo", "Security", "Function", "Signin"),
+			Values("Site", "HomePage", "Comment", "Seo", "Security", "Function", "Signin", "InvitationCode"),
 		// Configuration key, unique identifier | 配置键，唯一标识
 		field.String("key").
 			NotEmpty(),

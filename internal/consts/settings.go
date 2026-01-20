@@ -131,3 +131,21 @@ const (
 	// SigninExperienceReward Experience reward | 经验值奖励
 	SigninExperienceReward = "signin:experience_reward"
 )
+
+// Invitation code settings | 邀请码设置
+const (
+	// InvitationCodeIsEnable Whether to enable invitation code | 是否启用邀请码
+	InvitationCodeIsEnable = "invitation_code:is_enable"
+	// InvitationCodeMode Invitation code mode: direct, points, currency | 邀请码模式：直接, 积分, 货币
+	InvitationCodeMode = "invitation_code:mode"
+	// InvitationCodeCost Invitation code cost(Only for points, currency) | 邀请码费用(限积分, 货币)
+	InvitationCodeCost = "invitation_code:cost"
+	// InvitationCodeRewardIsEnable Whether to enable invitation code reward | 是否启用邀请码奖励
+	InvitationCodeRewardIsEnable = "invitation_code:reward_is_enable"
+	// InvitationCodeReferralBonus Referral Bonus | 邀请人奖励
+	InvitationCodeReferralBonus = "invitation_code:referral_bonus"
+	// InvitationCodeInviteeReward Invitee reward | 被邀请人奖励
+	InvitationCodeInviteeReward = "invitation_code:invitee_reward"
+	// InvitationCodeMaxGenerationCount Maximum number of invitation codes a user can generate | 用户最大可生成邀请码数量
+	InvitationCodeMaxGenerationCount = "invitation_code:max_generation_count"
+)

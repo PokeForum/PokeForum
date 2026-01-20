@@ -80,6 +80,13 @@ func (ctrl *SettingsController) SettingsRouter(router *gin.RouterGroup) {
 		signinGroup.GET("", ctrl.GetSigninSettings)
 		signinGroup.POST("", ctrl.UpdateSigninSettings)
 	}
+
+	// Invitation code settings | 邀请码设置
+	invitationCodeGroup := router.Group("/invitation-code")
+	{
+		invitationCodeGroup.GET("", ctrl.GetInvitationCodeSettings)
+		invitationCodeGroup.POST("", ctrl.UpdateInvitationCodeSettings)
+	}
 }
 
 // GetRoutineSettings Get routine settings | 获取常规设置
@@ -484,6 +491,53 @@ func (ctrl *SettingsController) UpdateSigninSettings(c *gin.Context) {
 	}
 
 	if err := ctrl.settingsService.UpdateSigninSettings(c.Request.Context(), req); err != nil {
+		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
+		return
+	}
+
+	response.ResSuccess(c, nil)
+}
+
+// GetInvitationCodeSettings Get invitation code settings | 获取邀请码设置
+// @Summary Get invitation code settings | 获取邀请码设置
+// @Description Get invitation code feature related configuration including mode, cost, reward, etc. | 获取邀请码功能相关配置，包括模式、费用、奖励等
+// @Tags [Super Admin]System Settings | [超级管理员]系统设置
+// @Accept json
+// @Produce json
+// @Success 200 {object} response.Data{data=schema.InvitationCodeSettingsResponse} "Success | 获取成功"
+// @Failure 500 {object} response.Data "Server error | 服务器错误"
+// @Router /super/manage/settings/invitation-code [get]
+// @Security Bearer
+func (ctrl *SettingsController) GetInvitationCodeSettings(c *gin.Context) {
+	config, err := ctrl.settingsService.GetInvitationCodeSettings(c.Request.Context())
+	if err != nil {
+		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
+		return
+	}
+
+	response.ResSuccess(c, config)
+}
+
+// UpdateInvitationCodeSettings Update invitation code settings | 更新邀请码设置
+// @Summary Update invitation code settings | 更新邀请码设置
+// @Description Update invitation code feature related configuration | 更新邀请码功能相关配置
+// @Tags [Super Admin]System Settings | [超级管理员]系统设置
+// @Accept json
+// @Produce json
+// @Param request body schema.InvitationCodeSettingsRequest true "Invitation code settings information | 邀请码设置信息"
+// @Success 200 {object} response.Data "Updated successfully | 更新成功"
+// @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
+// @Failure 500 {object} response.Data "Server error | 服务器错误"
+// @Router /super/manage/settings/invitation-code [post]
+// @Security Bearer
+func (ctrl *SettingsController) UpdateInvitationCodeSettings(c *gin.Context) {
+	var req schema.InvitationCodeSettingsRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, err.Error())
+		return
+	}
+
+	if err := ctrl.settingsService.UpdateInvitationCodeSettings(c.Request.Context(), req); err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
