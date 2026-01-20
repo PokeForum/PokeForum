@@ -51,7 +51,6 @@ type IUserProfileService interface {
 	VerifyEmail(ctx context.Context, userID int, req schema.EmailVerifyRequest) (*schema.EmailVerifyResponse, error)
 	// CheckUsernameUpdatePermission Check username update permission (can be done once every 7 days) | 检查用户名修改权限(每七日可操作一次)
 	CheckUsernameUpdatePermission(ctx context.Context, userID int) (bool, error)
-	// TODO Followers list | TODO 粉丝列表
 }
 
 // UserProfileService User profile service implementation | 用户个人中心服务实现
