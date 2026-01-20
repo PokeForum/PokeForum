@@ -89,11 +89,6 @@ func UsedAt(v time.Time) predicate.InvitationCode {
 	return predicate.InvitationCode(sql.FieldEQ(FieldUsedAt, v))
 }
 
-// ExpiresAt applies equality check predicate on the "expires_at" field. It's identical to ExpiresAtEQ.
-func ExpiresAt(v time.Time) predicate.InvitationCode {
-	return predicate.InvitationCode(sql.FieldEQ(FieldExpiresAt, v))
-}
-
 // UsedIP applies equality check predicate on the "used_ip" field. It's identical to UsedIPEQ.
 func UsedIP(v string) predicate.InvitationCode {
 	return predicate.InvitationCode(sql.FieldEQ(FieldUsedIP, v))
@@ -472,56 +467,6 @@ func UsedAtIsNil() predicate.InvitationCode {
 // UsedAtNotNil applies the NotNil predicate on the "used_at" field.
 func UsedAtNotNil() predicate.InvitationCode {
 	return predicate.InvitationCode(sql.FieldNotNull(FieldUsedAt))
-}
-
-// ExpiresAtEQ applies the EQ predicate on the "expires_at" field.
-func ExpiresAtEQ(v time.Time) predicate.InvitationCode {
-	return predicate.InvitationCode(sql.FieldEQ(FieldExpiresAt, v))
-}
-
-// ExpiresAtNEQ applies the NEQ predicate on the "expires_at" field.
-func ExpiresAtNEQ(v time.Time) predicate.InvitationCode {
-	return predicate.InvitationCode(sql.FieldNEQ(FieldExpiresAt, v))
-}
-
-// ExpiresAtIn applies the In predicate on the "expires_at" field.
-func ExpiresAtIn(vs ...time.Time) predicate.InvitationCode {
-	return predicate.InvitationCode(sql.FieldIn(FieldExpiresAt, vs...))
-}
-
-// ExpiresAtNotIn applies the NotIn predicate on the "expires_at" field.
-func ExpiresAtNotIn(vs ...time.Time) predicate.InvitationCode {
-	return predicate.InvitationCode(sql.FieldNotIn(FieldExpiresAt, vs...))
-}
-
-// ExpiresAtGT applies the GT predicate on the "expires_at" field.
-func ExpiresAtGT(v time.Time) predicate.InvitationCode {
-	return predicate.InvitationCode(sql.FieldGT(FieldExpiresAt, v))
-}
-
-// ExpiresAtGTE applies the GTE predicate on the "expires_at" field.
-func ExpiresAtGTE(v time.Time) predicate.InvitationCode {
-	return predicate.InvitationCode(sql.FieldGTE(FieldExpiresAt, v))
-}
-
-// ExpiresAtLT applies the LT predicate on the "expires_at" field.
-func ExpiresAtLT(v time.Time) predicate.InvitationCode {
-	return predicate.InvitationCode(sql.FieldLT(FieldExpiresAt, v))
-}
-
-// ExpiresAtLTE applies the LTE predicate on the "expires_at" field.
-func ExpiresAtLTE(v time.Time) predicate.InvitationCode {
-	return predicate.InvitationCode(sql.FieldLTE(FieldExpiresAt, v))
-}
-
-// ExpiresAtIsNil applies the IsNil predicate on the "expires_at" field.
-func ExpiresAtIsNil() predicate.InvitationCode {
-	return predicate.InvitationCode(sql.FieldIsNull(FieldExpiresAt))
-}
-
-// ExpiresAtNotNil applies the NotNil predicate on the "expires_at" field.
-func ExpiresAtNotNil() predicate.InvitationCode {
-	return predicate.InvitationCode(sql.FieldNotNull(FieldExpiresAt))
 }
 
 // UsedIPEQ applies the EQ predicate on the "used_ip" field.

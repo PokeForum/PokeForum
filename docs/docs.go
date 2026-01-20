@@ -9252,11 +9252,6 @@ const docTemplate = `{
                     "minimum": 1,
                     "example": 1
                 },
-                "expires_at": {
-                    "description": "Expiration time (empty means never expires) | 过期时间（为空表示永不过期）",
-                    "type": "string",
-                    "example": "2024-12-31 23:59:59"
-                },
                 "mode": {
                     "description": "Generation mode | 生成方式",
                     "type": "string",
@@ -9296,11 +9291,6 @@ const docTemplate = `{
                     "description": "Creator user ID | 创建者用户ID",
                     "type": "integer",
                     "example": 1
-                },
-                "expires_at": {
-                    "description": "Expiration time | 过期时间",
-                    "type": "string",
-                    "example": "2024-12-31 23:59:59"
                 },
                 "generation_mode": {
                     "description": "Generation mode | 生成方式",
@@ -9371,11 +9361,6 @@ const docTemplate = `{
                     "description": "Creator user ID | 创建者用户ID",
                     "type": "integer",
                     "example": 1
-                },
-                "expires_at": {
-                    "description": "Expiration time | 过期时间",
-                    "type": "string",
-                    "example": "2024-12-31 23:59:59"
                 },
                 "generation_mode": {
                     "description": "Generation mode | 生成方式",
@@ -9615,11 +9600,6 @@ const docTemplate = `{
                 "id"
             ],
             "properties": {
-                "expires_at": {
-                    "description": "Expiration time (empty means never expires) | 过期时间（为空表示永不过期）",
-                    "type": "string",
-                    "example": "2024-12-31 23:59:59"
-                },
                 "id": {
                     "description": "Invitation code ID | 邀请码ID",
                     "type": "integer",

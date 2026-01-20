@@ -29,9 +29,9 @@ func (InvitationCode) Fields() []ent.Field {
 			Optional().
 			Nillable().
 			Comment("Used by user ID (null if not used) | 使用者用户ID（未使用时为空）"),
-		// Status: unused, used, expired, disabled | 状态：unused（未使用）、used（已使用）、expired（已过期）、disabled（已禁用）
+		// Status: unused, used, expired, disabled | 状态：unused（未使用）、used（已使用）、disabled（已禁用）
 		field.Enum("status").
-			Values("unused", "used", "expired", "disabled").
+			Values("unused", "used", "disabled").
 			Default("unused").
 			Comment("Status: unused, used, expired, disabled | 状态：unused、used、expired、disabled"),
 		// Generation mode: direct, points, currency | 生成方式：direct（直接）、points（积分）、currency（货币）
@@ -49,11 +49,6 @@ func (InvitationCode) Fields() []ent.Field {
 			Optional().
 			Nillable().
 			Comment("Used at timestamp | 使用时间"),
-		// Expiration time (null means never expires) | 过期时间（为空表示永不过期）
-		field.Time("expires_at").
-			Optional().
-			Nillable().
-			Comment("Expiration time (null means never expires) | 过期时间"),
 		// Used IP address | 使用时的IP地址
 		field.String("used_ip").
 			Optional().
@@ -86,8 +81,6 @@ func (InvitationCode) Indexes() []ent.Index {
 		index.Fields("status"),
 		// Composite index for creator's code list with status | 复合索引，用于查询创建者的邀请码列表
 		index.Fields("creator_id", "status"),
-		// Index on expires_at for expiration check | 过期时间索引，用于过期检查
-		index.Fields("expires_at"),
 	}
 }
 

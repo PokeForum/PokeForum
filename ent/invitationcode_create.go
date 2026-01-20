@@ -130,20 +130,6 @@ func (_c *InvitationCodeCreate) SetNillableUsedAt(v *time.Time) *InvitationCodeC
 	return _c
 }
 
-// SetExpiresAt sets the "expires_at" field.
-func (_c *InvitationCodeCreate) SetExpiresAt(v time.Time) *InvitationCodeCreate {
-	_c.mutation.SetExpiresAt(v)
-	return _c
-}
-
-// SetNillableExpiresAt sets the "expires_at" field if the given value is not nil.
-func (_c *InvitationCodeCreate) SetNillableExpiresAt(v *time.Time) *InvitationCodeCreate {
-	if v != nil {
-		_c.SetExpiresAt(*v)
-	}
-	return _c
-}
-
 // SetUsedIP sets the "used_ip" field.
 func (_c *InvitationCodeCreate) SetUsedIP(v string) *InvitationCodeCreate {
 	_c.mutation.SetUsedIP(v)
@@ -352,10 +338,6 @@ func (_c *InvitationCodeCreate) createSpec() (*InvitationCode, *sqlgraph.CreateS
 	if value, ok := _c.mutation.UsedAt(); ok {
 		_spec.SetField(invitationcode.FieldUsedAt, field.TypeTime, value)
 		_node.UsedAt = &value
-	}
-	if value, ok := _c.mutation.ExpiresAt(); ok {
-		_spec.SetField(invitationcode.FieldExpiresAt, field.TypeTime, value)
-		_node.ExpiresAt = &value
 	}
 	if value, ok := _c.mutation.UsedIP(); ok {
 		_spec.SetField(invitationcode.FieldUsedIP, field.TypeString, value)

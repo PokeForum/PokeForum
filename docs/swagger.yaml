@@ -965,10 +965,6 @@ definitions:
         example: 1
         minimum: 1
         type: integer
-      expires_at:
-        description: Expiration time (empty means never expires) | 过期时间（为空表示永不过期）
-        example: "2024-12-31 23:59:59"
-        type: string
       mode:
         description: Generation mode | 生成方式
         enum:
@@ -1004,10 +1000,6 @@ definitions:
         description: Creator user ID | 创建者用户ID
         example: 1
         type: integer
-      expires_at:
-        description: Expiration time | 过期时间
-        example: "2024-12-31 23:59:59"
-        type: string
       generation_mode:
         description: Generation mode | 生成方式
         example: direct
@@ -1063,10 +1055,6 @@ definitions:
         description: Creator user ID | 创建者用户ID
         example: 1
         type: integer
-      expires_at:
-        description: Expiration time | 过期时间
-        example: "2024-12-31 23:59:59"
-        type: string
       generation_mode:
         description: Generation mode | 生成方式
         example: direct
@@ -1249,10 +1237,6 @@ definitions:
     type: object
   schema.InvitationCodeUpdateRequest:
     properties:
-      expires_at:
-        description: Expiration time (empty means never expires) | 过期时间（为空表示永不过期）
-        example: "2024-12-31 23:59:59"
-        type: string
       id:
         description: Invitation code ID | 邀请码ID
         example: 1

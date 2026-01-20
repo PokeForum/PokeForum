@@ -15,15 +15,13 @@ type InvitationCodeCreateRequest struct {
 	CreatorID  int    `json:"creator_id" binding:"required,min=1" example:"1"`                       // Creator user ID | 创建者用户ID
 	Mode       string `json:"mode" binding:"required,oneof=direct points currency" example:"direct"` // Generation mode | 生成方式
 	CostAmount int    `json:"cost_amount" binding:"min=0" example:"0"`                               // Cost amount | 消耗数量
-	ExpiresAt  string `json:"expires_at" example:"2024-12-31 23:59:59"`                              // Expiration time (empty means never expires) | 过期时间（为空表示永不过期）
 	Remark     string `json:"remark" binding:"max=500" example="管理员手动创建"`                            // Remark | 备注
 }
 
 // InvitationCodeUpdateRequest Update invitation code request | 更新邀请码请求体
 type InvitationCodeUpdateRequest struct {
-	ID        int    `json:"id" binding:"required" example:"1"`        // Invitation code ID | 邀请码ID
-	ExpiresAt string `json:"expires_at" example:"2024-12-31 23:59:59"` // Expiration time (empty means never expires) | 过期时间（为空表示永不过期）
-	Remark    string `json:"remark" binding:"max=500" example="更新备注"`  // Remark | 备注
+	ID     int    `json:"id" binding:"required" example:"1"`       // Invitation code ID | 邀请码ID
+	Remark string `json:"remark" binding:"max=500" example="更新备注"` // Remark | 备注
 }
 
 // InvitationCodeStatusUpdateRequest Update invitation code status request | 更新邀请码状态请求体
@@ -35,20 +33,19 @@ type InvitationCodeStatusUpdateRequest struct {
 
 // InvitationCodeListItem Invitation code list item response | 邀请码列表项响应体
 type InvitationCodeListItem struct {
-	ID             int    `json:"id" example:"1"`                                     // Invitation code ID | 邀请码ID
-	Code           string `json:"code" example:"abc123def456"`                        // Invitation code | 邀请码
-	CreatorID      int    `json:"creator_id" example:"1"`                             // Creator user ID | 创建者用户ID
-	UsedByID       *int   `json:"used_by_id,omitempty" example:"2"`                   // Used by user ID | 使用者用户ID
-	Status         string `json:"status" example:"unused"`                            // Status | 状态
-	GenerationMode string `json:"generation_mode" example:"direct"`                   // Generation mode | 生成方式
-	CostAmount     int    `json:"cost_amount" example:"0"`                            // Cost amount | 消耗数量
-	UsedAt         string `json:"used_at,omitempty" example:"2024-01-01 12:00:00"`    // Used at timestamp | 使用时间
-	ExpiresAt      string `json:"expires_at,omitempty" example:"2024-12-31 23:59:59"` // Expiration time | 过期时间
-	UsedIP         string `json:"used_ip,omitempty" example:"192.168.1.1"`            // Used IP address | 使用时的IP地址
-	UsedUserAgent  string `json:"used_user_agent,omitempty" example:"Mozilla/5.0"`    // Used user agent | 使用时的用户代理
-	Remark         string `json:"remark" example:"管理员手动创建"`                           // Remark | 备注
-	CreatedAt      string `json:"created_at" example:"2024-01-01 00:00:00"`           // Creation time | 创建时间
-	UpdatedAt      string `json:"updated_at" example:"2024-01-01 00:00:00"`           // Update time | 更新时间
+	ID             int    `json:"id" example:"1"`                                  // Invitation code ID | 邀请码ID
+	Code           string `json:"code" example:"abc123def456"`                     // Invitation code | 邀请码
+	CreatorID      int    `json:"creator_id" example:"1"`                          // Creator user ID | 创建者用户ID
+	UsedByID       *int   `json:"used_by_id,omitempty" example:"2"`                // Used by user ID | 使用者用户ID
+	Status         string `json:"status" example:"unused"`                         // Status | 状态
+	GenerationMode string `json:"generation_mode" example:"direct"`                // Generation mode | 生成方式
+	CostAmount     int    `json:"cost_amount" example:"0"`                         // Cost amount | 消耗数量
+	UsedAt         string `json:"used_at,omitempty" example:"2024-01-01 12:00:00"` // Used at timestamp | 使用时间
+	UsedIP         string `json:"used_ip,omitempty" example:"192.168.1.1"`         // Used IP address | 使用时的IP地址
+	UsedUserAgent  string `json:"used_user_agent,omitempty" example:"Mozilla/5.0"` // Used user agent | 使用时的用户代理
+	Remark         string `json:"remark" example:"管理员手动创建"`                        // Remark | 备注
+	CreatedAt      string `json:"created_at" example:"2024-01-01 00:00:00"`        // Creation time | 创建时间
+	UpdatedAt      string `json:"updated_at" example:"2024-01-01 00:00:00"`        // Update time | 更新时间
 }
 
 // InvitationCodeListResponse Invitation code list response | 邀请码列表响应体
@@ -61,20 +58,19 @@ type InvitationCodeListResponse struct {
 
 // InvitationCodeDetailResponse Invitation code detail response | 邀请码详情响应体
 type InvitationCodeDetailResponse struct {
-	ID             int    `json:"id" example:"1"`                                     // Invitation code ID | 邀请码ID
-	Code           string `json:"code" example:"abc123def456"`                        // Invitation code | 邀请码
-	CreatorID      int    `json:"creator_id" example:"1"`                             // Creator user ID | 创建者用户ID
-	UsedByID       *int   `json:"used_by_id,omitempty" example:"2"`                   // Used by user ID | 使用者用户ID
-	Status         string `json:"status" example:"unused"`                            // Status | 状态
-	GenerationMode string `json:"generation_mode" example:"direct"`                   // Generation mode | 生成方式
-	CostAmount     int    `json:"cost_amount" example:"0"`                            // Cost amount | 消耗数量
-	UsedAt         string `json:"used_at,omitempty" example:"2024-01-01 12:00:00"`    // Used at timestamp | 使用时间
-	ExpiresAt      string `json:"expires_at,omitempty" example:"2024-12-31 23:59:59"` // Expiration time | 过期时间
-	UsedIP         string `json:"used_ip,omitempty" example:"192.168.1.1"`            // Used IP address | 使用时的IP地址
-	UsedUserAgent  string `json:"used_user_agent,omitempty" example:"Mozilla/5.0"`    // Used user agent | 使用时的用户代理
-	Remark         string `json:"remark" example:"管理员手动创建"`                           // Remark | 备注
-	CreatedAt      string `json:"created_at" example:"2024-01-01 00:00:00"`           // Creation time | 创建时间
-	UpdatedAt      string `json:"updated_at" example:"2024-01-01 00:00:00"`           // Update time | 更新时间
+	ID             int    `json:"id" example:"1"`                                  // Invitation code ID | 邀请码ID
+	Code           string `json:"code" example:"abc123def456"`                     // Invitation code | 邀请码
+	CreatorID      int    `json:"creator_id" example:"1"`                          // Creator user ID | 创建者用户ID
+	UsedByID       *int   `json:"used_by_id,omitempty" example:"2"`                // Used by user ID | 使用者用户ID
+	Status         string `json:"status" example:"unused"`                         // Status | 状态
+	GenerationMode string `json:"generation_mode" example:"direct"`                // Generation mode | 生成方式
+	CostAmount     int    `json:"cost_amount" example:"0"`                         // Cost amount | 消耗数量
+	UsedAt         string `json:"used_at,omitempty" example:"2024-01-01 12:00:00"` // Used at timestamp | 使用时间
+	UsedIP         string `json:"used_ip,omitempty" example:"192.168.1.1"`         // Used IP address | 使用时的IP地址
+	UsedUserAgent  string `json:"used_user_agent,omitempty" example:"Mozilla/5.0"` // Used user agent | 使用时的用户代理
+	Remark         string `json:"remark" example:"管理员手动创建"`                        // Remark | 备注
+	CreatedAt      string `json:"created_at" example:"2024-01-01 00:00:00"`        // Creation time | 创建时间
+	UpdatedAt      string `json:"updated_at" example:"2024-01-01 00:00:00"`        // Update time | 更新时间
 }
 
 // InvitationCodeStatsResponse Invitation code statistics response | 邀请码统计响应体

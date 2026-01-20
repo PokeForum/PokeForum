@@ -88,22 +88,11 @@ func (s *InvitationCodeService) ValidateCode(ctx context.Context, code string) (
 		switch invCode.Status {
 		case invitationcode.StatusUsed:
 			return nil, errors.New("邀请码已被使用")
-		case invitationcode.StatusExpired:
-			return nil, errors.New("邀请码已过期")
 		case invitationcode.StatusDisabled:
 			return nil, errors.New("邀请码已被禁用")
 		default:
 			return nil, errors.New("邀请码状态无效")
 		}
-	}
-
-	// Check expiration | 检查过期时间
-	if invCode.ExpiresAt != nil && invCode.ExpiresAt.Before(time.Now()) {
-		// Update status to expired | 更新状态为已过期
-		_, _ = s.invitationCodeRepo.Update(ctx, invCode.ID, func(u *ent.InvitationCodeUpdateOne) *ent.InvitationCodeUpdateOne {
-			return u.SetStatus(invitationcode.StatusExpired)
-		})
-		return nil, errors.New("邀请码已过期")
 	}
 
 	return invCode, nil

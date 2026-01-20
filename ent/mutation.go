@@ -3912,7 +3912,6 @@ type InvitationCodeMutation struct {
 	cost_amount     *int
 	addcost_amount  *int
 	used_at         *time.Time
-	expires_at      *time.Time
 	used_ip         *string
 	used_user_agent *string
 	remark          *string
@@ -4431,55 +4430,6 @@ func (m *InvitationCodeMutation) ResetUsedAt() {
 	delete(m.clearedFields, invitationcode.FieldUsedAt)
 }
 
-// SetExpiresAt sets the "expires_at" field.
-func (m *InvitationCodeMutation) SetExpiresAt(t time.Time) {
-	m.expires_at = &t
-}
-
-// ExpiresAt returns the value of the "expires_at" field in the mutation.
-func (m *InvitationCodeMutation) ExpiresAt() (r time.Time, exists bool) {
-	v := m.expires_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldExpiresAt returns the old "expires_at" field's value of the InvitationCode entity.
-// If the InvitationCode object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *InvitationCodeMutation) OldExpiresAt(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldExpiresAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldExpiresAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldExpiresAt: %w", err)
-	}
-	return oldValue.ExpiresAt, nil
-}
-
-// ClearExpiresAt clears the value of the "expires_at" field.
-func (m *InvitationCodeMutation) ClearExpiresAt() {
-	m.expires_at = nil
-	m.clearedFields[invitationcode.FieldExpiresAt] = struct{}{}
-}
-
-// ExpiresAtCleared returns if the "expires_at" field was cleared in this mutation.
-func (m *InvitationCodeMutation) ExpiresAtCleared() bool {
-	_, ok := m.clearedFields[invitationcode.FieldExpiresAt]
-	return ok
-}
-
-// ResetExpiresAt resets all changes to the "expires_at" field.
-func (m *InvitationCodeMutation) ResetExpiresAt() {
-	m.expires_at = nil
-	delete(m.clearedFields, invitationcode.FieldExpiresAt)
-}
-
 // SetUsedIP sets the "used_ip" field.
 func (m *InvitationCodeMutation) SetUsedIP(s string) {
 	m.used_ip = &s
@@ -4661,7 +4611,7 @@ func (m *InvitationCodeMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *InvitationCodeMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 12)
 	if m.created_at != nil {
 		fields = append(fields, invitationcode.FieldCreatedAt)
 	}
@@ -4688,9 +4638,6 @@ func (m *InvitationCodeMutation) Fields() []string {
 	}
 	if m.used_at != nil {
 		fields = append(fields, invitationcode.FieldUsedAt)
-	}
-	if m.expires_at != nil {
-		fields = append(fields, invitationcode.FieldExpiresAt)
 	}
 	if m.used_ip != nil {
 		fields = append(fields, invitationcode.FieldUsedIP)
@@ -4727,8 +4674,6 @@ func (m *InvitationCodeMutation) Field(name string) (ent.Value, bool) {
 		return m.CostAmount()
 	case invitationcode.FieldUsedAt:
 		return m.UsedAt()
-	case invitationcode.FieldExpiresAt:
-		return m.ExpiresAt()
 	case invitationcode.FieldUsedIP:
 		return m.UsedIP()
 	case invitationcode.FieldUsedUserAgent:
@@ -4762,8 +4707,6 @@ func (m *InvitationCodeMutation) OldField(ctx context.Context, name string) (ent
 		return m.OldCostAmount(ctx)
 	case invitationcode.FieldUsedAt:
 		return m.OldUsedAt(ctx)
-	case invitationcode.FieldExpiresAt:
-		return m.OldExpiresAt(ctx)
 	case invitationcode.FieldUsedIP:
 		return m.OldUsedIP(ctx)
 	case invitationcode.FieldUsedUserAgent:
@@ -4841,13 +4784,6 @@ func (m *InvitationCodeMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUsedAt(v)
-		return nil
-	case invitationcode.FieldExpiresAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetExpiresAt(v)
 		return nil
 	case invitationcode.FieldUsedIP:
 		v, ok := value.(string)
@@ -4945,9 +4881,6 @@ func (m *InvitationCodeMutation) ClearedFields() []string {
 	if m.FieldCleared(invitationcode.FieldUsedAt) {
 		fields = append(fields, invitationcode.FieldUsedAt)
 	}
-	if m.FieldCleared(invitationcode.FieldExpiresAt) {
-		fields = append(fields, invitationcode.FieldExpiresAt)
-	}
 	if m.FieldCleared(invitationcode.FieldUsedIP) {
 		fields = append(fields, invitationcode.FieldUsedIP)
 	}
@@ -4976,9 +4909,6 @@ func (m *InvitationCodeMutation) ClearField(name string) error {
 		return nil
 	case invitationcode.FieldUsedAt:
 		m.ClearUsedAt()
-		return nil
-	case invitationcode.FieldExpiresAt:
-		m.ClearExpiresAt()
 		return nil
 	case invitationcode.FieldUsedIP:
 		m.ClearUsedIP()
@@ -5023,9 +4953,6 @@ func (m *InvitationCodeMutation) ResetField(name string) error {
 		return nil
 	case invitationcode.FieldUsedAt:
 		m.ResetUsedAt()
-		return nil
-	case invitationcode.FieldExpiresAt:
-		m.ResetExpiresAt()
 		return nil
 	case invitationcode.FieldUsedIP:
 		m.ResetUsedIP()

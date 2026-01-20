@@ -165,26 +165,6 @@ func (_u *InvitationCodeUpdate) ClearUsedAt() *InvitationCodeUpdate {
 	return _u
 }
 
-// SetExpiresAt sets the "expires_at" field.
-func (_u *InvitationCodeUpdate) SetExpiresAt(v time.Time) *InvitationCodeUpdate {
-	_u.mutation.SetExpiresAt(v)
-	return _u
-}
-
-// SetNillableExpiresAt sets the "expires_at" field if the given value is not nil.
-func (_u *InvitationCodeUpdate) SetNillableExpiresAt(v *time.Time) *InvitationCodeUpdate {
-	if v != nil {
-		_u.SetExpiresAt(*v)
-	}
-	return _u
-}
-
-// ClearExpiresAt clears the value of the "expires_at" field.
-func (_u *InvitationCodeUpdate) ClearExpiresAt() *InvitationCodeUpdate {
-	_u.mutation.ClearExpiresAt()
-	return _u
-}
-
 // SetUsedIP sets the "used_ip" field.
 func (_u *InvitationCodeUpdate) SetUsedIP(v string) *InvitationCodeUpdate {
 	_u.mutation.SetUsedIP(v)
@@ -367,12 +347,6 @@ func (_u *InvitationCodeUpdate) sqlSave(ctx context.Context) (_node int, err err
 	if _u.mutation.UsedAtCleared() {
 		_spec.ClearField(invitationcode.FieldUsedAt, field.TypeTime)
 	}
-	if value, ok := _u.mutation.ExpiresAt(); ok {
-		_spec.SetField(invitationcode.FieldExpiresAt, field.TypeTime, value)
-	}
-	if _u.mutation.ExpiresAtCleared() {
-		_spec.ClearField(invitationcode.FieldExpiresAt, field.TypeTime)
-	}
 	if value, ok := _u.mutation.UsedIP(); ok {
 		_spec.SetField(invitationcode.FieldUsedIP, field.TypeString, value)
 	}
@@ -545,26 +519,6 @@ func (_u *InvitationCodeUpdateOne) SetNillableUsedAt(v *time.Time) *InvitationCo
 // ClearUsedAt clears the value of the "used_at" field.
 func (_u *InvitationCodeUpdateOne) ClearUsedAt() *InvitationCodeUpdateOne {
 	_u.mutation.ClearUsedAt()
-	return _u
-}
-
-// SetExpiresAt sets the "expires_at" field.
-func (_u *InvitationCodeUpdateOne) SetExpiresAt(v time.Time) *InvitationCodeUpdateOne {
-	_u.mutation.SetExpiresAt(v)
-	return _u
-}
-
-// SetNillableExpiresAt sets the "expires_at" field if the given value is not nil.
-func (_u *InvitationCodeUpdateOne) SetNillableExpiresAt(v *time.Time) *InvitationCodeUpdateOne {
-	if v != nil {
-		_u.SetExpiresAt(*v)
-	}
-	return _u
-}
-
-// ClearExpiresAt clears the value of the "expires_at" field.
-func (_u *InvitationCodeUpdateOne) ClearExpiresAt() *InvitationCodeUpdateOne {
-	_u.mutation.ClearExpiresAt()
 	return _u
 }
 
@@ -779,12 +733,6 @@ func (_u *InvitationCodeUpdateOne) sqlSave(ctx context.Context) (_node *Invitati
 	}
 	if _u.mutation.UsedAtCleared() {
 		_spec.ClearField(invitationcode.FieldUsedAt, field.TypeTime)
-	}
-	if value, ok := _u.mutation.ExpiresAt(); ok {
-		_spec.SetField(invitationcode.FieldExpiresAt, field.TypeTime, value)
-	}
-	if _u.mutation.ExpiresAtCleared() {
-		_spec.ClearField(invitationcode.FieldExpiresAt, field.TypeTime)
 	}
 	if value, ok := _u.mutation.UsedIP(); ok {
 		_spec.SetField(invitationcode.FieldUsedIP, field.TypeString, value)

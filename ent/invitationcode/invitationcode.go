@@ -32,8 +32,6 @@ const (
 	FieldCostAmount = "cost_amount"
 	// FieldUsedAt holds the string denoting the used_at field in the database.
 	FieldUsedAt = "used_at"
-	// FieldExpiresAt holds the string denoting the expires_at field in the database.
-	FieldExpiresAt = "expires_at"
 	// FieldUsedIP holds the string denoting the used_ip field in the database.
 	FieldUsedIP = "used_ip"
 	// FieldUsedUserAgent holds the string denoting the used_user_agent field in the database.
@@ -56,7 +54,6 @@ var Columns = []string{
 	FieldGenerationMode,
 	FieldCostAmount,
 	FieldUsedAt,
-	FieldExpiresAt,
 	FieldUsedIP,
 	FieldUsedUserAgent,
 	FieldRemark,
@@ -99,7 +96,6 @@ const DefaultStatus = StatusUnused
 const (
 	StatusUnused   Status = "unused"
 	StatusUsed     Status = "used"
-	StatusExpired  Status = "expired"
 	StatusDisabled Status = "disabled"
 )
 
@@ -110,7 +106,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusUnused, StatusUsed, StatusExpired, StatusDisabled:
+	case StatusUnused, StatusUsed, StatusDisabled:
 		return nil
 	default:
 		return fmt.Errorf("invitationcode: invalid enum value for status field: %q", s)
@@ -195,11 +191,6 @@ func ByCostAmount(opts ...sql.OrderTermOption) OrderOption {
 // ByUsedAt orders the results by the used_at field.
 func ByUsedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUsedAt, opts...).ToFunc()
-}
-
-// ByExpiresAt orders the results by the expires_at field.
-func ByExpiresAt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldExpiresAt, opts...).ToFunc()
 }
 
 // ByUsedIP orders the results by the used_ip field.

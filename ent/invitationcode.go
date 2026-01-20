@@ -35,8 +35,6 @@ type InvitationCode struct {
 	CostAmount int `json:"cost_amount,omitempty"`
 	// Used at timestamp | 使用时间
 	UsedAt *time.Time `json:"used_at,omitempty"`
-	// Expiration time (null means never expires) | 过期时间
-	ExpiresAt *time.Time `json:"expires_at,omitempty"`
 	// Used IP address | 使用时的IP地址
 	UsedIP string `json:"used_ip,omitempty"`
 	// Used user agent | 使用时的用户代理
@@ -55,7 +53,7 @@ func (*InvitationCode) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case invitationcode.FieldCode, invitationcode.FieldStatus, invitationcode.FieldGenerationMode, invitationcode.FieldUsedIP, invitationcode.FieldUsedUserAgent, invitationcode.FieldRemark:
 			values[i] = new(sql.NullString)
-		case invitationcode.FieldCreatedAt, invitationcode.FieldUpdatedAt, invitationcode.FieldUsedAt, invitationcode.FieldExpiresAt:
+		case invitationcode.FieldCreatedAt, invitationcode.FieldUpdatedAt, invitationcode.FieldUsedAt:
 			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -133,13 +131,6 @@ func (_m *InvitationCode) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.UsedAt = new(time.Time)
 				*_m.UsedAt = value.Time
-			}
-		case invitationcode.FieldExpiresAt:
-			if value, ok := values[i].(*sql.NullTime); !ok {
-				return fmt.Errorf("unexpected type %T for field expires_at", values[i])
-			} else if value.Valid {
-				_m.ExpiresAt = new(time.Time)
-				*_m.ExpiresAt = value.Time
 			}
 		case invitationcode.FieldUsedIP:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -223,11 +214,6 @@ func (_m *InvitationCode) String() string {
 	builder.WriteString(", ")
 	if v := _m.UsedAt; v != nil {
 		builder.WriteString("used_at=")
-		builder.WriteString(v.Format(time.ANSIC))
-	}
-	builder.WriteString(", ")
-	if v := _m.ExpiresAt; v != nil {
-		builder.WriteString("expires_at=")
 		builder.WriteString(v.Format(time.ANSIC))
 	}
 	builder.WriteString(", ")

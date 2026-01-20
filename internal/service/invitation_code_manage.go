@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"time"
 
 	"go.uber.org/zap"
 
@@ -18,9 +17,9 @@ type IInvitationCodeManageService interface {
 	// GetInvitationCodeList Get invitation code list with pagination and filters | 获取邀请码列表（分页和筛选）
 	GetInvitationCodeList(ctx context.Context, page, pageSize int, keyword, status, mode string) ([]*ent.InvitationCode, int64, error)
 	// CreateInvitationCode Create invitation code manually (admin) | 手动创建邀请码（管理员）
-	CreateInvitationCode(ctx context.Context, code string, creatorID int, mode string, costAmount int, expiresAt *time.Time, remark string) (*ent.InvitationCode, error)
+	CreateInvitationCode(ctx context.Context, code string, creatorID int, mode string, costAmount int, remark string) (*ent.InvitationCode, error)
 	// UpdateInvitationCode Update invitation code information | 更新邀请码信息
-	UpdateInvitationCode(ctx context.Context, id int, expiresAt *time.Time, remark string) (*ent.InvitationCode, error)
+	UpdateInvitationCode(ctx context.Context, id int, remark string) (*ent.InvitationCode, error)
 	// UpdateInvitationCodeStatus Update invitation code status | 更新邀请码状态
 	UpdateInvitationCodeStatus(ctx context.Context, id int, status string) (*ent.InvitationCode, error)
 	// DeleteInvitationCode Delete invitation code | 删除邀请码
@@ -99,7 +98,7 @@ func (s *InvitationCodeManageService) GetInvitationCodeList(ctx context.Context,
 }
 
 // CreateInvitationCode Create invitation code manually (admin) | 手动创建邀请码（管理员）
-func (s *InvitationCodeManageService) CreateInvitationCode(ctx context.Context, code string, creatorID int, mode string, costAmount int, expiresAt *time.Time, remark string) (*ent.InvitationCode, error) {
+func (s *InvitationCodeManageService) CreateInvitationCode(ctx context.Context, code string, creatorID int, mode string, costAmount int, remark string) (*ent.InvitationCode, error) {
 	// Check if code already exists | 检查邀请码是否已存在
 	existingCode, err := s.invitationCodeRepo.GetByCode(ctx, code)
 	if err != nil {
@@ -125,9 +124,6 @@ func (s *InvitationCodeManageService) CreateInvitationCode(ctx context.Context, 
 			SetGenerationMode(invitationcode.GenerationMode(mode)).
 			SetCostAmount(costAmount)
 
-		if expiresAt != nil {
-			builder = builder.SetExpiresAt(*expiresAt)
-		}
 		if remark != "" {
 			builder = builder.SetRemark(remark)
 		}
@@ -144,7 +140,7 @@ func (s *InvitationCodeManageService) CreateInvitationCode(ctx context.Context, 
 }
 
 // UpdateInvitationCode Update invitation code information | 更新邀请码信息
-func (s *InvitationCodeManageService) UpdateInvitationCode(ctx context.Context, id int, expiresAt *time.Time, remark string) (*ent.InvitationCode, error) {
+func (s *InvitationCodeManageService) UpdateInvitationCode(ctx context.Context, id int, remark string) (*ent.InvitationCode, error) {
 	invCode, err := s.invitationCodeRepo.GetByID(ctx, id)
 	if err != nil || invCode == nil {
 		return nil, errors.New("邀请码不存在")
@@ -152,9 +148,6 @@ func (s *InvitationCodeManageService) UpdateInvitationCode(ctx context.Context, 
 
 	updatedCode, err := s.invitationCodeRepo.Update(ctx, id, func(u *ent.InvitationCodeUpdateOne) *ent.InvitationCodeUpdateOne {
 		updater := u
-		if expiresAt != nil {
-			updater = updater.SetExpiresAt(*expiresAt)
-		}
 		if remark != "" {
 			updater = updater.SetRemark(remark)
 		}
@@ -229,7 +222,6 @@ func (s *InvitationCodeManageService) GetInvitationCodeStats(ctx context.Context
 	statuses := []invitationcode.Status{
 		invitationcode.StatusUnused,
 		invitationcode.StatusUsed,
-		invitationcode.StatusExpired,
 		invitationcode.StatusDisabled,
 	}
 

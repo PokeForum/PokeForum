@@ -2,7 +2,6 @@ package controller
 
 import (
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -93,9 +92,6 @@ func (ctrl *InvitationCodeManageController) GetInvitationCodeList(c *gin.Context
 		if !code.UsedAt.IsZero() {
 			item.UsedAt = code.UsedAt.Format(time_tools.DateTimeFormat)
 		}
-		if !code.ExpiresAt.IsZero() {
-			item.ExpiresAt = code.ExpiresAt.Format(time_tools.DateTimeFormat)
-		}
 		if code.UsedIP != "" {
 			item.UsedIP = code.UsedIP
 		}
@@ -134,17 +130,7 @@ func (ctrl *InvitationCodeManageController) CreateInvitationCode(c *gin.Context)
 		return
 	}
 
-	var expiresAt *time.Time
-	if req.ExpiresAt != "" {
-		t, err := time.ParseInLocation(time_tools.DateTimeFormat, req.ExpiresAt, time.Local)
-		if err != nil {
-			response.ResErrorWithMsg(c, response.CodeInvalidParam, "过期时间格式错误")
-			return
-		}
-		expiresAt = &t
-	}
-
-	invCode, err := ctrl.invitationCodeManageService.CreateInvitationCode(c.Request.Context(), req.Code, req.CreatorID, req.Mode, req.CostAmount, expiresAt, req.Remark)
+	invCode, err := ctrl.invitationCodeManageService.CreateInvitationCode(c.Request.Context(), req.Code, req.CreatorID, req.Mode, req.CostAmount, req.Remark)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -172,17 +158,7 @@ func (ctrl *InvitationCodeManageController) UpdateInvitationCode(c *gin.Context)
 		return
 	}
 
-	var expiresAt *time.Time
-	if req.ExpiresAt != "" {
-		t, err := time.ParseInLocation(time_tools.DateTimeFormat, req.ExpiresAt, time.Local)
-		if err != nil {
-			response.ResErrorWithMsg(c, response.CodeInvalidParam, "过期时间格式错误")
-			return
-		}
-		expiresAt = &t
-	}
-
-	invCode, err := ctrl.invitationCodeManageService.UpdateInvitationCode(c.Request.Context(), req.ID, expiresAt, req.Remark)
+	invCode, err := ctrl.invitationCodeManageService.UpdateInvitationCode(c.Request.Context(), req.ID, req.Remark)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -337,9 +313,6 @@ func (ctrl *InvitationCodeManageController) convertToDetailResponse(invCode *ent
 	}
 	if !invCode.UsedAt.IsZero() {
 		result.UsedAt = invCode.UsedAt.Format(time_tools.DateTimeFormat)
-	}
-	if !invCode.ExpiresAt.IsZero() {
-		result.ExpiresAt = invCode.ExpiresAt.Format(time_tools.DateTimeFormat)
 	}
 	if invCode.UsedIP != "" {
 		result.UsedIP = invCode.UsedIP
