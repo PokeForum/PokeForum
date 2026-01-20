@@ -98,6 +98,12 @@ func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int,
 		if err == nil && cachedData != "" {
 			var result schema.UserProfileOverviewResponse
 			if err := json.Unmarshal([]byte(cachedData), &result); err == nil {
+				// 用实时计数器值覆盖关注数，保证数据一致性
+				followersCount, followingCount, countErr := s.followService.GetFollowCounts(ctx, userID)
+				if countErr == nil {
+					result.FollowersCount = followersCount
+					result.FollowingCount = followingCount
+				}
 				s.logger.Debug("从缓存获取用户个人中心概览成功", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 				return &result, nil
 			}

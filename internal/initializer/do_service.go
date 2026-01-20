@@ -206,8 +206,9 @@ func InjectorSrv(injector *do.Injector) {
 	// Register UserFollowService | 注册 UserFollowService
 	do.Provide(injector, func(i *do.Injector) (service.IUserFollowService, error) {
 		repos := do.MustInvoke[*repository.Repositories](i)
+		cacheService := do.MustInvoke[cache.ICacheService](i)
 		logger := do.MustInvoke[*zap.Logger](i)
-		return service.NewUserFollowService(repos.UserFollow, repos.User, repos.Blacklist, logger), nil
+		return service.NewUserFollowService(repos.UserFollow, repos.User, repos.Blacklist, cacheService, logger), nil
 	})
 
 	// Register SigninService | 注册 SigninService

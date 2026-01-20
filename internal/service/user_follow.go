@@ -9,6 +9,7 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/user"
+	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 	"github.com/PokeForum/PokeForum/internal/repository"
@@ -36,6 +37,7 @@ type UserFollowService struct {
 	followRepo    repository.IUserFollowRepository
 	userRepo      repository.IUserRepository
 	blacklistRepo repository.IBlacklistRepository
+	cache         cache.ICacheService
 	logger        *zap.Logger
 }
 
@@ -44,12 +46,14 @@ func NewUserFollowService(
 	followRepo repository.IUserFollowRepository,
 	userRepo repository.IUserRepository,
 	blacklistRepo repository.IBlacklistRepository,
+	cacheService cache.ICacheService,
 	logger *zap.Logger,
 ) IUserFollowService {
 	return &UserFollowService{
 		followRepo:    followRepo,
 		userRepo:      userRepo,
 		blacklistRepo: blacklistRepo,
+		cache:         cacheService,
 		logger:        logger,
 	}
 }
@@ -100,6 +104,11 @@ func (s *UserFollowService) FollowUser(ctx context.Context, followerID int, req 
 		return nil, errors.New("关注失败 | Failed to follow user")
 	}
 
+	// 增加被关注者的粉丝数计数器
+	s.incrFollowersCount(ctx, req.FollowingID)
+	// 增加关注者的关注数计数器
+	s.incrFollowingCount(ctx, followerID)
+
 	s.logger.Info("关注成功",
 		zap.Int("follower_id", followerID),
 		zap.Int("following_id", req.FollowingID),
@@ -136,6 +145,11 @@ func (s *UserFollowService) UnfollowUser(ctx context.Context, followerID int, re
 		s.logger.Error("删除关注关系失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, errors.New("取消关注失败 | Failed to unfollow user")
 	}
+
+	// 减少被关注者的粉丝数计数器
+	s.decrFollowersCount(ctx, req.FollowingID)
+	// 减少关注者的关注数计数器
+	s.decrFollowingCount(ctx, followerID)
 
 	s.logger.Info("取消关注成功",
 		zap.Int("follower_id", followerID),
@@ -345,20 +359,98 @@ func (s *UserFollowService) GetFollowStatus(ctx context.Context, followerID, fol
 }
 
 // GetFollowCounts Get user's follow counts | 获取用户关注数统计
+// 优先从 Redis 计数器读取，不存在时从 DB 初始化
 func (s *UserFollowService) GetFollowCounts(ctx context.Context, userID int) (followersCount, followingCount int, err error) {
-	// Count followers | 统计粉丝数
-	followersCount, err = s.followRepo.CountFollowers(ctx, userID)
+	followersKey := fmt.Sprintf("user:followers:count:%d", userID)
+	followingKey := fmt.Sprintf("user:following:count:%d", userID)
+
+	// 尝试从缓存获取粉丝数
+	followersCount, err = s.getOrInitCounter(ctx, followersKey, func() (int, error) {
+		return s.followRepo.CountFollowers(ctx, userID)
+	})
 	if err != nil {
-		s.logger.Error("统计粉丝数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return 0, 0, fmt.Errorf("统计粉丝数失败 | Failed to count followers: %w", err)
+		s.logger.Error("获取粉丝数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return 0, 0, fmt.Errorf("获取粉丝数失败 | Failed to get followers count: %w", err)
 	}
 
-	// Count following | 统计关注数
-	followingCount, err = s.followRepo.CountFollowing(ctx, userID)
+	// 尝试从缓存获取关注数
+	followingCount, err = s.getOrInitCounter(ctx, followingKey, func() (int, error) {
+		return s.followRepo.CountFollowing(ctx, userID)
+	})
 	if err != nil {
-		s.logger.Error("统计关注数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return 0, 0, fmt.Errorf("统计关注数失败 | Failed to count following: %w", err)
+		s.logger.Error("获取关注数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return 0, 0, fmt.Errorf("获取关注数失败 | Failed to get following count: %w", err)
 	}
 
 	return followersCount, followingCount, nil
+}
+
+// getOrInitCounter Get counter from cache, init from DB if not exists | 从缓存获取计数器，不存在则从 DB 初始化
+func (s *UserFollowService) getOrInitCounter(ctx context.Context, key string, dbCountFunc func() (int, error)) (int, error) {
+	// 检查缓存是否存在
+	exists, err := s.cache.Exists(ctx, key)
+	if err != nil {
+		s.logger.Warn("检查计数器缓存失败，回退到数据库查询", zap.String("key", key), tracing.WithTraceIDField(ctx), zap.Error(err))
+		return dbCountFunc()
+	}
+
+	if exists {
+		// 缓存存在，直接获取
+		val, err := s.cache.Get(ctx, key)
+		if err != nil {
+			s.logger.Warn("获取计数器缓存失败，回退到数据库查询", zap.String("key", key), tracing.WithTraceIDField(ctx), zap.Error(err))
+			return dbCountFunc()
+		}
+		var count int
+		if _, err := fmt.Sscanf(val, "%d", &count); err != nil {
+			s.logger.Warn("解析计数器缓存失败，回退到数据库查询", zap.String("key", key), tracing.WithTraceIDField(ctx), zap.Error(err))
+			return dbCountFunc()
+		}
+		return count, nil
+	}
+
+	// 缓存不存在，从 DB 查询并初始化
+	count, err := dbCountFunc()
+	if err != nil {
+		return 0, err
+	}
+
+	// 写入缓存（30天有效期，通过 INCR/DECR 维护）
+	if setErr := s.cache.SetEx(ctx, key, count, 2592000); setErr != nil {
+		s.logger.Warn("初始化计数器缓存失败", zap.String("key", key), tracing.WithTraceIDField(ctx), zap.Error(setErr))
+	}
+
+	return count, nil
+}
+
+// incrFollowersCount Increment user followers count | 增加用户粉丝数计数器
+func (s *UserFollowService) incrFollowersCount(ctx context.Context, userID int) {
+	cacheKey := fmt.Sprintf("user:followers:count:%d", userID)
+	if _, err := s.cache.Incr(ctx, cacheKey); err != nil {
+		s.logger.Warn("增加粉丝数计数器失败", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx), zap.Error(err))
+	}
+}
+
+// decrFollowersCount Decrement user followers count | 减少用户粉丝数计数器
+func (s *UserFollowService) decrFollowersCount(ctx context.Context, userID int) {
+	cacheKey := fmt.Sprintf("user:followers:count:%d", userID)
+	if _, err := s.cache.Decr(ctx, cacheKey); err != nil {
+		s.logger.Warn("减少粉丝数计数器失败", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx), zap.Error(err))
+	}
+}
+
+// incrFollowingCount Increment user following count | 增加用户关注数计数器
+func (s *UserFollowService) incrFollowingCount(ctx context.Context, userID int) {
+	cacheKey := fmt.Sprintf("user:following:count:%d", userID)
+	if _, err := s.cache.Incr(ctx, cacheKey); err != nil {
+		s.logger.Warn("增加关注数计数器失败", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx), zap.Error(err))
+	}
+}
+
+// decrFollowingCount Decrement user following count | 减少用户关注数计数器
+func (s *UserFollowService) decrFollowingCount(ctx context.Context, userID int) {
+	cacheKey := fmt.Sprintf("user:following:count:%d", userID)
+	if _, err := s.cache.Decr(ctx, cacheKey); err != nil {
+		s.logger.Warn("减少关注数计数器失败", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx), zap.Error(err))
+	}
 }
