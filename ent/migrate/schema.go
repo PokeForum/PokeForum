@@ -179,6 +179,56 @@ var (
 			},
 		},
 	}
+	// InvitationCodesColumns holds the columns for the "invitation_codes" table.
+	InvitationCodesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "code", Type: field.TypeString, Unique: true},
+		{Name: "creator_id", Type: field.TypeInt},
+		{Name: "used_by_id", Type: field.TypeInt, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"unused", "used", "expired", "disabled"}, Default: "unused"},
+		{Name: "generation_mode", Type: field.TypeEnum, Enums: []string{"direct", "points", "currency"}, Default: "direct"},
+		{Name: "cost_amount", Type: field.TypeInt, Default: 0},
+		{Name: "used_at", Type: field.TypeTime, Nullable: true},
+		{Name: "expires_at", Type: field.TypeTime, Nullable: true},
+		{Name: "used_ip", Type: field.TypeString, Nullable: true},
+		{Name: "used_user_agent", Type: field.TypeString, Nullable: true},
+		{Name: "remark", Type: field.TypeString, Nullable: true},
+	}
+	// InvitationCodesTable holds the schema information for the "invitation_codes" table.
+	InvitationCodesTable = &schema.Table{
+		Name:       "invitation_codes",
+		Columns:    InvitationCodesColumns,
+		PrimaryKey: []*schema.Column{InvitationCodesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "invitationcode_creator_id",
+				Unique:  false,
+				Columns: []*schema.Column{InvitationCodesColumns[4]},
+			},
+			{
+				Name:    "invitationcode_used_by_id",
+				Unique:  false,
+				Columns: []*schema.Column{InvitationCodesColumns[5]},
+			},
+			{
+				Name:    "invitationcode_status",
+				Unique:  false,
+				Columns: []*schema.Column{InvitationCodesColumns[6]},
+			},
+			{
+				Name:    "invitationcode_creator_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{InvitationCodesColumns[4], InvitationCodesColumns[6]},
+			},
+			{
+				Name:    "invitationcode_expires_at",
+				Unique:  false,
+				Columns: []*schema.Column{InvitationCodesColumns[10]},
+			},
+		},
+	}
 	// OauthProvidersColumns holds the columns for the "oauth_providers" table.
 	OauthProvidersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -618,6 +668,7 @@ var (
 		CategoryModeratorsTable,
 		CommentsTable,
 		CommentActionsTable,
+		InvitationCodesTable,
 		OauthProvidersTable,
 		PostsTable,
 		PostActionsTable,

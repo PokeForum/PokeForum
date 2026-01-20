@@ -67,6 +67,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 	commentManageService := do.MustInvoke[service.ICommentManageService](injector)
 	oauthProviderService := do.MustInvoke[service.IOAuthProviderService](injector)
 	oauthService := do.MustInvoke[service.IOAuthService](injector)
+	invitationCodeManageService := do.MustInvoke[service.IInvitationCodeManageService](injector)
 
 	// Health check route (not affected by rate limiting, outside of api group) | 健康检查路由（不受速率限制影响，在api分组之外）
 	healthCon := controller.NewHealthController(healthService)
@@ -214,6 +215,11 @@ func Routers(injector *do.Injector) *gin.Engine {
 			CommentManageCon := controller.NewCommentManageController(commentManageService)
 			CommentManageCon.CommentManageRouter(CommentManageGroup)
 		}
+
+		// Invitation Code Management | 邀请码管理
+		InvitationCodeManageGroup := ManageGroup.Group("/invitation-codes")
+		InvitationCodeManageCon := controller.NewInvitationCodeManageController(invitationCodeManageService)
+		InvitationCodeManageCon.InvitationCodeManageRouter(InvitationCodeManageGroup)
 
 		// TODO Report Management | 举报管理
 	}

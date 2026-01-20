@@ -597,9 +597,6 @@ func (s *SettingsService) GetInvitationCodeSettings(ctx context.Context) (*schem
 		IsEnable:           configMap[_const.InvitationCodeIsEnable] == _const.SettingBoolTrue.String(),
 		Mode:               configMap[_const.InvitationCodeMode],
 		Cost:               s.parseIntWithDefault(configMap[_const.InvitationCodeCost], 0),
-		RewardIsEnable:     configMap[_const.InvitationCodeRewardIsEnable] == _const.SettingBoolTrue.String(),
-		ReferralBonus:      s.parseIntWithDefault(configMap[_const.InvitationCodeReferralBonus], 0),
-		InviteeReward:      s.parseIntWithDefault(configMap[_const.InvitationCodeInviteeReward], 0),
 		MaxGenerationCount: s.parseIntWithDefault(configMap[_const.InvitationCodeMaxGenerationCount], 10), // Default 10 | 默认10个
 	}
 
@@ -612,9 +609,6 @@ func (s *SettingsService) UpdateInvitationCodeSettings(ctx context.Context, req 
 		_const.InvitationCodeIsEnable:           strconv.FormatBool(req.IsEnable),
 		_const.InvitationCodeMode:               req.Mode,
 		_const.InvitationCodeCost:               strconv.Itoa(req.Cost),
-		_const.InvitationCodeRewardIsEnable:     strconv.FormatBool(req.RewardIsEnable),
-		_const.InvitationCodeReferralBonus:      strconv.Itoa(req.ReferralBonus),
-		_const.InvitationCodeInviteeReward:      strconv.Itoa(req.InviteeReward),
 		_const.InvitationCodeMaxGenerationCount: strconv.Itoa(req.MaxGenerationCount),
 	}
 

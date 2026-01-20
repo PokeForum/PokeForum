@@ -947,6 +947,180 @@ definitions:
           $ref: '#/definitions/schema.SlideItem'
         type: array
     type: object
+  schema.InvitationCodeCreateRequest:
+    properties:
+      code:
+        description: Invitation code | 邀请码
+        example: abc123def456
+        maxLength: 32
+        minLength: 6
+        type: string
+      cost_amount:
+        description: Cost amount | 消耗数量
+        example: 0
+        minimum: 0
+        type: integer
+      creator_id:
+        description: Creator user ID | 创建者用户ID
+        example: 1
+        minimum: 1
+        type: integer
+      expires_at:
+        description: Expiration time (empty means never expires) | 过期时间（为空表示永不过期）
+        example: "2024-12-31 23:59:59"
+        type: string
+      mode:
+        description: Generation mode | 生成方式
+        enum:
+        - direct
+        - points
+        - currency
+        example: direct
+        type: string
+      remark:
+        description: Remark | 备注
+        maxLength: 500
+        type: string
+    required:
+    - code
+    - creator_id
+    - mode
+    type: object
+  schema.InvitationCodeDetailResponse:
+    properties:
+      code:
+        description: Invitation code | 邀请码
+        example: abc123def456
+        type: string
+      cost_amount:
+        description: Cost amount | 消耗数量
+        example: 0
+        type: integer
+      created_at:
+        description: Creation time | 创建时间
+        example: "2024-01-01 00:00:00"
+        type: string
+      creator_id:
+        description: Creator user ID | 创建者用户ID
+        example: 1
+        type: integer
+      expires_at:
+        description: Expiration time | 过期时间
+        example: "2024-12-31 23:59:59"
+        type: string
+      generation_mode:
+        description: Generation mode | 生成方式
+        example: direct
+        type: string
+      id:
+        description: Invitation code ID | 邀请码ID
+        example: 1
+        type: integer
+      remark:
+        description: Remark | 备注
+        example: 管理员手动创建
+        type: string
+      status:
+        description: Status | 状态
+        example: unused
+        type: string
+      updated_at:
+        description: Update time | 更新时间
+        example: "2024-01-01 00:00:00"
+        type: string
+      used_at:
+        description: Used at timestamp | 使用时间
+        example: "2024-01-01 12:00:00"
+        type: string
+      used_by_id:
+        description: Used by user ID | 使用者用户ID
+        example: 2
+        type: integer
+      used_ip:
+        description: Used IP address | 使用时的IP地址
+        example: 192.168.1.1
+        type: string
+      used_user_agent:
+        description: Used user agent | 使用时的用户代理
+        example: Mozilla/5.0
+        type: string
+    type: object
+  schema.InvitationCodeListItem:
+    properties:
+      code:
+        description: Invitation code | 邀请码
+        example: abc123def456
+        type: string
+      cost_amount:
+        description: Cost amount | 消耗数量
+        example: 0
+        type: integer
+      created_at:
+        description: Creation time | 创建时间
+        example: "2024-01-01 00:00:00"
+        type: string
+      creator_id:
+        description: Creator user ID | 创建者用户ID
+        example: 1
+        type: integer
+      expires_at:
+        description: Expiration time | 过期时间
+        example: "2024-12-31 23:59:59"
+        type: string
+      generation_mode:
+        description: Generation mode | 生成方式
+        example: direct
+        type: string
+      id:
+        description: Invitation code ID | 邀请码ID
+        example: 1
+        type: integer
+      remark:
+        description: Remark | 备注
+        example: 管理员手动创建
+        type: string
+      status:
+        description: Status | 状态
+        example: unused
+        type: string
+      updated_at:
+        description: Update time | 更新时间
+        example: "2024-01-01 00:00:00"
+        type: string
+      used_at:
+        description: Used at timestamp | 使用时间
+        example: "2024-01-01 12:00:00"
+        type: string
+      used_by_id:
+        description: Used by user ID | 使用者用户ID
+        example: 2
+        type: integer
+      used_ip:
+        description: Used IP address | 使用时的IP地址
+        example: 192.168.1.1
+        type: string
+      used_user_agent:
+        description: Used user agent | 使用时的用户代理
+        example: Mozilla/5.0
+        type: string
+    type: object
+  schema.InvitationCodeListResponse:
+    properties:
+      list:
+        description: Invitation code list | 邀请码列表
+        items:
+          $ref: '#/definitions/schema.InvitationCodeListItem'
+        type: array
+      page:
+        description: Current page number | 当前页码
+        type: integer
+      page_size:
+        description: Items per page | 每页数量
+        type: integer
+      total:
+        description: Total count | 总数量
+        type: integer
+    type: object
   schema.InvitationCodeSettingsRequest:
     properties:
       cost:
@@ -1022,6 +1196,73 @@ definitions:
         description: Whether to enable invitation code reward | 是否启用邀请码奖励
         example: true
         type: boolean
+    type: object
+  schema.InvitationCodeStatsResponse:
+    properties:
+      disabled_count:
+        description: Disabled codes | 已禁用数量
+        example: 2
+        type: integer
+      expired_count:
+        description: Expired codes | 已过期数量
+        example: 8
+        type: integer
+      total_count:
+        description: Total codes | 总邀请码数
+        example: 100
+        type: integer
+      total_used_count:
+        description: Total used count | 总使用次数
+        example: 40
+        type: integer
+      unused_count:
+        description: Unused codes | 未使用数量
+        example: 50
+        type: integer
+      used_count:
+        description: Used codes | 已使用数量
+        example: 40
+        type: integer
+    type: object
+  schema.InvitationCodeStatusUpdateRequest:
+    properties:
+      id:
+        description: Invitation code ID | 邀请码ID
+        example: 1
+        type: integer
+      reason:
+        description: Operation reason | 操作原因
+        example: 违规操作
+        type: string
+      status:
+        description: Status | 状态
+        enum:
+        - unused
+        - used
+        - expired
+        - disabled
+        example: disabled
+        type: string
+    required:
+    - id
+    - status
+    type: object
+  schema.InvitationCodeUpdateRequest:
+    properties:
+      expires_at:
+        description: Expiration time (empty means never expires) | 过期时间（为空表示永不过期）
+        example: "2024-12-31 23:59:59"
+        type: string
+      id:
+        description: Invitation code ID | 邀请码ID
+        example: 1
+        type: integer
+      remark:
+        description: Remark | 备注
+        maxLength: 500
+        type: string
+    required:
+    - id
     type: object
   schema.LinkItem:
     properties:
@@ -2202,6 +2443,10 @@ definitions:
       email:
         description: Email address | 邮箱
         example: test@example.com
+        type: string
+      invitation_code:
+        description: Invitation code (optional, required when enabled) | 邀请码（可选，启用时必填）
+        example: abc123def456
         type: string
       password:
         description: Password | 密码
@@ -5411,6 +5656,251 @@ paths:
       summary: Get dashboard statistics | 获取仪表盘统计数据
       tags:
       - '[Admin]Dashboard | [管理员]仪表盘'
+  /manage/invitation-codes:
+    get:
+      consumes:
+      - application/json
+      description: Get paginated invitation code list with support for keyword search
+        and status filtering | 分页获取邀请码列表，支持关键词搜索和状态筛选
+      parameters:
+      - description: Page number | 页码
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: Items per page | 每页数量
+        in: query
+        name: page_size
+        required: true
+        type: integer
+      - description: Search keyword (invitation code) | 搜索关键词（邀请码）
+        example: '"abc123"'
+        in: query
+        name: keyword
+        type: string
+      - description: 'Status filter: unused, used, expired, disabled | 状态筛选'
+        example: '"unused"'
+        in: query
+        name: status
+        type: string
+      - description: Generation mode filter | 生成方式筛选
+        example: '"direct"'
+        in: query
+        name: mode
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success | 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.InvitationCodeListResponse'
+              type: object
+        "400":
+          description: Invalid request parameters | 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: Server error | 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: Get invitation code list | 获取邀请码列表
+      tags:
+      - '[Admin]Invitation Code Management | [管理员]邀请码管理'
+    post:
+      consumes:
+      - application/json
+      description: Admin creates invitation code manually | 管理员手动创建邀请码
+      parameters:
+      - description: Invitation code information | 邀请码信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.InvitationCodeCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Created successfully | 创建成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.InvitationCodeDetailResponse'
+              type: object
+        "400":
+          description: Invalid request parameters | 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: Server error | 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: Create invitation code | 创建邀请码
+      tags:
+      - '[Admin]Invitation Code Management | [管理员]邀请码管理'
+    put:
+      consumes:
+      - application/json
+      description: Update basic information of invitation code | 更新邀请码的基本信息
+      parameters:
+      - description: Invitation code information | 邀请码信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.InvitationCodeUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated successfully | 更新成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.InvitationCodeDetailResponse'
+              type: object
+        "400":
+          description: Invalid request parameters | 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: Server error | 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: Update invitation code information | 更新邀请码信息
+      tags:
+      - '[Admin]Invitation Code Management | [管理员]邀请码管理'
+  /manage/invitation-codes/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete invitation code (unused codes only) | 删除邀请码（仅限未使用的邀请码）
+      parameters:
+      - description: Invitation code ID | 邀请码ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Deleted successfully | 删除成功
+          schema:
+            $ref: '#/definitions/response.Data'
+        "400":
+          description: Invalid request parameters | 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: Server error | 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: Delete invitation code | 删除邀请码
+      tags:
+      - '[Admin]Invitation Code Management | [管理员]邀请码管理'
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information of invitation code | 获取邀请码的详细信息
+      parameters:
+      - description: Invitation code ID | 邀请码ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success | 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.InvitationCodeDetailResponse'
+              type: object
+        "400":
+          description: Invalid request parameters | 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: Server error | 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: Get invitation code details | 获取邀请码详情
+      tags:
+      - '[Admin]Invitation Code Management | [管理员]邀请码管理'
+  /manage/invitation-codes/stats:
+    get:
+      consumes:
+      - application/json
+      description: Get statistics of invitation codes including counts by status |
+        获取邀请码统计信息，包括按状态统计的数量
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success | 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.InvitationCodeStatsResponse'
+              type: object
+        "500":
+          description: Server error | 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: Get invitation code statistics | 获取邀请码统计信息
+      tags:
+      - '[Admin]Invitation Code Management | [管理员]邀请码管理'
+  /manage/invitation-codes/status:
+    put:
+      consumes:
+      - application/json
+      description: Update status of invitation code | 更新邀请码的状态
+      parameters:
+      - description: Status information | 状态信息
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/schema.InvitationCodeStatusUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated successfully | 更新成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.InvitationCodeDetailResponse'
+              type: object
+        "400":
+          description: Invalid request parameters | 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: Server error | 服务器错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: Update invitation code status | 更新邀请码状态
+      tags:
+      - '[Admin]Invitation Code Management | [管理员]邀请码管理'
   /manage/posts:
     get:
       consumes:

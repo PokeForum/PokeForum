@@ -17,6 +17,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/categorymoderator"
 	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/commentaction"
+	"github.com/PokeForum/PokeForum/ent/invitationcode"
 	"github.com/PokeForum/PokeForum/ent/oauthprovider"
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
@@ -93,6 +94,7 @@ func checkColumn(t, c string) error {
 			categorymoderator.Table: categorymoderator.ValidColumn,
 			comment.Table:           comment.ValidColumn,
 			commentaction.Table:     commentaction.ValidColumn,
+			invitationcode.Table:    invitationcode.ValidColumn,
 			oauthprovider.Table:     oauthprovider.ValidColumn,
 			post.Table:              post.ValidColumn,
 			postaction.Table:        postaction.ValidColumn,

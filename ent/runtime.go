@@ -10,6 +10,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/categorymoderator"
 	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/commentaction"
+	"github.com/PokeForum/PokeForum/ent/invitationcode"
 	"github.com/PokeForum/PokeForum/ent/oauthprovider"
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
@@ -171,6 +172,35 @@ func init() {
 	commentactionDescCommentID := commentactionFields[1].Descriptor()
 	// commentaction.CommentIDValidator is a validator for the "comment_id" field. It is called by the builders before save.
 	commentaction.CommentIDValidator = commentactionDescCommentID.Validators[0].(func(int) error)
+	invitationcodeMixin := schema.InvitationCode{}.Mixin()
+	invitationcodeMixinFields0 := invitationcodeMixin[0].Fields()
+	_ = invitationcodeMixinFields0
+	invitationcodeFields := schema.InvitationCode{}.Fields()
+	_ = invitationcodeFields
+	// invitationcodeDescCreatedAt is the schema descriptor for created_at field.
+	invitationcodeDescCreatedAt := invitationcodeMixinFields0[0].Descriptor()
+	// invitationcode.DefaultCreatedAt holds the default value on creation for the created_at field.
+	invitationcode.DefaultCreatedAt = invitationcodeDescCreatedAt.Default.(func() time.Time)
+	// invitationcodeDescUpdatedAt is the schema descriptor for updated_at field.
+	invitationcodeDescUpdatedAt := invitationcodeMixinFields0[1].Descriptor()
+	// invitationcode.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	invitationcode.DefaultUpdatedAt = invitationcodeDescUpdatedAt.Default.(func() time.Time)
+	// invitationcode.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	invitationcode.UpdateDefaultUpdatedAt = invitationcodeDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// invitationcodeDescCode is the schema descriptor for code field.
+	invitationcodeDescCode := invitationcodeFields[0].Descriptor()
+	// invitationcode.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	invitationcode.CodeValidator = invitationcodeDescCode.Validators[0].(func(string) error)
+	// invitationcodeDescCreatorID is the schema descriptor for creator_id field.
+	invitationcodeDescCreatorID := invitationcodeFields[1].Descriptor()
+	// invitationcode.CreatorIDValidator is a validator for the "creator_id" field. It is called by the builders before save.
+	invitationcode.CreatorIDValidator = invitationcodeDescCreatorID.Validators[0].(func(int) error)
+	// invitationcodeDescCostAmount is the schema descriptor for cost_amount field.
+	invitationcodeDescCostAmount := invitationcodeFields[5].Descriptor()
+	// invitationcode.DefaultCostAmount holds the default value on creation for the cost_amount field.
+	invitationcode.DefaultCostAmount = invitationcodeDescCostAmount.Default.(int)
+	// invitationcode.CostAmountValidator is a validator for the "cost_amount" field. It is called by the builders before save.
+	invitationcode.CostAmountValidator = invitationcodeDescCostAmount.Validators[0].(func(int) error)
 	oauthproviderMixin := schema.OAuthProvider{}.Mixin()
 	oauthproviderMixinFields0 := oauthproviderMixin[0].Fields()
 	_ = oauthproviderMixinFields0

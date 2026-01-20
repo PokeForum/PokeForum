@@ -37,13 +37,28 @@ func InjectorSrv(injector *do.Injector) {
 		logger := do.MustInvoke[*zap.Logger](i)
 		return service.NewSettingsService(repos.Settings, cacheService, logger), nil
 	})
+	// Register InvitationCodeService | 注册 InvitationCodeService
+	do.Provide(injector, func(i *do.Injector) (service.IInvitationCodeService, error) {
+		db := do.MustInvoke[*ent.Client](i)
+		repos := do.MustInvoke[*repository.Repositories](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		settingsService := do.MustInvoke[service.ISettingsService](i)
+		return service.NewInvitationCodeService(db, repos.InvitationCode, repos.User, settingsService, logger), nil
+	})
+	// Register InvitationCodeManageService | 注册 InvitationCodeManageService
+	do.Provide(injector, func(i *do.Injector) (service.IInvitationCodeManageService, error) {
+		repos := do.MustInvoke[*repository.Repositories](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		return service.NewInvitationCodeManageService(repos.InvitationCode, repos.User, logger), nil
+	})
 	// Register AuthService | 注册 AuthService
 	do.Provide(injector, func(i *do.Injector) (service.IAuthService, error) {
 		repos := do.MustInvoke[*repository.Repositories](i)
 		logger := do.MustInvoke[*zap.Logger](i)
 		cacheService := do.MustInvoke[cache.ICacheService](i)
 		settingsService := do.MustInvoke[service.ISettingsService](i)
-		return service.NewAuthService(repos.User, repos.UserLoginLog, cacheService, logger, settingsService), nil
+		invitationCodeService := do.MustInvoke[service.IInvitationCodeService](i)
+		return service.NewAuthService(repos.User, repos.UserLoginLog, cacheService, logger, settingsService, invitationCodeService), nil
 	})
 	// Register UserManageService | 注册 UserManageService
 	do.Provide(injector, func(i *do.Injector) (service.IUserManageService, error) {

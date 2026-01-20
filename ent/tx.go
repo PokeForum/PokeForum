@@ -22,6 +22,8 @@ type Tx struct {
 	Comment *CommentClient
 	// CommentAction is the client for interacting with the CommentAction builders.
 	CommentAction *CommentActionClient
+	// InvitationCode is the client for interacting with the InvitationCode builders.
+	InvitationCode *InvitationCodeClient
 	// OAuthProvider is the client for interacting with the OAuthProvider builders.
 	OAuthProvider *OAuthProviderClient
 	// Post is the client for interacting with the Post builders.
@@ -180,6 +182,7 @@ func (tx *Tx) init() {
 	tx.CategoryModerator = NewCategoryModeratorClient(tx.config)
 	tx.Comment = NewCommentClient(tx.config)
 	tx.CommentAction = NewCommentActionClient(tx.config)
+	tx.InvitationCode = NewInvitationCodeClient(tx.config)
 	tx.OAuthProvider = NewOAuthProviderClient(tx.config)
 	tx.Post = NewPostClient(tx.config)
 	tx.PostAction = NewPostActionClient(tx.config)

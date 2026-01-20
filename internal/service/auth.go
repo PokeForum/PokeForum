@@ -41,21 +41,23 @@ type IAuthService interface {
 
 // AuthService Authentication service implementation | 认证服务实现
 type AuthService struct {
-	userRepo     repository.IUserRepository
-	loginLogRepo repository.IUserLoginLogRepository
-	cache        cache.ICacheService
-	logger       *zap.Logger
-	settings     ISettingsService
+	userRepo          repository.IUserRepository
+	loginLogRepo      repository.IUserLoginLogRepository
+	cache             cache.ICacheService
+	logger            *zap.Logger
+	settings          ISettingsService
+	invitationCodeSvc IInvitationCodeService
 }
 
 // NewAuthService Create authentication service instance | 创建认证服务实例
-func NewAuthService(userRepo repository.IUserRepository, loginLogRepo repository.IUserLoginLogRepository, cacheService cache.ICacheService, logger *zap.Logger, settings ISettingsService) IAuthService {
+func NewAuthService(userRepo repository.IUserRepository, loginLogRepo repository.IUserLoginLogRepository, cacheService cache.ICacheService, logger *zap.Logger, settings ISettingsService, invitationCodeSvc IInvitationCodeService) IAuthService {
 	return &AuthService{
-		userRepo:     userRepo,
-		loginLogRepo: loginLogRepo,
-		cache:        cacheService,
-		logger:       logger,
-		settings:     settings,
+		userRepo:          userRepo,
+		loginLogRepo:      loginLogRepo,
+		cache:             cacheService,
+		logger:            logger,
+		settings:          settings,
+		invitationCodeSvc: invitationCodeSvc,
 	}
 }
 
@@ -70,6 +72,22 @@ func (s *AuthService) Register(ctx context.Context, req schema.RegisterRequest) 
 	}
 	if isCloseRegister == _const.SettingBoolTrue.String() {
 		return nil, errors.New("系统已关闭注册功能")
+	}
+
+	// Check if invitation code is required | 检查是否需要邀请码
+	isInvitationCodeEnabled, err := s.invitationCodeSvc.IsInvitationCodeEnabled(ctx)
+	if err != nil {
+		s.logger.Error("Failed to check invitation code setting | 检查邀请码设置失败", tracing.WithTraceIDField(ctx), zap.Error(err))
+		return nil, fmt.Errorf("检查邀请码设置失败: %w", err)
+	}
+	if isInvitationCodeEnabled {
+		if req.InvitationCode == "" {
+			return nil, errors.New("请输入邀请码")
+		}
+		// Validate invitation code | 验证邀请码
+		if _, err := s.invitationCodeSvc.ValidateCode(ctx, req.InvitationCode); err != nil {
+			return nil, err
+		}
 	}
 
 	existingUser, err := s.userRepo.GetByUsername(ctx, req.Username)
@@ -130,6 +148,17 @@ func (s *AuthService) Register(ctx context.Context, req schema.RegisterRequest) 
 	if err != nil {
 		s.logger.Error("Failed to create user | 创建用户失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
+	}
+
+	// Use invitation code if provided | 如果提供了邀请码，使用邀请码
+	if isInvitationCodeEnabled && req.InvitationCode != "" {
+		if err := s.invitationCodeSvc.UseCode(ctx, req.InvitationCode, newUser.ID, "", ""); err != nil {
+			s.logger.Warn("Failed to use invitation code | 使用邀请码失败",
+				tracing.WithTraceIDField(ctx),
+				zap.Error(err),
+				zap.String("code", req.InvitationCode),
+				zap.Int("user_id", newUser.ID))
+		}
 	}
 
 	return newUser, nil

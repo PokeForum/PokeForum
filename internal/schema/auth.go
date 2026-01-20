@@ -2,9 +2,10 @@ package schema
 
 // RegisterRequest User registration request | 用户注册请求体
 type RegisterRequest struct {
-	Username string `json:"username" binding:"required,min=3,max=100" example:"testuser"` // Username | 用户名
-	Email    string `json:"email" binding:"required,email" example:"test@example.com"`    // Email address | 邮箱
-	Password string `json:"password" binding:"required,min=8" example:"password123"`      // Password | 密码
+	Username       string `json:"username" binding:"required,min=3,max=100" example:"testuser"` // Username | 用户名
+	Email          string `json:"email" binding:"required,email" example:"test@example.com"`    // Email address | 邮箱
+	Password       string `json:"password" binding:"required,min=8" example:"password123"`      // Password | 密码
+	InvitationCode string `json:"invitation_code" example:"abc123def456"`                       // Invitation code (optional, required when enabled) | 邀请码（可选，启用时必填）
 }
 
 // LoginRequest User login request | 用户登录请求体

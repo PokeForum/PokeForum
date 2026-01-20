@@ -560,11 +560,11 @@ func (s *OAuthService) canAutoRegister(ctx context.Context) (bool, string) {
 		return false, "系统已关闭注册功能，无法自动创建账户"
 	}
 
-	// TODO: Check if invitation code is required | 检查是否需要邀请码
-	// isRequireInviteCode, err := s.settings.GetSettingByKey(ctx, _const.SafeIsRequireInviteCode, _const.SettingBoolFalse.String())
-	// if err == nil && isRequireInviteCode == _const.SettingBoolTrue.String() {
-	//     return false, "系统开启了邀请码注册，无法自动创建账户"
-	// }
+	// Check if invitation code is required | 检查是否需要邀请码
+	isInvitationCodeEnabled, err := s.settings.GetSettingByKey(ctx, _const.InvitationCodeIsEnable, _const.SettingBoolFalse.String())
+	if err == nil && isInvitationCodeEnabled == _const.SettingBoolTrue.String() {
+		return false, "系统开启了邀请码注册，无法通过第三方登录自动创建账户"
+	}
 
 	return true, ""
 }

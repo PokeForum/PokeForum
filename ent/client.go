@@ -19,6 +19,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/categorymoderator"
 	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/commentaction"
+	"github.com/PokeForum/PokeForum/ent/invitationcode"
 	"github.com/PokeForum/PokeForum/ent/oauthprovider"
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
@@ -47,6 +48,8 @@ type Client struct {
 	Comment *CommentClient
 	// CommentAction is the client for interacting with the CommentAction builders.
 	CommentAction *CommentActionClient
+	// InvitationCode is the client for interacting with the InvitationCode builders.
+	InvitationCode *InvitationCodeClient
 	// OAuthProvider is the client for interacting with the OAuthProvider builders.
 	OAuthProvider *OAuthProviderClient
 	// Post is the client for interacting with the Post builders.
@@ -85,6 +88,7 @@ func (c *Client) init() {
 	c.CategoryModerator = NewCategoryModeratorClient(c.config)
 	c.Comment = NewCommentClient(c.config)
 	c.CommentAction = NewCommentActionClient(c.config)
+	c.InvitationCode = NewInvitationCodeClient(c.config)
 	c.OAuthProvider = NewOAuthProviderClient(c.config)
 	c.Post = NewPostClient(c.config)
 	c.PostAction = NewPostActionClient(c.config)
@@ -193,6 +197,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		CategoryModerator: NewCategoryModeratorClient(cfg),
 		Comment:           NewCommentClient(cfg),
 		CommentAction:     NewCommentActionClient(cfg),
+		InvitationCode:    NewInvitationCodeClient(cfg),
 		OAuthProvider:     NewOAuthProviderClient(cfg),
 		Post:              NewPostClient(cfg),
 		PostAction:        NewPostActionClient(cfg),
@@ -228,6 +233,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		CategoryModerator: NewCategoryModeratorClient(cfg),
 		Comment:           NewCommentClient(cfg),
 		CommentAction:     NewCommentActionClient(cfg),
+		InvitationCode:    NewInvitationCodeClient(cfg),
 		OAuthProvider:     NewOAuthProviderClient(cfg),
 		Post:              NewPostClient(cfg),
 		PostAction:        NewPostActionClient(cfg),
@@ -269,8 +275,8 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.Blacklist, c.Category, c.CategoryModerator, c.Comment, c.CommentAction,
-		c.OAuthProvider, c.Post, c.PostAction, c.Settings, c.User, c.UserBalanceLog,
-		c.UserFollow, c.UserLoginLog, c.UserOAuth, c.UserSigninLogs,
+		c.InvitationCode, c.OAuthProvider, c.Post, c.PostAction, c.Settings, c.User,
+		c.UserBalanceLog, c.UserFollow, c.UserLoginLog, c.UserOAuth, c.UserSigninLogs,
 		c.UserSigninStatus,
 	} {
 		n.Use(hooks...)
@@ -282,8 +288,8 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.Blacklist, c.Category, c.CategoryModerator, c.Comment, c.CommentAction,
-		c.OAuthProvider, c.Post, c.PostAction, c.Settings, c.User, c.UserBalanceLog,
-		c.UserFollow, c.UserLoginLog, c.UserOAuth, c.UserSigninLogs,
+		c.InvitationCode, c.OAuthProvider, c.Post, c.PostAction, c.Settings, c.User,
+		c.UserBalanceLog, c.UserFollow, c.UserLoginLog, c.UserOAuth, c.UserSigninLogs,
 		c.UserSigninStatus,
 	} {
 		n.Intercept(interceptors...)
@@ -303,6 +309,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Comment.mutate(ctx, m)
 	case *CommentActionMutation:
 		return c.CommentAction.mutate(ctx, m)
+	case *InvitationCodeMutation:
+		return c.InvitationCode.mutate(ctx, m)
 	case *OAuthProviderMutation:
 		return c.OAuthProvider.mutate(ctx, m)
 	case *PostMutation:
@@ -992,6 +1000,139 @@ func (c *CommentActionClient) mutate(ctx context.Context, m *CommentActionMutati
 		return (&CommentActionDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown CommentAction mutation op: %q", m.Op())
+	}
+}
+
+// InvitationCodeClient is a client for the InvitationCode schema.
+type InvitationCodeClient struct {
+	config
+}
+
+// NewInvitationCodeClient returns a client for the InvitationCode from the given config.
+func NewInvitationCodeClient(c config) *InvitationCodeClient {
+	return &InvitationCodeClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `invitationcode.Hooks(f(g(h())))`.
+func (c *InvitationCodeClient) Use(hooks ...Hook) {
+	c.hooks.InvitationCode = append(c.hooks.InvitationCode, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `invitationcode.Intercept(f(g(h())))`.
+func (c *InvitationCodeClient) Intercept(interceptors ...Interceptor) {
+	c.inters.InvitationCode = append(c.inters.InvitationCode, interceptors...)
+}
+
+// Create returns a builder for creating a InvitationCode entity.
+func (c *InvitationCodeClient) Create() *InvitationCodeCreate {
+	mutation := newInvitationCodeMutation(c.config, OpCreate)
+	return &InvitationCodeCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of InvitationCode entities.
+func (c *InvitationCodeClient) CreateBulk(builders ...*InvitationCodeCreate) *InvitationCodeCreateBulk {
+	return &InvitationCodeCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *InvitationCodeClient) MapCreateBulk(slice any, setFunc func(*InvitationCodeCreate, int)) *InvitationCodeCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &InvitationCodeCreateBulk{err: fmt.Errorf("calling to InvitationCodeClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*InvitationCodeCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &InvitationCodeCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for InvitationCode.
+func (c *InvitationCodeClient) Update() *InvitationCodeUpdate {
+	mutation := newInvitationCodeMutation(c.config, OpUpdate)
+	return &InvitationCodeUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *InvitationCodeClient) UpdateOne(_m *InvitationCode) *InvitationCodeUpdateOne {
+	mutation := newInvitationCodeMutation(c.config, OpUpdateOne, withInvitationCode(_m))
+	return &InvitationCodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *InvitationCodeClient) UpdateOneID(id int) *InvitationCodeUpdateOne {
+	mutation := newInvitationCodeMutation(c.config, OpUpdateOne, withInvitationCodeID(id))
+	return &InvitationCodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for InvitationCode.
+func (c *InvitationCodeClient) Delete() *InvitationCodeDelete {
+	mutation := newInvitationCodeMutation(c.config, OpDelete)
+	return &InvitationCodeDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *InvitationCodeClient) DeleteOne(_m *InvitationCode) *InvitationCodeDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *InvitationCodeClient) DeleteOneID(id int) *InvitationCodeDeleteOne {
+	builder := c.Delete().Where(invitationcode.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &InvitationCodeDeleteOne{builder}
+}
+
+// Query returns a query builder for InvitationCode.
+func (c *InvitationCodeClient) Query() *InvitationCodeQuery {
+	return &InvitationCodeQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeInvitationCode},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a InvitationCode entity by its id.
+func (c *InvitationCodeClient) Get(ctx context.Context, id int) (*InvitationCode, error) {
+	return c.Query().Where(invitationcode.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *InvitationCodeClient) GetX(ctx context.Context, id int) *InvitationCode {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *InvitationCodeClient) Hooks() []Hook {
+	return c.hooks.InvitationCode
+}
+
+// Interceptors returns the client interceptors.
+func (c *InvitationCodeClient) Interceptors() []Interceptor {
+	return c.inters.InvitationCode
+}
+
+func (c *InvitationCodeClient) mutate(ctx context.Context, m *InvitationCodeMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&InvitationCodeCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&InvitationCodeUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&InvitationCodeUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&InvitationCodeDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown InvitationCode mutation op: %q", m.Op())
 	}
 }
 
@@ -2461,13 +2602,13 @@ func (c *UserSigninStatusClient) mutate(ctx context.Context, m *UserSigninStatus
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Blacklist, Category, CategoryModerator, Comment, CommentAction, OAuthProvider,
-		Post, PostAction, Settings, User, UserBalanceLog, UserFollow, UserLoginLog,
-		UserOAuth, UserSigninLogs, UserSigninStatus []ent.Hook
+		Blacklist, Category, CategoryModerator, Comment, CommentAction, InvitationCode,
+		OAuthProvider, Post, PostAction, Settings, User, UserBalanceLog, UserFollow,
+		UserLoginLog, UserOAuth, UserSigninLogs, UserSigninStatus []ent.Hook
 	}
 	inters struct {
-		Blacklist, Category, CategoryModerator, Comment, CommentAction, OAuthProvider,
-		Post, PostAction, Settings, User, UserBalanceLog, UserFollow, UserLoginLog,
-		UserOAuth, UserSigninLogs, UserSigninStatus []ent.Interceptor
+		Blacklist, Category, CategoryModerator, Comment, CommentAction, InvitationCode,
+		OAuthProvider, Post, PostAction, Settings, User, UserBalanceLog, UserFollow,
+		UserLoginLog, UserOAuth, UserSigninLogs, UserSigninStatus []ent.Interceptor
 	}
 )

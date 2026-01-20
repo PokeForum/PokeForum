@@ -50,6 +50,10 @@ type IUserRepository interface {
 	CountWithCondition(ctx context.Context, conditionFunc func(*ent.UserQuery) *ent.UserQuery) (int, error)
 	// ListWithCondition List users with condition | 条件查询用户列表
 	ListWithCondition(ctx context.Context, conditionFunc func(*ent.UserQuery) *ent.UserQuery, limit int) ([]*ent.User, error)
+	// UpdatePoints Update user points | 更新用户积分
+	UpdatePoints(ctx context.Context, id int, points int) error
+	// UpdateCurrency Update user currency | 更新用户货币
+	UpdateCurrency(ctx context.Context, id int, currency int) error
 }
 
 // UserRepository User repository implementation | 用户仓储实现
@@ -310,4 +314,26 @@ func (r *UserRepository) ListWithCondition(ctx context.Context, conditionFunc fu
 		return nil, fmt.Errorf("条件查询用户列表失败: %w", err)
 	}
 	return users, nil
+}
+
+// UpdatePoints Update user points | 更新用户积分
+func (r *UserRepository) UpdatePoints(ctx context.Context, id int, points int) error {
+	_, err := r.db.User.UpdateOneID(id).
+		SetPoints(points).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("更新用户积分失败: %w", err)
+	}
+	return nil
+}
+
+// UpdateCurrency Update user currency | 更新用户货币
+func (r *UserRepository) UpdateCurrency(ctx context.Context, id int, currency int) error {
+	_, err := r.db.User.UpdateOneID(id).
+		SetCurrency(currency).
+		Save(ctx)
+	if err != nil {
+		return fmt.Errorf("更新用户货币失败: %w", err)
+	}
+	return nil
 }
