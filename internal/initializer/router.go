@@ -74,7 +74,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 	invitationCodeService := do.MustInvoke[service.IInvitationCodeService](injector)
 	invitationCodeManageService := do.MustInvoke[service.IInvitationCodeManageService](injector)
 
-	// Health check route (not affected by rate limiting, outside of api group) | 健康检查路由（不受速率限制影响，在api分组之外）
+	// Health check route | 健康检查路由
 	healthCon := controller.NewHealthController(healthService)
 	healthCon.HealthRouter(Router)
 
