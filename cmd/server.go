@@ -43,7 +43,6 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/logging"
 	"github.com/PokeForum/PokeForum/internal/repository"
 	"github.com/PokeForum/PokeForum/internal/service"
-	"github.com/PokeForum/PokeForum/internal/utils"
 )
 
 var ServerCMD = &cobra.Command{
@@ -71,17 +70,18 @@ func RunServer() {
 	// Initialize JSON processor | 初始化 JSON 处理器
 	configs.Json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-	// Create data directory | 创建数据目录
-	if err := utils.CreatNestedFolder(utils.DataFolder); err != nil {
-		configs.Log.Error(err.Error())
-		return
-	}
-
-	// Create theme directory | 创建主题目录
-	if err := utils.CreatNestedFolder(utils.DataFolder + "/theme"); err != nil {
-		configs.Log.Error(err.Error())
-		return
-	}
+	// No development plan for now
+	//// Create data directory | 创建数据目录
+	//if err := utils.CreatNestedFolder(utils.DataFolder); err != nil {
+	//	configs.Log.Error(err.Error())
+	//	return
+	//}
+	//
+	//// Create theme directory | 创建主题目录
+	//if err := utils.CreatNestedFolder(utils.DataFolder + "/theme"); err != nil {
+	//	configs.Log.Error(err.Error())
+	//	return
+	//}
 
 	// Initialize database | 初始化数据库
 	configs.DB = initializer.DB()
