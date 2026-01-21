@@ -114,7 +114,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 		return nil, errors.New("用户不存在")
 	}
 
-	// 获取分布式锁，防止重复签到
+	// 获取锁，防止重复签到
 	lockKey := fmt.Sprintf("signin:lock:%d", userID)
 	lockValue := fmt.Sprintf("%s:%d", traceID, time.Now().Unix())
 
