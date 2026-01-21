@@ -28,20 +28,17 @@ func NewUserFollowController(followService service.IUserFollowService) *UserFoll
 // UserFollowRouter User follow related route registration | 用户关注相关路由注册
 func (ctrl *UserFollowController) UserFollowRouter(router *gin.RouterGroup) {
 	// Authenticated routes - require login | 认证路由 - 需要登录
-	auth := router.Group("/profile")
-	auth.Use(saGin.CheckRole(user.RoleUser.String()))
-	{
-		// Follow user | 关注用户
-		auth.POST("", ctrl.FollowUser)
-		// Unfollow user | 取消关注用户
-		auth.DELETE("/:user_id", ctrl.UnfollowUser)
-		// Get followers list | 获取粉丝列表
-		auth.GET("/followers", ctrl.GetFollowers)
-		// Get following list | 获取关注列表
-		auth.GET("/following", ctrl.GetFollowing)
-		// Get follow status | 获取关注状态
-		auth.GET("/status/:user_id", ctrl.GetFollowStatus)
-	}
+	router.Use(saGin.CheckRole(user.RoleUser.String()))
+	// Follow user | 关注用户
+	router.POST("", ctrl.FollowUser)
+	// Unfollow user | 取消关注用户
+	router.DELETE("/:user_id", ctrl.UnfollowUser)
+	// Get followers list | 获取粉丝列表
+	router.GET("/followers", ctrl.GetFollowers)
+	// Get following list | 获取关注列表
+	router.GET("/following", ctrl.GetFollowing)
+	// Get follow status | 获取关注状态
+	router.GET("/status/:user_id", ctrl.GetFollowStatus)
 }
 
 // getCurrentUserID Get current user ID from context, return 0 if not logged in | 从上下文获取当前用户ID，未登录返回0
