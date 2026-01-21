@@ -230,8 +230,11 @@ func (s *PostManageService) CreatePost(ctx context.Context, req schema.PostCreat
 		return nil, errors.New("版块不存在")
 	}
 
+	// Convert read permission type to enum | 转换阅读权限类型为枚举
+	readPermission := s.parseReadPermissionType(req.ReadPermissionType)
+
 	// Create post | 创建帖子
-	p, err := s.postRepo.Create(ctx, req.UserID, req.CategoryID, req.Title, req.Content, req.ReadPermission, post.Status(req.Status))
+	p, err := s.postRepo.Create(ctx, req.UserID, req.CategoryID, req.Title, req.Content, readPermission, req.ReadPermissionPoints, post.Status(req.Status))
 	if err != nil {
 		s.logger.Error("创建帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, err
@@ -263,8 +266,9 @@ func (s *PostManageService) UpdatePost(ctx context.Context, req schema.PostUpdat
 		if req.Content != "" {
 			u = u.SetContent(req.Content)
 		}
-		if req.ReadPermission != "" {
-			u = u.SetReadPermission(req.ReadPermission)
+		if req.ReadPermissionType != "" {
+			readPermission := s.parseReadPermissionType(req.ReadPermissionType)
+			u = u.SetReadPermission(readPermission).SetReadPermissionPoints(req.ReadPermissionPoints)
 		}
 		if req.Status != "" {
 			u = u.SetStatus(post.Status(req.Status))
@@ -322,25 +326,26 @@ func (s *PostManageService) GetPostDetail(ctx context.Context, id int) (*schema.
 
 	// Convert to response format | 转换为响应格式
 	result := &schema.PostDetailResponse{
-		ID:             p.ID,
-		UserID:         p.UserID,
-		Username:       username,
-		CategoryID:     p.CategoryID,
-		CategoryName:   categoryName,
-		Title:          p.Title,
-		Content:        p.Content,
-		ReadPermission: p.ReadPermission,
-		ViewCount:      p.ViewCount,
-		LikeCount:      p.LikeCount,
-		DislikeCount:   p.DislikeCount,
-		FavoriteCount:  p.FavoriteCount,
-		IsEssence:      p.IsEssence,
-		IsPinned:       p.IsPinned,
-		PinScope:       p.PinScope.String(),
-		Status:         p.Status.String(),
-		PublishIP:      p.PublishIP,
-		CreatedAt:      p.CreatedAt.Format(time_tools.DateTimeFormat),
-		UpdatedAt:      p.UpdatedAt.Format(time_tools.DateTimeFormat),
+		ID:                   p.ID,
+		UserID:               p.UserID,
+		Username:             username,
+		CategoryID:           p.CategoryID,
+		CategoryName:         categoryName,
+		Title:                p.Title,
+		Content:              p.Content,
+		ReadPermissionType:   string(p.ReadPermission),
+		ReadPermissionPoints: p.ReadPermissionPoints,
+		ViewCount:            p.ViewCount,
+		LikeCount:            p.LikeCount,
+		DislikeCount:         p.DislikeCount,
+		FavoriteCount:        p.FavoriteCount,
+		IsEssence:            p.IsEssence,
+		IsPinned:             p.IsPinned,
+		PinScope:             p.PinScope.String(),
+		Status:               p.Status.String(),
+		PublishIP:            p.PublishIP,
+		CreatedAt:            p.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:            p.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	return result, nil
@@ -438,4 +443,16 @@ func (s *PostManageService) DeletePost(ctx context.Context, id int) error {
 
 	s.logger.Info("帖子删除成功", zap.Int("id", id), tracing.WithTraceIDField(ctx))
 	return nil
+}
+
+// parseReadPermissionType Parse read permission type from string to enum | 从字符串解析阅读权限类型为枚举
+func (s *PostManageService) parseReadPermissionType(permissionType string) post.ReadPermission {
+	switch permissionType {
+	case "login_required":
+		return post.ReadPermissionLoginRequired
+	case "points":
+		return post.ReadPermissionPointsRequired
+	default:
+		return post.ReadPermissionPublic
+	}
 }

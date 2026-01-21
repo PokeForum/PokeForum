@@ -51,28 +51,30 @@ func (ctrl *PostController) getUserID(c *gin.Context) (int, error) {
 
 // PostRouter Post-related route registration | 帖子相关路由注册
 func (ctrl *PostController) PostRouter(router *gin.RouterGroup) {
-	// Publish new post | 发布新帖
-	router.POST("", saGin.CheckRole(user.RoleUser.String()), ctrl.CreatePost)
-	// Get draft list | 获取草稿列表
-	router.GET("/draft", saGin.CheckRole(user.RoleUser.String()), ctrl.GetDraftList)
-	// Save draft | 保存草稿
-	router.POST("/draft", saGin.CheckRole(user.RoleUser.String()), ctrl.SaveDraft)
-	// Delete draft | 删除草稿
-	router.DELETE("/draft", saGin.CheckRole(user.RoleUser.String()), ctrl.DeleteDraft)
-	// Edit post | 编辑帖子
-	router.PUT("", saGin.CheckRole(user.RoleUser.String()), ctrl.UpdatePost)
-	// Set post as private | 设置帖子私有
-	router.PUT("/private", saGin.CheckRole(user.RoleUser.String()), ctrl.SetPostPrivate)
-	// Like post | 点赞帖子
-	router.POST("/like", saGin.CheckRole(user.RoleUser.String()), ctrl.LikePost)
-	// Dislike post | 点踩帖子
-	router.POST("/dislike", saGin.CheckRole(user.RoleUser.String()), ctrl.DislikePost)
-	// Favorite post | 收藏帖子
-	router.POST("/favorite", saGin.CheckRole(user.RoleUser.String()), ctrl.FavoritePost)
 	// Get post list | 获取帖子列表
 	router.GET("", ctrl.GetPostList)
 	// Get post detail | 获取帖子详情
 	router.GET("/:id", ctrl.GetPostDetail)
+
+	router.Use(saGin.CheckRole(user.RoleUser.String()))
+	// Publish new post | 发布新帖
+	router.POST("", ctrl.CreatePost)
+	// Get draft list | 获取草稿列表
+	router.GET("/draft", ctrl.GetDraftList)
+	// Save draft | 保存草稿
+	router.POST("/draft", ctrl.SaveDraft)
+	// Delete draft | 删除草稿
+	router.DELETE("/draft", ctrl.DeleteDraft)
+	// Edit post | 编辑帖子
+	router.PUT("", ctrl.UpdatePost)
+	// Set post as private | 设置帖子私有
+	router.PUT("/private", ctrl.SetPostPrivate)
+	// Like post | 点赞帖子
+	router.POST("/like", ctrl.LikePost)
+	// Dislike post | 点踩帖子
+	router.POST("/dislike", ctrl.DislikePost)
+	// Favorite post | 收藏帖子
+	router.POST("/favorite", ctrl.FavoritePost)
 }
 
 // CreatePost Publish new post | 发布新帖
@@ -232,7 +234,7 @@ func (ctrl *PostController) DeleteDraft(c *gin.Context) {
 
 // UpdatePost Edit post | 编辑帖子
 // @Summary Edit post | 编辑帖子
-// @Description User edits their own post (can be operated once every three minutes) | 用户编辑自己的帖子(每三分钟可操作一次)
+// @Description User edits their own post (can be operated once every three minutes). Locked and banned posts cannot be edited | 用户编辑自己的帖子(每三分钟可操作一次)。锁定和封禁的帖子不允许编辑
 // @Tags [User]Topic Posts | [用户]主题贴
 // @Accept json
 // @Produce json
@@ -416,7 +418,7 @@ func (ctrl *PostController) FavoritePost(c *gin.Context) {
 
 // GetPostList Get post list | 获取帖子列表
 // @Summary Get post list | 获取帖子列表
-// @Description Get post list with pagination and sorting support. Supports filtering by category (via ID or slug) and keyword search on title. Pinned posts are returned separately in pinned_posts field | 获取帖子列表,支持分页和排序。支持通过版块ID或slug筛选,以及标题关键词搜索。置顶帖子单独返回在pinned_posts字段中
+// @Description Get post list with pagination and sorting support. Only returns posts with Normal or Locked status. Content is hidden in list view. Supports filtering by category (via ID or slug) and keyword search on title. Pinned posts are returned separately in pinned_posts field | 获取帖子列表,支持分页和排序。只返回正常或锁定状态的帖子。列表中内容已隐藏。支持通过版块ID或slug筛选,以及标题关键词搜索。置顶帖子单独返回在pinned_posts字段中
 // @Tags [User]Topic Posts | [用户]主题贴
 // @Accept json
 // @Produce json
@@ -457,13 +459,14 @@ func (ctrl *PostController) GetPostList(c *gin.Context) {
 
 // GetPostDetail Get post detail | 获取帖子详情
 // @Summary Get post detail | 获取帖子详情
-// @Description Get detailed information of the specified post and increment view count | 获取指定帖子的详细信息,并增加浏览数
+// @Description Get detailed information of the specified post and increment view count. Authors can view their own posts regardless of status. Other users can only view Normal/Locked posts. Access depends on read_permission: public (anyone), login_required (logged-in users), points:x (users with points >= x) | 获取指定帖子的详细信息,并增加浏览数。作者可以查看自己的所有状态帖子。其他用户只能查看正常/锁定状态的帖子。访问权限取决于read_permission：public（任何人）、login_required（登录用户）、points:x（积分>=x的用户）
 // @Tags [User]Topic Posts | [用户]主题贴
 // @Accept json
 // @Produce json
 // @Param id path int true "Post ID | 帖子ID"
 // @Success 200 {object} response.Data{data=schema.UserPostDetailResponse} "Retrieved successfully | 获取成功"
 // @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
+// @Failure 401 {object} response.Data "No read permission | 无阅读权限"
 // @Failure 404 {object} response.Data "Post not found | 帖子不存在"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /posts/{id} [get]
@@ -477,6 +480,11 @@ func (ctrl *PostController) GetPostDetail(c *gin.Context) {
 	// Call service | 调用服务
 	result, err := ctrl.postService.GetPostDetail(c.Request.Context(), req)
 	if err != nil {
+		// Check if error is NoPermissionError | 检查是否为无权限错误
+		if noPermErr, ok := err.(*service.NoPermissionError); ok {
+			response.ResErrorWithMsg(c, response.CodeNoPermission, noPermErr.Reason)
+			return
+		}
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}

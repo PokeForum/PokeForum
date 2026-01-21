@@ -14,22 +14,24 @@ type PostListRequest struct {
 
 // PostCreateRequest Create post request | 创建帖子请求体
 type PostCreateRequest struct {
-	UserID         int    `json:"user_id" binding:"required" example:"1"`                                           // User ID | 用户ID
-	CategoryID     int    `json:"category_id" binding:"required" example:"1"`                                       // Category ID | 版块ID
-	Title          string `json:"title" binding:"required,min=2,max=200" example:"技术分享帖"`                           // Post title | 帖子标题
-	Content        string `json:"content" binding:"required,min=10" example:"## 技术分享\n这是内容"`                        // Post content | 帖子内容
-	ReadPermission string `json:"read_permission" example:"login"`                                                  // Read permission | 阅读限制
-	PublishIP      string `json:"publish_ip" example:"192.168.1.1"`                                                 // Publish IP | 发布IP
-	Status         string `json:"status" binding:"required,oneof=Normal Locked Draft Private Ban" example:"Normal"` // Post status | 帖子状态
+	UserID               int    `json:"user_id" binding:"required" example:"1"`                                                                 // User ID | 用户ID
+	CategoryID           int    `json:"category_id" binding:"required" example:"1"`                                                             // Category ID | 版块ID
+	Title                string `json:"title" binding:"required,min=2,max=200" example:"技术分享帖"`                                                 // Post title | 帖子标题
+	Content              string `json:"content" binding:"required,min=10" example:"## 技术分享\n这是内容"`                                              // Post content | 帖子内容
+	ReadPermissionType   string `json:"read_permission_type,omitempty" binding:"omitempty,oneof=public login_required points" example:"public"` // Read permission type | 阅读权限类型
+	ReadPermissionPoints int    `json:"read_permission_points,omitempty" binding:"omitempty,min=0" example:"0"`                                 // Read permission points | 阅读所需积分
+	PublishIP            string `json:"publish_ip" example:"192.168.1.1"`                                                                       // Publish IP | 发布IP
+	Status               string `json:"status" binding:"required,oneof=Normal Locked Draft Private Ban" example:"Normal"`                       // Post status | 帖子状态
 }
 
 // PostUpdateRequest Update post request | 更新帖子请求体
 type PostUpdateRequest struct {
-	ID             int    `json:"id" binding:"required" example:"1"`                                                 // Post ID | 帖子ID
-	Title          string `json:"title" binding:"omitempty,min=2,max=200" example:"技术分享帖"`                           // Post title | 帖子标题
-	Content        string `json:"content" binding:"omitempty,min=10" example:"## 技术分享\n这是内容"`                        // Post content | 帖子内容
-	ReadPermission string `json:"read_permission" example:"login"`                                                   // Read permission | 阅读限制
-	Status         string `json:"status" binding:"omitempty,oneof=Normal Locked Draft Private Ban" example:"Normal"` // Post status | 帖子状态
+	ID                   int    `json:"id" binding:"required" example:"1"`                                                                      // Post ID | 帖子ID
+	Title                string `json:"title" binding:"omitempty,min=2,max=200" example:"技术分享帖"`                                                // Post title | 帖子标题
+	Content              string `json:"content" binding:"omitempty,min=10" example:"## 技术分享\n这是内容"`                                             // Post content | 帖子内容
+	ReadPermissionType   string `json:"read_permission_type,omitempty" binding:"omitempty,oneof=public login_required points" example:"public"` // Read permission type | 阅读权限类型
+	ReadPermissionPoints int    `json:"read_permission_points,omitempty" binding:"omitempty,min=0" example:"0"`                                 // Read permission points | 阅读所需积分
+	Status               string `json:"status" binding:"omitempty,oneof=Normal Locked Draft Private Ban" example:"Normal"`                      // Post status | 帖子状态
 }
 
 // PostStatusUpdateRequest Update post status request | 更新帖子状态请求体
@@ -93,23 +95,24 @@ type PostListResponse struct {
 
 // PostDetailResponse Post detail response | 帖子详情响应体
 type PostDetailResponse struct {
-	ID             int    `json:"id" example:"1"`                           // Post ID | 帖子ID
-	UserID         int    `json:"user_id" example:"1"`                      // User ID | 用户ID
-	Username       string `json:"username" example:"testuser"`              // Username | 用户名
-	CategoryID     int    `json:"category_id" example:"1"`                  // Category ID | 版块ID
-	CategoryName   string `json:"category_name" example:"技术讨论"`             // Category name | 版块名称
-	Title          string `json:"title" example:"技术分享帖"`                    // Post title | 帖子标题
-	Content        string `json:"content" example:"## 技术分享\n这是内容"`          // Post content | 帖子内容
-	ReadPermission string `json:"read_permission" example:"login"`          // Read permission | 阅读限制
-	ViewCount      int    `json:"view_count" example:"150"`                 // View count | 浏览数
-	LikeCount      int    `json:"like_count" example:"25"`                  // Like count | 点赞数
-	DislikeCount   int    `json:"dislike_count" example:"2"`                // Dislike count | 点踩数
-	FavoriteCount  int    `json:"favorite_count" example:"10"`              // Favorite count | 收藏数
-	IsEssence      bool   `json:"is_essence" example:"true"`                // Whether essence post | 是否精华帖
-	IsPinned       bool   `json:"is_pinned" example:"false"`                // Whether pinned | 是否置顶
-	PinScope       string `json:"pin_scope" example:"None"`                 // Pin scope | 置顶范围：None、Home、Category、Global
-	Status         string `json:"status" example:"Normal"`                  // Post status | 帖子状态
-	PublishIP      string `json:"publish_ip" example:"192.168.1.1"`         // Publish IP | 发布IP
-	CreatedAt      string `json:"created_at" example:"2024-01-01 00:00:00"` // Creation time | 创建时间
-	UpdatedAt      string `json:"updated_at" example:"2024-01-01 00:00:00"` // Update time | 更新时间
+	ID                   int    `json:"id" example:"1"`                           // Post ID | 帖子ID
+	UserID               int    `json:"user_id" example:"1"`                      // User ID | 用户ID
+	Username             string `json:"username" example:"testuser"`              // Username | 用户名
+	CategoryID           int    `json:"category_id" example:"1"`                  // Category ID | 版块ID
+	CategoryName         string `json:"category_name" example:"技术讨论"`             // Category name | 版块名称
+	Title                string `json:"title" example:"技术分享帖"`                    // Post title | 帖子标题
+	Content              string `json:"content" example:"## 技术分享\n这是内容"`          // Post content | 帖子内容
+	ReadPermissionType   string `json:"read_permission_type" example:"public"`    // Read permission type | 阅读权限类型
+	ReadPermissionPoints int    `json:"read_permission_points" example:"0"`       // Read permission points | 阅读所需积分
+	ViewCount            int    `json:"view_count" example:"150"`                 // View count | 浏览数
+	LikeCount            int    `json:"like_count" example:"25"`                  // Like count | 点赞数
+	DislikeCount         int    `json:"dislike_count" example:"2"`                // Dislike count | 点踩数
+	FavoriteCount        int    `json:"favorite_count" example:"10"`              // Favorite count | 收藏数
+	IsEssence            bool   `json:"is_essence" example:"true"`                // Whether essence post | 是否精华帖
+	IsPinned             bool   `json:"is_pinned" example:"false"`                // Whether pinned | 是否置顶
+	PinScope             string `json:"pin_scope" example:"None"`                 // Pin scope | 置顶范围：None、Home、Category、Global
+	Status               string `json:"status" example:"Normal"`                  // Post status | 帖子状态
+	PublishIP            string `json:"publish_ip" example:"192.168.1.1"`         // Publish IP | 发布IP
+	CreatedAt            string `json:"created_at" example:"2024-01-01 00:00:00"` // Creation time | 创建时间
+	UpdatedAt            string `json:"updated_at" example:"2024-01-01 00:00:00"` // Update time | 更新时间
 }

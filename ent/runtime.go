@@ -257,40 +257,42 @@ func init() {
 	postDescContent := postFields[3].Descriptor()
 	// post.ContentValidator is a validator for the "content" field. It is called by the builders before save.
 	post.ContentValidator = postDescContent.Validators[0].(func(string) error)
-	// postDescReadPermission is the schema descriptor for read_permission field.
-	postDescReadPermission := postFields[4].Descriptor()
-	// post.DefaultReadPermission holds the default value on creation for the read_permission field.
-	post.DefaultReadPermission = postDescReadPermission.Default.(string)
+	// postDescReadPermissionPoints is the schema descriptor for read_permission_points field.
+	postDescReadPermissionPoints := postFields[5].Descriptor()
+	// post.DefaultReadPermissionPoints holds the default value on creation for the read_permission_points field.
+	post.DefaultReadPermissionPoints = postDescReadPermissionPoints.Default.(int)
+	// post.ReadPermissionPointsValidator is a validator for the "read_permission_points" field. It is called by the builders before save.
+	post.ReadPermissionPointsValidator = postDescReadPermissionPoints.Validators[0].(func(int) error)
 	// postDescViewCount is the schema descriptor for view_count field.
-	postDescViewCount := postFields[5].Descriptor()
+	postDescViewCount := postFields[6].Descriptor()
 	// post.DefaultViewCount holds the default value on creation for the view_count field.
 	post.DefaultViewCount = postDescViewCount.Default.(int)
 	// post.ViewCountValidator is a validator for the "view_count" field. It is called by the builders before save.
 	post.ViewCountValidator = postDescViewCount.Validators[0].(func(int) error)
 	// postDescLikeCount is the schema descriptor for like_count field.
-	postDescLikeCount := postFields[6].Descriptor()
+	postDescLikeCount := postFields[7].Descriptor()
 	// post.DefaultLikeCount holds the default value on creation for the like_count field.
 	post.DefaultLikeCount = postDescLikeCount.Default.(int)
 	// post.LikeCountValidator is a validator for the "like_count" field. It is called by the builders before save.
 	post.LikeCountValidator = postDescLikeCount.Validators[0].(func(int) error)
 	// postDescDislikeCount is the schema descriptor for dislike_count field.
-	postDescDislikeCount := postFields[7].Descriptor()
+	postDescDislikeCount := postFields[8].Descriptor()
 	// post.DefaultDislikeCount holds the default value on creation for the dislike_count field.
 	post.DefaultDislikeCount = postDescDislikeCount.Default.(int)
 	// post.DislikeCountValidator is a validator for the "dislike_count" field. It is called by the builders before save.
 	post.DislikeCountValidator = postDescDislikeCount.Validators[0].(func(int) error)
 	// postDescFavoriteCount is the schema descriptor for favorite_count field.
-	postDescFavoriteCount := postFields[8].Descriptor()
+	postDescFavoriteCount := postFields[9].Descriptor()
 	// post.DefaultFavoriteCount holds the default value on creation for the favorite_count field.
 	post.DefaultFavoriteCount = postDescFavoriteCount.Default.(int)
 	// post.FavoriteCountValidator is a validator for the "favorite_count" field. It is called by the builders before save.
 	post.FavoriteCountValidator = postDescFavoriteCount.Validators[0].(func(int) error)
 	// postDescIsEssence is the schema descriptor for is_essence field.
-	postDescIsEssence := postFields[9].Descriptor()
+	postDescIsEssence := postFields[10].Descriptor()
 	// post.DefaultIsEssence holds the default value on creation for the is_essence field.
 	post.DefaultIsEssence = postDescIsEssence.Default.(bool)
 	// postDescIsPinned is the schema descriptor for is_pinned field.
-	postDescIsPinned := postFields[10].Descriptor()
+	postDescIsPinned := postFields[11].Descriptor()
 	// post.DefaultIsPinned holds the default value on creation for the is_pinned field.
 	post.DefaultIsPinned = postDescIsPinned.Default.(bool)
 	postactionMixin := schema.PostAction{}.Mixin()

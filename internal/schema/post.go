@@ -10,8 +10,10 @@ type UserPostCreateRequest struct {
 	Title string `json:"title" binding:"required,min=1,max=200"`
 	// Post content | 帖子内容
 	Content string `json:"content" binding:"required,min=1"`
-	// Read permission | 阅读限制
-	ReadPermission string `json:"read_permission,omitempty"`
+	// Read permission type: public, login_required, points | 阅读权限类型：public(公开)、login_required(登录可见)、points(积分可见)
+	ReadPermissionType string `json:"read_permission_type,omitempty" binding:"omitempty,oneof=public login_required points"`
+	// Read permission points (required when type is points) | 阅读所需积分（当类型为points时必填）
+	ReadPermissionPoints int `json:"read_permission_points,omitempty" binding:"omitempty,min=0"`
 }
 
 // UserPostCreateResponse Create post response | 创建帖子响应
@@ -32,8 +34,10 @@ type UserPostCreateResponse struct {
 	Username string `json:"username"`
 	// Author avatar | 作者头像
 	Avatar string `json:"avatar"`
-	// Read permission | 阅读限制
-	ReadPermission string `json:"read_permission,omitempty"`
+	// Read permission type: public, login_required, points | 阅读权限类型
+	ReadPermissionType string `json:"read_permission_type,omitempty"`
+	// Read permission points (when type is points) | 阅读所需积分
+	ReadPermissionPoints int `json:"read_permission_points,omitempty"`
 	// View count | 浏览数
 	ViewCount int `json:"view_count"`
 	// Like count | 点赞数
@@ -68,8 +72,10 @@ type UserPostUpdateRequest struct {
 	Title string `json:"title" binding:"required,min=1,max=200"`
 	// Post content | 帖子内容
 	Content string `json:"content" binding:"required,min=1"`
-	// Read permission | 阅读限制
-	ReadPermission string `json:"read_permission,omitempty"`
+	// Read permission type: public, login_required, points | 阅读权限类型：public(公开)、login_required(登录可见)、points(积分可见)
+	ReadPermissionType string `json:"read_permission_type,omitempty" binding:"omitempty,oneof=public login_required points"`
+	// Read permission points (required when type is points) | 阅读所需积分（当类型为points时必填）
+	ReadPermissionPoints int `json:"read_permission_points,omitempty" binding:"omitempty,min=0"`
 }
 
 // UserPostUpdateResponse Update post response | 更新帖子响应
@@ -90,8 +96,10 @@ type UserPostUpdateResponse struct {
 	Username string `json:"username"`
 	// Author avatar | 作者头像
 	Avatar string `json:"avatar"`
-	// Read permission | 阅读限制
-	ReadPermission string `json:"read_permission,omitempty"`
+	// Read permission type: public, login_required, points | 阅读权限类型
+	ReadPermissionType string `json:"read_permission_type,omitempty"`
+	// Read permission points (when type is points) | 阅读所需积分
+	ReadPermissionPoints int `json:"read_permission_points,omitempty"`
 	// View count | 浏览数
 	ViewCount int `json:"view_count"`
 	// Like count | 点赞数
@@ -194,8 +202,10 @@ type UserPostDetailResponse struct {
 	Username string `json:"username"`
 	// Author avatar | 作者头像
 	Avatar string `json:"avatar"`
-	// Read permission | 阅读限制
-	ReadPermission string `json:"read_permission,omitempty"`
+	// Read permission type: public, login_required, points | 阅读权限类型
+	ReadPermissionType string `json:"read_permission_type,omitempty"`
+	// Read permission points (when type is points) | 阅读所需积分
+	ReadPermissionPoints int `json:"read_permission_points,omitempty"`
 	// View count | 浏览数
 	ViewCount int `json:"view_count"`
 	// Like count | 点赞数

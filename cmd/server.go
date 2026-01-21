@@ -67,17 +67,17 @@ func RunServer() {
 	configs.Log = logging.Zap()
 
 	// No development plan for now
-	//// Create data directory | 创建数据目录
-	//if err := utils.CreatNestedFolder(utils.DataFolder); err != nil {
+	// Create data directory | 创建数据目录
+	// if err := utils.CreatNestedFolder(utils.DataFolder); err != nil {
 	//	configs.Log.Error(err.Error())
 	//	return
-	//}
+	// }
 	//
-	//// Create theme directory | 创建主题目录
-	//if err := utils.CreatNestedFolder(utils.DataFolder + "/theme"); err != nil {
+	// Create theme directory | 创建主题目录
+	// if err := utils.CreatNestedFolder(utils.DataFolder + "/theme"); err != nil {
 	//	configs.Log.Error(err.Error())
 	//	return
-	//}
+	// }
 
 	// Initialize database | 初始化数据库
 	configs.DB = initializer.DB()

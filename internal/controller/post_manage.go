@@ -113,24 +113,25 @@ func (ctrl *PostManageController) CreatePost(c *gin.Context) {
 
 	// Convert to response format | 转换为响应格式
 	result := &schema.PostDetailResponse{
-		ID:             post.ID,
-		UserID:         post.UserID,
-		Username:       "", // Need to query user info, simplified here | 需要查询用户信息,这里简化处理
-		CategoryID:     post.CategoryID,
-		CategoryName:   "", // Need to query category info, simplified here | 需要查询版块信息,这里简化处理
-		Title:          post.Title,
-		Content:        post.Content,
-		ReadPermission: post.ReadPermission,
-		ViewCount:      post.ViewCount,
-		LikeCount:      post.LikeCount,
-		DislikeCount:   post.DislikeCount,
-		FavoriteCount:  post.FavoriteCount,
-		IsEssence:      post.IsEssence,
-		IsPinned:       post.IsPinned,
-		Status:         post.Status.String(),
-		PublishIP:      post.PublishIP,
-		CreatedAt:      post.CreatedAt.Format(time_tools.DateTimeFormat),
-		UpdatedAt:      post.UpdatedAt.Format(time_tools.DateTimeFormat),
+		ID:                   post.ID,
+		UserID:               post.UserID,
+		Username:             "", // Need to query user info, simplified here | 需要查询用户信息,这里简化处理
+		CategoryID:           post.CategoryID,
+		CategoryName:         "", // Need to query category info, simplified here | 需要查询版块信息,这里简化处理
+		Title:                post.Title,
+		Content:              post.Content,
+		ReadPermissionType:   string(post.ReadPermission),
+		ReadPermissionPoints: post.ReadPermissionPoints,
+		ViewCount:            post.ViewCount,
+		LikeCount:            post.LikeCount,
+		DislikeCount:         post.DislikeCount,
+		FavoriteCount:        post.FavoriteCount,
+		IsEssence:            post.IsEssence,
+		IsPinned:             post.IsPinned,
+		Status:               post.Status.String(),
+		PublishIP:            post.PublishIP,
+		CreatedAt:            post.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:            post.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	response.ResSuccess(c, result)
@@ -163,24 +164,25 @@ func (ctrl *PostManageController) UpdatePost(c *gin.Context) {
 
 	// Convert to response format | 转换为响应格式
 	result := &schema.PostDetailResponse{
-		ID:             post.ID,
-		UserID:         post.UserID,
-		Username:       "", // Need to query user info, simplified here | 需要查询用户信息,这里简化处理
-		CategoryID:     post.CategoryID,
-		CategoryName:   "", // Need to query category info, simplified here | 需要查询版块信息,这里简化处理
-		Title:          post.Title,
-		Content:        post.Content,
-		ReadPermission: post.ReadPermission,
-		ViewCount:      post.ViewCount,
-		LikeCount:      post.LikeCount,
-		DislikeCount:   post.DislikeCount,
-		FavoriteCount:  post.FavoriteCount,
-		IsEssence:      post.IsEssence,
-		IsPinned:       post.IsPinned,
-		Status:         post.Status.String(),
-		PublishIP:      post.PublishIP,
-		CreatedAt:      post.CreatedAt.Format(time_tools.DateTimeFormat),
-		UpdatedAt:      post.UpdatedAt.Format(time_tools.DateTimeFormat),
+		ID:                   post.ID,
+		UserID:               post.UserID,
+		Username:             "", // Need to query user info, simplified here | 需要查询用户信息,这里简化处理
+		CategoryID:           post.CategoryID,
+		CategoryName:         "", // Need to query category info, simplified here | 需要查询版块信息,这里简化处理
+		Title:                post.Title,
+		Content:              post.Content,
+		ReadPermissionType:   string(post.ReadPermission),
+		ReadPermissionPoints: post.ReadPermissionPoints,
+		ViewCount:            post.ViewCount,
+		LikeCount:            post.LikeCount,
+		DislikeCount:         post.DislikeCount,
+		FavoriteCount:        post.FavoriteCount,
+		IsEssence:            post.IsEssence,
+		IsPinned:             post.IsPinned,
+		Status:               post.Status.String(),
+		PublishIP:            post.PublishIP,
+		CreatedAt:            post.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:            post.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	response.ResSuccess(c, result)

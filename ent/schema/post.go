@@ -16,10 +16,10 @@ type Post struct {
 // Fields of the Post.
 func (Post) Fields() []ent.Field {
 	return []ent.Field{
-		// User ID, foreign key to User table | 用户ID，外键关联到User表
+		// User ID, foreign key to User table | 用户ID，关联到User表
 		field.Int("user_id").
 			Positive(),
-		// Category ID, foreign key to Category table | 版块ID，外键关联到Category表
+		// Category ID, foreign key to Category table | 版块ID，关联到Category表
 		field.Int("category_id").
 			Positive(),
 		// Post title | 帖子标题
@@ -28,10 +28,14 @@ func (Post) Fields() []ent.Field {
 		// Post content, Markdown format | 帖子正文内容，MarkDown格式
 		field.Text("content").
 			NotEmpty(),
-		// Read permission | 阅读限制
-		field.String("read_permission").
-			Default("public").
-			Optional(),
+		// Read permission type: public, login_required, points_required | 阅读权限类型：公开、登录可见、积分可见
+		field.Enum("read_permission").
+			Values("public", "login_required", "points_required").
+			Default("public"),
+		// Read permission points (required when read_permission is points) | 阅读所需积分（当read_permission为points时使用）
+		field.Int("read_permission_points").
+			Default(0).
+			NonNegative(),
 		// View count, default 0 | 浏览数，默认为0
 		field.Int("view_count").
 			Default(0).
@@ -61,7 +65,7 @@ func (Post) Fields() []ent.Field {
 		// Publish IP | 发布IP
 		field.String("publish_ip").
 			Optional(),
-		// Post status: Normal, Locked, Draft, Private, Ban | 帖子状态：Normal、Locked、Draft、Private、Ban
+		// Post status: Normal, Locked, Draft, Private, Ban | 帖子状态：正常、锁定、草稿、私密、封禁
 		field.Enum("status").
 			Values("Normal", "Locked", "Draft", "Private", "Ban").
 			Default("Normal"),

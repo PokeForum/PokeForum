@@ -28,6 +28,8 @@ const (
 	FieldContent = "content"
 	// FieldReadPermission holds the string denoting the read_permission field in the database.
 	FieldReadPermission = "read_permission"
+	// FieldReadPermissionPoints holds the string denoting the read_permission_points field in the database.
+	FieldReadPermissionPoints = "read_permission_points"
 	// FieldViewCount holds the string denoting the view_count field in the database.
 	FieldViewCount = "view_count"
 	// FieldLikeCount holds the string denoting the like_count field in the database.
@@ -62,6 +64,7 @@ var Columns = []string{
 	FieldTitle,
 	FieldContent,
 	FieldReadPermission,
+	FieldReadPermissionPoints,
 	FieldViewCount,
 	FieldLikeCount,
 	FieldDislikeCount,
@@ -99,8 +102,10 @@ var (
 	TitleValidator func(string) error
 	// ContentValidator is a validator for the "content" field. It is called by the builders before save.
 	ContentValidator func(string) error
-	// DefaultReadPermission holds the default value on creation for the "read_permission" field.
-	DefaultReadPermission string
+	// DefaultReadPermissionPoints holds the default value on creation for the "read_permission_points" field.
+	DefaultReadPermissionPoints int
+	// ReadPermissionPointsValidator is a validator for the "read_permission_points" field. It is called by the builders before save.
+	ReadPermissionPointsValidator func(int) error
 	// DefaultViewCount holds the default value on creation for the "view_count" field.
 	DefaultViewCount int
 	// ViewCountValidator is a validator for the "view_count" field. It is called by the builders before save.
@@ -122,6 +127,33 @@ var (
 	// DefaultIsPinned holds the default value on creation for the "is_pinned" field.
 	DefaultIsPinned bool
 )
+
+// ReadPermission defines the type for the "read_permission" enum field.
+type ReadPermission string
+
+// ReadPermissionPublic is the default value of the ReadPermission enum.
+const DefaultReadPermission = ReadPermissionPublic
+
+// ReadPermission values.
+const (
+	ReadPermissionPublic         ReadPermission = "public"
+	ReadPermissionLoginRequired  ReadPermission = "login_required"
+	ReadPermissionPointsRequired ReadPermission = "points_required"
+)
+
+func (rp ReadPermission) String() string {
+	return string(rp)
+}
+
+// ReadPermissionValidator is a validator for the "read_permission" field enum values. It is called by the builders before save.
+func ReadPermissionValidator(rp ReadPermission) error {
+	switch rp {
+	case ReadPermissionPublic, ReadPermissionLoginRequired, ReadPermissionPointsRequired:
+		return nil
+	default:
+		return fmt.Errorf("post: invalid enum value for read_permission field: %q", rp)
+	}
+}
 
 // PinScope defines the type for the "pin_scope" enum field.
 type PinScope string
@@ -221,6 +253,11 @@ func ByContent(opts ...sql.OrderTermOption) OrderOption {
 // ByReadPermission orders the results by the read_permission field.
 func ByReadPermission(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldReadPermission, opts...).ToFunc()
+}
+
+// ByReadPermissionPoints orders the results by the read_permission_points field.
+func ByReadPermissionPoints(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldReadPermissionPoints, opts...).ToFunc()
 }
 
 // ByViewCount orders the results by the view_count field.

@@ -271,7 +271,8 @@ var (
 		{Name: "category_id", Type: field.TypeInt},
 		{Name: "title", Type: field.TypeString},
 		{Name: "content", Type: field.TypeString, Size: 2147483647},
-		{Name: "read_permission", Type: field.TypeString, Nullable: true, Default: "public"},
+		{Name: "read_permission", Type: field.TypeEnum, Enums: []string{"public", "login_required", "points_required"}, Default: "public"},
+		{Name: "read_permission_points", Type: field.TypeInt, Default: 0},
 		{Name: "view_count", Type: field.TypeInt, Default: 0},
 		{Name: "like_count", Type: field.TypeInt, Default: 0},
 		{Name: "dislike_count", Type: field.TypeInt, Default: 0},
@@ -302,32 +303,32 @@ var (
 			{
 				Name:    "post_status",
 				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[16]},
+				Columns: []*schema.Column{PostsColumns[17]},
 			},
 			{
 				Name:    "post_is_essence",
 				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[12]},
+				Columns: []*schema.Column{PostsColumns[13]},
 			},
 			{
 				Name:    "post_is_pinned",
 				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[13]},
+				Columns: []*schema.Column{PostsColumns[14]},
 			},
 			{
 				Name:    "post_pin_scope",
 				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[14]},
+				Columns: []*schema.Column{PostsColumns[15]},
 			},
 			{
 				Name:    "post_last_edited_at",
 				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[17]},
+				Columns: []*schema.Column{PostsColumns[18]},
 			},
 			{
 				Name:    "post_category_id_status_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[4], PostsColumns[16], PostsColumns[1]},
+				Columns: []*schema.Column{PostsColumns[4], PostsColumns[17], PostsColumns[1]},
 			},
 			{
 				Name:    "post_title",

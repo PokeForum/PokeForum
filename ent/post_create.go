@@ -73,15 +73,29 @@ func (_c *PostCreate) SetContent(v string) *PostCreate {
 }
 
 // SetReadPermission sets the "read_permission" field.
-func (_c *PostCreate) SetReadPermission(v string) *PostCreate {
+func (_c *PostCreate) SetReadPermission(v post.ReadPermission) *PostCreate {
 	_c.mutation.SetReadPermission(v)
 	return _c
 }
 
 // SetNillableReadPermission sets the "read_permission" field if the given value is not nil.
-func (_c *PostCreate) SetNillableReadPermission(v *string) *PostCreate {
+func (_c *PostCreate) SetNillableReadPermission(v *post.ReadPermission) *PostCreate {
 	if v != nil {
 		_c.SetReadPermission(*v)
+	}
+	return _c
+}
+
+// SetReadPermissionPoints sets the "read_permission_points" field.
+func (_c *PostCreate) SetReadPermissionPoints(v int) *PostCreate {
+	_c.mutation.SetReadPermissionPoints(v)
+	return _c
+}
+
+// SetNillableReadPermissionPoints sets the "read_permission_points" field if the given value is not nil.
+func (_c *PostCreate) SetNillableReadPermissionPoints(v *int) *PostCreate {
+	if v != nil {
+		_c.SetReadPermissionPoints(*v)
 	}
 	return _c
 }
@@ -273,6 +287,10 @@ func (_c *PostCreate) defaults() {
 		v := post.DefaultReadPermission
 		_c.mutation.SetReadPermission(v)
 	}
+	if _, ok := _c.mutation.ReadPermissionPoints(); !ok {
+		v := post.DefaultReadPermissionPoints
+		_c.mutation.SetReadPermissionPoints(v)
+	}
 	if _, ok := _c.mutation.ViewCount(); !ok {
 		v := post.DefaultViewCount
 		_c.mutation.SetViewCount(v)
@@ -345,6 +363,22 @@ func (_c *PostCreate) check() error {
 	if v, ok := _c.mutation.Content(); ok {
 		if err := post.ContentValidator(v); err != nil {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Post.content": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.ReadPermission(); !ok {
+		return &ValidationError{Name: "read_permission", err: errors.New(`ent: missing required field "Post.read_permission"`)}
+	}
+	if v, ok := _c.mutation.ReadPermission(); ok {
+		if err := post.ReadPermissionValidator(v); err != nil {
+			return &ValidationError{Name: "read_permission", err: fmt.Errorf(`ent: validator failed for field "Post.read_permission": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.ReadPermissionPoints(); !ok {
+		return &ValidationError{Name: "read_permission_points", err: errors.New(`ent: missing required field "Post.read_permission_points"`)}
+	}
+	if v, ok := _c.mutation.ReadPermissionPoints(); ok {
+		if err := post.ReadPermissionPointsValidator(v); err != nil {
+			return &ValidationError{Name: "read_permission_points", err: fmt.Errorf(`ent: validator failed for field "Post.read_permission_points": %w`, err)}
 		}
 	}
 	if _, ok := _c.mutation.ViewCount(); !ok {
@@ -452,8 +486,12 @@ func (_c *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 		_node.Content = value
 	}
 	if value, ok := _c.mutation.ReadPermission(); ok {
-		_spec.SetField(post.FieldReadPermission, field.TypeString, value)
+		_spec.SetField(post.FieldReadPermission, field.TypeEnum, value)
 		_node.ReadPermission = value
+	}
+	if value, ok := _c.mutation.ReadPermissionPoints(); ok {
+		_spec.SetField(post.FieldReadPermissionPoints, field.TypeInt, value)
+		_node.ReadPermissionPoints = value
 	}
 	if value, ok := _c.mutation.ViewCount(); ok {
 		_spec.SetField(post.FieldViewCount, field.TypeInt, value)

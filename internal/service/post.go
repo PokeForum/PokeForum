@@ -22,6 +22,16 @@ import (
 	"github.com/PokeForum/PokeForum/internal/schema"
 )
 
+// NoPermissionError Custom error type for no read permission | 无阅读权限的自定义错误类型
+type NoPermissionError struct {
+	Reason string
+}
+
+// Error implements the error interface | 实现error接口
+func (e *NoPermissionError) Error() string {
+	return e.Reason
+}
+
 // IPostService Post service interface | 帖子服务接口
 type IPostService interface {
 	// CreatePost Create a post | 创建帖子
@@ -101,7 +111,10 @@ func (s *PostService) CreatePost(ctx context.Context, userID int, req schema.Use
 		return nil, err
 	}
 
-	newPost, err := s.postRepo.Create(ctx, userID, req.CategoryID, req.Title, req.Content, req.ReadPermission, post.StatusNormal)
+	// Convert read permission type to enum | 转换阅读权限类型为枚举
+	readPermission := s.parseReadPermissionType(req.ReadPermissionType)
+
+	newPost, err := s.postRepo.Create(ctx, userID, req.CategoryID, req.Title, req.Content, readPermission, req.ReadPermissionPoints, post.StatusNormal)
 	if err != nil {
 		s.logger.Error("创建帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, err
@@ -109,22 +122,23 @@ func (s *PostService) CreatePost(ctx context.Context, userID int, req schema.Use
 
 	// Build response data | 构建响应数据
 	result := &schema.UserPostCreateResponse{
-		ID:             newPost.ID,
-		CategoryID:     newPost.CategoryID,
-		CategoryName:   categoryData.Name,
-		Title:          newPost.Title,
-		Content:        newPost.Content,
-		Username:       userData.Username,
-		ReadPermission: newPost.ReadPermission,
-		ViewCount:      newPost.ViewCount,
-		LikeCount:      newPost.LikeCount,
-		DislikeCount:   newPost.DislikeCount,
-		FavoriteCount:  newPost.FavoriteCount,
-		IsEssence:      newPost.IsEssence,
-		IsPinned:       newPost.IsPinned,
-		Status:         string(newPost.Status),
-		CreatedAt:      newPost.CreatedAt.Format(time_tools.DateTimeFormat),
-		UpdatedAt:      newPost.UpdatedAt.Format(time_tools.DateTimeFormat),
+		ID:                   newPost.ID,
+		CategoryID:           newPost.CategoryID,
+		CategoryName:         categoryData.Name,
+		Title:                newPost.Title,
+		Content:              newPost.Content,
+		Username:             userData.Username,
+		ReadPermissionType:   string(newPost.ReadPermission),
+		ReadPermissionPoints: newPost.ReadPermissionPoints,
+		ViewCount:            newPost.ViewCount,
+		LikeCount:            newPost.LikeCount,
+		DislikeCount:         newPost.DislikeCount,
+		FavoriteCount:        newPost.FavoriteCount,
+		IsEssence:            newPost.IsEssence,
+		IsPinned:             newPost.IsPinned,
+		Status:               string(newPost.Status),
+		CreatedAt:            newPost.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:            newPost.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	s.logger.Info("帖子创建成功", zap.Int("post_id", newPost.ID), tracing.WithTraceIDField(ctx))
@@ -137,6 +151,9 @@ func (s *PostService) SaveDraft(ctx context.Context, userID int, req schema.User
 
 	var resultPost *ent.Post
 	var err error
+
+	// Convert read permission type to enum | 转换阅读权限类型为枚举
+	readPermission := s.parseReadPermissionType(req.ReadPermissionType)
 
 	// If ID exists, update existing draft | 如果ID存在，更新现有草稿
 	if req.ID > 0 {
@@ -157,7 +174,8 @@ func (s *PostService) SaveDraft(ctx context.Context, userID int, req schema.User
 			return u.SetCategoryID(req.CategoryID).
 				SetTitle(req.Title).
 				SetContent(req.Content).
-				SetReadPermission(req.ReadPermission)
+				SetReadPermission(readPermission).
+				SetReadPermissionPoints(req.ReadPermissionPoints)
 		})
 		if err != nil {
 			s.logger.Error("更新草稿失败", zap.Error(err), tracing.WithTraceIDField(ctx))
@@ -176,7 +194,7 @@ func (s *PostService) SaveDraft(ctx context.Context, userID int, req schema.User
 			return nil, errors.New("草稿数量已达上限（最多10篇），请删除或发布部分草稿后再试")
 		}
 
-		resultPost, err = s.postRepo.Create(ctx, userID, req.CategoryID, req.Title, req.Content, req.ReadPermission, post.StatusDraft)
+		resultPost, err = s.postRepo.Create(ctx, userID, req.CategoryID, req.Title, req.Content, readPermission, req.ReadPermissionPoints, post.StatusDraft)
 		if err != nil {
 			s.logger.Error("保存草稿失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 			return nil, err
@@ -199,22 +217,23 @@ func (s *PostService) SaveDraft(ctx context.Context, userID int, req schema.User
 
 	// Build response data | 构建响应数据
 	result := &schema.UserPostCreateResponse{
-		ID:             resultPost.ID,
-		CategoryID:     resultPost.CategoryID,
-		CategoryName:   categoryData.Name,
-		Title:          resultPost.Title,
-		Content:        resultPost.Content,
-		Username:       userData.Username,
-		ReadPermission: resultPost.ReadPermission,
-		ViewCount:      resultPost.ViewCount,
-		LikeCount:      resultPost.LikeCount,
-		DislikeCount:   resultPost.DislikeCount,
-		FavoriteCount:  resultPost.FavoriteCount,
-		IsEssence:      resultPost.IsEssence,
-		IsPinned:       resultPost.IsPinned,
-		Status:         string(resultPost.Status),
-		CreatedAt:      resultPost.CreatedAt.Format(time_tools.DateTimeFormat),
-		UpdatedAt:      resultPost.UpdatedAt.Format(time_tools.DateTimeFormat),
+		ID:                   resultPost.ID,
+		CategoryID:           resultPost.CategoryID,
+		CategoryName:         categoryData.Name,
+		Title:                resultPost.Title,
+		Content:              resultPost.Content,
+		Username:             userData.Username,
+		ReadPermissionType:   string(resultPost.ReadPermission),
+		ReadPermissionPoints: resultPost.ReadPermissionPoints,
+		ViewCount:            resultPost.ViewCount,
+		LikeCount:            resultPost.LikeCount,
+		DislikeCount:         resultPost.DislikeCount,
+		FavoriteCount:        resultPost.FavoriteCount,
+		IsEssence:            resultPost.IsEssence,
+		IsPinned:             resultPost.IsPinned,
+		Status:               string(resultPost.Status),
+		CreatedAt:            resultPost.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:            resultPost.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	s.logger.Info("草稿保存成功", zap.Int("post_id", resultPost.ID), tracing.WithTraceIDField(ctx))
@@ -240,6 +259,12 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int, req schema.Use
 		return nil, errors.New("您不是该帖子的作者")
 	}
 
+	// Check post status (Locked and Ban posts cannot be edited) | 检查帖子状态（锁定和封禁的帖子不允许编辑）
+	if postData.Status == post.StatusLocked || postData.Status == post.StatusBan {
+		s.logger.Warn("帖子状态不允许编辑", zap.Int("post_id", req.ID), zap.String("status", string(postData.Status)), tracing.WithTraceIDField(ctx))
+		return nil, errors.New("该帖子已被锁定或封禁，无法编辑")
+	}
+
 	canEdit, err := s.CheckEditPermission(ctx, userID, req.ID)
 	if err != nil {
 		return nil, err
@@ -254,10 +279,14 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int, req schema.Use
 		return nil, err
 	}
 
+	// Convert read permission type to enum | 转换阅读权限类型为枚举
+	readPermission := s.parseReadPermissionType(req.ReadPermissionType)
+
 	updatedPost, err := s.postRepo.Update(ctx, req.ID, func(u *ent.PostUpdateOne) *ent.PostUpdateOne {
 		return u.SetTitle(req.Title).
 			SetContent(req.Content).
-			SetReadPermission(req.ReadPermission)
+			SetReadPermission(readPermission).
+			SetReadPermissionPoints(req.ReadPermissionPoints)
 	})
 	if err != nil {
 		s.logger.Error("更新帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
@@ -272,22 +301,23 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int, req schema.Use
 
 	// Build response data | 构建响应数据
 	result := &schema.UserPostUpdateResponse{
-		ID:             updatedPost.ID,
-		CategoryID:     updatedPost.CategoryID,
-		CategoryName:   categoryName,
-		Title:          updatedPost.Title,
-		Content:        updatedPost.Content,
-		Username:       userData.Username,
-		ReadPermission: updatedPost.ReadPermission,
-		ViewCount:      updatedPost.ViewCount,
-		LikeCount:      updatedPost.LikeCount,
-		DislikeCount:   updatedPost.DislikeCount,
-		FavoriteCount:  updatedPost.FavoriteCount,
-		IsEssence:      updatedPost.IsEssence,
-		IsPinned:       updatedPost.IsPinned,
-		Status:         string(updatedPost.Status),
-		CreatedAt:      updatedPost.CreatedAt.Format(time_tools.DateTimeFormat),
-		UpdatedAt:      updatedPost.UpdatedAt.Format(time_tools.DateTimeFormat),
+		ID:                   updatedPost.ID,
+		CategoryID:           updatedPost.CategoryID,
+		CategoryName:         categoryName,
+		Title:                updatedPost.Title,
+		Content:              updatedPost.Content,
+		Username:             userData.Username,
+		ReadPermissionType:   string(updatedPost.ReadPermission),
+		ReadPermissionPoints: updatedPost.ReadPermissionPoints,
+		ViewCount:            updatedPost.ViewCount,
+		LikeCount:            updatedPost.LikeCount,
+		DislikeCount:         updatedPost.DislikeCount,
+		FavoriteCount:        updatedPost.FavoriteCount,
+		IsEssence:            updatedPost.IsEssence,
+		IsPinned:             updatedPost.IsPinned,
+		Status:               string(updatedPost.Status),
+		CreatedAt:            updatedPost.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:            updatedPost.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	s.logger.Info("帖子更新成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
@@ -485,7 +515,7 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 		pinnedPosts, _, pinnedErr = s.postRepo.List(ctx, repository.ListPostOptions{
 			CategoryID: categoryID,
 			Keyword:    req.Keyword,
-			Status:     post.StatusNormal,
+			Statuses:   []post.Status{post.StatusNormal, post.StatusLocked},
 			PinScopes:  pinScopes,
 			SortBy:     "latest",
 		})
@@ -499,7 +529,7 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 	posts, total, err := s.postRepo.List(ctx, repository.ListPostOptions{
 		CategoryID:    categoryID,
 		Keyword:       req.Keyword,
-		Status:        post.StatusNormal,
+		Statuses:      []post.Status{post.StatusNormal, post.StatusLocked},
 		SortBy:        req.Sort,
 		Page:          req.Page,
 		PageSize:      req.PageSize,
@@ -626,26 +656,27 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 		}
 
 		return schema.UserPostCreateResponse{
-			ID:             p.ID,
-			CategoryID:     p.CategoryID,
-			CategoryName:   categoryName,
-			Title:          p.Title,
-			Content:        p.Content,
-			UserID:         userInfo.ID,
-			Username:       userInfo.Username,
-			Avatar:         userInfo.Avatar,
-			ReadPermission: p.ReadPermission,
-			ViewCount:      viewCount,
-			LikeCount:      likeCount,
-			DislikeCount:   dislikeCount,
-			FavoriteCount:  favoriteCount,
-			UserLiked:      userLiked,
-			UserDisliked:   userDisliked,
-			IsEssence:      p.IsEssence,
-			IsPinned:       p.IsPinned,
-			Status:         string(p.Status),
-			CreatedAt:      p.CreatedAt.Format(time_tools.DateTimeFormat),
-			UpdatedAt:      p.UpdatedAt.Format(time_tools.DateTimeFormat),
+			ID:                   p.ID,
+			CategoryID:           p.CategoryID,
+			CategoryName:         categoryName,
+			Title:                p.Title,
+			Content:              "[内容已隐藏]", // Hide content in list | 列表中隐藏内容
+			UserID:               userInfo.ID,
+			Username:             userInfo.Username,
+			Avatar:               userInfo.Avatar,
+			ReadPermissionType:   string(p.ReadPermission),
+			ReadPermissionPoints: p.ReadPermissionPoints,
+			ViewCount:            viewCount,
+			LikeCount:            likeCount,
+			DislikeCount:         dislikeCount,
+			FavoriteCount:        favoriteCount,
+			UserLiked:            userLiked,
+			UserDisliked:         userDisliked,
+			IsEssence:            p.IsEssence,
+			IsPinned:             p.IsPinned,
+			Status:               string(p.Status),
+			CreatedAt:            p.CreatedAt.Format(time_tools.DateTimeFormat),
+			UpdatedAt:            p.UpdatedAt.Format(time_tools.DateTimeFormat),
 		}
 	}
 
@@ -683,6 +714,27 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 		return nil, err
 	}
 
+	// Get current user ID, 0 if not logged in | 获取当前用户ID，如果未登录则为0
+	currentUserID := tracing.GetUserID(ctx)
+
+	// Check if current user is the author | 检查当前用户是否为作者
+	isAuthor := currentUserID > 0 && postData.UserID == currentUserID
+
+	// Check post status (only allow Normal and Locked for non-authors) | 检查帖子状态（非作者只允许Normal和Locked）
+	if !isAuthor && postData.Status != post.StatusNormal && postData.Status != post.StatusLocked {
+		s.logger.Warn("帖子状态不允许访问", zap.Int("post_id", req.ID), zap.String("status", string(postData.Status)), tracing.WithTraceIDField(ctx))
+		return nil, errors.New("帖子不存在或已删除")
+	}
+
+	// Check read permission (skip for author viewing own post) | 检查阅读权限（作者查看自己的帖子时跳过）
+	if !isAuthor {
+		hasPermission, reason := s.checkReadPermission(ctx, postData.ReadPermission, postData.ReadPermissionPoints, currentUserID)
+		if !hasPermission {
+			s.logger.Warn("用户无阅读权限", zap.Int("post_id", req.ID), zap.Int("user_id", currentUserID), zap.String("reason", reason), tracing.WithTraceIDField(ctx))
+			return nil, &NoPermissionError{Reason: reason}
+		}
+	}
+
 	// Update view count (use stats service to reduce database pressure) | 更新浏览数(使用统计服务,减少数据库压力)
 	if err = s.postStatsService.IncrViewCount(ctx, req.ID); err != nil {
 		s.logger.Warn("增加帖子浏览数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
@@ -716,9 +768,6 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 		categoryName = categoryData.Name
 	}
 
-	// Get current user ID, 0 if not logged in | 获取当前用户ID，如果未登录则为0
-	currentUserID := tracing.GetUserID(ctx)
-
 	userLiked := false
 	userDisliked := false
 	userFavorite := false
@@ -741,27 +790,28 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 	}
 
 	result := &schema.UserPostDetailResponse{
-		ID:             postData.ID,
-		CategoryID:     postData.CategoryID,
-		CategoryName:   categoryName,
-		Title:          postData.Title,
-		Content:        postData.Content,
-		UserID:         postData.UserID,
-		Username:       username,
-		Avatar:         author.Avatar,
-		ReadPermission: postData.ReadPermission,
-		ViewCount:      viewCount,
-		LikeCount:      likeCount,
-		DislikeCount:   dislikeCount,
-		FavoriteCount:  favoriteCount,
-		UserLiked:      userLiked,
-		UserDisliked:   userDisliked,
-		UserFavorited:  userFavorite,
-		IsEssence:      postData.IsEssence,
-		IsPinned:       postData.IsPinned,
-		Status:         string(postData.Status),
-		CreatedAt:      postData.CreatedAt.Format(time_tools.DateTimeFormat),
-		UpdatedAt:      postData.UpdatedAt.Format(time_tools.DateTimeFormat),
+		ID:                   postData.ID,
+		CategoryID:           postData.CategoryID,
+		CategoryName:         categoryName,
+		Title:                postData.Title,
+		Content:              postData.Content,
+		UserID:               postData.UserID,
+		Username:             username,
+		Avatar:               author.Avatar,
+		ReadPermissionType:   string(postData.ReadPermission),
+		ReadPermissionPoints: postData.ReadPermissionPoints,
+		ViewCount:            viewCount,
+		LikeCount:            likeCount,
+		DislikeCount:         dislikeCount,
+		FavoriteCount:        favoriteCount,
+		UserLiked:            userLiked,
+		UserDisliked:         userDisliked,
+		UserFavorited:        userFavorite,
+		IsEssence:            postData.IsEssence,
+		IsPinned:             postData.IsPinned,
+		Status:               string(postData.Status),
+		CreatedAt:            postData.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:            postData.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	s.logger.Info("获取帖子详情成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
@@ -823,22 +873,23 @@ func (s *PostService) GetDraftList(ctx context.Context, userID int, req schema.U
 		categoryName := categoryMap[p.CategoryID]
 
 		result[i] = schema.UserPostCreateResponse{
-			ID:             p.ID,
-			CategoryID:     p.CategoryID,
-			CategoryName:   categoryName,
-			Title:          p.Title,
-			Content:        p.Content,
-			Username:       userData.Username,
-			ReadPermission: p.ReadPermission,
-			ViewCount:      p.ViewCount,
-			LikeCount:      p.LikeCount,
-			DislikeCount:   p.DislikeCount,
-			FavoriteCount:  p.FavoriteCount,
-			IsEssence:      p.IsEssence,
-			IsPinned:       p.IsPinned,
-			Status:         string(p.Status),
-			CreatedAt:      p.CreatedAt.Format(time_tools.DateTimeFormat),
-			UpdatedAt:      p.UpdatedAt.Format(time_tools.DateTimeFormat),
+			ID:                   p.ID,
+			CategoryID:           p.CategoryID,
+			CategoryName:         categoryName,
+			Title:                p.Title,
+			Content:              p.Content,
+			Username:             userData.Username,
+			ReadPermissionType:   string(p.ReadPermission),
+			ReadPermissionPoints: p.ReadPermissionPoints,
+			ViewCount:            p.ViewCount,
+			LikeCount:            p.LikeCount,
+			DislikeCount:         p.DislikeCount,
+			FavoriteCount:        p.FavoriteCount,
+			IsEssence:            p.IsEssence,
+			IsPinned:             p.IsPinned,
+			Status:               string(p.Status),
+			CreatedAt:            p.CreatedAt.Format(time_tools.DateTimeFormat),
+			UpdatedAt:            p.UpdatedAt.Format(time_tools.DateTimeFormat),
 		}
 	}
 
@@ -987,5 +1038,57 @@ func (s *PostService) checkUserStatus(ctx context.Context, userID int) error {
 		return errors.New("您的账号已被封禁，无法进行此操作")
 	default:
 		return errors.New("账号状态异常，无法进行此操作")
+	}
+}
+
+// checkReadPermission Check if user has permission to read the post | 检查用户是否有阅读权限
+// Returns (hasPermission, reason) | 返回 (是否有权限, 原因)
+func (s *PostService) checkReadPermission(ctx context.Context, readPermission post.ReadPermission, readPermissionPoints int, currentUserID int) (bool, string) {
+	// "public" means public access | "public"表示公开访问
+	if readPermission == post.ReadPermissionPublic {
+		return true, ""
+	}
+
+	// "login_required" means login is required | "login_required"表示需要登录
+	if readPermission == post.ReadPermissionLoginRequired {
+		if currentUserID <= 0 {
+			return false, "该帖子需要登录后查看"
+		}
+		return true, ""
+	}
+
+	// "points_required" means points greater than threshold is required | "points_required"表示需要积分大于阈值
+	if readPermission == post.ReadPermissionPointsRequired {
+		if currentUserID <= 0 {
+			return false, "该帖子需要登录并满足积分要求后查看"
+		}
+
+		// Get user points | 获取用户积分
+		userData, err := s.userRepo.GetByID(ctx, currentUserID)
+		if err != nil {
+			s.logger.Error("获取用户信息失败，拒绝访问", zap.Error(err), tracing.WithTraceIDField(ctx))
+			return false, "获取用户信息失败，无法验证阅读权限"
+		}
+
+		if userData.Points < readPermissionPoints {
+			return false, fmt.Sprintf("该帖子需要积分达到 %d 才能查看，您当前积分为 %d", readPermissionPoints, userData.Points)
+		}
+		return true, ""
+	}
+
+	// Unknown permission type, deny access and log error | 未知权限类型，拒绝访问并记录错误
+	s.logger.Error("未知的阅读权限类型，拒绝访问", zap.String("read_permission", string(readPermission)), tracing.WithTraceIDField(ctx))
+	return false, "阅读权限配置异常，暂时无法访问"
+}
+
+// parseReadPermissionType Parse read permission type from string to enum | 从字符串解析阅读权限类型为枚举
+func (s *PostService) parseReadPermissionType(permissionType string) post.ReadPermission {
+	switch permissionType {
+	case "login_required":
+		return post.ReadPermissionLoginRequired
+	case "points":
+		return post.ReadPermissionPointsRequired
+	default:
+		return post.ReadPermissionPublic
 	}
 }

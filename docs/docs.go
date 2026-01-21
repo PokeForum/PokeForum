@@ -4319,7 +4319,7 @@ const docTemplate = `{
         },
         "/posts": {
             "get": {
-                "description": "Get post list with pagination and sorting support. Supports filtering by category (via ID or slug) and keyword search on title. Pinned posts are returned separately in pinned_posts field | 获取帖子列表,支持分页和排序。支持通过版块ID或slug筛选,以及标题关键词搜索。置顶帖子单独返回在pinned_posts字段中",
+                "description": "Get post list with pagination and sorting support. Only returns posts with Normal or Locked status. Content is hidden in list view. Supports filtering by category (via ID or slug) and keyword search on title. Pinned posts are returned separately in pinned_posts field | 获取帖子列表,支持分页和排序。只返回正常或锁定状态的帖子。列表中内容已隐藏。支持通过版块ID或slug筛选,以及标题关键词搜索。置顶帖子单独返回在pinned_posts字段中",
                 "consumes": [
                     "application/json"
                 ],
@@ -4405,7 +4405,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "User edits their own post (can be operated once every three minutes) | 用户编辑自己的帖子(每三分钟可操作一次)",
+                "description": "User edits their own post (can be operated once every three minutes). Locked and banned posts cannot be edited | 用户编辑自己的帖子(每三分钟可操作一次)。锁定和封禁的帖子不允许编辑",
                 "consumes": [
                     "application/json"
                 ],
@@ -5004,7 +5004,7 @@ const docTemplate = `{
         },
         "/posts/{id}": {
             "get": {
-                "description": "Get detailed information of the specified post and increment view count | 获取指定帖子的详细信息,并增加浏览数",
+                "description": "Get detailed information of the specified post and increment view count. Authors can view their own posts regardless of status. Other users can only view Normal/Locked posts. Access depends on read_permission: public (anyone), login_required (logged-in users), points:x (users with points \u003e= x) | 获取指定帖子的详细信息,并增加浏览数。作者可以查看自己的所有状态帖子。其他用户只能查看正常/锁定状态的帖子。访问权限取决于read_permission：public（任何人）、login_required（登录用户）、points:x（积分\u003e=x的用户）",
                 "consumes": [
                     "application/json"
                 ],
@@ -5045,6 +5045,12 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "No read permission | 无阅读权限",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -10592,10 +10598,21 @@ const docTemplate = `{
                     "type": "string",
                     "example": "192.168.1.1"
                 },
-                "read_permission": {
-                    "description": "Read permission | 阅读限制",
+                "read_permission_points": {
+                    "description": "Read permission points | 阅读所需积分",
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 0
+                },
+                "read_permission_type": {
+                    "description": "Read permission type | 阅读权限类型",
                     "type": "string",
-                    "example": "login"
+                    "enum": [
+                        "public",
+                        "login_required",
+                        "points"
+                    ],
+                    "example": "public"
                 },
                 "status": {
                     "description": "Post status | 帖子状态",
@@ -10686,10 +10703,15 @@ const docTemplate = `{
                     "type": "string",
                     "example": "192.168.1.1"
                 },
-                "read_permission": {
-                    "description": "Read permission | 阅读限制",
+                "read_permission_points": {
+                    "description": "Read permission points | 阅读所需积分",
+                    "type": "integer",
+                    "example": 0
+                },
+                "read_permission_type": {
+                    "description": "Read permission type | 阅读权限类型",
                     "type": "string",
-                    "example": "login"
+                    "example": "public"
                 },
                 "status": {
                     "description": "Post status | 帖子状态",
@@ -11102,10 +11124,21 @@ const docTemplate = `{
                     "type": "integer",
                     "example": 1
                 },
-                "read_permission": {
-                    "description": "Read permission | 阅读限制",
+                "read_permission_points": {
+                    "description": "Read permission points | 阅读所需积分",
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 0
+                },
+                "read_permission_type": {
+                    "description": "Read permission type | 阅读权限类型",
                     "type": "string",
-                    "example": "login"
+                    "enum": [
+                        "public",
+                        "login_required",
+                        "points"
+                    ],
+                    "example": "public"
                 },
                 "status": {
                     "description": "Post status | 帖子状态",
@@ -13069,9 +13102,19 @@ const docTemplate = `{
                     "description": "Post ID (optional, for updating draft) | 帖子ID（可选，用于更新草稿）",
                     "type": "integer"
                 },
-                "read_permission": {
-                    "description": "Read permission | 阅读限制",
-                    "type": "string"
+                "read_permission_points": {
+                    "description": "Read permission points (required when type is points) | 阅读所需积分（当类型为points时必填）",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "read_permission_type": {
+                    "description": "Read permission type: public, login_required, points | 阅读权限类型：public(公开)、login_required(登录可见)、points(积分可见)",
+                    "type": "string",
+                    "enum": [
+                        "public",
+                        "login_required",
+                        "points"
+                    ]
                 },
                 "title": {
                     "description": "Post title | 帖子标题",
@@ -13128,8 +13171,12 @@ const docTemplate = `{
                     "description": "Like count | 点赞数",
                     "type": "integer"
                 },
-                "read_permission": {
-                    "description": "Read permission | 阅读限制",
+                "read_permission_points": {
+                    "description": "Read permission points (when type is points) | 阅读所需积分",
+                    "type": "integer"
+                },
+                "read_permission_type": {
+                    "description": "Read permission type: public, login_required, points | 阅读权限类型",
                     "type": "string"
                 },
                 "status": {
@@ -13217,8 +13264,12 @@ const docTemplate = `{
                     "description": "Like count | 点赞数",
                     "type": "integer"
                 },
-                "read_permission": {
-                    "description": "Read permission | 阅读限制",
+                "read_permission_points": {
+                    "description": "Read permission points (when type is points) | 阅读所需积分",
+                    "type": "integer"
+                },
+                "read_permission_type": {
+                    "description": "Read permission type: public, login_required, points | 阅读权限类型",
                     "type": "string"
                 },
                 "status": {
@@ -13311,9 +13362,19 @@ const docTemplate = `{
                     "description": "Post ID | 帖子ID",
                     "type": "integer"
                 },
-                "read_permission": {
-                    "description": "Read permission | 阅读限制",
-                    "type": "string"
+                "read_permission_points": {
+                    "description": "Read permission points (required when type is points) | 阅读所需积分（当类型为points时必填）",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "read_permission_type": {
+                    "description": "Read permission type: public, login_required, points | 阅读权限类型：public(公开)、login_required(登录可见)、points(积分可见)",
+                    "type": "string",
+                    "enum": [
+                        "public",
+                        "login_required",
+                        "points"
+                    ]
                 },
                 "title": {
                     "description": "Post title | 帖子标题",
@@ -13370,8 +13431,12 @@ const docTemplate = `{
                     "description": "Like count | 点赞数",
                     "type": "integer"
                 },
-                "read_permission": {
-                    "description": "Read permission | 阅读限制",
+                "read_permission_points": {
+                    "description": "Read permission points (when type is points) | 阅读所需积分",
+                    "type": "integer"
+                },
+                "read_permission_type": {
+                    "description": "Read permission type: public, login_required, points | 阅读权限类型",
                     "type": "string"
                 },
                 "status": {

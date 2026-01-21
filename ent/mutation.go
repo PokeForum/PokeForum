@@ -6127,36 +6127,38 @@ func (m *OAuthProviderMutation) ResetEdge(name string) error {
 // PostMutation represents an operation that mutates the Post nodes in the graph.
 type PostMutation struct {
 	config
-	op                Op
-	typ               string
-	id                *int
-	created_at        *time.Time
-	updated_at        *time.Time
-	user_id           *int
-	adduser_id        *int
-	category_id       *int
-	addcategory_id    *int
-	title             *string
-	content           *string
-	read_permission   *string
-	view_count        *int
-	addview_count     *int
-	like_count        *int
-	addlike_count     *int
-	dislike_count     *int
-	adddislike_count  *int
-	favorite_count    *int
-	addfavorite_count *int
-	is_essence        *bool
-	is_pinned         *bool
-	pin_scope         *post.PinScope
-	publish_ip        *string
-	status            *post.Status
-	last_edited_at    *time.Time
-	clearedFields     map[string]struct{}
-	done              bool
-	oldValue          func(context.Context) (*Post, error)
-	predicates        []predicate.Post
+	op                        Op
+	typ                       string
+	id                        *int
+	created_at                *time.Time
+	updated_at                *time.Time
+	user_id                   *int
+	adduser_id                *int
+	category_id               *int
+	addcategory_id            *int
+	title                     *string
+	content                   *string
+	read_permission           *post.ReadPermission
+	read_permission_points    *int
+	addread_permission_points *int
+	view_count                *int
+	addview_count             *int
+	like_count                *int
+	addlike_count             *int
+	dislike_count             *int
+	adddislike_count          *int
+	favorite_count            *int
+	addfavorite_count         *int
+	is_essence                *bool
+	is_pinned                 *bool
+	pin_scope                 *post.PinScope
+	publish_ip                *string
+	status                    *post.Status
+	last_edited_at            *time.Time
+	clearedFields             map[string]struct{}
+	done                      bool
+	oldValue                  func(context.Context) (*Post, error)
+	predicates                []predicate.Post
 }
 
 var _ ent.Mutation = (*PostMutation)(nil)
@@ -6514,12 +6516,12 @@ func (m *PostMutation) ResetContent() {
 }
 
 // SetReadPermission sets the "read_permission" field.
-func (m *PostMutation) SetReadPermission(s string) {
-	m.read_permission = &s
+func (m *PostMutation) SetReadPermission(pp post.ReadPermission) {
+	m.read_permission = &pp
 }
 
 // ReadPermission returns the value of the "read_permission" field in the mutation.
-func (m *PostMutation) ReadPermission() (r string, exists bool) {
+func (m *PostMutation) ReadPermission() (r post.ReadPermission, exists bool) {
 	v := m.read_permission
 	if v == nil {
 		return
@@ -6530,7 +6532,7 @@ func (m *PostMutation) ReadPermission() (r string, exists bool) {
 // OldReadPermission returns the old "read_permission" field's value of the Post entity.
 // If the Post object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PostMutation) OldReadPermission(ctx context.Context) (v string, err error) {
+func (m *PostMutation) OldReadPermission(ctx context.Context) (v post.ReadPermission, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldReadPermission is only allowed on UpdateOne operations")
 	}
@@ -6544,22 +6546,65 @@ func (m *PostMutation) OldReadPermission(ctx context.Context) (v string, err err
 	return oldValue.ReadPermission, nil
 }
 
-// ClearReadPermission clears the value of the "read_permission" field.
-func (m *PostMutation) ClearReadPermission() {
-	m.read_permission = nil
-	m.clearedFields[post.FieldReadPermission] = struct{}{}
-}
-
-// ReadPermissionCleared returns if the "read_permission" field was cleared in this mutation.
-func (m *PostMutation) ReadPermissionCleared() bool {
-	_, ok := m.clearedFields[post.FieldReadPermission]
-	return ok
-}
-
 // ResetReadPermission resets all changes to the "read_permission" field.
 func (m *PostMutation) ResetReadPermission() {
 	m.read_permission = nil
-	delete(m.clearedFields, post.FieldReadPermission)
+}
+
+// SetReadPermissionPoints sets the "read_permission_points" field.
+func (m *PostMutation) SetReadPermissionPoints(i int) {
+	m.read_permission_points = &i
+	m.addread_permission_points = nil
+}
+
+// ReadPermissionPoints returns the value of the "read_permission_points" field in the mutation.
+func (m *PostMutation) ReadPermissionPoints() (r int, exists bool) {
+	v := m.read_permission_points
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldReadPermissionPoints returns the old "read_permission_points" field's value of the Post entity.
+// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *PostMutation) OldReadPermissionPoints(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldReadPermissionPoints is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldReadPermissionPoints requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldReadPermissionPoints: %w", err)
+	}
+	return oldValue.ReadPermissionPoints, nil
+}
+
+// AddReadPermissionPoints adds i to the "read_permission_points" field.
+func (m *PostMutation) AddReadPermissionPoints(i int) {
+	if m.addread_permission_points != nil {
+		*m.addread_permission_points += i
+	} else {
+		m.addread_permission_points = &i
+	}
+}
+
+// AddedReadPermissionPoints returns the value that was added to the "read_permission_points" field in this mutation.
+func (m *PostMutation) AddedReadPermissionPoints() (r int, exists bool) {
+	v := m.addread_permission_points
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetReadPermissionPoints resets all changes to the "read_permission_points" field.
+func (m *PostMutation) ResetReadPermissionPoints() {
+	m.read_permission_points = nil
+	m.addread_permission_points = nil
 }
 
 // SetViewCount sets the "view_count" field.
@@ -7062,7 +7107,7 @@ func (m *PostMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *PostMutation) Fields() []string {
-	fields := make([]string, 0, 17)
+	fields := make([]string, 0, 18)
 	if m.created_at != nil {
 		fields = append(fields, post.FieldCreatedAt)
 	}
@@ -7083,6 +7128,9 @@ func (m *PostMutation) Fields() []string {
 	}
 	if m.read_permission != nil {
 		fields = append(fields, post.FieldReadPermission)
+	}
+	if m.read_permission_points != nil {
+		fields = append(fields, post.FieldReadPermissionPoints)
 	}
 	if m.view_count != nil {
 		fields = append(fields, post.FieldViewCount)
@@ -7136,6 +7184,8 @@ func (m *PostMutation) Field(name string) (ent.Value, bool) {
 		return m.Content()
 	case post.FieldReadPermission:
 		return m.ReadPermission()
+	case post.FieldReadPermissionPoints:
+		return m.ReadPermissionPoints()
 	case post.FieldViewCount:
 		return m.ViewCount()
 	case post.FieldLikeCount:
@@ -7179,6 +7229,8 @@ func (m *PostMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldContent(ctx)
 	case post.FieldReadPermission:
 		return m.OldReadPermission(ctx)
+	case post.FieldReadPermissionPoints:
+		return m.OldReadPermissionPoints(ctx)
 	case post.FieldViewCount:
 		return m.OldViewCount(ctx)
 	case post.FieldLikeCount:
@@ -7251,11 +7303,18 @@ func (m *PostMutation) SetField(name string, value ent.Value) error {
 		m.SetContent(v)
 		return nil
 	case post.FieldReadPermission:
-		v, ok := value.(string)
+		v, ok := value.(post.ReadPermission)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetReadPermission(v)
+		return nil
+	case post.FieldReadPermissionPoints:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetReadPermissionPoints(v)
 		return nil
 	case post.FieldViewCount:
 		v, ok := value.(int)
@@ -7341,6 +7400,9 @@ func (m *PostMutation) AddedFields() []string {
 	if m.addcategory_id != nil {
 		fields = append(fields, post.FieldCategoryID)
 	}
+	if m.addread_permission_points != nil {
+		fields = append(fields, post.FieldReadPermissionPoints)
+	}
 	if m.addview_count != nil {
 		fields = append(fields, post.FieldViewCount)
 	}
@@ -7365,6 +7427,8 @@ func (m *PostMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedUserID()
 	case post.FieldCategoryID:
 		return m.AddedCategoryID()
+	case post.FieldReadPermissionPoints:
+		return m.AddedReadPermissionPoints()
 	case post.FieldViewCount:
 		return m.AddedViewCount()
 	case post.FieldLikeCount:
@@ -7395,6 +7459,13 @@ func (m *PostMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddCategoryID(v)
+		return nil
+	case post.FieldReadPermissionPoints:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddReadPermissionPoints(v)
 		return nil
 	case post.FieldViewCount:
 		v, ok := value.(int)
@@ -7432,9 +7503,6 @@ func (m *PostMutation) AddField(name string, value ent.Value) error {
 // mutation.
 func (m *PostMutation) ClearedFields() []string {
 	var fields []string
-	if m.FieldCleared(post.FieldReadPermission) {
-		fields = append(fields, post.FieldReadPermission)
-	}
 	if m.FieldCleared(post.FieldPublishIP) {
 		fields = append(fields, post.FieldPublishIP)
 	}
@@ -7455,9 +7523,6 @@ func (m *PostMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *PostMutation) ClearField(name string) error {
 	switch name {
-	case post.FieldReadPermission:
-		m.ClearReadPermission()
-		return nil
 	case post.FieldPublishIP:
 		m.ClearPublishIP()
 		return nil
@@ -7492,6 +7557,9 @@ func (m *PostMutation) ResetField(name string) error {
 		return nil
 	case post.FieldReadPermission:
 		m.ResetReadPermission()
+		return nil
+	case post.FieldReadPermissionPoints:
+		m.ResetReadPermissionPoints()
 		return nil
 	case post.FieldViewCount:
 		m.ResetViewCount()

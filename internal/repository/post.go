@@ -11,7 +11,7 @@ import (
 // IPostRepository Post repository interface | 帖子仓储接口
 type IPostRepository interface {
 	// Create Create post | 创建帖子
-	Create(ctx context.Context, userID, categoryID int, title, content string, readPermission string, status post.Status) (*ent.Post, error)
+	Create(ctx context.Context, userID, categoryID int, title, content string, readPermission post.ReadPermission, readPermissionPoints int, status post.Status) (*ent.Post, error)
 	// GetByID Get post by ID | 根据ID获取帖子
 	GetByID(ctx context.Context, id int) (*ent.Post, error)
 	// GetByIDWithStatus Get post by ID with status filter | 根据ID和状态获取帖子
@@ -52,6 +52,7 @@ type ListPostOptions struct {
 	Slug          string          // Category slug filter | 版块slug筛选
 	Keyword       string          // Keyword for title search | 标题关键词搜索
 	Status        post.Status     // Status filter | 状态筛选
+	Statuses      []post.Status   // Multiple status filter | 多状态筛选
 	SortBy        string          // Sort field: latest, hot, essence | 排序字段
 	Page          int             // Page number | 页码
 	PageSize      int             // Page size | 每页数量
@@ -70,13 +71,14 @@ func NewPostRepository(db *ent.Client) IPostRepository {
 }
 
 // Create Create post | 创建帖子
-func (r *PostRepository) Create(ctx context.Context, userID, categoryID int, title, content string, readPermission string, status post.Status) (*ent.Post, error) {
+func (r *PostRepository) Create(ctx context.Context, userID, categoryID int, title, content string, readPermission post.ReadPermission, readPermissionPoints int, status post.Status) (*ent.Post, error) {
 	p, err := r.db.Post.Create().
 		SetUserID(userID).
 		SetCategoryID(categoryID).
 		SetTitle(title).
 		SetContent(content).
 		SetReadPermission(readPermission).
+		SetReadPermissionPoints(readPermissionPoints).
 		SetStatus(status).
 		Save(ctx)
 	if err != nil {
@@ -150,7 +152,9 @@ func (r *PostRepository) List(ctx context.Context, opts ListPostOptions) ([]*ent
 	}
 
 	// Apply status filter | 应用状态筛选
-	if opts.Status != "" {
+	if len(opts.Statuses) > 0 {
+		query = query.Where(post.StatusIn(opts.Statuses...))
+	} else if opts.Status != "" {
 		query = query.Where(post.StatusEQ(opts.Status))
 	}
 
@@ -233,7 +237,9 @@ func (r *PostRepository) GetByUserID(ctx context.Context, userID int, opts ListP
 	query := r.db.Post.Query().Where(post.UserIDEQ(userID))
 
 	// Apply status filter | 应用状态筛选
-	if opts.Status != "" {
+	if len(opts.Statuses) > 0 {
+		query = query.Where(post.StatusIn(opts.Statuses...))
+	} else if opts.Status != "" {
 		query = query.Where(post.StatusEQ(opts.Status))
 	}
 
