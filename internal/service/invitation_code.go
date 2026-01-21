@@ -163,10 +163,13 @@ func (s *InvitationCodeService) GenerateCode(ctx context.Context, userID int, us
 	cost := settings.Cost
 	if mode == generationModePoints || mode == generationModeCurrency {
 		if cost > 0 {
-			if err := s.deductCost(ctx, userID, mode, cost); err != nil {
+			if err = s.deductCost(ctx, userID, mode, cost); err != nil {
 				return nil, err
 			}
 		}
+	} else {
+		// The direct generation mode does not require billing. | 直接生成模式不需要计费
+		cost = 0
 	}
 
 	// Generate code | 生成邀请码

@@ -2,11 +2,11 @@ package schema
 
 // InvitationCodeListRequest Invitation code list query request | 邀请码列表查询请求体
 type InvitationCodeListRequest struct {
-	Page     int    `form:"page" binding:"required,min=1" example:"1"`               // Page number | 页码
-	PageSize int    `form:"page_size" binding:"required,min=1,max=100" example:"20"` // Items per page | 每页数量
-	Keyword  string `form:"keyword" example:"abc123"`                                // Search keyword (invitation code) | 搜索关键词（邀请码）
-	Status   string `form:"status" example:"unused"`                                 // Status filter: unused, used, expired, disabled | 状态筛选
-	Mode     string `form:"mode" example:"direct"`                                   // Generation mode filter | 生成方式筛选
+	Page     int    `form:"page" binding:"min=1" example:"1"`               // Page number, default 1 | 页码，默认1
+	PageSize int    `form:"page_size" binding:"min=1,max=100" example:"20"` // Items per page, default 20 | 每页数量，默认20
+	Keyword  string `form:"keyword" example:"abc123"`                       // Search keyword (invitation code) | 搜索关键词（邀请码）
+	Status   string `form:"status" example:"unused"`                        // Status filter: unused, used, expired, disabled | 状态筛选
+	Mode     string `form:"mode" example:"direct"`                          // Generation mode filter | 生成方式筛选
 }
 
 // InvitationCodeCreateRequest Create invitation code request (admin) | 创建邀请码请求体（管理员）

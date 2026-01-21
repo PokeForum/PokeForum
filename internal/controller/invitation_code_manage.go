@@ -66,6 +66,14 @@ func (ctrl *InvitationCodeManageController) GetInvitationCodeList(c *gin.Context
 		return
 	}
 
+	// Set default values | 设置默认值
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 20
+	}
+
 	codes, total, err := ctrl.invitationCodeManageService.GetInvitationCodeList(c.Request.Context(), req.Page, req.PageSize, req.Keyword, req.Status, req.Mode)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
