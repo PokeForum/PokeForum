@@ -1045,7 +1045,7 @@ func (s *PostService) checkUserStatus(ctx context.Context, userID int) error {
 // Returns (hasPermission, reason) | 返回 (是否有权限, 原因)
 func (s *PostService) checkReadPermission(ctx context.Context, readPermission post.ReadPermission, readPermissionPoints int, currentUserID int) (bool, string) {
 	// "public" means public access | "public"表示公开访问
-	if readPermission == post.ReadPermissionPublic {
+	if readPermission == post.ReadPermissionPublic || readPermission == "" {
 		return true, ""
 	}
 
