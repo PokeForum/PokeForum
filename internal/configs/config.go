@@ -1,7 +1,6 @@
 package configs
 
 import (
-	jsoniter "github.com/json-iterator/go"
 	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -29,6 +28,5 @@ var (
 	Log    *zap.Logger
 	DB     *ent.Client
 	Cache  *redis.Client
-	Json   jsoniter.API
 	VP     *viper.Viper
 )

@@ -31,7 +31,6 @@ import (
 	"syscall"
 	"time"
 
-	jsoniter "github.com/json-iterator/go"
 	"github.com/samber/do"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -66,9 +65,6 @@ func RunServer() {
 
 	// Initialize logger | 初始化日志
 	configs.Log = logging.Zap()
-
-	// Initialize JSON processor | 初始化 JSON 处理器
-	configs.Json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 	// No development plan for now
 	//// Create data directory | 创建数据目录
