@@ -327,7 +327,7 @@ func (s *SigninService) getSigninStatusFromDB(ctx context.Context, userID int64)
 	status, err := s.userSigninStatusRepo.GetByUserID(ctx, userID)
 
 	if err != nil {
-		if ent.IsNotFound(err) {
+		if errors.Is(err, repository.ErrSigninStatusNotFound) {
 			// 用户首次签到，返回默认状态
 			return &schema.SigninStatus{
 				IsTodaySigned:  false,

@@ -9,7 +9,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/usersigninstatus"
 )
 
-// ErrSigninStatusNotFound Sign-in status not found error | 签到状态不存在错误
+// ErrSigninStatusNotFound Signin status not found error | 签到状态不存在错误
 var ErrSigninStatusNotFound = errors.New("签到状态不存在")
 
 // IUserSigninStatusRepository User signin status repository interface | 用户签到状态仓储接口
