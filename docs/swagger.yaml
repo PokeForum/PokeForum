@@ -4382,7 +4382,6 @@ definitions:
         - Normal
         - Mute
         - Blocked
-        - RiskControl
         example: Normal
         type: string
     required:

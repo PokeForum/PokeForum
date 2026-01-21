@@ -13867,8 +13867,7 @@ const docTemplate = `{
                     "enum": [
                         "Normal",
                         "Mute",
-                        "Blocked",
-                        "RiskControl"
+                        "Blocked"
                     ],
                     "example": "Normal"
                 }

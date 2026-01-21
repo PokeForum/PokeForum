@@ -49,9 +49,9 @@ func (User) Fields() []ent.Field {
 		field.Int("currency").
 			Default(0).
 			NonNegative(),
-		// User status: Normal, Mute, Blocked, Risk control | 用户状态：Normal、Mute、Blocked、Risk control
+		// User status: Normal, Mute, Blocked, Risk control | 用户状态：Normal、Mute、Blocked
 		field.Enum("status").
-			Values("Normal", "Mute", "Blocked", "RiskControl").
+			Values("Normal", "Mute", "Blocked").
 			Default("Normal"),
 		// User role: User, Moderator, Admin, SuperAdmin | 用户身份：User、Moderator、Admin、SuperAdmin
 		field.Enum("role").

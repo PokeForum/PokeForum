@@ -32,10 +32,10 @@ type UserUpdateRequest struct {
 
 // UserStatusUpdateRequest Update user status request | 更新用户状态请求体
 type UserStatusUpdateRequest struct {
-	ID         int    `json:"id" binding:"required" example:"1"`                                                // User ID | 用户ID
-	Status     string `json:"status" binding:"required,oneof=Normal Mute Blocked RiskControl" example:"Normal"` // User status | 用户状态
-	Reason     string `json:"reason" example:"违反社区规则"`                                                          // Operation reason | 操作原因
-	OperatorID int    `json:"-"`                                                                                // Operator ID (internal use) | 操作者ID（内部使用）
+	ID         int    `json:"id" binding:"required" example:"1"`                                    // User ID | 用户ID
+	Status     string `json:"status" binding:"required,oneof=Normal Mute Blocked" example:"Normal"` // User status | 用户状态
+	Reason     string `json:"reason" example:"违反社区规则"`                                              // Operation reason | 操作原因
+	OperatorID int    `json:"-"`                                                                    // Operator ID (internal use) | 操作者ID（内部使用）
 }
 
 // UserRoleUpdateRequest Update user role request | 更新用户身份请求体

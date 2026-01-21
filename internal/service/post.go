@@ -981,9 +981,6 @@ func (s *PostService) checkUserStatus(ctx context.Context, userID int) error {
 			return errors.New("您的邮箱尚未验证，请先完成验证")
 		}
 		return nil
-	case user.StatusRiskControl:
-		// TODO: RiskControl status requires admin review before publishing, temporarily allow | RiskControl状态需要管理员审核发布，暂时放行
-		return nil
 	case user.StatusMute:
 		return errors.New("您已被禁言，无法进行此操作")
 	case user.StatusBlocked:
