@@ -164,6 +164,14 @@ func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
 		return
 	}
 
+	// Set default values | 设置默认值
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 20
+	}
+
 	// Determine target user ID to query | 确定要查询的用户ID
 	var targetUserID int
 	var isOwner bool
@@ -225,6 +233,14 @@ func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
 		return
 	}
 
+	// Set default values | 设置默认值
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 20
+	}
+
 	// Determine target user ID to query | 确定要查询的用户ID
 	var targetUserID int
 	var isOwner bool
@@ -284,6 +300,14 @@ func (ctrl *UserProfileController) GetUserFavorites(c *gin.Context) {
 	if err := c.ShouldBindQuery(&req); err != nil {
 		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
 		return
+	}
+
+	// Set default values | 设置默认值
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 20
 	}
 
 	// Determine target user ID to query | 确定要查询的用户ID

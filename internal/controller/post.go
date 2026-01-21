@@ -168,6 +168,14 @@ func (ctrl *PostController) GetDraftList(c *gin.Context) {
 		return
 	}
 
+	// Set default values | 设置默认值
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 20
+	}
+
 	// Get user ID | 获取用户ID
 	userID, err := ctrl.getUserID(c)
 	if err != nil {
@@ -427,6 +435,14 @@ func (ctrl *PostController) GetPostList(c *gin.Context) {
 	if err := c.ShouldBindQuery(&req); err != nil {
 		response.ResErrorWithMsg(c, response.CodeInvalidParam, err.Error())
 		return
+	}
+
+	// Set default values | 设置默认值
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 20
 	}
 
 	// Call service | 调用服务

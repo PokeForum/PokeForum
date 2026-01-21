@@ -104,6 +104,14 @@ func (ctrl *UserManageController) GetUserList(c *gin.Context) {
 		return
 	}
 
+	// Set default values | 设置默认值
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 20
+	}
+
 	// Call service | 调用服务
 	result, err := ctrl.userManageService.GetUserList(c.Request.Context(), req)
 	if err != nil {
@@ -435,6 +443,14 @@ func (ctrl *UserManageController) GetUserBalanceLog(c *gin.Context) {
 	if err := c.ShouldBindQuery(&req); err != nil {
 		response.ResErrorWithMsg(c, response.CodeInvalidParam, err.Error())
 		return
+	}
+
+	// Set default values | 设置默认值
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 20
 	}
 
 	// Call service | 调用服务

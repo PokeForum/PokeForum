@@ -2,10 +2,10 @@ package schema
 
 // CategoryListRequest Category list query request | 版块列表查询请求体
 type CategoryListRequest struct {
-	Page     int    `form:"page" binding:"required,min=1" example:"1"`               // Page number | 页码
-	PageSize int    `form:"page_size" binding:"required,min=1,max=100" example:"20"` // Items per page | 每页数量
-	Keyword  string `form:"keyword" example:"技术"`                                    // Search keyword (category name or description) | 搜索关键词（版块名称或描述）
-	Status   string `form:"status" example:"Normal"`                                 // Category status filter | 版块状态筛选
+	Page     int    `form:"page" binding:"min=1" example:"1"`               // Page number, default 1 | 页码，默认1
+	PageSize int    `form:"page_size" binding:"min=1,max=100" example:"20"` // Items per page, default 20 | 每页数量，默认20
+	Keyword  string `form:"keyword" example:"技术"`                           // Search keyword (category name or description) | 搜索关键词（版块名称或描述）
+	Status   string `form:"status" example:"Normal"`                        // Category status filter | 版块状态筛选
 }
 
 // CategoryCreateRequest Create category request | 创建版块请求体

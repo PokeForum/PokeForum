@@ -2,11 +2,11 @@ package schema
 
 // UserListRequest User list query request | 用户列表查询请求体
 type UserListRequest struct {
-	Page     int    `form:"page" binding:"required,min=1" example:"1"`               // Page number | 页码
-	PageSize int    `form:"page_size" binding:"required,min=1,max=100" example:"20"` // Items per page | 每页数量
-	Keyword  string `form:"keyword" example:"test"`                                  // Search keyword (username or email) | 搜索关键词（用户名或邮箱）
-	Status   string `form:"status" example:"Normal"`                                 // User status filter | 用户状态筛选
-	Role     string `form:"role" example:"User"`                                     // User role filter | 用户身份筛选
+	Page     int    `form:"page" binding:"min=1" example:"1"`               // Page number, default 1 | 页码，默认1
+	PageSize int    `form:"page_size" binding:"min=1,max=100" example:"20"` // Items per page, default 20 | 每页数量，默认20
+	Keyword  string `form:"keyword" example:"test"`                         // Search keyword (username or email) | 搜索关键词（用户名或邮箱）
+	Status   string `form:"status" example:"Normal"`                        // User status filter | 用户状态筛选
+	Role     string `form:"role" example:"User"`                            // User role filter | 用户身份筛选
 }
 
 // UserCreateRequest Create user request | 创建用户请求体
@@ -121,14 +121,14 @@ type CategoryBasicInfo struct {
 
 // UserBalanceLogRequest User balance change log query request | 用户余额变动记录查询请求体
 type UserBalanceLogRequest struct {
-	Page        int    `form:"page" binding:"required,min=1" example:"1"`               // Page number | 页码
-	PageSize    int    `form:"page_size" binding:"required,min=1,max=100" example:"20"` // Items per page | 每页数量
-	UserID      int    `form:"user_id" example:"1"`                                     // User ID filter | 用户ID筛选
-	Type        string `form:"type" example:"points"`                                   // Change type filter | 变动类型筛选
-	StartDate   string `form:"start_date" example:"2024-01-01"`                         // Start date | 开始日期
-	EndDate     string `form:"end_date" example:"2024-12-31"`                           // End date | 结束日期
-	OperatorID  int    `form:"operator_id" example:"2"`                                 // Operator ID filter | 操作者ID筛选
-	RelatedType string `form:"related_type" example:"post"`                             // Related business type filter | 关联业务类型筛选
+	Page        int    `form:"page" binding:"min=1" example:"1"`               // Page number, default 1 | 页码，默认1
+	PageSize    int    `form:"page_size" binding:"min=1,max=100" example:"20"` // Items per page, default 20 | 每页数量，默认20
+	UserID      int    `form:"user_id" example:"1"`                            // User ID filter | 用户ID筛选
+	Type        string `form:"type" example:"points"`                          // Change type filter | 变动类型筛选
+	StartDate   string `form:"start_date" example:"2024-01-01"`                // Start date | 开始日期
+	EndDate     string `form:"end_date" example:"2024-12-31"`                  // End date | 结束日期
+	OperatorID  int    `form:"operator_id" example:"2"`                        // Operator ID filter | 操作者ID筛选
+	RelatedType string `form:"related_type" example:"post"`                    // Related business type filter | 关联业务类型筛选
 }
 
 // UserBalanceLogItem User balance change log item | 用户余额变动记录项

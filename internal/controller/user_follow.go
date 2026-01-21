@@ -32,15 +32,15 @@ func (ctrl *UserFollowController) UserFollowRouter(router *gin.RouterGroup) {
 	auth.Use(saGin.CheckRole(user.RoleUser.String()))
 	{
 		// Follow user | 关注用户
-		auth.POST("/follow", ctrl.FollowUser)
+		auth.POST("", ctrl.FollowUser)
 		// Unfollow user | 取消关注用户
-		auth.DELETE("/follow/:user_id", ctrl.UnfollowUser)
+		auth.DELETE("/:user_id", ctrl.UnfollowUser)
 		// Get followers list | 获取粉丝列表
 		auth.GET("/followers", ctrl.GetFollowers)
 		// Get following list | 获取关注列表
 		auth.GET("/following", ctrl.GetFollowing)
 		// Get follow status | 获取关注状态
-		auth.GET("/follow/status/:user_id", ctrl.GetFollowStatus)
+		auth.GET("/status/:user_id", ctrl.GetFollowStatus)
 	}
 }
 
@@ -157,7 +157,7 @@ func (ctrl *UserFollowController) UnfollowUser(c *gin.Context) {
 // @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
 // @Failure 401 {object} response.Data "Unauthorized | 未授权"
 // @Failure 500 {object} response.Data "Internal server error | 服务器内部错误"
-// @Router /profile/followers [get]
+// @Router /profile/follow/followers [get]
 func (ctrl *UserFollowController) GetFollowers(c *gin.Context) {
 	var req schema.UserFollowersRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -206,7 +206,7 @@ func (ctrl *UserFollowController) GetFollowers(c *gin.Context) {
 // @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
 // @Failure 401 {object} response.Data "Unauthorized | 未授权"
 // @Failure 500 {object} response.Data "Internal server error | 服务器内部错误"
-// @Router /profile/following [get]
+// @Router /profile/follow/following [get]
 func (ctrl *UserFollowController) GetFollowing(c *gin.Context) {
 	var req schema.UserFollowingRequest
 	if err := c.ShouldBindQuery(&req); err != nil {

@@ -27,10 +27,10 @@ type UserProfileOverviewRequest struct {
 
 // UserProfilePostsRequest User profile posts list request | 用户主题帖列表请求体
 type UserProfilePostsRequest struct {
-	Page     int    `form:"page" binding:"required,min=1" example:"1"`              // Page number | 页码
-	PageSize int    `form:"page_size" binding:"required,min=1,max=50" example:"20"` // Items per page | 每页数量
-	Status   string `form:"status" example:"Normal"`                                // Post status filter: Normal, Draft, Private | 帖子状态筛选：Normal、Draft、Private
-	UserID   int    `form:"user_id" example:"1"`                                    // User ID, query current logged in user if not provided | 用户ID，不传则查询当前登录用户
+	Page     int    `form:"page" binding:"min=1" example:"1"`              // Page number, default 1 | 页码，默认1
+	PageSize int    `form:"page_size" binding:"min=1,max=50" example:"20"` // Items per page, default 20 | 每页数量，默认20
+	Status   string `form:"status" example:"Normal"`                       // Post status filter: Normal, Draft, Private | 帖子状态筛选：Normal、Draft、Private
+	UserID   int    `form:"user_id" example:"1"`                           // User ID, query current logged in user if not provided | 用户ID，不传则查询当前登录用户
 }
 
 // UserProfilePostItem User profile post list item | 用户主题帖列表项
@@ -59,9 +59,9 @@ type UserProfilePostsResponse struct {
 
 // UserProfileCommentsRequest User profile comments list request | 用户评论列表请求体
 type UserProfileCommentsRequest struct {
-	Page     int `form:"page" binding:"required,min=1" example:"1"`              // Page number | 页码
-	PageSize int `form:"page_size" binding:"required,min=1,max=50" example:"20"` // Items per page | 每页数量
-	UserID   int `form:"user_id" example:"1"`                                    // User ID, query current logged in user if not provided | 用户ID，不传则查询当前登录用户
+	Page     int `form:"page" binding:"min=1" example:"1"`              // Page number, default 1 | 页码，默认1
+	PageSize int `form:"page_size" binding:"min=1,max=50" example:"20"` // Items per page, default 20 | 每页数量，默认20
+	UserID   int `form:"user_id" example:"1"`                           // User ID, query current logged in user if not provided | 用户ID，不传则查询当前登录用户
 }
 
 // UserProfileCommentItem User profile comment list item | 用户评论列表项
@@ -85,9 +85,9 @@ type UserProfileCommentsResponse struct {
 
 // UserProfileFavoritesRequest User profile favorites list request | 用户收藏列表请求体
 type UserProfileFavoritesRequest struct {
-	Page     int `form:"page" binding:"required,min=1" example:"1"`              // Page number | 页码
-	PageSize int `form:"page_size" binding:"required,min=1,max=50" example:"20"` // Items per page | 每页数量
-	UserID   int `form:"user_id" example:"1"`                                    // User ID, query current logged in user if not provided | 用户ID，不传则查询当前登录用户
+	Page     int `form:"page" binding:"min=1" example:"1"`              // Page number, default 1 | 页码，默认1
+	PageSize int `form:"page_size" binding:"min=1,max=50" example:"20"` // Items per page, default 20 | 每页数量，默认20
+	UserID   int `form:"user_id" example:"1"`                           // User ID, query current logged in user if not provided | 用户ID，不传则查询当前登录用户
 }
 
 // UserProfileFavoriteItem User profile favorite list item | 用户收藏列表项

@@ -62,6 +62,14 @@ func (ctrl *CategoryManageController) GetCategoryList(c *gin.Context) {
 		return
 	}
 
+	// Set default values | 设置默认值
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 20
+	}
+
 	// Invoke service | 调用服务
 	result, err := ctrl.categoryManageService.GetCategoryList(c.Request.Context(), req)
 	if err != nil {

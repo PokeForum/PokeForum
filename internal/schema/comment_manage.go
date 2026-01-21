@@ -2,15 +2,15 @@ package schema
 
 // CommentListRequest Comment list query request | 评论列表查询请求体
 type CommentListRequest struct {
-	Page       int    `form:"page" binding:"required,min=1" example:"1"`               // Page number | 页码
-	PageSize   int    `form:"page_size" binding:"required,min=1,max=100" example:"20"` // Items per page | 每页数量
-	Keyword    string `form:"keyword" example:"技术"`                                    // Search keyword (comment content) | 搜索关键词（评论内容）
-	PostID     int    `form:"post_id" example:"1"`                                     // Post ID filter | 帖子ID筛选
-	UserID     int    `form:"user_id" example:"1"`                                     // User ID filter | 用户ID筛选
-	ParentID   *int   `form:"parent_id" example:"1"`                                   // Parent comment ID filter (nil for top-level comments) | 父评论ID筛选（nil表示顶级评论）
-	IsSelected *bool  `form:"is_selected" example:"true"`                              // Selected comment filter | 是否精选评论筛选
-	IsPinned   *bool  `form:"is_pinned" example:"true"`                                // Pinned comment filter | 是否置顶评论筛选
-	ReplyToID  int    `form:"reply_to_id" example:"1"`                                 // Reply target user ID filter | 回复目标用户ID筛选
+	Page       int    `form:"page" binding:"min=1" example:"1"`               // Page number, default 1 | 页码，默认1
+	PageSize   int    `form:"page_size" binding:"min=1,max=100" example:"20"` // Items per page, default 20 | 每页数量，默认20
+	Keyword    string `form:"keyword" example:"技术"`                           // Search keyword (comment content) | 搜索关键词（评论内容）
+	PostID     int    `form:"post_id" example:"1"`                            // Post ID filter | 帖子ID筛选
+	UserID     int    `form:"user_id" example:"1"`                            // User ID filter | 用户ID筛选
+	ParentID   *int   `form:"parent_id" example:"1"`                          // Parent comment ID filter (nil for top-level comments) | 父评论ID筛选（nil表示顶级评论）
+	IsSelected *bool  `form:"is_selected" example:"true"`                     // Selected comment filter | 是否精选评论筛选
+	IsPinned   *bool  `form:"is_pinned" example:"true"`                       // Pinned comment filter | 是否置顶评论筛选
+	ReplyToID  int    `form:"reply_to_id" example:"1"`                        // Reply target user ID filter | 回复目标用户ID筛选
 }
 
 // CommentCreateRequest Create comment request | 创建评论请求体

@@ -15,6 +15,7 @@ import (
 	"github.com/PokeForum/PokeForum/internal/controller"
 	"github.com/PokeForum/PokeForum/internal/middleware"
 	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
+	"github.com/PokeForum/PokeForum/internal/repository"
 	"github.com/PokeForum/PokeForum/internal/service"
 )
 
@@ -47,6 +48,9 @@ func Routers(injector *do.Injector) *gin.Engine {
 	// Register services to the injector | 注册服务到注入器
 	InjectorSrv(injector)
 
+	// Repositories | 仓储
+	repos := do.MustInvoke[*repository.Repositories](injector)
+
 	// Services
 	healthService := do.MustInvoke[service.IHealthService](injector)
 	authService := do.MustInvoke[service.IAuthService](injector)
@@ -67,6 +71,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 	commentManageService := do.MustInvoke[service.ICommentManageService](injector)
 	oauthProviderService := do.MustInvoke[service.IOAuthProviderService](injector)
 	oauthService := do.MustInvoke[service.IOAuthService](injector)
+	invitationCodeService := do.MustInvoke[service.IInvitationCodeService](injector)
 	invitationCodeManageService := do.MustInvoke[service.IInvitationCodeManageService](injector)
 
 	// Health check route (not affected by rate limiting, outside of api group) | 健康检查路由（不受速率限制影响，在api分组之外）
@@ -122,8 +127,9 @@ func Routers(injector *do.Injector) *gin.Engine {
 				BlacklistCon.BlacklistRouter(BlacklistGroup)
 
 				// User Follow | 用户关注
+				UserFollowGroup := ForumGroup.Group("/profile/follow")
 				UserFollowCon := controller.NewUserFollowController(userFollowService)
-				UserFollowCon.UserFollowRouter(ForumGroup)
+				UserFollowCon.UserFollowRouter(UserFollowGroup)
 
 				// OAuth user routes | OAuth用户路由
 				OAuthUserGroup := AuthAPIGroup.Group("/user/oauth")
@@ -135,9 +141,12 @@ func Routers(injector *do.Injector) *gin.Engine {
 					- Invitation code registration | 邀请码注册
 					- Toggle configuration for invitation code mechanism | 开关配置是否开启邀请码机制
 					- Number of invitation codes a user can create (limited/unlimited) | 用户可创建邀请码数量（有限/无限）
-					- Number of times an invitation code can be used (limited/unlimited) | 邀请码使用次数（有限/无限）
 				*/
-				// TODO Invitation Code | 邀请码
+
+				// Invitation Code | 邀请码
+				InvitationCodeGroup := ForumGroup.Group("/invitation-codes")
+				InvitationCodeCon := controller.NewInvitationCodeController(invitationCodeService, repos.User)
+				InvitationCodeCon.InvitationCodeRouter(InvitationCodeGroup)
 			}
 
 			// TODO Discovery | 发现

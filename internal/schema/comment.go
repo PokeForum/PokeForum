@@ -48,11 +48,11 @@ type UserCommentActionResponse struct {
 
 // UserCommentListRequest User comment list request | 用户评论列表请求体
 type UserCommentListRequest struct {
-	PostID   int    `form:"post_id" binding:"required" example:"1"`                 // Post ID | 帖子ID
-	Page     int    `form:"page" binding:"required,min=1" example:"1"`              // Page number | 页码
-	PageSize int    `form:"page_size" binding:"required,min=1,max=50" example:"20"` // Items per page | 每页数量
-	SortBy   string `form:"sort_by" example:"created_at"`                           // Sort field: created_at, like_count | 排序字段：created_at, like_count
-	SortDesc bool   `form:"sort_desc" example:"true"`                               // Descending order | 是否降序
+	PostID   int    `form:"post_id" binding:"required" example:"1"`        // Post ID | 帖子ID
+	Page     int    `form:"page" binding:"min=1" example:"1"`              // Page number, default 1 | 页码，默认1
+	PageSize int    `form:"page_size" binding:"min=1,max=50" example:"20"` // Items per page, default 20 | 每页数量，默认20
+	SortBy   string `form:"sort_by" example:"created_at"`                  // Sort field: created_at, like_count | 排序字段：created_at, like_count
+	SortDesc bool   `form:"sort_desc" example:"true"`                      // Descending order | 是否降序
 }
 
 // UserCommentListItem User comment list item response | 用户评论列表项响应体

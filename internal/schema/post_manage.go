@@ -2,14 +2,14 @@ package schema
 
 // PostListRequest Post list query request | 帖子列表查询请求体
 type PostListRequest struct {
-	Page       int    `form:"page" binding:"required,min=1" example:"1"`               // Page number | 页码
-	PageSize   int    `form:"page_size" binding:"required,min=1,max=100" example:"20"` // Items per page | 每页数量
-	Keyword    string `form:"keyword" example:"技术"`                                    // Search keyword (title or content) | 搜索关键词（标题或内容）
-	Status     string `form:"status" example:"Normal"`                                 // Post status filter | 帖子状态筛选
-	CategoryID int    `form:"category_id" example:"1"`                                 // Category ID filter | 版块ID筛选
-	UserID     int    `form:"user_id" example:"1"`                                     // User ID filter | 用户ID筛选
-	IsEssence  *bool  `form:"is_essence" example:"true"`                               // Essence post filter | 是否精华帖筛选
-	IsPinned   *bool  `form:"is_pinned" example:"true"`                                // Pinned post filter | 是否置顶筛选
+	Page       int    `form:"page" binding:"min=1" example:"1"`               // Page number, default 1 | 页码，默认1
+	PageSize   int    `form:"page_size" binding:"min=1,max=100" example:"20"` // Items per page, default 20 | 每页数量，默认20
+	Keyword    string `form:"keyword" example:"技术"`                           // Search keyword (title or content) | 搜索关键词（标题或内容）
+	Status     string `form:"status" example:"Normal"`                        // Post status filter | 帖子状态筛选
+	CategoryID int    `form:"category_id" example:"1"`                        // Category ID filter | 版块ID筛选
+	UserID     int    `form:"user_id" example:"1"`                            // User ID filter | 用户ID筛选
+	IsEssence  *bool  `form:"is_essence" example:"true"`                      // Essence post filter | 是否精华帖筛选
+	IsPinned   *bool  `form:"is_pinned" example:"true"`                       // Pinned post filter | 是否置顶筛选
 }
 
 // PostCreateRequest Create post request | 创建帖子请求体

@@ -932,6 +932,143 @@ const docTemplate = `{
                 }
             }
         },
+        "/invitation-codes": {
+            "post": {
+                "description": "Generate an invitation code for the current user. May cost points or currency depending on system settings | 为当前用户生成邀请码。根据系统设置可能需要消耗积分或货币",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]Invitation Code | [用户]邀请码"
+                ],
+                "summary": "Generate invitation code | 生成邀请码",
+                "responses": {
+                    "200": {
+                        "description": "Invitation code generated successfully | 邀请码生成成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserInvitationCodeDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "Invitation code feature not enabled | 邀请码功能未启用",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "409": {
+                        "description": "Insufficient points/currency or maximum generation count reached | 积分/货币不足或已达到最大生成数量",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/invitation-codes/my": {
+            "get": {
+                "description": "Get paginated list of invitation codes created by the current user | 获取当前用户创建的邀请码分页列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]Invitation Code | [用户]邀请码"
+                ],
+                "summary": "Get my invitation codes | 获取我的邀请码列表",
+                "parameters": [
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Page number | 页码",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Items per page | 每页数量",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Retrieve successful | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserInvitationCodeListData"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
         "/manage/categories": {
             "get": {
                 "description": "Get paginated category list with support for keyword search and status filtering | 分页获取版块列表，支持关键词搜索和状态筛选",
@@ -5543,6 +5680,156 @@ const docTemplate = `{
                 }
             }
         },
+        "/profile/follow/followers": {
+            "get": {
+                "description": "Get the specified user's followers list, supports pagination. If user_id is not provided, returns current user's followers | 获取指定用户的粉丝列表，支持分页。如果不提供user_id，则返回当前登录用户的粉丝列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User] User Follow | [用户个人中心] 用户关注"
+                ],
+                "summary": "Get user followers list | 获取用户粉丝列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID, default to current user | 用户ID，默认为当前用户",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number | 页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Items per page | 每页数量",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserFollowersResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/follow/following": {
+            "get": {
+                "description": "Get the specified user's following list, supports pagination. If user_id is not provided, returns current user's following | 获取指定用户的关注列表，支持分页。如果不提供user_id，则返回当前登录用户的关注列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User] User Follow | [用户个人中心] 用户关注"
+                ],
+                "summary": "Get user following list | 获取用户关注列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID, default to current user | 用户ID，默认为当前用户",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number | 页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Items per page | 每页数量",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserFollowingResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
         "/profile/follow/status/{user_id}": {
             "get": {
                 "description": "Get the follow status between current user and specified user | 获取当前用户与指定用户之间的关注状态",
@@ -5640,156 +5927,6 @@ const docTemplate = `{
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/schema.UserUnfollowResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request parameters | 请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized | 未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error | 服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/profile/followers": {
-            "get": {
-                "description": "Get the specified user's followers list, supports pagination. If user_id is not provided, returns current user's followers | 获取指定用户的粉丝列表，支持分页。如果不提供user_id，则返回当前登录用户的粉丝列表",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[User] User Follow | [用户个人中心] 用户关注"
-                ],
-                "summary": "Get user followers list | 获取用户粉丝列表",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID, default to current user | 用户ID，默认为当前用户",
-                        "name": "user_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number | 页码",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Items per page | 每页数量",
-                        "name": "page_size",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success | 获取成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserFollowersResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request parameters | 请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized | 未授权",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error | 服务器内部错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/profile/following": {
-            "get": {
-                "description": "Get the specified user's following list, supports pagination. If user_id is not provided, returns current user's following | 获取指定用户的关注列表，支持分页。如果不提供user_id，则返回当前登录用户的关注列表",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[User] User Follow | [用户个人中心] 用户关注"
-                ],
-                "summary": "Get user following list | 获取用户关注列表",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "User ID, default to current user | 用户ID，默认为当前用户",
-                        "name": "user_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 1,
-                        "description": "Page number | 页码",
-                        "name": "page",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "default": 20,
-                        "description": "Items per page | 每页数量",
-                        "name": "page_size",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success | 获取成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.UserFollowingResponse"
                                         }
                                     }
                                 }
@@ -9265,7 +9402,8 @@ const docTemplate = `{
                 "remark": {
                     "description": "Remark | 备注",
                     "type": "string",
-                    "maxLength": 500
+                    "maxLength": 500,
+                    "example": "Created by admin"
                 }
             }
         },
@@ -9305,7 +9443,7 @@ const docTemplate = `{
                 "remark": {
                     "description": "Remark | 备注",
                     "type": "string",
-                    "example": "管理员手动创建"
+                    "example": "Created by admin"
                 },
                 "status": {
                     "description": "Status | 状态",
@@ -9375,7 +9513,7 @@ const docTemplate = `{
                 "remark": {
                     "description": "Remark | 备注",
                     "type": "string",
-                    "example": "管理员手动创建"
+                    "example": "Created by admin"
                 },
                 "status": {
                     "description": "Status | 状态",
@@ -9608,7 +9746,8 @@ const docTemplate = `{
                 "remark": {
                     "description": "Remark | 备注",
                     "type": "string",
-                    "maxLength": 500
+                    "maxLength": 500,
+                    "example": "Update remark"
                 }
             }
         },
@@ -12644,6 +12783,108 @@ const docTemplate = `{
                 "total": {
                     "type": "integer",
                     "example": 50
+                }
+            }
+        },
+        "schema.UserInvitationCodeDetail": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "Invitation code | 邀请码",
+                    "type": "string",
+                    "example": "abc123def456"
+                },
+                "cost_amount": {
+                    "description": "Cost amount | 消耗数量",
+                    "type": "integer",
+                    "example": 0
+                },
+                "created_at": {
+                    "description": "Created at timestamp | 创建时间",
+                    "type": "string",
+                    "example": "2024-01-01 00:00:00"
+                },
+                "generation_mode": {
+                    "description": "Generation mode: direct, points, currency | 生成方式",
+                    "type": "string",
+                    "example": "direct"
+                },
+                "status": {
+                    "description": "Status: unused, used, disabled | 状态",
+                    "type": "string",
+                    "example": "unused"
+                },
+                "used_at": {
+                    "description": "Used at timestamp | 使用时间",
+                    "type": "string",
+                    "example": "2024-01-01 12:00:00"
+                }
+            }
+        },
+        "schema.UserInvitationCodeListData": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "description": "Invitation code list | 邀请码列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.UserInvitationCodeListItem"
+                    }
+                },
+                "page": {
+                    "description": "Current page number | 当前页码",
+                    "type": "integer",
+                    "example": 1
+                },
+                "page_size": {
+                    "description": "Items per page | 每页数量",
+                    "type": "integer",
+                    "example": 20
+                },
+                "total": {
+                    "description": "Total count | 总数量",
+                    "type": "integer",
+                    "example": 10
+                }
+            }
+        },
+        "schema.UserInvitationCodeListItem": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "Invitation code | 邀请码",
+                    "type": "string",
+                    "example": "abc123def456"
+                },
+                "cost_amount": {
+                    "description": "Cost amount | 消耗数量",
+                    "type": "integer",
+                    "example": 0
+                },
+                "created_at": {
+                    "description": "Created at timestamp | 创建时间",
+                    "type": "string",
+                    "example": "2024-01-01 00:00:00"
+                },
+                "generation_mode": {
+                    "description": "Generation mode: direct, points, currency | 生成方式",
+                    "type": "string",
+                    "example": "direct"
+                },
+                "id": {
+                    "description": "Invitation code ID | 邀请码ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "status": {
+                    "description": "Status: unused, used, disabled | 状态",
+                    "type": "string",
+                    "example": "unused"
+                },
+                "used_at": {
+                    "description": "Used at timestamp | 使用时间",
+                    "type": "string",
+                    "example": "2024-01-01 12:00:00"
                 }
             }
         },

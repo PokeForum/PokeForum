@@ -64,6 +64,14 @@ func (ctrl *CommentManageController) GetCommentList(c *gin.Context) {
 		return
 	}
 
+	// Set default values | 设置默认值
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 20
+	}
+
 	// Call service | 调用服务
 	result, err := ctrl.commentManageService.GetCommentList(c.Request.Context(), req)
 	if err != nil {
