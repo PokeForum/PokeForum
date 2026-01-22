@@ -50,6 +50,7 @@ func init() {
 	RootCMD.PersistentFlags().StringVarP(&configs.ConfigPath, "config", "c", config, "Configuration file path | 配置文件路径")
 	RootCMD.PersistentFlags().BoolVar(&configs.Debug, "debug", false, "Enable debug mode | 是否开启调试模式")
 	RootCMD.PersistentFlags().BoolVar(&configs.Prometheus, "prometheus", false, "Enable Prometheus monitoring | 是否开启Prometheus监控")
+	RootCMD.PersistentFlags().StringVar(&configs.CookieDomain, "cookie-domain", "", "Cookie domain for cross-subdomain sharing, e.g. '.example.com' | Cookie域名，用于子域名共享")
 
 	// Add ServerCMD as a subcommand of RootCMD | 将 ServerCMD 添加为 RootCMD 的子命令
 	RootCMD.AddCommand(ServerCMD)

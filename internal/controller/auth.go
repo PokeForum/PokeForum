@@ -104,6 +104,10 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}
+
+	// Write Token to Cookie | 将 Token 写入 Cookie
+	satoken.WriteTokenToCookie(c, token)
+
 	// Set user identity | 设置用户身份
 	if err = stputil.SetRoles(user.ID, satoken.GetUserRole(user.Role.String())); err != nil {
 		configs.Log.Warn(err.Error())
@@ -129,9 +133,9 @@ func (ctrl *AuthController) Login(c *gin.Context) {
 // @Success 200 {object} response.Data "Logout successful | 退出登录成功"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /auth/logout [post]
-// @Security Bearer
 func (ctrl *AuthController) Logout(c *gin.Context) {
-	token := c.GetHeader("Authorization")
+	// Get Token from Cookie | 从 Cookie 获取 Token
+	token := satoken.GetTokenFromCookie(c)
 
 	// Perform logout operation, clear Token | 执行登出操作，清除 Token
 	logoutErr := saGin.LogoutByToken(token)
@@ -139,6 +143,9 @@ func (ctrl *AuthController) Logout(c *gin.Context) {
 		response.ResErrorWithMsg(c, response.CodeGenericError, logoutErr.Error())
 		return
 	}
+
+	// Delete Token Cookie | 删除 Token Cookie
+	satoken.DeleteTokenCookie(c)
 
 	// Return success response | 返回成功响应
 	response.ResSuccess(c, nil)

@@ -15,10 +15,6 @@
 // @host localhost:9876
 // @BasePath /api/v1
 // @schemes http https
-// @securityDefinitions.basic BasicAuth
-// @securityDefinitions.apikey ApiKeyAuth
-// @in header
-// @name Authorization
 package cmd
 
 import (

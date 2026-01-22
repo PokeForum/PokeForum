@@ -98,7 +98,6 @@ func (ctrl *SettingsController) SettingsRouter(router *gin.RouterGroup) {
 // @Success 200 {object} response.Data{data=schema.RoutineSettingsResponse} "Success | 获取成功"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/routine [get]
-// @Security Bearer
 func (ctrl *SettingsController) GetRoutineSettings(c *gin.Context) {
 	config, err := ctrl.settingsService.GetRoutineSettings(c.Request.Context())
 	if err != nil {
@@ -120,7 +119,6 @@ func (ctrl *SettingsController) GetRoutineSettings(c *gin.Context) {
 // @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/routine [post]
-// @Security Bearer
 func (ctrl *SettingsController) UpdateRoutineSettings(c *gin.Context) {
 	var req schema.RoutineSettingsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -145,7 +143,6 @@ func (ctrl *SettingsController) UpdateRoutineSettings(c *gin.Context) {
 // @Success 200 {object} response.Data{data=schema.HomeSettingsResponse} "Success | 获取成功"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/home [get]
-// @Security Bearer
 func (ctrl *SettingsController) GetHomeSettings(c *gin.Context) {
 	config, err := ctrl.settingsService.GetHomeSettings(c.Request.Context())
 	if err != nil {
@@ -167,7 +164,6 @@ func (ctrl *SettingsController) GetHomeSettings(c *gin.Context) {
 // @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/home [post]
-// @Security Bearer
 func (ctrl *SettingsController) UpdateHomeSettings(c *gin.Context) {
 	var req schema.HomeSettingsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -192,7 +188,6 @@ func (ctrl *SettingsController) UpdateHomeSettings(c *gin.Context) {
 // @Success 200 {object} response.Data{data=schema.CommentSettingsResponse} "Success | 获取成功"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/comment [get]
-// @Security Bearer
 func (ctrl *SettingsController) GetCommentSettings(c *gin.Context) {
 	config, err := ctrl.settingsService.GetCommentSettings(c.Request.Context())
 	if err != nil {
@@ -214,7 +209,6 @@ func (ctrl *SettingsController) GetCommentSettings(c *gin.Context) {
 // @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/comment [post]
-// @Security Bearer
 func (ctrl *SettingsController) UpdateCommentSettings(c *gin.Context) {
 	var req schema.CommentSettingsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -239,7 +233,6 @@ func (ctrl *SettingsController) UpdateCommentSettings(c *gin.Context) {
 // @Success 200 {object} response.Data{data=schema.SeoSettingsResponse} "Success | 获取成功"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/seo [get]
-// @Security Bearer
 func (ctrl *SettingsController) GetSeoSettings(c *gin.Context) {
 	config, err := ctrl.settingsService.GetSeoSettings(c.Request.Context())
 	if err != nil {
@@ -261,7 +254,6 @@ func (ctrl *SettingsController) GetSeoSettings(c *gin.Context) {
 // @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/seo [post]
-// @Security Bearer
 func (ctrl *SettingsController) UpdateSeoSettings(c *gin.Context) {
 	var req schema.SeoSettingsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -286,7 +278,6 @@ func (ctrl *SettingsController) UpdateSeoSettings(c *gin.Context) {
 // @Success 200 {object} response.Data{data=schema.CodeSettingsResponse} "Success | 获取成功"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/code [get]
-// @Security Bearer
 func (ctrl *SettingsController) GetCodeSettings(c *gin.Context) {
 	config, err := ctrl.settingsService.GetCodeSettings(c.Request.Context())
 	if err != nil {
@@ -308,7 +299,6 @@ func (ctrl *SettingsController) GetCodeSettings(c *gin.Context) {
 // @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/code [post]
-// @Security Bearer
 func (ctrl *SettingsController) UpdateCodeSettings(c *gin.Context) {
 	var req schema.CodeSettingsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -333,7 +323,6 @@ func (ctrl *SettingsController) UpdateCodeSettings(c *gin.Context) {
 // @Success 200 {object} response.Data{data=schema.SafeSettingsResponse} "Success | 获取成功"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/safe [get]
-// @Security Bearer
 func (ctrl *SettingsController) GetSafeSettings(c *gin.Context) {
 	config, err := ctrl.settingsService.GetSafeSettings(c.Request.Context())
 	if err != nil {
@@ -355,7 +344,6 @@ func (ctrl *SettingsController) GetSafeSettings(c *gin.Context) {
 // @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/safe [post]
-// @Security Bearer
 func (ctrl *SettingsController) UpdateSafeSettings(c *gin.Context) {
 	var req schema.SafeSettingsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -380,7 +368,6 @@ func (ctrl *SettingsController) UpdateSafeSettings(c *gin.Context) {
 // @Success 200 {object} response.Data{data=schema.EmailSMTPConfigResponse} "Success | 获取成功"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/email [get]
-// @Security Bearer
 func (ctrl *SettingsController) GetEmailSettings(c *gin.Context) {
 	config, err := ctrl.settingsService.GetSMTPConfig(c.Request.Context())
 	if err != nil {
@@ -402,7 +389,6 @@ func (ctrl *SettingsController) GetEmailSettings(c *gin.Context) {
 // @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/email [post]
-// @Security Bearer
 func (ctrl *SettingsController) UpdateEmailSettings(c *gin.Context) {
 	var req schema.EmailSMTPConfigRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -429,7 +415,6 @@ func (ctrl *SettingsController) UpdateEmailSettings(c *gin.Context) {
 // @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/email/test [post]
-// @Security Bearer
 func (ctrl *SettingsController) SendTestEmail(c *gin.Context) {
 	var req schema.EmailTestRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -460,7 +445,6 @@ func (ctrl *SettingsController) SendTestEmail(c *gin.Context) {
 // @Success 200 {object} response.Data{data=schema.SigninSettingsResponse} "Success | 获取成功"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/signin [get]
-// @Security Bearer
 func (ctrl *SettingsController) GetSigninSettings(c *gin.Context) {
 	config, err := ctrl.settingsService.GetSigninSettings(c.Request.Context())
 	if err != nil {
@@ -482,7 +466,6 @@ func (ctrl *SettingsController) GetSigninSettings(c *gin.Context) {
 // @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/signin [post]
-// @Security Bearer
 func (ctrl *SettingsController) UpdateSigninSettings(c *gin.Context) {
 	var req schema.SigninSettingsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -507,7 +490,6 @@ func (ctrl *SettingsController) UpdateSigninSettings(c *gin.Context) {
 // @Success 200 {object} response.Data{data=schema.InvitationCodeSettingsResponse} "Success | 获取成功"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/invitation-code [get]
-// @Security Bearer
 func (ctrl *SettingsController) GetInvitationCodeSettings(c *gin.Context) {
 	config, err := ctrl.settingsService.GetInvitationCodeSettings(c.Request.Context())
 	if err != nil {
@@ -529,7 +511,6 @@ func (ctrl *SettingsController) GetInvitationCodeSettings(c *gin.Context) {
 // @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/invitation-code [post]
-// @Security Bearer
 func (ctrl *SettingsController) UpdateInvitationCodeSettings(c *gin.Context) {
 	var req schema.InvitationCodeSettingsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

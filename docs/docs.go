@@ -148,11 +148,6 @@ const docTemplate = `{
         },
         "/auth/logout": {
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "User logout and clear authentication information | 用户退出登录，清除认证信息",
                 "consumes": [
                     "application/json"
@@ -6578,11 +6573,6 @@ const docTemplate = `{
         },
         "/super/manage/settings/code": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Get custom code configuration including header, footer code and custom CSS | 获取自定义代码配置，包括页头、页脚代码和自定义CSS",
                 "consumes": [
                     "application/json"
@@ -6622,11 +6612,6 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Update custom code configuration | 更新自定义代码配置",
                 "consumes": [
                     "application/json"
@@ -6673,11 +6658,6 @@ const docTemplate = `{
         },
         "/super/manage/settings/comment": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Get comment related configuration including review, blacklist, etc. | 获取评论相关的配置，包括审核、黑名单等",
                 "consumes": [
                     "application/json"
@@ -6717,11 +6697,6 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Update comment related configuration | 更新评论相关的配置",
                 "consumes": [
                     "application/json"
@@ -6768,11 +6743,6 @@ const docTemplate = `{
         },
         "/super/manage/settings/email": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Get SMTP email service configuration | 获取SMTP邮箱服务配置",
                 "consumes": [
                     "application/json"
@@ -6812,11 +6782,6 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Update SMTP email service configuration | 更新SMTP邮箱服务配置",
                 "consumes": [
                     "application/json"
@@ -6863,11 +6828,6 @@ const docTemplate = `{
         },
         "/super/manage/settings/email/test": {
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Send a test email using current SMTP configuration | 使用当前SMTP配置发送一封测试邮件",
                 "consumes": [
                     "application/json"
@@ -6926,11 +6886,6 @@ const docTemplate = `{
         },
         "/super/manage/settings/home": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Get home page configuration including slides, friend links, etc. | 获取首页的配置，包括幻灯片、友情链接等",
                 "consumes": [
                     "application/json"
@@ -6970,11 +6925,6 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Update home page configuration | 更新首页的配置",
                 "consumes": [
                     "application/json"
@@ -7021,11 +6971,6 @@ const docTemplate = `{
         },
         "/super/manage/settings/invitation-code": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Get invitation code feature related configuration including mode, cost, reward, etc. | 获取邀请码功能相关配置，包括模式、费用、奖励等",
                 "consumes": [
                     "application/json"
@@ -7065,11 +7010,6 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Update invitation code feature related configuration | 更新邀请码功能相关配置",
                 "consumes": [
                     "application/json"
@@ -7116,11 +7056,6 @@ const docTemplate = `{
         },
         "/super/manage/settings/oauth": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Get all OAuth provider list, supports filtering by provider type and enabled status | 获取所有OAuth提供商列表,支持提供商类型和启用状态筛选",
                 "consumes": [
                     "application/json"
@@ -7182,11 +7117,6 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Update OAuth provider configuration information | 更新OAuth提供商的配置信息",
                 "consumes": [
                     "application/json"
@@ -7243,11 +7173,6 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Admin creates new OAuth provider configuration | 管理员创建新的OAuth提供商配置",
                 "consumes": [
                     "application/json"
@@ -7306,11 +7231,6 @@ const docTemplate = `{
         },
         "/super/manage/settings/oauth/status": {
             "put": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Enable or disable OAuth provider | 启用或禁用OAuth提供商",
                 "consumes": [
                     "application/json"
@@ -7363,11 +7283,6 @@ const docTemplate = `{
         },
         "/super/manage/settings/oauth/{id}": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Get detailed information of specified OAuth provider | 获取指定OAuth提供商的详细信息",
                 "consumes": [
                     "application/json"
@@ -7428,11 +7343,6 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Delete specified OAuth provider configuration | 删除指定的OAuth提供商配置",
                 "consumes": [
                     "application/json"
@@ -7483,11 +7393,6 @@ const docTemplate = `{
         },
         "/super/manage/settings/routine": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Get website routine configuration including Logo, Icon, filing number, etc. | 获取网站的常规配置，包括Logo、Icon、备案号等",
                 "consumes": [
                     "application/json"
@@ -7527,11 +7432,6 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Update website routine configuration | 更新网站的常规配置",
                 "consumes": [
                     "application/json"
@@ -7578,11 +7478,6 @@ const docTemplate = `{
         },
         "/super/manage/settings/safe": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Get security related configuration including registration control, email whitelist, etc. | 获取安全相关配置，包括注册控制、邮箱白名单等",
                 "consumes": [
                     "application/json"
@@ -7622,11 +7517,6 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Update security related configuration | 更新安全相关配置",
                 "consumes": [
                     "application/json"
@@ -7673,11 +7563,6 @@ const docTemplate = `{
         },
         "/super/manage/settings/seo": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Get website SEO related configuration including site name, keywords, description, etc. | 获取网站SEO相关配置，包括网站名称、关键词、描述等",
                 "consumes": [
                     "application/json"
@@ -7717,11 +7602,6 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Update website SEO related configuration | 更新网站SEO相关配置",
                 "consumes": [
                     "application/json"
@@ -7768,11 +7648,6 @@ const docTemplate = `{
         },
         "/super/manage/settings/signin": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Get sign-in feature related configuration including reward rules, mode, etc. | 获取签到功能相关配置，包括奖励规则、模式等",
                 "consumes": [
                     "application/json"
@@ -7812,11 +7687,6 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Update sign-in feature related configuration | 更新签到功能相关配置",
                 "consumes": [
                     "application/json"
@@ -7863,11 +7733,6 @@ const docTemplate = `{
         },
         "/user/oauth/bindlist": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Get current user's all OAuth bindings | 获取当前用户的所有OAuth绑定",
                 "consumes": [
                     "application/json"
@@ -7915,11 +7780,6 @@ const docTemplate = `{
         },
         "/user/oauth/{provider}": {
             "delete": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Unbind OAuth account from current user | 从当前用户解绑OAuth账号",
                 "consumes": [
                     "application/json"
@@ -7975,11 +7835,6 @@ const docTemplate = `{
         },
         "/user/oauth/{provider}/bindcallback": {
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Handle OAuth bind callback, bindOAuth account to current user | 处理OAuth绑定回调，将OAuth账号绑定到当前用户",
                 "consumes": [
                     "application/json"
@@ -8044,11 +7899,6 @@ const docTemplate = `{
         },
         "/user/oauth/{provider}/bindurl": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
                 "description": "Get authorization URL for binding OAuth account | 获取绑定OAuth账号的授权URL",
                 "consumes": [
                     "application/json"
@@ -14108,16 +13958,6 @@ const docTemplate = `{
                     "example": "newusername"
                 }
             }
-        }
-    },
-    "securityDefinitions": {
-        "ApiKeyAuth": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
-        },
-        "BasicAuth": {
-            "type": "basic"
         }
     }
 }`

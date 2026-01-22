@@ -52,7 +52,6 @@ func (ctrl *OAuthProviderController) OAuthProviderRouter(router *gin.RouterGroup
 // @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/oauth [get]
-// @Security Bearer
 func (ctrl *OAuthProviderController) GetProviderList(c *gin.Context) {
 	var req schema.OAuthProviderListRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -81,7 +80,6 @@ func (ctrl *OAuthProviderController) GetProviderList(c *gin.Context) {
 // @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/oauth [post]
-// @Security Bearer
 func (ctrl *OAuthProviderController) CreateProvider(c *gin.Context) {
 	var req schema.OAuthProviderCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -127,7 +125,6 @@ func (ctrl *OAuthProviderController) CreateProvider(c *gin.Context) {
 // @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/oauth [put]
-// @Security Bearer
 func (ctrl *OAuthProviderController) UpdateProvider(c *gin.Context) {
 	var req schema.OAuthProviderUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -179,7 +176,6 @@ func (ctrl *OAuthProviderController) UpdateProvider(c *gin.Context) {
 // @Failure 404 {object} response.Data "OAuth provider not found | OAuth提供商不存在"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/oauth/{id} [get]
-// @Security Bearer
 func (ctrl *OAuthProviderController) GetProviderDetail(c *gin.Context) {
 	// Get path parameter | 获取路径参数
 	idStr := c.Param("id")
@@ -211,7 +207,6 @@ func (ctrl *OAuthProviderController) GetProviderDetail(c *gin.Context) {
 // @Failure 404 {object} response.Data "OAuth provider not found | OAuth提供商不存在"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/oauth/{id} [delete]
-// @Security Bearer
 func (ctrl *OAuthProviderController) DeleteProvider(c *gin.Context) {
 	// Get path parameter | 获取路径参数
 	idStr := c.Param("id")
@@ -242,7 +237,6 @@ func (ctrl *OAuthProviderController) DeleteProvider(c *gin.Context) {
 // @Failure 404 {object} response.Data "OAuth provider not found | OAuth提供商不存在"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /super/manage/settings/oauth/status [put]
-// @Security Bearer
 func (ctrl *OAuthProviderController) UpdateProviderStatus(c *gin.Context) {
 	var req schema.OAuthProviderStatusUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

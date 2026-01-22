@@ -10,14 +10,16 @@ import (
 )
 
 var (
-	Host       string
-	Port       string
-	ConfigPath string
-	Debug      bool
-	Prometheus bool // Monitoring switch | 监控开关
+	Host         string
+	Port         string
+	ConfigPath   string
+	Debug        bool
+	Prometheus   bool   // Monitoring switch | 监控开关
+	CookieDomain string // Cookie 域名，如 ".example.com" | Cookie domain, e.g. ".example.com"
 )
 
 type Configuration struct {
+	APP   autoload.APP   `mapstructure:"app" json:"app" yaml:"app"`
 	DB    autoload.DB    `mapstructure:"db" json:"db" yaml:"db"`
 	Cache autoload.Cache `mapstructure:"cache" json:"cache" yaml:"cache"`
 }

@@ -4669,8 +4669,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: User logout | 用户退出登录
       tags:
       - Authentication | 认证
@@ -8746,8 +8744,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Get code configuration | 获取代码配置
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
@@ -8777,8 +8773,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Update code configuration | 更新代码配置
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
@@ -8804,8 +8798,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Get comment settings | 获取评论设置
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
@@ -8835,8 +8827,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Update comment settings | 更新评论设置
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
@@ -8861,8 +8851,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Get email settings | 获取邮箱设置
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
@@ -8892,8 +8880,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Update email settings | 更新邮箱设置
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
@@ -8929,8 +8915,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Send test email | 发送测试邮件
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
@@ -8956,8 +8940,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Get home settings | 获取首页设置
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
@@ -8987,8 +8969,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Update home settings | 更新首页设置
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
@@ -9014,8 +8994,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Get invitation code settings | 获取邀请码设置
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
@@ -9045,8 +9023,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Update invitation code settings | 更新邀请码设置
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
@@ -9087,8 +9063,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Get OAuth provider list | 获取OAuth提供商列表
       tags:
       - '[Super Admin]OAuth Provider Management | [超级管理员]OAuth提供商管理'
@@ -9123,8 +9097,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Create OAuth provider | 创建OAuth提供商
       tags:
       - '[Super Admin]OAuth Provider Management | [超级管理员]OAuth提供商管理'
@@ -9159,8 +9131,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Update OAuth provider information | 更新OAuth提供商信息
       tags:
       - '[Super Admin]OAuth Provider Management | [超级管理员]OAuth提供商管理'
@@ -9194,8 +9164,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Delete OAuth provider | 删除OAuth提供商
       tags:
       - '[Super Admin]OAuth Provider Management | [超级管理员]OAuth提供商管理'
@@ -9233,8 +9201,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Get OAuth provider details | 获取OAuth提供商详情
       tags:
       - '[Super Admin]OAuth Provider Management | [超级管理员]OAuth提供商管理'
@@ -9269,8 +9235,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Update OAuth provider status | 更新OAuth提供商状态
       tags:
       - '[Super Admin]OAuth Provider Management | [超级管理员]OAuth提供商管理'
@@ -9296,8 +9260,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Get routine settings | 获取常规设置
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
@@ -9327,8 +9289,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Update routine settings | 更新常规设置
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
@@ -9354,8 +9314,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Get security settings | 获取安全设置
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
@@ -9385,8 +9343,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Update security settings | 更新安全设置
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
@@ -9412,8 +9368,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Get SEO settings | 获取SEO设置
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
@@ -9443,8 +9397,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Update SEO settings | 更新SEO设置
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
@@ -9470,8 +9422,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Get sign-in settings | 获取签到设置
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
@@ -9501,8 +9451,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Update sign-in settings | 更新签到设置
       tags:
       - '[Super Admin]System Settings | [超级管理员]系统设置'
@@ -9540,8 +9488,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Unbind OAuth account | 解绑OAuth账号
       tags:
       - '[User]OAuth | [用户]OAuth登录'
@@ -9586,8 +9532,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Handle OAuth bind callback | 处理OAuth绑定回调
       tags:
       - '[User]OAuth | [用户]OAuth登录'
@@ -9635,8 +9579,6 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Get OAuth bind authorization URL | 获取OAuth绑定授权URL
       tags:
       - '[User]OAuth | [用户]OAuth登录'
@@ -9665,19 +9607,10 @@ paths:
           description: Server error | 服务器错误
           schema:
             $ref: '#/definitions/response.Data'
-      security:
-      - Bearer: []
       summary: Get user OAuth binding list | 获取用户OAuth绑定列表
       tags:
       - '[User]OAuth | [用户]OAuth登录'
 schemes:
 - http
 - https
-securityDefinitions:
-  ApiKeyAuth:
-    in: header
-    name: Authorization
-    type: apiKey
-  BasicAuth:
-    type: basic
 swagger: "2.0"

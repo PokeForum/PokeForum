@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
+	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 	"github.com/PokeForum/PokeForum/internal/service"
 )
 
@@ -35,8 +36,8 @@ func (ctrl *CategoryController) CategoryRouter(router *gin.RouterGroup) {
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /categories [get]
 func (ctrl *CategoryController) GetUserCategories(c *gin.Context) {
-	// 检查用户是否已登录
-	isLoggedIn := c.GetHeader("Authorization") != ""
+	// 检查用户是否已登录 | Check if user is logged in
+	isLoggedIn := satoken.IsLoggedIn(c)
 
 	// Invoke service | 调用服务
 	result, err := ctrl.categoryService.GetUserCategories(c.Request.Context(), isLoggedIn)

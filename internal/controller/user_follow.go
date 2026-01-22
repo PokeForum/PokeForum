@@ -4,11 +4,11 @@ import (
 	"strconv"
 
 	saGin "github.com/click33/sa-token-go/integrations/gin"
-	"github.com/click33/sa-token-go/stputil"
 	"github.com/gin-gonic/gin"
 
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
+	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 )
@@ -41,28 +41,9 @@ func (ctrl *UserFollowController) UserFollowRouter(router *gin.RouterGroup) {
 	router.GET("/status/:user_id", ctrl.GetFollowStatus)
 }
 
-// getCurrentUserID Get current user ID from context, return 0 if not logged in | 从上下文获取当前用户ID，未登录返回0
+// getCurrentUserID Get current user ID from Cookie, return 0 if not logged in | 从 Cookie 获取当前用户ID，未登录返回0
 func (ctrl *UserFollowController) getCurrentUserID(c *gin.Context) int {
-	// Get token from Header | 从Header中获取token
-	token := c.GetHeader("Authorization")
-	if token == "" {
-		// Guest mode, return 0 | 游客模式，返回0
-		return 0
-	}
-
-	// Use stputil to get logged-in user ID | 使用stputil获取登录用户ID
-	loginID, err := stputil.GetLoginID(token)
-	if err != nil {
-		return 0
-	}
-
-	// Convert string to int | String转Int
-	sID, err := strconv.Atoi(loginID)
-	if err != nil {
-		return 0
-	}
-
-	return sID
+	return satoken.GetUserIDFromCookieOrZero(c)
 }
 
 // FollowUser Follow user | 关注用户

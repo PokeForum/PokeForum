@@ -1,15 +1,14 @@
 package controller
 
 import (
-	"fmt"
 	"strconv"
 
 	saGin "github.com/click33/sa-token-go/integrations/gin"
-	"github.com/click33/sa-token-go/stputil"
 	"github.com/gin-gonic/gin"
 
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
+	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 	"github.com/PokeForum/PokeForum/internal/service"
 )
 
@@ -37,27 +36,9 @@ func (ctrl *SigninController) SigninRouter(router *gin.RouterGroup) {
 	router.GET("/ranking/continuous", ctrl.GetContinuousRanking)
 }
 
-// getUserID Get token from Header and parse user ID | 从Header中获取token并解析用户ID
+// getUserID Get user ID from Cookie | 从 Cookie 获取用户ID
 func (ctrl *SigninController) getUserID(c *gin.Context) (int, error) {
-	// Get token from Header | 从Header中获取token
-	token := c.GetHeader("Authorization")
-	if token == "" {
-		return 0, fmt.Errorf("authorization header not found | 未找到Authorization header")
-	}
-
-	// Use stputil to get logged-in user ID | 使用stputil获取登录用户ID
-	loginID, err := stputil.GetLoginID(token)
-	if err != nil {
-		return 0, err
-	}
-
-	// Convert String to Int | String转Int
-	sID, err := strconv.Atoi(loginID)
-	if err != nil {
-		return 0, err
-	}
-
-	return sID, nil
+	return satoken.GetUserIDFromCookie(c)
 }
 
 // Signin Perform sign-in | 执行签到

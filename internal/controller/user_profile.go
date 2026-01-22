@@ -1,14 +1,12 @@
 package controller
 
 import (
-	"strconv"
-
 	saGin "github.com/click33/sa-token-go/integrations/gin"
-	"github.com/click33/sa-token-go/stputil"
 	"github.com/gin-gonic/gin"
 
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
+	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 )
@@ -51,29 +49,10 @@ func (ctrl *UserProfileController) UserProfileRouter(router *gin.RouterGroup) {
 	router.POST("/email/verify", ctrl.VerifyEmail)
 }
 
-// getUserID Get token from Header and parse user ID | 从Header中获取token并解析用户ID
+// getUserID Get user ID from Cookie | 从 Cookie 获取用户ID
 // Returns 0 if not logged in (guest mode) | 未登录时返回0（游客模式）
-func (ctrl *UserProfileController) getUserID(c *gin.Context) (int, error) {
-	// Get token from Header | 从Header中获取token
-	token := c.GetHeader("Authorization")
-	if token == "" {
-		// Guest mode, return 0 | 游客模式，返回0
-		return 0, nil
-	}
-
-	// Use stputil to get logged-in user ID | 使用stputil获取登录用户ID
-	loginID, err := stputil.GetLoginID(token)
-	if err != nil {
-		return 0, err
-	}
-
-	// Convert String to Int | String转Int
-	sID, err := strconv.Atoi(loginID)
-	if err != nil {
-		return 0, err
-	}
-
-	return sID, nil
+func (ctrl *UserProfileController) getUserID(c *gin.Context) int {
+	return satoken.GetUserIDFromCookieOrZero(c)
 }
 
 // GetProfileOverview Get user profile overview | 获取用户个人中心概览
@@ -89,11 +68,7 @@ func (ctrl *UserProfileController) getUserID(c *gin.Context) (int, error) {
 // @Router /profile/overview [get]
 func (ctrl *UserProfileController) GetProfileOverview(c *gin.Context) {
 	// Get current logged-in user ID (0 for guest) | 获取当前登录用户ID（0表示游客）
-	currentUserID, err := ctrl.getUserID(c)
-	if err != nil {
-		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
-		return
-	}
+	currentUserID := ctrl.getUserID(c)
 
 	// Parse user ID from query parameters | 解析查询参数中的用户ID
 	var req schema.UserProfileOverviewRequest
@@ -151,11 +126,7 @@ func (ctrl *UserProfileController) GetProfileOverview(c *gin.Context) {
 // @Router /profile/posts [get]
 func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
 	// Get current logged-in user ID (0 for guest) | 获取当前登录用户ID（0表示游客）
-	currentUserID, err := ctrl.getUserID(c)
-	if err != nil {
-		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
-		return
-	}
+	currentUserID := ctrl.getUserID(c)
 
 	// Parse request parameters | 解析请求参数
 	var req schema.UserProfilePostsRequest
@@ -220,11 +191,7 @@ func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
 // @Router /profile/comments [get]
 func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
 	// Get current logged-in user ID (0 for guest) | 获取当前登录用户ID（0表示游客）
-	currentUserID, err := ctrl.getUserID(c)
-	if err != nil {
-		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
-		return
-	}
+	currentUserID := ctrl.getUserID(c)
 
 	// Parse request parameters | 解析请求参数
 	var req schema.UserProfileCommentsRequest
@@ -289,11 +256,7 @@ func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
 // @Router /profile/favorites [get]
 func (ctrl *UserProfileController) GetUserFavorites(c *gin.Context) {
 	// Get current logged-in user ID (0 for guest) | 获取当前登录用户ID（0表示游客）
-	currentUserID, err := ctrl.getUserID(c)
-	if err != nil {
-		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
-		return
-	}
+	currentUserID := ctrl.getUserID(c)
 
 	// Parse request parameters | 解析请求参数
 	var req schema.UserProfileFavoritesRequest
@@ -356,9 +319,9 @@ func (ctrl *UserProfileController) GetUserFavorites(c *gin.Context) {
 // @Router /profile/password [put]
 func (ctrl *UserProfileController) UpdatePassword(c *gin.Context) {
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
-	if err != nil {
-		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
+	userID := ctrl.getUserID(c)
+	if userID == 0 {
+		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", "")
 		return
 	}
 
@@ -394,9 +357,9 @@ func (ctrl *UserProfileController) UpdatePassword(c *gin.Context) {
 // @Router /profile/avatar [put]
 func (ctrl *UserProfileController) UpdateAvatar(c *gin.Context) {
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
-	if err != nil {
-		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
+	userID := ctrl.getUserID(c)
+	if userID == 0 {
+		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", "")
 		return
 	}
 
@@ -433,9 +396,9 @@ func (ctrl *UserProfileController) UpdateAvatar(c *gin.Context) {
 // @Router /profile/username [put]
 func (ctrl *UserProfileController) UpdateUsername(c *gin.Context) {
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
-	if err != nil {
-		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
+	userID := ctrl.getUserID(c)
+	if userID == 0 {
+		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", "")
 		return
 	}
 
@@ -470,9 +433,9 @@ func (ctrl *UserProfileController) UpdateUsername(c *gin.Context) {
 // @Router /profile/email/verify-code [post]
 func (ctrl *UserProfileController) SendEmailVerifyCode(c *gin.Context) {
 	// Get current user ID | 获取当前用户ID
-	userID, err := ctrl.getUserID(c)
-	if err != nil {
-		response.ResErrorWithMsg(c, response.CodeNeedLogin, "获取用户信息失败", err.Error())
+	userID := ctrl.getUserID(c)
+	if userID == 0 {
+		response.ResErrorWithMsg(c, response.CodeNeedLogin, "获取用户信息失败", "")
 		return
 	}
 
@@ -505,9 +468,9 @@ func (ctrl *UserProfileController) SendEmailVerifyCode(c *gin.Context) {
 // @Router /profile/email/verify [post]
 func (ctrl *UserProfileController) VerifyEmail(c *gin.Context) {
 	// Get current user ID | 获取当前用户ID
-	userID, err := ctrl.getUserID(c)
-	if err != nil {
-		response.ResErrorWithMsg(c, response.CodeNeedLogin, "获取用户信息失败", err.Error())
+	userID := ctrl.getUserID(c)
+	if userID == 0 {
+		response.ResErrorWithMsg(c, response.CodeNeedLogin, "获取用户信息失败", "")
 		return
 	}
 

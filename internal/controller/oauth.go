@@ -9,6 +9,7 @@ import (
 
 	"github.com/PokeForum/PokeForum/internal/pkg/oauth"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
+	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 )
@@ -135,6 +136,11 @@ func (ctrl *OAuthController) HandleCallback(c *gin.Context) {
 		return
 	}
 
+	// Write Token to Cookie if login/register successful | 如果登录/注册成功，将 Token 写入 Cookie
+	if result.Token != "" {
+		satoken.WriteTokenToCookie(c, result.Token)
+	}
+
 	response.ResSuccess(c, result)
 }
 
@@ -148,7 +154,6 @@ func (ctrl *OAuthController) HandleCallback(c *gin.Context) {
 // @Failure 401 {object} response.Data "Unauthorized | 未登录"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /user/oauth/bindlist [get]
-// @Security Bearer
 func (ctrl *OAuthController) GetUserBindList(c *gin.Context) {
 	userID, err := ctrl.getCurrentUserID(c)
 	if err != nil {
@@ -178,7 +183,6 @@ func (ctrl *OAuthController) GetUserBindList(c *gin.Context) {
 // @Failure 401 {object} response.Data "Unauthorized | 未登录"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /user/oauth/{provider}/bindurl [get]
-// @Security Bearer
 func (ctrl *OAuthController) GetBindURL(c *gin.Context) {
 	userID, err := ctrl.getCurrentUserID(c)
 	if err != nil {
@@ -221,7 +225,6 @@ func (ctrl *OAuthController) GetBindURL(c *gin.Context) {
 // @Failure 401 {object} response.Data "Unauthorized | 未登录"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /user/oauth/{provider}/bindcallback [post]
-// @Security Bearer
 func (ctrl *OAuthController) HandleBindCallback(c *gin.Context) {
 	userID, err := ctrl.getCurrentUserID(c)
 	if err != nil {
@@ -262,7 +265,6 @@ func (ctrl *OAuthController) HandleBindCallback(c *gin.Context) {
 // @Failure 401 {object} response.Data "Unauthorized | 未登录"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /user/oauth/{provider} [delete]
-// @Security Bearer
 func (ctrl *OAuthController) Unbind(c *gin.Context) {
 	userID, err := ctrl.getCurrentUserID(c)
 	if err != nil {
@@ -286,9 +288,10 @@ func (ctrl *OAuthController) Unbind(c *gin.Context) {
 
 // getCurrentUserID Get current logged-in user ID | 获取当前登录用户ID
 func (ctrl *OAuthController) getCurrentUserID(c *gin.Context) (int, error) {
-	token := c.GetHeader("Authorization")
+	// Get Token from Cookie | 从 Cookie 获取 Token
+	token := satoken.GetTokenFromCookie(c)
 	if token == "" {
-		return 0, fmt.Errorf("authorization header not found | 未找到Authorization header")
+		return 0, fmt.Errorf("token not found | 未找到Token")
 	}
 
 	loginID, err := stputil.GetLoginID(token)
