@@ -475,7 +475,7 @@
         },
         "/categories": {
             "get": {
-                "description": "Get list of categories visible to users, including normal, login-visible and locked status categories, hidden categories are not visible | 获取用户可见的版块列表，包括正常、登录可见和锁定状态的版块，隐藏版块不可见",
+                "description": "Get list of categories visible to users. Normal and Locked categories are visible to everyone. LoginRequired categories are only visible to logged-in users. Hidden categories are not returned but can be accessed via direct URL | 获取用户可见的版块列表。Normal和Locked状态对所有人可见，LoginRequired仅登录用户可见，Hidden不在列表返回但可通过URL直接访问",
                 "consumes": [
                     "application/json"
                 ],
