@@ -144,9 +144,12 @@ func (s *CategoryManageService) CreateCategory(ctx context.Context, req schema.C
 		return nil, fmt.Errorf("创建版块失败: %w", err)
 	}
 
-	// 清除用户版块列表缓存
+	// 清除用户版块列表缓存（未登录和已登录）
 	if _, err := s.cache.Del(ctx, _const.UserCategoryListCacheKey); err != nil {
 		s.logger.Warn("清除用户版块列表缓存失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+	}
+	if _, err := s.cache.Del(ctx, _const.UserCategoryListLoggedInCacheKey); err != nil {
+		s.logger.Warn("清除已登录用户版块列表缓存失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 	}
 
 	s.logger.Info("版块创建成功", zap.Int("id", categories.ID), tracing.WithTraceIDField(ctx))
@@ -192,9 +195,12 @@ func (s *CategoryManageService) UpdateCategory(ctx context.Context, req schema.C
 		return nil, fmt.Errorf("更新版块失败: %w", err)
 	}
 
-	// 清除用户版块列表缓存
+	// 清除用户版块列表缓存（未登录和已登录）
 	if _, err := s.cache.Del(ctx, _const.UserCategoryListCacheKey); err != nil {
 		s.logger.Warn("清除用户版块列表缓存失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+	}
+	if _, err := s.cache.Del(ctx, _const.UserCategoryListLoggedInCacheKey); err != nil {
+		s.logger.Warn("清除已登录用户版块列表缓存失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 	}
 
 	s.logger.Info("版块更新成功", zap.Int("id", updatedCategory.ID), tracing.WithTraceIDField(ctx))
@@ -224,9 +230,12 @@ func (s *CategoryManageService) UpdateCategoryStatus(ctx context.Context, req sc
 		return fmt.Errorf("更新版块状态失败: %w", err)
 	}
 
-	// 清除用户版块列表缓存
+	// 清除用户版块列表缓存（未登录和已登录）
 	if _, err := s.cache.Del(ctx, _const.UserCategoryListCacheKey); err != nil {
 		s.logger.Warn("清除用户版块列表缓存失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+	}
+	if _, err := s.cache.Del(ctx, _const.UserCategoryListLoggedInCacheKey); err != nil {
+		s.logger.Warn("清除已登录用户版块列表缓存失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 	}
 
 	s.logger.Info("版块状态更新成功", zap.Int("id", req.ID), tracing.WithTraceIDField(ctx))
@@ -393,9 +402,12 @@ func (s *CategoryManageService) DeleteCategory(ctx context.Context, id int) erro
 		return fmt.Errorf("删除版块失败: %w", err)
 	}
 
-	// 清除用户版块列表缓存
+	// 清除用户版块列表缓存（未登录和已登录）
 	if _, err := s.cache.Del(ctx, _const.UserCategoryListCacheKey); err != nil {
 		s.logger.Warn("清除用户版块列表缓存失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+	}
+	if _, err := s.cache.Del(ctx, _const.UserCategoryListLoggedInCacheKey); err != nil {
+		s.logger.Warn("清除已登录用户版块列表缓存失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 	}
 
 	s.logger.Info("版块删除成功", zap.Int("id", id), tracing.WithTraceIDField(ctx))

@@ -19,7 +19,8 @@ type ICategoryRepository interface {
 	// GetByIDsWithFields Batch get categories by IDs with specified fields | 批量根据ID获取版块（指定字段）
 	GetByIDsWithFields(ctx context.Context, ids []int, fields []string) ([]*ent.Category, error)
 	// GetVisibleCategories Get visible categories for users | 获取用户可见的版块列表
-	GetVisibleCategories(ctx context.Context) ([]*ent.Category, error)
+	// isLoggedIn: true 返回 Normal/LoginRequired/Locked，false 返回 Normal/Locked
+	GetVisibleCategories(ctx context.Context, isLoggedIn bool) ([]*ent.Category, error)
 	// ExistsByID Check if category exists | 检查版块是否存在
 	ExistsByID(ctx context.Context, id int) (bool, error)
 	// ExistsBySlug Check if category exists by slug | 检查版块标识是否存在
@@ -36,6 +37,8 @@ type ICategoryRepository interface {
 	CountWithCondition(ctx context.Context, conditionFunc func(*ent.CategoryQuery) *ent.CategoryQuery) (int, error)
 	// ListWithCondition List categories with condition | 条件查询版块列表
 	ListWithCondition(ctx context.Context, conditionFunc func(*ent.CategoryQuery) *ent.CategoryQuery, limit int) ([]*ent.Category, error)
+	// GetLoginRequiredCategoryIDs Get IDs of LoginRequired status categories | 获取登录可见状态的版块ID列表
+	GetLoginRequiredCategoryIDs(ctx context.Context) ([]int, error)
 }
 
 // CategoryRepository Category repository implementation | 版块仓储实现
@@ -111,14 +114,30 @@ func (r *CategoryRepository) GetByIDsWithFields(ctx context.Context, ids []int, 
 }
 
 // GetVisibleCategories Get visible categories for users | 获取用户可见的版块列表
-func (r *CategoryRepository) GetVisibleCategories(ctx context.Context) ([]*ent.Category, error) {
-	categories, err := r.db.Category.Query().Where(
-		category.Or(
-			category.StatusEQ(category.StatusNormal),
-			category.StatusEQ(category.StatusLoginRequired),
-			category.StatusEQ(category.StatusLocked),
-		),
-	).
+// isLoggedIn: true 返回 Normal/LoginRequired/Locked，false 返回 Normal/Locked
+func (r *CategoryRepository) GetVisibleCategories(ctx context.Context, isLoggedIn bool) ([]*ent.Category, error) {
+	query := r.db.Category.Query()
+
+	if isLoggedIn {
+		// 已登录用户可见：Normal、LoginRequired、Locked
+		query = query.Where(
+			category.Or(
+				category.StatusEQ(category.StatusNormal),
+				category.StatusEQ(category.StatusLoginRequired),
+				category.StatusEQ(category.StatusLocked),
+			),
+		)
+	} else {
+		// 未登录用户可见：Normal、Locked
+		query = query.Where(
+			category.Or(
+				category.StatusEQ(category.StatusNormal),
+				category.StatusEQ(category.StatusLocked),
+			),
+		)
+	}
+
+	categories, err := query.
 		Order(ent.Asc(category.FieldWeight), ent.Desc(category.FieldCreatedAt)).
 		All(ctx)
 	if err != nil {
@@ -207,4 +226,20 @@ func (r *CategoryRepository) ListWithCondition(ctx context.Context, conditionFun
 		return nil, fmt.Errorf("条件查询版块列表失败: %w", err)
 	}
 	return categories, nil
+}
+
+// GetLoginRequiredCategoryIDs Get IDs of LoginRequired status categories | 获取登录可见状态的版块ID列表
+func (r *CategoryRepository) GetLoginRequiredCategoryIDs(ctx context.Context) ([]int, error) {
+	categories, err := r.db.Category.Query().
+		Where(category.StatusEQ(category.StatusLoginRequired)).
+		Select(category.FieldID).
+		All(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("获取登录可见版块ID列表失败: %w", err)
+	}
+	ids := make([]int, len(categories))
+	for i, c := range categories {
+		ids[i] = c.ID
+	}
+	return ids, nil
 }

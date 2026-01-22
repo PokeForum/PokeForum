@@ -105,6 +105,12 @@ func (s *PostService) CreatePost(ctx context.Context, userID int, req schema.Use
 		return nil, err
 	}
 
+	// 检查版块是否为锁定状态，锁定状态不允许发帖
+	if categoryData.Status == category.StatusLocked {
+		s.logger.Warn("版块已锁定，不允许发帖", zap.Int("category_id", req.CategoryID), tracing.WithTraceIDField(ctx))
+		return nil, errors.New("该版块已锁定，不允许发布新帖子")
+	}
+
 	userData, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
 		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
@@ -113,6 +119,12 @@ func (s *PostService) CreatePost(ctx context.Context, userID int, req schema.Use
 
 	// Convert read permission type to enum | 转换阅读权限类型为枚举
 	readPermission := s.parseReadPermissionType(req.ReadPermissionType)
+
+	// 如果版块是登录可见，且帖子阅读权限是 public，则自动变更为 login_required
+	if categoryData.Status == category.StatusLoginRequired && readPermission == post.ReadPermissionPublic {
+		readPermission = post.ReadPermissionLoginRequired
+		s.logger.Info("版块为登录可见，自动将帖子阅读权限调整为login_required", zap.Int("category_id", req.CategoryID), tracing.WithTraceIDField(ctx))
+	}
 
 	newPost, err := s.postRepo.Create(ctx, userID, req.CategoryID, req.Title, req.Content, readPermission, req.ReadPermissionPoints, post.StatusNormal)
 	if err != nil {
@@ -149,11 +161,27 @@ func (s *PostService) CreatePost(ctx context.Context, userID int, req schema.Use
 func (s *PostService) SaveDraft(ctx context.Context, userID int, req schema.UserPostCreateRequest) (*schema.UserPostCreateResponse, error) {
 	s.logger.Info("保存草稿", zap.Int("user_id", userID), zap.Int("draft_id", req.ID), zap.Int("category_id", req.CategoryID), zap.String("title", req.Title), tracing.WithTraceIDField(ctx))
 
+	// 检查版块是否为锁定状态，锁定状态不允许保存草稿
+	categoryData, err := s.categoryRepo.GetByID(ctx, req.CategoryID)
+	if err != nil {
+		s.logger.Error("获取版块失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, err
+	}
+	if categoryData.Status == category.StatusLocked {
+		s.logger.Warn("版块已锁定，不允许保存草稿", zap.Int("category_id", req.CategoryID), tracing.WithTraceIDField(ctx))
+		return nil, errors.New("该版块已锁定，不允许保存草稿")
+	}
+
 	var resultPost *ent.Post
-	var err error
 
 	// Convert read permission type to enum | 转换阅读权限类型为枚举
 	readPermission := s.parseReadPermissionType(req.ReadPermissionType)
+
+	// 如果版块是登录可见，且帖子阅读权限是 public，则自动变更为 login_required
+	if categoryData.Status == category.StatusLoginRequired && readPermission == post.ReadPermissionPublic {
+		readPermission = post.ReadPermissionLoginRequired
+		s.logger.Info("版块为登录可见，自动将草稿阅读权限调整为login_required", zap.Int("category_id", req.CategoryID), tracing.WithTraceIDField(ctx))
+	}
 
 	// If ID exists, update existing draft | 如果ID存在，更新现有草稿
 	if req.ID > 0 {
@@ -202,13 +230,7 @@ func (s *PostService) SaveDraft(ctx context.Context, userID int, req schema.User
 		s.logger.Info("草稿创建成功", zap.Int("draft_id", resultPost.ID), tracing.WithTraceIDField(ctx))
 	}
 
-	// Get category and user info | 获取版块和用户信息
-	categoryData, err := s.categoryRepo.GetByID(ctx, req.CategoryID)
-	if err != nil {
-		s.logger.Error("获取版块失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, err
-	}
-
+	// Get user info | 获取用户信息
 	userData, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
 		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
@@ -282,6 +304,19 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int, req schema.Use
 	// Convert read permission type to enum | 转换阅读权限类型为枚举
 	readPermission := s.parseReadPermissionType(req.ReadPermissionType)
 
+	// 获取版块信息，检查是否需要自动调整阅读权限
+	categoryData, err := s.categoryRepo.GetByID(ctx, postData.CategoryID)
+	if err != nil {
+		s.logger.Error("获取版块失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, err
+	}
+
+	// 如果版块是登录可见，且帖子阅读权限是 public，则自动变更为 login_required
+	if categoryData.Status == category.StatusLoginRequired && readPermission == post.ReadPermissionPublic {
+		readPermission = post.ReadPermissionLoginRequired
+		s.logger.Info("版块为登录可见，自动将帖子阅读权限调整为login_required", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+	}
+
 	updatedPost, err := s.postRepo.Update(ctx, req.ID, func(u *ent.PostUpdateOne) *ent.PostUpdateOne {
 		return u.SetTitle(req.Title).
 			SetContent(req.Content).
@@ -293,11 +328,7 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int, req schema.Use
 		return nil, err
 	}
 
-	categoryName := ""
-	categoryData, err := s.categoryRepo.GetByID(ctx, updatedPost.CategoryID)
-	if err == nil {
-		categoryName = categoryData.Name
-	}
+	categoryName := categoryData.Name
 
 	// Build response data | 构建响应数据
 	result := &schema.UserPostUpdateResponse{
@@ -479,6 +510,20 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 		req.Sort = "latest"
 	}
 
+	// 获取当前用户登录状态
+	currentUserID := tracing.GetUserID(ctx)
+	isLoggedIn := currentUserID > 0
+
+	// 未登录用户需要排除登录可见版块的帖子
+	var excludeLoginRequiredCatIDs []int
+	if !isLoggedIn {
+		var err error
+		excludeLoginRequiredCatIDs, err = s.categoryRepo.GetLoginRequiredCategoryIDs(ctx)
+		if err != nil {
+			s.logger.Warn("获取登录可见版块ID列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		}
+	}
+
 	// Resolve category ID from slug if provided | 如果提供了slug则解析为category_id
 	categoryID := req.CategoryID
 	if req.Slug != "" && categoryID == 0 {
@@ -496,6 +541,35 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 			}, nil
 		}
 		categoryID = categoryData.ID
+
+		// 未登录用户访问登录可见版块时返回空列表
+		if !isLoggedIn && categoryData.Status == category.StatusLoginRequired {
+			s.logger.Warn("未登录用户尝试访问登录可见版块", zap.String("slug", req.Slug), tracing.WithTraceIDField(ctx))
+			return &schema.UserPostListResponse{
+				PinnedPosts: []schema.UserPostCreateResponse{},
+				Posts:       []schema.UserPostCreateResponse{},
+				Total:       0,
+				Page:        req.Page,
+				PageSize:    req.PageSize,
+				TotalPages:  0,
+			}, nil
+		}
+	}
+
+	// 如果指定了 categoryID，也需要检查登录可见版块
+	if categoryID > 0 && !isLoggedIn {
+		categoryData, err := s.categoryRepo.GetByID(ctx, categoryID)
+		if err == nil && categoryData.Status == category.StatusLoginRequired {
+			s.logger.Warn("未登录用户尝试访问登录可见版块", zap.Int("category_id", categoryID), tracing.WithTraceIDField(ctx))
+			return &schema.UserPostListResponse{
+				PinnedPosts: []schema.UserPostCreateResponse{},
+				Posts:       []schema.UserPostCreateResponse{},
+				Total:       0,
+				Page:        req.Page,
+				PageSize:    req.PageSize,
+				TotalPages:  0,
+			}, nil
+		}
 	}
 
 	// Determine pin scopes based on category | 根据版块确定置顶范围
@@ -513,11 +587,12 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 	if req.Page <= 1 && req.Keyword == "" {
 		var pinnedErr error
 		pinnedPosts, _, pinnedErr = s.postRepo.List(ctx, repository.ListPostOptions{
-			CategoryID: categoryID,
-			Keyword:    req.Keyword,
-			Statuses:   []post.Status{post.StatusNormal, post.StatusLocked},
-			PinScopes:  pinScopes,
-			SortBy:     "latest",
+			CategoryID:                 categoryID,
+			Keyword:                    req.Keyword,
+			Statuses:                   []post.Status{post.StatusNormal, post.StatusLocked},
+			PinScopes:                  pinScopes,
+			SortBy:                     "latest",
+			ExcludeLoginRequiredCatIDs: excludeLoginRequiredCatIDs,
 		})
 		if pinnedErr != nil {
 			s.logger.Error("获取置顶帖子列表失败", zap.Error(pinnedErr), tracing.WithTraceIDField(ctx))
@@ -527,13 +602,14 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 
 	// Use repository to query posts (exclude pinned) | 使用 Repository 查询帖子列表（排除置顶）
 	posts, total, err := s.postRepo.List(ctx, repository.ListPostOptions{
-		CategoryID:    categoryID,
-		Keyword:       req.Keyword,
-		Statuses:      []post.Status{post.StatusNormal, post.StatusLocked},
-		SortBy:        req.Sort,
-		Page:          req.Page,
-		PageSize:      req.PageSize,
-		ExcludePinned: true,
+		CategoryID:                 categoryID,
+		Keyword:                    req.Keyword,
+		Statuses:                   []post.Status{post.StatusNormal, post.StatusLocked},
+		SortBy:                     req.Sort,
+		Page:                       req.Page,
+		PageSize:                   req.PageSize,
+		ExcludePinned:              true,
+		ExcludeLoginRequiredCatIDs: excludeLoginRequiredCatIDs,
 	})
 	if err != nil {
 		s.logger.Error("获取帖子列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
@@ -588,9 +664,6 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 	for _, c := range categories {
 		categoryMap[c.ID] = c.Name
 	}
-
-	// Get current user ID, 0 if not logged in | 获取当前用户ID，如果未登录则为0
-	currentUserID := tracing.GetUserID(ctx)
 
 	// Get post ID list | 获取帖子ID列表
 	postIDs := make([]int, len(allPosts))

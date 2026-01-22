@@ -27,7 +27,7 @@ func (ctrl *CategoryController) CategoryRouter(router *gin.RouterGroup) {
 
 // GetUserCategories Get list of categories visible to users | 获取用户可见的版块列表
 // @Summary Get category list | 获取版块列表
-// @Description Get list of categories visible to users, including normal, login-visible and locked status categories, hidden categories are not visible | 获取用户可见的版块列表，包括正常、登录可见和锁定状态的版块，隐藏版块不可见
+// @Description Get list of categories visible to users. Normal and Locked categories are visible to everyone. LoginRequired categories are only visible to logged-in users. Hidden categories are not returned but can be accessed via direct URL | 获取用户可见的版块列表。Normal和Locked状态对所有人可见，LoginRequired仅登录用户可见，Hidden不在列表返回但可通过URL直接访问
 // @Tags [User]Category | [用户]版块
 // @Accept json
 // @Produce json
@@ -35,8 +35,11 @@ func (ctrl *CategoryController) CategoryRouter(router *gin.RouterGroup) {
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /categories [get]
 func (ctrl *CategoryController) GetUserCategories(c *gin.Context) {
+	// 检查用户是否已登录
+	isLoggedIn := c.GetHeader("Authorization") != ""
+
 	// Invoke service | 调用服务
-	result, err := ctrl.categoryService.GetUserCategories(c.Request.Context())
+	result, err := ctrl.categoryService.GetUserCategories(c.Request.Context(), isLoggedIn)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return

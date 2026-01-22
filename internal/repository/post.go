@@ -48,16 +48,17 @@ type IPostRepository interface {
 
 // ListPostOptions Post list query options | 帖子列表查询选项
 type ListPostOptions struct {
-	CategoryID    int             // Category ID filter | 版块ID筛选
-	Slug          string          // Category slug filter | 版块slug筛选
-	Keyword       string          // Keyword for title search | 标题关键词搜索
-	Status        post.Status     // Status filter | 状态筛选
-	Statuses      []post.Status   // Multiple status filter | 多状态筛选
-	SortBy        string          // Sort field: latest, hot, essence | 排序字段
-	Page          int             // Page number | 页码
-	PageSize      int             // Page size | 每页数量
-	ExcludePinned bool            // Exclude pinned posts | 排除置顶帖子
-	PinScopes     []post.PinScope // Pin scope filter | 置顶范围筛选
+	CategoryID                 int             // Category ID filter | 版块ID筛选
+	Slug                       string          // Category slug filter | 版块slug筛选
+	Keyword                    string          // Keyword for title search | 标题关键词搜索
+	Status                     post.Status     // Status filter | 状态筛选
+	Statuses                   []post.Status   // Multiple status filter | 多状态筛选
+	SortBy                     string          // Sort field: latest, hot, essence | 排序字段
+	Page                       int             // Page number | 页码
+	PageSize                   int             // Page size | 每页数量
+	ExcludePinned              bool            // Exclude pinned posts | 排除置顶帖子
+	PinScopes                  []post.PinScope // Pin scope filter | 置顶范围筛选
+	ExcludeLoginRequiredCatIDs []int           // Exclude posts from LoginRequired category IDs | 排除登录可见版块的帖子
 }
 
 // PostRepository Post repository implementation | 帖子仓储实现
@@ -144,6 +145,11 @@ func (r *PostRepository) List(ctx context.Context, opts ListPostOptions) ([]*ent
 	// Apply category filter | 应用版块筛选
 	if opts.CategoryID > 0 {
 		query = query.Where(post.CategoryID(opts.CategoryID))
+	}
+
+	// Exclude posts from LoginRequired categories | 排除登录可见版块的帖子
+	if len(opts.ExcludeLoginRequiredCatIDs) > 0 {
+		query = query.Where(post.CategoryIDNotIn(opts.ExcludeLoginRequiredCatIDs...))
 	}
 
 	// Apply keyword filter for title fuzzy search | 应用关键词模糊搜索
