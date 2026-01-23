@@ -4,6 +4,9 @@ import "fmt"
 
 // Redis键名常量定义 | Redis key name constant definitions
 
+// StatsKeyTTLSeconds 统计相关Redis键默认过期时间(秒) | Default TTL for stats-related Redis keys (seconds)
+const StatsKeyTTLSeconds = 365 * 24 * 60 * 60
+
 // 帖子相关Redis键 | Post-related Redis keys
 const (
 	// PostStatsKeyPrefix Post statistics data Hash key prefix | 帖子统计数据Hash键前缀

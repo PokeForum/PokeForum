@@ -39,6 +39,8 @@ func (h *Helper) IncrStats(ctx context.Context, key, field string, increment int
 			zap.Error(err))
 		return err
 	}
+	// 设置统计类键过期时间，避免永久占用 | Set TTL for stats keys to avoid permanent usage
+	_ = h.setStatsKeyTTL(ctx, key) //nolint:errcheck // TTL设置失败不影响主流程 | TTL failure shouldn't block main flow
 	return nil
 }
 
@@ -85,6 +87,8 @@ func (h *Helper) SetStats(ctx context.Context, key string, fieldValues map[strin
 			zap.Error(err))
 		return err
 	}
+	// 设置统计类键过期时间，避免永久占用 | Set TTL for stats keys to avoid permanent usage
+	_ = h.setStatsKeyTTL(ctx, key) //nolint:errcheck // TTL设置失败不影响主流程 | TTL failure shouldn't block main flow
 	return nil
 }
 
@@ -100,6 +104,8 @@ func (h *Helper) SetUserAction(ctx context.Context, key string, actionType Actio
 			zap.Error(err))
 		return err
 	}
+	// 设置统计类键过期时间，避免永久占用 | Set TTL for stats keys to avoid permanent usage
+	_ = h.setStatsKeyTTL(ctx, key) //nolint:errcheck // TTL设置失败不影响主流程 | TTL failure shouldn't block main flow
 	return nil
 }
 
@@ -220,6 +226,19 @@ func (h *Helper) DeleteStatsCache(ctx context.Context, key string) error {
 	if err != nil {
 		h.logger.Error("删除统计缓存失败",
 			zap.String("key", key),
+			zap.Error(err))
+		return err
+	}
+	return nil
+}
+
+// setStatsKeyTTL Set stats key TTL | 设置统计类键过期时间
+func (h *Helper) setStatsKeyTTL(ctx context.Context, key string) error {
+	_, err := h.cache.Expire(ctx, key, StatsKeyTTLSeconds)
+	if err != nil {
+		h.logger.Warn("设置统计键过期时间失败",
+			zap.String("key", key),
+			zap.Int("ttl_seconds", StatsKeyTTLSeconds),
 			zap.Error(err))
 		return err
 	}
