@@ -12,6 +12,10 @@ PokeForum
 - 异步任务：hibiken/asynq v0.25.1
 - API 文档：Swagger/OpenAPI
 
+## 项目赞助
+
+- 野草云[香港优质BGP服务器]: [-> 前往购买](https://my.yecaoyun.com/aff.php?aff=7151)
+
 ## 功能
 1. 普通用户
     - 浏览帖子、评论
