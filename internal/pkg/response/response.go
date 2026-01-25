@@ -8,9 +8,9 @@ import (
 
 /*
 {
-	"code": 200, 		// 程序中的错误码
-	"msg": "xxx", 		// 提示信息
-	"data": {}			// 数据
+	"code": 200, 		// Error code in the program | 程序中的错误码
+	"msg": "xxx", 		// Prompt message | 提示信息
+	"data": {}			// Data | 数据
 }
 */
 
@@ -20,7 +20,7 @@ type Data struct {
 	Data any     `json:"data"`
 }
 
-// ResError 返回错误信息
+// ResError Return error information | 返回错误信息
 func ResError(c *gin.Context, code ResCode) {
 	c.JSON(http.StatusOK,
 		&Data{
@@ -30,7 +30,7 @@ func ResError(c *gin.Context, code ResCode) {
 		})
 }
 
-// ResErrorWithMsg 自定义错误返回
+// ResErrorWithMsg Custom error return | 自定义错误返回
 func ResErrorWithMsg(c *gin.Context, code ResCode, msg any, data ...any) {
 	c.JSON(http.StatusOK,
 		&Data{
@@ -40,7 +40,7 @@ func ResErrorWithMsg(c *gin.Context, code ResCode, msg any, data ...any) {
 		})
 }
 
-// ResSuccess 返回成功信息
+// ResSuccess Return success information | 返回成功信息
 func ResSuccess(c *gin.Context, data any) {
 	c.JSON(http.StatusOK,
 		&Data{

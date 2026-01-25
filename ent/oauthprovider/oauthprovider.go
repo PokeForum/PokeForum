@@ -30,8 +30,6 @@ const (
 	FieldTokenURL = "token_url"
 	// FieldUserInfoURL holds the string denoting the user_info_url field in the database.
 	FieldUserInfoURL = "user_info_url"
-	// FieldRedirectURL holds the string denoting the redirect_url field in the database.
-	FieldRedirectURL = "redirect_url"
 	// FieldScopes holds the string denoting the scopes field in the database.
 	FieldScopes = "scopes"
 	// FieldExtraConfig holds the string denoting the extra_config field in the database.
@@ -55,7 +53,6 @@ var Columns = []string{
 	FieldAuthURL,
 	FieldTokenURL,
 	FieldUserInfoURL,
-	FieldRedirectURL,
 	FieldScopes,
 	FieldExtraConfig,
 	FieldEnabled,
@@ -85,8 +82,6 @@ var (
 	DefaultSortOrder int
 	// SortOrderValidator is a validator for the "sort_order" field. It is called by the builders before save.
 	SortOrderValidator func(int) error
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int) error
 )
 
 // Provider defines the type for the "provider" enum field.
@@ -94,12 +89,10 @@ type Provider string
 
 // Provider values.
 const (
-	ProviderQQ       Provider = "QQ"
-	ProviderGitHub   Provider = "GitHub"
-	ProviderApple    Provider = "Apple"
-	ProviderGoogle   Provider = "Google"
-	ProviderTelegram Provider = "Telegram"
-	ProviderFIDO2    Provider = "FIDO2"
+	ProviderQQ     Provider = "QQ"
+	ProviderGitHub Provider = "GitHub"
+	ProviderGoogle Provider = "Google"
+	ProviderFIDO2  Provider = "FIDO2"
 )
 
 func (pr Provider) String() string {
@@ -109,7 +102,7 @@ func (pr Provider) String() string {
 // ProviderValidator is a validator for the "provider" field enum values. It is called by the builders before save.
 func ProviderValidator(pr Provider) error {
 	switch pr {
-	case ProviderQQ, ProviderGitHub, ProviderApple, ProviderGoogle, ProviderTelegram, ProviderFIDO2:
+	case ProviderQQ, ProviderGitHub, ProviderGoogle, ProviderFIDO2:
 		return nil
 	default:
 		return fmt.Errorf("oauthprovider: invalid enum value for provider field: %q", pr)
@@ -162,11 +155,6 @@ func ByTokenURL(opts ...sql.OrderTermOption) OrderOption {
 // ByUserInfoURL orders the results by the user_info_url field.
 func ByUserInfoURL(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUserInfoURL, opts...).ToFunc()
-}
-
-// ByRedirectURL orders the results by the redirect_url field.
-func ByRedirectURL(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldRedirectURL, opts...).ToFunc()
 }
 
 // ByEnabled orders the results by the enabled field.

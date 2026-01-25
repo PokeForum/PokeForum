@@ -30,7 +30,9 @@ type Post struct {
 	// Content holds the value of the "content" field.
 	Content string `json:"content,omitempty"`
 	// ReadPermission holds the value of the "read_permission" field.
-	ReadPermission string `json:"read_permission,omitempty"`
+	ReadPermission post.ReadPermission `json:"read_permission,omitempty"`
+	// ReadPermissionPoints holds the value of the "read_permission_points" field.
+	ReadPermissionPoints int `json:"read_permission_points,omitempty"`
 	// ViewCount holds the value of the "view_count" field.
 	ViewCount int `json:"view_count,omitempty"`
 	// LikeCount holds the value of the "like_count" field.
@@ -43,6 +45,8 @@ type Post struct {
 	IsEssence bool `json:"is_essence,omitempty"`
 	// IsPinned holds the value of the "is_pinned" field.
 	IsPinned bool `json:"is_pinned,omitempty"`
+	// PinScope holds the value of the "pin_scope" field.
+	PinScope post.PinScope `json:"pin_scope,omitempty"`
 	// PublishIP holds the value of the "publish_ip" field.
 	PublishIP string `json:"publish_ip,omitempty"`
 	// Status holds the value of the "status" field.
@@ -59,9 +63,9 @@ func (*Post) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case post.FieldIsEssence, post.FieldIsPinned:
 			values[i] = new(sql.NullBool)
-		case post.FieldID, post.FieldUserID, post.FieldCategoryID, post.FieldViewCount, post.FieldLikeCount, post.FieldDislikeCount, post.FieldFavoriteCount:
+		case post.FieldID, post.FieldUserID, post.FieldCategoryID, post.FieldReadPermissionPoints, post.FieldViewCount, post.FieldLikeCount, post.FieldDislikeCount, post.FieldFavoriteCount:
 			values[i] = new(sql.NullInt64)
-		case post.FieldTitle, post.FieldContent, post.FieldReadPermission, post.FieldPublishIP, post.FieldStatus:
+		case post.FieldTitle, post.FieldContent, post.FieldReadPermission, post.FieldPinScope, post.FieldPublishIP, post.FieldStatus:
 			values[i] = new(sql.NullString)
 		case post.FieldCreatedAt, post.FieldUpdatedAt, post.FieldLastEditedAt:
 			values[i] = new(sql.NullTime)
@@ -126,7 +130,13 @@ func (_m *Post) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field read_permission", values[i])
 			} else if value.Valid {
-				_m.ReadPermission = value.String
+				_m.ReadPermission = post.ReadPermission(value.String)
+			}
+		case post.FieldReadPermissionPoints:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field read_permission_points", values[i])
+			} else if value.Valid {
+				_m.ReadPermissionPoints = int(value.Int64)
 			}
 		case post.FieldViewCount:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -163,6 +173,12 @@ func (_m *Post) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field is_pinned", values[i])
 			} else if value.Valid {
 				_m.IsPinned = value.Bool
+			}
+		case post.FieldPinScope:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field pin_scope", values[i])
+			} else if value.Valid {
+				_m.PinScope = post.PinScope(value.String)
 			}
 		case post.FieldPublishIP:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -237,7 +253,10 @@ func (_m *Post) String() string {
 	builder.WriteString(_m.Content)
 	builder.WriteString(", ")
 	builder.WriteString("read_permission=")
-	builder.WriteString(_m.ReadPermission)
+	builder.WriteString(fmt.Sprintf("%v", _m.ReadPermission))
+	builder.WriteString(", ")
+	builder.WriteString("read_permission_points=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ReadPermissionPoints))
 	builder.WriteString(", ")
 	builder.WriteString("view_count=")
 	builder.WriteString(fmt.Sprintf("%v", _m.ViewCount))
@@ -256,6 +275,9 @@ func (_m *Post) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("is_pinned=")
 	builder.WriteString(fmt.Sprintf("%v", _m.IsPinned))
+	builder.WriteString(", ")
+	builder.WriteString("pin_scope=")
+	builder.WriteString(fmt.Sprintf("%v", _m.PinScope))
 	builder.WriteString(", ")
 	builder.WriteString("publish_ip=")
 	builder.WriteString(_m.PublishIP)

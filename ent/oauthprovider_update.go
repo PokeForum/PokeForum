@@ -149,26 +149,6 @@ func (_u *OAuthProviderUpdate) ClearUserInfoURL() *OAuthProviderUpdate {
 	return _u
 }
 
-// SetRedirectURL sets the "redirect_url" field.
-func (_u *OAuthProviderUpdate) SetRedirectURL(v string) *OAuthProviderUpdate {
-	_u.mutation.SetRedirectURL(v)
-	return _u
-}
-
-// SetNillableRedirectURL sets the "redirect_url" field if the given value is not nil.
-func (_u *OAuthProviderUpdate) SetNillableRedirectURL(v *string) *OAuthProviderUpdate {
-	if v != nil {
-		_u.SetRedirectURL(*v)
-	}
-	return _u
-}
-
-// ClearRedirectURL clears the value of the "redirect_url" field.
-func (_u *OAuthProviderUpdate) ClearRedirectURL() *OAuthProviderUpdate {
-	_u.mutation.ClearRedirectURL()
-	return _u
-}
-
 // SetScopes sets the "scopes" field.
 func (_u *OAuthProviderUpdate) SetScopes(v []string) *OAuthProviderUpdate {
 	_u.mutation.SetScopes(v)
@@ -338,12 +318,6 @@ func (_u *OAuthProviderUpdate) sqlSave(ctx context.Context) (_node int, err erro
 	if _u.mutation.UserInfoURLCleared() {
 		_spec.ClearField(oauthprovider.FieldUserInfoURL, field.TypeString)
 	}
-	if value, ok := _u.mutation.RedirectURL(); ok {
-		_spec.SetField(oauthprovider.FieldRedirectURL, field.TypeString, value)
-	}
-	if _u.mutation.RedirectURLCleared() {
-		_spec.ClearField(oauthprovider.FieldRedirectURL, field.TypeString)
-	}
 	if value, ok := _u.mutation.Scopes(); ok {
 		_spec.SetField(oauthprovider.FieldScopes, field.TypeJSON, value)
 	}
@@ -507,26 +481,6 @@ func (_u *OAuthProviderUpdateOne) SetNillableUserInfoURL(v *string) *OAuthProvid
 // ClearUserInfoURL clears the value of the "user_info_url" field.
 func (_u *OAuthProviderUpdateOne) ClearUserInfoURL() *OAuthProviderUpdateOne {
 	_u.mutation.ClearUserInfoURL()
-	return _u
-}
-
-// SetRedirectURL sets the "redirect_url" field.
-func (_u *OAuthProviderUpdateOne) SetRedirectURL(v string) *OAuthProviderUpdateOne {
-	_u.mutation.SetRedirectURL(v)
-	return _u
-}
-
-// SetNillableRedirectURL sets the "redirect_url" field if the given value is not nil.
-func (_u *OAuthProviderUpdateOne) SetNillableRedirectURL(v *string) *OAuthProviderUpdateOne {
-	if v != nil {
-		_u.SetRedirectURL(*v)
-	}
-	return _u
-}
-
-// ClearRedirectURL clears the value of the "redirect_url" field.
-func (_u *OAuthProviderUpdateOne) ClearRedirectURL() *OAuthProviderUpdateOne {
-	_u.mutation.ClearRedirectURL()
 	return _u
 }
 
@@ -728,12 +682,6 @@ func (_u *OAuthProviderUpdateOne) sqlSave(ctx context.Context) (_node *OAuthProv
 	}
 	if _u.mutation.UserInfoURLCleared() {
 		_spec.ClearField(oauthprovider.FieldUserInfoURL, field.TypeString)
-	}
-	if value, ok := _u.mutation.RedirectURL(); ok {
-		_spec.SetField(oauthprovider.FieldRedirectURL, field.TypeString, value)
-	}
-	if _u.mutation.RedirectURLCleared() {
-		_spec.ClearField(oauthprovider.FieldRedirectURL, field.TypeString)
 	}
 	if value, ok := _u.mutation.Scopes(); ok {
 		_spec.SetField(oauthprovider.FieldScopes, field.TypeJSON, value)

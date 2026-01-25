@@ -22,6 +22,8 @@ type Tx struct {
 	Comment *CommentClient
 	// CommentAction is the client for interacting with the CommentAction builders.
 	CommentAction *CommentActionClient
+	// InvitationCode is the client for interacting with the InvitationCode builders.
+	InvitationCode *InvitationCodeClient
 	// OAuthProvider is the client for interacting with the OAuthProvider builders.
 	OAuthProvider *OAuthProviderClient
 	// Post is the client for interacting with the Post builders.
@@ -34,6 +36,8 @@ type Tx struct {
 	User *UserClient
 	// UserBalanceLog is the client for interacting with the UserBalanceLog builders.
 	UserBalanceLog *UserBalanceLogClient
+	// UserFollow is the client for interacting with the UserFollow builders.
+	UserFollow *UserFollowClient
 	// UserLoginLog is the client for interacting with the UserLoginLog builders.
 	UserLoginLog *UserLoginLogClient
 	// UserOAuth is the client for interacting with the UserOAuth builders.
@@ -178,12 +182,14 @@ func (tx *Tx) init() {
 	tx.CategoryModerator = NewCategoryModeratorClient(tx.config)
 	tx.Comment = NewCommentClient(tx.config)
 	tx.CommentAction = NewCommentActionClient(tx.config)
+	tx.InvitationCode = NewInvitationCodeClient(tx.config)
 	tx.OAuthProvider = NewOAuthProviderClient(tx.config)
 	tx.Post = NewPostClient(tx.config)
 	tx.PostAction = NewPostActionClient(tx.config)
 	tx.Settings = NewSettingsClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserBalanceLog = NewUserBalanceLogClient(tx.config)
+	tx.UserFollow = NewUserFollowClient(tx.config)
 	tx.UserLoginLog = NewUserLoginLogClient(tx.config)
 	tx.UserOAuth = NewUserOAuthClient(tx.config)
 	tx.UserSigninLogs = NewUserSigninLogsClient(tx.config)

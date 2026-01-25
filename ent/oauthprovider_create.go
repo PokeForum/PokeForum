@@ -124,20 +124,6 @@ func (_c *OAuthProviderCreate) SetNillableUserInfoURL(v *string) *OAuthProviderC
 	return _c
 }
 
-// SetRedirectURL sets the "redirect_url" field.
-func (_c *OAuthProviderCreate) SetRedirectURL(v string) *OAuthProviderCreate {
-	_c.mutation.SetRedirectURL(v)
-	return _c
-}
-
-// SetNillableRedirectURL sets the "redirect_url" field if the given value is not nil.
-func (_c *OAuthProviderCreate) SetNillableRedirectURL(v *string) *OAuthProviderCreate {
-	if v != nil {
-		_c.SetRedirectURL(*v)
-	}
-	return _c
-}
-
 // SetScopes sets the "scopes" field.
 func (_c *OAuthProviderCreate) SetScopes(v []string) *OAuthProviderCreate {
 	_c.mutation.SetScopes(v)
@@ -175,12 +161,6 @@ func (_c *OAuthProviderCreate) SetNillableSortOrder(v *int) *OAuthProviderCreate
 	if v != nil {
 		_c.SetSortOrder(*v)
 	}
-	return _c
-}
-
-// SetID sets the "id" field.
-func (_c *OAuthProviderCreate) SetID(v int) *OAuthProviderCreate {
-	_c.mutation.SetID(v)
 	return _c
 }
 
@@ -264,11 +244,6 @@ func (_c *OAuthProviderCreate) check() error {
 			return &ValidationError{Name: "sort_order", err: fmt.Errorf(`ent: validator failed for field "OAuthProvider.sort_order": %w`, err)}
 		}
 	}
-	if v, ok := _c.mutation.ID(); ok {
-		if err := oauthprovider.IDValidator(v); err != nil {
-			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "OAuthProvider.id": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -283,10 +258,8 @@ func (_c *OAuthProviderCreate) sqlSave(ctx context.Context) (*OAuthProvider, err
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = int(id)
-	}
+	id := _spec.ID.Value.(int64)
+	_node.ID = int(id)
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
 	return _node, nil
@@ -297,10 +270,6 @@ func (_c *OAuthProviderCreate) createSpec() (*OAuthProvider, *sqlgraph.CreateSpe
 		_node = &OAuthProvider{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(oauthprovider.Table, sqlgraph.NewFieldSpec(oauthprovider.FieldID, field.TypeInt))
 	)
-	if id, ok := _c.mutation.ID(); ok {
-		_node.ID = id
-		_spec.ID.Value = id
-	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(oauthprovider.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -332,10 +301,6 @@ func (_c *OAuthProviderCreate) createSpec() (*OAuthProvider, *sqlgraph.CreateSpe
 	if value, ok := _c.mutation.UserInfoURL(); ok {
 		_spec.SetField(oauthprovider.FieldUserInfoURL, field.TypeString, value)
 		_node.UserInfoURL = value
-	}
-	if value, ok := _c.mutation.RedirectURL(); ok {
-		_spec.SetField(oauthprovider.FieldRedirectURL, field.TypeString, value)
-		_node.RedirectURL = value
 	}
 	if value, ok := _c.mutation.Scopes(); ok {
 		_spec.SetField(oauthprovider.FieldScopes, field.TypeJSON, value)
@@ -401,7 +366,7 @@ func (_c *OAuthProviderCreateBulk) Save(ctx context.Context) ([]*OAuthProvider, 
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
+				if specs[i].ID.Value != nil {
 					id := specs[i].ID.Value.(int64)
 					nodes[i].ID = int(id)
 				}

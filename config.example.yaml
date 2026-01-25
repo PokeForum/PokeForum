@@ -1,3 +1,15 @@
+app:
+  # 服务器主机地址
+  host: "0.0.0.0"
+  # 服务器端口号
+  port: "9876"
+  # 是否开启调试模式
+  debug: false
+  # 是否开启Prometheus监控
+  prometheus: false
+  # Cookie域名，用于子域名共享，如 ".example.com"
+  cookie-domain: ".example.com"
+
 # PostgreSQL
 db:
   # 数据库连接地址

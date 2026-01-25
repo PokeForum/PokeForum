@@ -3,8 +3,7 @@ package service
 import (
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
-	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -12,6 +11,8 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+
+	"github.com/PokeForum/PokeForum/internal/utils"
 
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/category"
@@ -24,47 +25,59 @@ import (
 	smtp "github.com/PokeForum/PokeForum/internal/pkg/email"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
+	"github.com/PokeForum/PokeForum/internal/repository"
 	"github.com/PokeForum/PokeForum/internal/schema"
 )
 
-// IUserProfileService 用户个人中心服务接口
+// IUserProfileService User profile service interface | 用户个人中心服务接口
 type IUserProfileService interface {
-	// GetProfileOverview 获取用户个人中心概览
+	// GetProfileOverview Get user profile overview | 获取用户个人中心概览
 	GetProfileOverview(ctx context.Context, userID int, isOwner bool) (*schema.UserProfileOverviewResponse, error)
-	// GetUserPosts 获取用户主题帖列表
+	// GetUserPosts Get user posts list | 获取用户主题帖列表
 	GetUserPosts(ctx context.Context, userID int, req schema.UserProfilePostsRequest, isOwner bool) (*schema.UserProfilePostsResponse, error)
-	// GetUserComments 获取用户评论列表
+	// GetUserComments Get user comments list | 获取用户评论列表
 	GetUserComments(ctx context.Context, userID int, req schema.UserProfileCommentsRequest, isOwner bool) (*schema.UserProfileCommentsResponse, error)
-	// GetUserFavorites 获取用户收藏列表
+	// GetUserFavorites Get user favorites list | 获取用户收藏列表
 	GetUserFavorites(ctx context.Context, userID int, req schema.UserProfileFavoritesRequest, isOwner bool) (*schema.UserProfileFavoritesResponse, error)
-	// UpdatePassword 修改密码
+	// UpdatePassword Update password | 修改密码
 	UpdatePassword(ctx context.Context, userID int, req schema.UserUpdatePasswordRequest) (*schema.UserUpdatePasswordResponse, error)
-	// UpdateAvatar 修改头像
+	// UpdateAvatar Update avatar | 修改头像
 	UpdateAvatar(ctx context.Context, userID int, req schema.UserUpdateAvatarRequest) (*schema.UserUpdateAvatarResponse, error)
-	// UpdateUsername 修改用户名(每七日可操作一次)
+	// UpdateUsername Update username (can be done once every 7 days) | 修改用户名(每七日可操作一次)
 	UpdateUsername(ctx context.Context, userID int, req schema.UserUpdateUsernameRequest) (*schema.UserUpdateUsernameResponse, error)
-	// SendEmailVerifyCode 发送邮箱验证码（直接发送到用户注册邮箱）
+	// SendEmailVerifyCode Send email verification code (sent directly to user's registered email) | 发送邮箱验证码（直接发送到用户注册邮箱）
 	SendEmailVerifyCode(ctx context.Context, userID int) (*schema.EmailVerifyCodeResponse, error)
-	// VerifyEmail 验证邮箱
+	// VerifyEmail Verify email | 验证邮箱
 	VerifyEmail(ctx context.Context, userID int, req schema.EmailVerifyRequest) (*schema.EmailVerifyResponse, error)
-	// CheckUsernameUpdatePermission 检查用户名修改权限(每七日可操作一次)
+	// CheckUsernameUpdatePermission Check username update permission (can be done once every 7 days) | 检查用户名修改权限(每七日可操作一次)
 	CheckUsernameUpdatePermission(ctx context.Context, userID int) (bool, error)
-	// TODO 粉丝列表
 }
 
-// UserProfileService 用户个人中心服务实现
+// UserProfileService User profile service implementation | 用户个人中心服务实现
 type UserProfileService struct {
 	db                *ent.Client
+	userRepo          repository.IUserRepository
+	postRepo          repository.IPostRepository
+	commentRepo       repository.ICommentRepository
+	categoryRepo      repository.ICategoryRepository
+	postActionRepo    repository.IPostActionRepository
+	followService     IUserFollowService
 	cache             cache.ICacheService
 	logger            *zap.Logger
 	settings          ISettingsService
 	userManageService IUserManageService
 }
 
-// NewUserProfileService 创建用户个人中心服务实例
-func NewUserProfileService(db *ent.Client, cacheService cache.ICacheService, logger *zap.Logger, settingsService ISettingsService, userManageService IUserManageService) IUserProfileService {
+// NewUserProfileService Create user profile service instance | 创建用户个人中心服务实例
+func NewUserProfileService(db *ent.Client, repos *repository.Repositories, cacheService cache.ICacheService, logger *zap.Logger, settingsService ISettingsService, userManageService IUserManageService, followService IUserFollowService) IUserProfileService {
 	return &UserProfileService{
 		db:                db,
+		userRepo:          repos.User,
+		postRepo:          repos.Post,
+		commentRepo:       repos.Comment,
+		categoryRepo:      repos.Category,
+		postActionRepo:    repos.PostAction,
+		followService:     followService,
 		cache:             cacheService,
 		logger:            logger,
 		settings:          settingsService,
@@ -72,20 +85,36 @@ func NewUserProfileService(db *ent.Client, cacheService cache.ICacheService, log
 	}
 }
 
-// GetProfileOverview 获取用户个人中心概览
+// GetProfileOverview Get user profile overview | 获取用户个人中心概览
 func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int, isOwner bool) (*schema.UserProfileOverviewResponse, error) {
 	s.logger.Info("获取用户个人中心概览", zap.Int("user_id", userID), zap.Bool("is_owner", isOwner), tracing.WithTraceIDField(ctx))
 
-	// 查询用户信息
-	userData, err := s.db.User.Query().
-		Where(user.IDEQ(userID)).
-		Only(ctx)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("用户不存在")
+	// Cache key | 缓存键
+	cacheKey := fmt.Sprintf("user:profile:overview:%d", userID)
+
+	// If querying other user's profile, try to get from cache first | 如果查询他人个人中心，先尝试从缓存获取
+	if !isOwner {
+		cachedData, err := s.cache.Get(ctx, cacheKey)
+		if err == nil && cachedData != "" {
+			var result schema.UserProfileOverviewResponse
+			if err := json.Unmarshal([]byte(cachedData), &result); err == nil {
+				// 用实时计数器值覆盖关注数，保证数据一致性
+				followersCount, followingCount, countErr := s.followService.GetFollowCounts(ctx, userID)
+				if countErr == nil {
+					result.FollowersCount = followersCount
+					result.FollowingCount = followingCount
+				}
+				s.logger.Debug("从缓存获取用户个人中心概览成功", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+				return &result, nil
+			}
 		}
+	}
+
+	// 查询用户信息
+	userData, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
 		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取用户信息失败: %w", err)
+		return nil, err
 	}
 
 	// 实时查询用户的发帖数和评论数
@@ -101,18 +130,28 @@ func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int,
 		commentCount = 0
 	}
 
+	// 实时查询用户的粉丝数和关注数
+	followersCount, followingCount, err := s.followService.GetFollowCounts(ctx, userData.ID)
+	if err != nil {
+		s.logger.Error("查询用户关注数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		followersCount = 0
+		followingCount = 0
+	}
+
 	// 构建响应数据
 	result := &schema.UserProfileOverviewResponse{
-		ID:           userData.ID,
-		Username:     userData.Username,
-		Avatar:       userData.Avatar,
-		Signature:    userData.Signature,
-		Readme:       userData.Readme,
-		PostCount:    postCount,
-		CommentCount: commentCount,
-		Status:       string(userData.Status),
-		Role:         string(userData.Role),
-		CreatedAt:    userData.CreatedAt.Format(time_tools.DateTimeFormat),
+		ID:             userData.ID,
+		Username:       userData.Username,
+		Avatar:         userData.Avatar,
+		Signature:      userData.Signature,
+		Readme:         userData.Readme,
+		PostCount:      postCount,
+		CommentCount:   commentCount,
+		FollowersCount: followersCount,
+		FollowingCount: followingCount,
+		Status:         string(userData.Status),
+		Role:           string(userData.Role),
+		CreatedAt:      userData.CreatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	// 只有本人才能看到敏感数据
@@ -129,11 +168,20 @@ func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int,
 		result.Currency = 0
 	}
 
+	// If querying other user's profile, cache the result for 1 day | 如果查询他人个人中心，缓存结果1天
+	if !isOwner {
+		if data, err := json.Marshal(result); err == nil {
+			if cacheErr := s.cache.SetEx(ctx, cacheKey, data, 86400); cacheErr != nil {
+				s.logger.Warn("缓存用户个人中心概览失败", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx), zap.Error(cacheErr))
+			}
+		}
+	}
+
 	s.logger.Info("获取用户个人中心概览成功", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 	return result, nil
 }
 
-// GetUserPosts 获取用户主题帖列表
+// GetUserPosts Get user posts list | 获取用户主题帖列表
 func (s *UserProfileService) GetUserPosts(ctx context.Context, userID int, req schema.UserProfilePostsRequest, isOwner bool) (*schema.UserProfilePostsResponse, error) {
 	s.logger.Info("获取用户主题帖列表", zap.Int("user_id", userID), zap.Int("page", req.Page), zap.Bool("is_owner", isOwner), tracing.WithTraceIDField(ctx))
 
@@ -180,10 +228,7 @@ func (s *UserProfileService) GetUserPosts(ctx context.Context, userID int, req s
 	for id := range categoryIDs {
 		categoryIDList = append(categoryIDList, id)
 	}
-	categories, err := s.db.Category.Query().
-		Where(category.IDIn(categoryIDList...)).
-		Select(category.FieldID, category.FieldName).
-		All(ctx)
+	categories, err := s.categoryRepo.GetByIDsWithFields(ctx, categoryIDList, []string{category.FieldID, category.FieldName})
 	if err != nil {
 		s.logger.Warn("批量查询版块信息失败", zap.Error(err))
 	}
@@ -224,7 +269,7 @@ func (s *UserProfileService) GetUserPosts(ctx context.Context, userID int, req s
 	return result, nil
 }
 
-// GetUserComments 获取用户评论列表
+// GetUserComments Get user comments list | 获取用户评论列表
 func (s *UserProfileService) GetUserComments(ctx context.Context, userID int, req schema.UserProfileCommentsRequest, isOwner bool) (*schema.UserProfileCommentsResponse, error) {
 	s.logger.Info("获取用户评论列表", zap.Int("user_id", userID), zap.Int("page", req.Page), zap.Bool("is_owner", isOwner), tracing.WithTraceIDField(ctx))
 
@@ -356,7 +401,7 @@ func (s *UserProfileService) GetUserComments(ctx context.Context, userID int, re
 	return result, nil
 }
 
-// GetUserFavorites 获取用户收藏列表
+// GetUserFavorites Get user favorites list | 获取用户收藏列表
 func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, req schema.UserProfileFavoritesRequest, isOwner bool) (*schema.UserProfileFavoritesResponse, error) {
 	s.logger.Info("获取用户收藏列表", zap.Int("user_id", userID), zap.Int("page", req.Page), zap.Bool("is_owner", isOwner), tracing.WithTraceIDField(ctx))
 
@@ -473,10 +518,7 @@ func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, r
 	for id := range userIDs {
 		userIDList = append(userIDList, id)
 	}
-	users, err := s.db.User.Query().
-		Where(user.IDIn(userIDList...)).
-		Select(user.FieldID, user.FieldUsername).
-		All(ctx)
+	users, err := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername})
 	if err != nil {
 		s.logger.Warn("批量查询用户信息失败", zap.Error(err))
 	}
@@ -490,10 +532,7 @@ func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, r
 	for id := range categoryIDs {
 		categoryIDList = append(categoryIDList, id)
 	}
-	categories, err := s.db.Category.Query().
-		Where(category.IDIn(categoryIDList...)).
-		Select(category.FieldID, category.FieldName).
-		All(ctx)
+	categories, err := s.categoryRepo.GetByIDsWithFields(ctx, categoryIDList, []string{category.FieldID, category.FieldName})
 	if err != nil {
 		s.logger.Warn("批量查询版块信息失败", zap.Error(err))
 	}
@@ -538,39 +577,42 @@ func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, r
 	return result, nil
 }
 
-// UpdatePassword 修改密码
+// UpdatePassword Update password | 修改密码
 func (s *UserProfileService) UpdatePassword(ctx context.Context, userID int, req schema.UserUpdatePasswordRequest) (*schema.UserUpdatePasswordResponse, error) {
 	s.logger.Info("修改密码", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
 	// 查询用户信息
-	userData, err := s.db.User.Query().
-		Where(user.IDEQ(userID)).
-		Only(ctx)
+	userData, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("用户不存在")
-		}
 		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("获取用户信息失败: %w", err)
+		return nil, err
+	}
+
+	// 生成新密码
+	oldPasswordHash, err := utils.HashPassword(req.OldPassword)
+	if err != nil {
+		return nil, errors.New("生成密码哈希失败")
+	}
+	// 生成新的密码哈希
+	newPasswordHash, err := utils.HashPassword(req.NewPassword)
+	if err != nil {
+		return nil, errors.New("生成密码哈希失败")
 	}
 
 	// 验证旧密码
-	oldPasswordHash := hashPassword(req.OldPassword, userData.PasswordSalt)
 	if oldPasswordHash != userData.Password {
 		return nil, errors.New("旧密码错误")
 	}
 
-	// 生成新的密码哈希
-	newPasswordHash := hashPassword(req.NewPassword, userData.PasswordSalt)
-
 	// 更新密码
-	_, err = s.db.User.UpdateOneID(userID).
-		SetPassword(newPasswordHash).
-		Save(ctx)
+	err = s.userRepo.UpdatePassword(ctx, userID, newPasswordHash)
 	if err != nil {
 		s.logger.Error("更新密码失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("更新密码失败: %w", err)
+		return nil, err
 	}
+
+	// 清除用户个人中心缓存
+	s.clearProfileOverviewCache(ctx, userID)
 
 	result := &schema.UserUpdatePasswordResponse{
 		Success: true,
@@ -581,18 +623,19 @@ func (s *UserProfileService) UpdatePassword(ctx context.Context, userID int, req
 	return result, nil
 }
 
-// UpdateAvatar 修改头像
+// UpdateAvatar Update avatar | 修改头像
 func (s *UserProfileService) UpdateAvatar(ctx context.Context, userID int, req schema.UserUpdateAvatarRequest) (*schema.UserUpdateAvatarResponse, error) {
 	s.logger.Info("修改头像", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
 	// 更新头像
-	_, err := s.db.User.UpdateOneID(userID).
-		SetAvatar(req.AvatarURL).
-		Save(ctx)
+	err := s.userRepo.UpdateAvatar(ctx, userID, req.AvatarURL)
 	if err != nil {
 		s.logger.Error("更新头像失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("更新头像失败: %w", err)
+		return nil, err
 	}
+
+	// 清除用户个人中心缓存
+	s.clearProfileOverviewCache(ctx, userID)
 
 	result := &schema.UserUpdateAvatarResponse{
 		Success:   true,
@@ -603,7 +646,7 @@ func (s *UserProfileService) UpdateAvatar(ctx context.Context, userID int, req s
 	return result, nil
 }
 
-// UpdateUsername 修改用户名(每七日可操作一次)
+// UpdateUsername Update username (can be done once every 7 days) | 修改用户名(每七日可操作一次)
 func (s *UserProfileService) UpdateUsername(ctx context.Context, userID int, req schema.UserUpdateUsernameRequest) (*schema.UserUpdateUsernameResponse, error) {
 	s.logger.Info("修改用户名", zap.Int("user_id", userID), zap.String("new_username", req.Username), tracing.WithTraceIDField(ctx))
 
@@ -617,25 +660,24 @@ func (s *UserProfileService) UpdateUsername(ctx context.Context, userID int, req
 	}
 
 	// 检查用户名是否已存在
-	existingUser, err := s.db.User.Query().
-		Where(user.UsernameEQ(req.Username)).
-		Only(ctx)
-	if err != nil && !ent.IsNotFound(err) {
+	existingUser, err := s.userRepo.GetByUsername(ctx, req.Username)
+	if err != nil {
 		s.logger.Error("检查用户名失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("检查用户名失败: %w", err)
+		return nil, err
 	}
 	if existingUser != nil && existingUser.ID != userID {
 		return nil, errors.New("用户名已被使用")
 	}
 
 	// 更新用户名
-	_, err = s.db.User.UpdateOneID(userID).
-		SetUsername(req.Username).
-		Save(ctx)
+	err = s.userRepo.UpdateUsername(ctx, userID, req.Username)
 	if err != nil {
 		s.logger.Error("更新用户名失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("更新用户名失败: %w", err)
+		return nil, err
 	}
+
+	// 清除用户个人中心缓存
+	s.clearProfileOverviewCache(ctx, userID)
 
 	result := &schema.UserUpdateUsernameResponse{
 		Success:  true,
@@ -646,7 +688,7 @@ func (s *UserProfileService) UpdateUsername(ctx context.Context, userID int, req
 	return result, nil
 }
 
-// CheckUsernameUpdatePermission 检查用户名修改权限(每七日可操作一次)
+// CheckUsernameUpdatePermission Check username update permission (can be done once every 7 days) | 检查用户名修改权限(每七日可操作一次)
 func (s *UserProfileService) CheckUsernameUpdatePermission(ctx context.Context, userID int) (bool, error) {
 	// 生成Redis键名：user:username:update:limit:{userID}
 	redisKey := fmt.Sprintf("user:username:update:limit:%d", userID)
@@ -686,21 +728,15 @@ func (s *UserProfileService) CheckUsernameUpdatePermission(ctx context.Context, 
 	return true, nil
 }
 
-// SendEmailVerifyCode 发送邮箱验证码（直接发送到用户注册邮箱）
+// SendEmailVerifyCode Send email verification code (sent directly to user's registered email) | 发送邮箱验证码（直接发送到用户注册邮箱）
 func (s *UserProfileService) SendEmailVerifyCode(ctx context.Context, userID int) (*schema.EmailVerifyCodeResponse, error) {
 	s.logger.Info("发送邮箱验证码", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
 	// 查询用户信息
-	userData, err := s.db.User.Query().
-		Where(user.IDEQ(userID)).
-		Select(user.FieldEmail, user.FieldEmailVerified).
-		Only(ctx)
+	userData, err := s.userRepo.GetByIDWithFields(ctx, userID, []string{user.FieldEmail, user.FieldEmailVerified})
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return nil, errors.New("用户不存在")
-		}
 		s.logger.Error("查询用户失败", zap.Int("user_id", userID), zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("查询用户失败: %w", err)
+		return nil, err
 	}
 
 	// 检查邮箱是否已验证
@@ -760,7 +796,7 @@ func (s *UserProfileService) SendEmailVerifyCode(ctx context.Context, userID int
 	}, nil
 }
 
-// VerifyEmail 验证邮箱
+// VerifyEmail Verify email | 验证邮箱
 func (s *UserProfileService) VerifyEmail(ctx context.Context, userID int, req schema.EmailVerifyRequest) (*schema.EmailVerifyResponse, error) {
 	s.logger.Info("验证邮箱", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
 
@@ -777,12 +813,10 @@ func (s *UserProfileService) VerifyEmail(ctx context.Context, userID int, req sc
 	}
 
 	// 更新用户邮箱验证状态
-	_, err = s.db.User.UpdateOneID(userID).
-		SetEmailVerified(true).
-		Save(ctx)
+	err = s.userRepo.UpdateEmailVerified(ctx, userID, true)
 	if err != nil {
 		s.logger.Error("更新邮箱验证状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("更新邮箱验证状态失败: %w", err)
+		return nil, err
 	}
 
 	// 清除验证码缓存
@@ -797,7 +831,7 @@ func (s *UserProfileService) VerifyEmail(ctx context.Context, userID int, req sc
 	}, nil
 }
 
-// generateVerifyCode 生成6位随机验证码
+// generateVerifyCode Generate 6-digit random verification code | 生成6位随机验证码
 func (s *UserProfileService) generateVerifyCode() (string, error) {
 	code := ""
 	for i := 0; i < 6; i++ {
@@ -810,7 +844,7 @@ func (s *UserProfileService) generateVerifyCode() (string, error) {
 	return code, nil
 }
 
-// sendVerificationEmail 发送验证邮件
+// sendVerificationEmail Send verification email | 发送验证邮件
 func (s *UserProfileService) sendVerificationEmail(ctx context.Context, email, code string) error {
 	// 检查是否启用了邮箱验证
 	isVerifyEmail, err := s.settings.GetSettingByKey(ctx, _const.SafeVerifyEmail, _const.SettingBoolTrue.String())
@@ -867,9 +901,10 @@ func (s *UserProfileService) sendVerificationEmail(ctx context.Context, email, c
 	return nil
 }
 
-// hashPassword 生成密码哈希值
-func hashPassword(password, salt string) string {
-	hash := sha256.New()
-	hash.Write([]byte(password + salt))
-	return hex.EncodeToString(hash.Sum(nil))
+// clearProfileOverviewCache Clear user profile overview cache | 清除用户个人中心概览缓存
+func (s *UserProfileService) clearProfileOverviewCache(ctx context.Context, userID int) {
+	cacheKey := fmt.Sprintf("user:profile:overview:%d", userID)
+	if _, err := s.cache.Del(ctx, cacheKey); err != nil {
+		s.logger.Warn("清除用户个人中心概览缓存失败", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx), zap.Error(err))
+	}
 }

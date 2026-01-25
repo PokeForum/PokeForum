@@ -89,11 +89,6 @@ func UserInfoURL(v string) predicate.OAuthProvider {
 	return predicate.OAuthProvider(sql.FieldEQ(FieldUserInfoURL, v))
 }
 
-// RedirectURL applies equality check predicate on the "redirect_url" field. It's identical to RedirectURLEQ.
-func RedirectURL(v string) predicate.OAuthProvider {
-	return predicate.OAuthProvider(sql.FieldEQ(FieldRedirectURL, v))
-}
-
 // Enabled applies equality check predicate on the "enabled" field. It's identical to EnabledEQ.
 func Enabled(v bool) predicate.OAuthProvider {
 	return predicate.OAuthProvider(sql.FieldEQ(FieldEnabled, v))
@@ -577,81 +572,6 @@ func UserInfoURLEqualFold(v string) predicate.OAuthProvider {
 // UserInfoURLContainsFold applies the ContainsFold predicate on the "user_info_url" field.
 func UserInfoURLContainsFold(v string) predicate.OAuthProvider {
 	return predicate.OAuthProvider(sql.FieldContainsFold(FieldUserInfoURL, v))
-}
-
-// RedirectURLEQ applies the EQ predicate on the "redirect_url" field.
-func RedirectURLEQ(v string) predicate.OAuthProvider {
-	return predicate.OAuthProvider(sql.FieldEQ(FieldRedirectURL, v))
-}
-
-// RedirectURLNEQ applies the NEQ predicate on the "redirect_url" field.
-func RedirectURLNEQ(v string) predicate.OAuthProvider {
-	return predicate.OAuthProvider(sql.FieldNEQ(FieldRedirectURL, v))
-}
-
-// RedirectURLIn applies the In predicate on the "redirect_url" field.
-func RedirectURLIn(vs ...string) predicate.OAuthProvider {
-	return predicate.OAuthProvider(sql.FieldIn(FieldRedirectURL, vs...))
-}
-
-// RedirectURLNotIn applies the NotIn predicate on the "redirect_url" field.
-func RedirectURLNotIn(vs ...string) predicate.OAuthProvider {
-	return predicate.OAuthProvider(sql.FieldNotIn(FieldRedirectURL, vs...))
-}
-
-// RedirectURLGT applies the GT predicate on the "redirect_url" field.
-func RedirectURLGT(v string) predicate.OAuthProvider {
-	return predicate.OAuthProvider(sql.FieldGT(FieldRedirectURL, v))
-}
-
-// RedirectURLGTE applies the GTE predicate on the "redirect_url" field.
-func RedirectURLGTE(v string) predicate.OAuthProvider {
-	return predicate.OAuthProvider(sql.FieldGTE(FieldRedirectURL, v))
-}
-
-// RedirectURLLT applies the LT predicate on the "redirect_url" field.
-func RedirectURLLT(v string) predicate.OAuthProvider {
-	return predicate.OAuthProvider(sql.FieldLT(FieldRedirectURL, v))
-}
-
-// RedirectURLLTE applies the LTE predicate on the "redirect_url" field.
-func RedirectURLLTE(v string) predicate.OAuthProvider {
-	return predicate.OAuthProvider(sql.FieldLTE(FieldRedirectURL, v))
-}
-
-// RedirectURLContains applies the Contains predicate on the "redirect_url" field.
-func RedirectURLContains(v string) predicate.OAuthProvider {
-	return predicate.OAuthProvider(sql.FieldContains(FieldRedirectURL, v))
-}
-
-// RedirectURLHasPrefix applies the HasPrefix predicate on the "redirect_url" field.
-func RedirectURLHasPrefix(v string) predicate.OAuthProvider {
-	return predicate.OAuthProvider(sql.FieldHasPrefix(FieldRedirectURL, v))
-}
-
-// RedirectURLHasSuffix applies the HasSuffix predicate on the "redirect_url" field.
-func RedirectURLHasSuffix(v string) predicate.OAuthProvider {
-	return predicate.OAuthProvider(sql.FieldHasSuffix(FieldRedirectURL, v))
-}
-
-// RedirectURLIsNil applies the IsNil predicate on the "redirect_url" field.
-func RedirectURLIsNil() predicate.OAuthProvider {
-	return predicate.OAuthProvider(sql.FieldIsNull(FieldRedirectURL))
-}
-
-// RedirectURLNotNil applies the NotNil predicate on the "redirect_url" field.
-func RedirectURLNotNil() predicate.OAuthProvider {
-	return predicate.OAuthProvider(sql.FieldNotNull(FieldRedirectURL))
-}
-
-// RedirectURLEqualFold applies the EqualFold predicate on the "redirect_url" field.
-func RedirectURLEqualFold(v string) predicate.OAuthProvider {
-	return predicate.OAuthProvider(sql.FieldEqualFold(FieldRedirectURL, v))
-}
-
-// RedirectURLContainsFold applies the ContainsFold predicate on the "redirect_url" field.
-func RedirectURLContainsFold(v string) predicate.OAuthProvider {
-	return predicate.OAuthProvider(sql.FieldContainsFold(FieldRedirectURL, v))
 }
 
 // ScopesIsNil applies the IsNil predicate on the "scopes" field.

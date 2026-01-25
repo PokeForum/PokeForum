@@ -10,6 +10,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/categorymoderator"
 	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/commentaction"
+	"github.com/PokeForum/PokeForum/ent/invitationcode"
 	"github.com/PokeForum/PokeForum/ent/oauthprovider"
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
@@ -17,6 +18,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/settings"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
+	"github.com/PokeForum/PokeForum/ent/userfollow"
 	"github.com/PokeForum/PokeForum/ent/userloginlog"
 	"github.com/PokeForum/PokeForum/ent/useroauth"
 	"github.com/PokeForum/PokeForum/ent/usersigninlogs"
@@ -43,17 +45,13 @@ func init() {
 	// blacklist.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	blacklist.UpdateDefaultUpdatedAt = blacklistDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// blacklistDescUserID is the schema descriptor for user_id field.
-	blacklistDescUserID := blacklistFields[1].Descriptor()
+	blacklistDescUserID := blacklistFields[0].Descriptor()
 	// blacklist.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
 	blacklist.UserIDValidator = blacklistDescUserID.Validators[0].(func(int) error)
 	// blacklistDescBlockedUserID is the schema descriptor for blocked_user_id field.
-	blacklistDescBlockedUserID := blacklistFields[2].Descriptor()
+	blacklistDescBlockedUserID := blacklistFields[1].Descriptor()
 	// blacklist.BlockedUserIDValidator is a validator for the "blocked_user_id" field. It is called by the builders before save.
 	blacklist.BlockedUserIDValidator = blacklistDescBlockedUserID.Validators[0].(func(int) error)
-	// blacklistDescID is the schema descriptor for id field.
-	blacklistDescID := blacklistFields[0].Descriptor()
-	// blacklist.IDValidator is a validator for the "id" field. It is called by the builders before save.
-	blacklist.IDValidator = blacklistDescID.Validators[0].(func(int) error)
 	categoryMixin := schema.Category{}.Mixin()
 	categoryMixinFields0 := categoryMixin[0].Fields()
 	_ = categoryMixinFields0
@@ -70,21 +68,17 @@ func init() {
 	// category.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	category.UpdateDefaultUpdatedAt = categoryDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// categoryDescName is the schema descriptor for name field.
-	categoryDescName := categoryFields[1].Descriptor()
+	categoryDescName := categoryFields[0].Descriptor()
 	// category.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	category.NameValidator = categoryDescName.Validators[0].(func(string) error)
 	// categoryDescSlug is the schema descriptor for slug field.
-	categoryDescSlug := categoryFields[2].Descriptor()
+	categoryDescSlug := categoryFields[1].Descriptor()
 	// category.SlugValidator is a validator for the "slug" field. It is called by the builders before save.
 	category.SlugValidator = categoryDescSlug.Validators[0].(func(string) error)
 	// categoryDescWeight is the schema descriptor for weight field.
-	categoryDescWeight := categoryFields[5].Descriptor()
+	categoryDescWeight := categoryFields[4].Descriptor()
 	// category.DefaultWeight holds the default value on creation for the weight field.
 	category.DefaultWeight = categoryDescWeight.Default.(int)
-	// categoryDescID is the schema descriptor for id field.
-	categoryDescID := categoryFields[0].Descriptor()
-	// category.IDValidator is a validator for the "id" field. It is called by the builders before save.
-	category.IDValidator = categoryDescID.Validators[0].(func(int) error)
 	categorymoderatorMixin := schema.CategoryModerator{}.Mixin()
 	categorymoderatorMixinFields0 := categorymoderatorMixin[0].Fields()
 	_ = categorymoderatorMixinFields0
@@ -101,17 +95,13 @@ func init() {
 	// categorymoderator.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	categorymoderator.UpdateDefaultUpdatedAt = categorymoderatorDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// categorymoderatorDescCategoryID is the schema descriptor for category_id field.
-	categorymoderatorDescCategoryID := categorymoderatorFields[1].Descriptor()
+	categorymoderatorDescCategoryID := categorymoderatorFields[0].Descriptor()
 	// categorymoderator.CategoryIDValidator is a validator for the "category_id" field. It is called by the builders before save.
 	categorymoderator.CategoryIDValidator = categorymoderatorDescCategoryID.Validators[0].(func(int) error)
 	// categorymoderatorDescUserID is the schema descriptor for user_id field.
-	categorymoderatorDescUserID := categorymoderatorFields[2].Descriptor()
+	categorymoderatorDescUserID := categorymoderatorFields[1].Descriptor()
 	// categorymoderator.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
 	categorymoderator.UserIDValidator = categorymoderatorDescUserID.Validators[0].(func(int) error)
-	// categorymoderatorDescID is the schema descriptor for id field.
-	categorymoderatorDescID := categorymoderatorFields[0].Descriptor()
-	// categorymoderator.IDValidator is a validator for the "id" field. It is called by the builders before save.
-	categorymoderator.IDValidator = categorymoderatorDescID.Validators[0].(func(int) error)
 	commentMixin := schema.Comment{}.Mixin()
 	commentMixinFields0 := commentMixin[0].Fields()
 	_ = commentMixinFields0
@@ -128,41 +118,37 @@ func init() {
 	// comment.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	comment.UpdateDefaultUpdatedAt = commentDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// commentDescPostID is the schema descriptor for post_id field.
-	commentDescPostID := commentFields[1].Descriptor()
+	commentDescPostID := commentFields[0].Descriptor()
 	// comment.PostIDValidator is a validator for the "post_id" field. It is called by the builders before save.
 	comment.PostIDValidator = commentDescPostID.Validators[0].(func(int) error)
 	// commentDescUserID is the schema descriptor for user_id field.
-	commentDescUserID := commentFields[2].Descriptor()
+	commentDescUserID := commentFields[1].Descriptor()
 	// comment.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
 	comment.UserIDValidator = commentDescUserID.Validators[0].(func(int) error)
 	// commentDescContent is the schema descriptor for content field.
-	commentDescContent := commentFields[5].Descriptor()
+	commentDescContent := commentFields[4].Descriptor()
 	// comment.ContentValidator is a validator for the "content" field. It is called by the builders before save.
 	comment.ContentValidator = commentDescContent.Validators[0].(func(string) error)
 	// commentDescLikeCount is the schema descriptor for like_count field.
-	commentDescLikeCount := commentFields[6].Descriptor()
+	commentDescLikeCount := commentFields[5].Descriptor()
 	// comment.DefaultLikeCount holds the default value on creation for the like_count field.
 	comment.DefaultLikeCount = commentDescLikeCount.Default.(int)
 	// comment.LikeCountValidator is a validator for the "like_count" field. It is called by the builders before save.
 	comment.LikeCountValidator = commentDescLikeCount.Validators[0].(func(int) error)
 	// commentDescDislikeCount is the schema descriptor for dislike_count field.
-	commentDescDislikeCount := commentFields[7].Descriptor()
+	commentDescDislikeCount := commentFields[6].Descriptor()
 	// comment.DefaultDislikeCount holds the default value on creation for the dislike_count field.
 	comment.DefaultDislikeCount = commentDescDislikeCount.Default.(int)
 	// comment.DislikeCountValidator is a validator for the "dislike_count" field. It is called by the builders before save.
 	comment.DislikeCountValidator = commentDescDislikeCount.Validators[0].(func(int) error)
 	// commentDescIsSelected is the schema descriptor for is_selected field.
-	commentDescIsSelected := commentFields[8].Descriptor()
+	commentDescIsSelected := commentFields[7].Descriptor()
 	// comment.DefaultIsSelected holds the default value on creation for the is_selected field.
 	comment.DefaultIsSelected = commentDescIsSelected.Default.(bool)
 	// commentDescIsPinned is the schema descriptor for is_pinned field.
-	commentDescIsPinned := commentFields[9].Descriptor()
+	commentDescIsPinned := commentFields[8].Descriptor()
 	// comment.DefaultIsPinned holds the default value on creation for the is_pinned field.
 	comment.DefaultIsPinned = commentDescIsPinned.Default.(bool)
-	// commentDescID is the schema descriptor for id field.
-	commentDescID := commentFields[0].Descriptor()
-	// comment.IDValidator is a validator for the "id" field. It is called by the builders before save.
-	comment.IDValidator = commentDescID.Validators[0].(func(int) error)
 	commentactionMixin := schema.CommentAction{}.Mixin()
 	commentactionMixinFields0 := commentactionMixin[0].Fields()
 	_ = commentactionMixinFields0
@@ -179,17 +165,42 @@ func init() {
 	// commentaction.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	commentaction.UpdateDefaultUpdatedAt = commentactionDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// commentactionDescUserID is the schema descriptor for user_id field.
-	commentactionDescUserID := commentactionFields[1].Descriptor()
+	commentactionDescUserID := commentactionFields[0].Descriptor()
 	// commentaction.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
 	commentaction.UserIDValidator = commentactionDescUserID.Validators[0].(func(int) error)
 	// commentactionDescCommentID is the schema descriptor for comment_id field.
-	commentactionDescCommentID := commentactionFields[2].Descriptor()
+	commentactionDescCommentID := commentactionFields[1].Descriptor()
 	// commentaction.CommentIDValidator is a validator for the "comment_id" field. It is called by the builders before save.
 	commentaction.CommentIDValidator = commentactionDescCommentID.Validators[0].(func(int) error)
-	// commentactionDescID is the schema descriptor for id field.
-	commentactionDescID := commentactionFields[0].Descriptor()
-	// commentaction.IDValidator is a validator for the "id" field. It is called by the builders before save.
-	commentaction.IDValidator = commentactionDescID.Validators[0].(func(int) error)
+	invitationcodeMixin := schema.InvitationCode{}.Mixin()
+	invitationcodeMixinFields0 := invitationcodeMixin[0].Fields()
+	_ = invitationcodeMixinFields0
+	invitationcodeFields := schema.InvitationCode{}.Fields()
+	_ = invitationcodeFields
+	// invitationcodeDescCreatedAt is the schema descriptor for created_at field.
+	invitationcodeDescCreatedAt := invitationcodeMixinFields0[0].Descriptor()
+	// invitationcode.DefaultCreatedAt holds the default value on creation for the created_at field.
+	invitationcode.DefaultCreatedAt = invitationcodeDescCreatedAt.Default.(func() time.Time)
+	// invitationcodeDescUpdatedAt is the schema descriptor for updated_at field.
+	invitationcodeDescUpdatedAt := invitationcodeMixinFields0[1].Descriptor()
+	// invitationcode.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	invitationcode.DefaultUpdatedAt = invitationcodeDescUpdatedAt.Default.(func() time.Time)
+	// invitationcode.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	invitationcode.UpdateDefaultUpdatedAt = invitationcodeDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// invitationcodeDescCode is the schema descriptor for code field.
+	invitationcodeDescCode := invitationcodeFields[0].Descriptor()
+	// invitationcode.CodeValidator is a validator for the "code" field. It is called by the builders before save.
+	invitationcode.CodeValidator = invitationcodeDescCode.Validators[0].(func(string) error)
+	// invitationcodeDescCreatorID is the schema descriptor for creator_id field.
+	invitationcodeDescCreatorID := invitationcodeFields[1].Descriptor()
+	// invitationcode.CreatorIDValidator is a validator for the "creator_id" field. It is called by the builders before save.
+	invitationcode.CreatorIDValidator = invitationcodeDescCreatorID.Validators[0].(func(int) error)
+	// invitationcodeDescCostAmount is the schema descriptor for cost_amount field.
+	invitationcodeDescCostAmount := invitationcodeFields[5].Descriptor()
+	// invitationcode.DefaultCostAmount holds the default value on creation for the cost_amount field.
+	invitationcode.DefaultCostAmount = invitationcodeDescCostAmount.Default.(int)
+	// invitationcode.CostAmountValidator is a validator for the "cost_amount" field. It is called by the builders before save.
+	invitationcode.CostAmountValidator = invitationcodeDescCostAmount.Validators[0].(func(int) error)
 	oauthproviderMixin := schema.OAuthProvider{}.Mixin()
 	oauthproviderMixinFields0 := oauthproviderMixin[0].Fields()
 	_ = oauthproviderMixinFields0
@@ -206,19 +217,15 @@ func init() {
 	// oauthprovider.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	oauthprovider.UpdateDefaultUpdatedAt = oauthproviderDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// oauthproviderDescEnabled is the schema descriptor for enabled field.
-	oauthproviderDescEnabled := oauthproviderFields[10].Descriptor()
+	oauthproviderDescEnabled := oauthproviderFields[8].Descriptor()
 	// oauthprovider.DefaultEnabled holds the default value on creation for the enabled field.
 	oauthprovider.DefaultEnabled = oauthproviderDescEnabled.Default.(bool)
 	// oauthproviderDescSortOrder is the schema descriptor for sort_order field.
-	oauthproviderDescSortOrder := oauthproviderFields[11].Descriptor()
+	oauthproviderDescSortOrder := oauthproviderFields[9].Descriptor()
 	// oauthprovider.DefaultSortOrder holds the default value on creation for the sort_order field.
 	oauthprovider.DefaultSortOrder = oauthproviderDescSortOrder.Default.(int)
 	// oauthprovider.SortOrderValidator is a validator for the "sort_order" field. It is called by the builders before save.
 	oauthprovider.SortOrderValidator = oauthproviderDescSortOrder.Validators[0].(func(int) error)
-	// oauthproviderDescID is the schema descriptor for id field.
-	oauthproviderDescID := oauthproviderFields[0].Descriptor()
-	// oauthprovider.IDValidator is a validator for the "id" field. It is called by the builders before save.
-	oauthprovider.IDValidator = oauthproviderDescID.Validators[0].(func(int) error)
 	postMixin := schema.Post{}.Mixin()
 	postMixinFields0 := postMixin[0].Fields()
 	_ = postMixinFields0
@@ -235,25 +242,27 @@ func init() {
 	// post.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	post.UpdateDefaultUpdatedAt = postDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// postDescUserID is the schema descriptor for user_id field.
-	postDescUserID := postFields[1].Descriptor()
+	postDescUserID := postFields[0].Descriptor()
 	// post.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
 	post.UserIDValidator = postDescUserID.Validators[0].(func(int) error)
 	// postDescCategoryID is the schema descriptor for category_id field.
-	postDescCategoryID := postFields[2].Descriptor()
+	postDescCategoryID := postFields[1].Descriptor()
 	// post.CategoryIDValidator is a validator for the "category_id" field. It is called by the builders before save.
 	post.CategoryIDValidator = postDescCategoryID.Validators[0].(func(int) error)
 	// postDescTitle is the schema descriptor for title field.
-	postDescTitle := postFields[3].Descriptor()
+	postDescTitle := postFields[2].Descriptor()
 	// post.TitleValidator is a validator for the "title" field. It is called by the builders before save.
 	post.TitleValidator = postDescTitle.Validators[0].(func(string) error)
 	// postDescContent is the schema descriptor for content field.
-	postDescContent := postFields[4].Descriptor()
+	postDescContent := postFields[3].Descriptor()
 	// post.ContentValidator is a validator for the "content" field. It is called by the builders before save.
 	post.ContentValidator = postDescContent.Validators[0].(func(string) error)
-	// postDescReadPermission is the schema descriptor for read_permission field.
-	postDescReadPermission := postFields[5].Descriptor()
-	// post.DefaultReadPermission holds the default value on creation for the read_permission field.
-	post.DefaultReadPermission = postDescReadPermission.Default.(string)
+	// postDescReadPermissionPoints is the schema descriptor for read_permission_points field.
+	postDescReadPermissionPoints := postFields[5].Descriptor()
+	// post.DefaultReadPermissionPoints holds the default value on creation for the read_permission_points field.
+	post.DefaultReadPermissionPoints = postDescReadPermissionPoints.Default.(int)
+	// post.ReadPermissionPointsValidator is a validator for the "read_permission_points" field. It is called by the builders before save.
+	post.ReadPermissionPointsValidator = postDescReadPermissionPoints.Validators[0].(func(int) error)
 	// postDescViewCount is the schema descriptor for view_count field.
 	postDescViewCount := postFields[6].Descriptor()
 	// post.DefaultViewCount holds the default value on creation for the view_count field.
@@ -286,10 +295,6 @@ func init() {
 	postDescIsPinned := postFields[11].Descriptor()
 	// post.DefaultIsPinned holds the default value on creation for the is_pinned field.
 	post.DefaultIsPinned = postDescIsPinned.Default.(bool)
-	// postDescID is the schema descriptor for id field.
-	postDescID := postFields[0].Descriptor()
-	// post.IDValidator is a validator for the "id" field. It is called by the builders before save.
-	post.IDValidator = postDescID.Validators[0].(func(int) error)
 	postactionMixin := schema.PostAction{}.Mixin()
 	postactionMixinFields0 := postactionMixin[0].Fields()
 	_ = postactionMixinFields0
@@ -306,17 +311,13 @@ func init() {
 	// postaction.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	postaction.UpdateDefaultUpdatedAt = postactionDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// postactionDescUserID is the schema descriptor for user_id field.
-	postactionDescUserID := postactionFields[1].Descriptor()
+	postactionDescUserID := postactionFields[0].Descriptor()
 	// postaction.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
 	postaction.UserIDValidator = postactionDescUserID.Validators[0].(func(int) error)
 	// postactionDescPostID is the schema descriptor for post_id field.
-	postactionDescPostID := postactionFields[2].Descriptor()
+	postactionDescPostID := postactionFields[1].Descriptor()
 	// postaction.PostIDValidator is a validator for the "post_id" field. It is called by the builders before save.
 	postaction.PostIDValidator = postactionDescPostID.Validators[0].(func(int) error)
-	// postactionDescID is the schema descriptor for id field.
-	postactionDescID := postactionFields[0].Descriptor()
-	// postaction.IDValidator is a validator for the "id" field. It is called by the builders before save.
-	postaction.IDValidator = postactionDescID.Validators[0].(func(int) error)
 	settingsMixin := schema.Settings{}.Mixin()
 	settingsMixinFields0 := settingsMixin[0].Fields()
 	_ = settingsMixinFields0
@@ -333,13 +334,9 @@ func init() {
 	// settings.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	settings.UpdateDefaultUpdatedAt = settingsDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// settingsDescKey is the schema descriptor for key field.
-	settingsDescKey := settingsFields[2].Descriptor()
+	settingsDescKey := settingsFields[1].Descriptor()
 	// settings.KeyValidator is a validator for the "key" field. It is called by the builders before save.
 	settings.KeyValidator = settingsDescKey.Validators[0].(func(string) error)
-	// settingsDescID is the schema descriptor for id field.
-	settingsDescID := settingsFields[0].Descriptor()
-	// settings.IDValidator is a validator for the "id" field. It is called by the builders before save.
-	settings.IDValidator = settingsDescID.Validators[0].(func(int) error)
 	userMixin := schema.User{}.Mixin()
 	userMixinFields0 := userMixin[0].Fields()
 	_ = userMixinFields0
@@ -356,47 +353,39 @@ func init() {
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// userDescEmail is the schema descriptor for email field.
-	userDescEmail := userFields[1].Descriptor()
+	userDescEmail := userFields[0].Descriptor()
 	// user.EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	user.EmailValidator = userDescEmail.Validators[0].(func(string) error)
 	// userDescPassword is the schema descriptor for password field.
-	userDescPassword := userFields[2].Descriptor()
+	userDescPassword := userFields[1].Descriptor()
 	// user.PasswordValidator is a validator for the "password" field. It is called by the builders before save.
 	user.PasswordValidator = userDescPassword.Validators[0].(func(string) error)
-	// userDescPasswordSalt is the schema descriptor for password_salt field.
-	userDescPasswordSalt := userFields[3].Descriptor()
-	// user.PasswordSaltValidator is a validator for the "password_salt" field. It is called by the builders before save.
-	user.PasswordSaltValidator = userDescPasswordSalt.Validators[0].(func(string) error)
 	// userDescUsername is the schema descriptor for username field.
-	userDescUsername := userFields[4].Descriptor()
+	userDescUsername := userFields[2].Descriptor()
 	// user.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	user.UsernameValidator = userDescUsername.Validators[0].(func(string) error)
 	// userDescEmailVerified is the schema descriptor for email_verified field.
-	userDescEmailVerified := userFields[8].Descriptor()
+	userDescEmailVerified := userFields[6].Descriptor()
 	// user.DefaultEmailVerified holds the default value on creation for the email_verified field.
 	user.DefaultEmailVerified = userDescEmailVerified.Default.(bool)
 	// userDescExperience is the schema descriptor for experience field.
-	userDescExperience := userFields[9].Descriptor()
+	userDescExperience := userFields[7].Descriptor()
 	// user.DefaultExperience holds the default value on creation for the experience field.
 	user.DefaultExperience = userDescExperience.Default.(int)
 	// user.ExperienceValidator is a validator for the "experience" field. It is called by the builders before save.
 	user.ExperienceValidator = userDescExperience.Validators[0].(func(int) error)
 	// userDescPoints is the schema descriptor for points field.
-	userDescPoints := userFields[10].Descriptor()
+	userDescPoints := userFields[8].Descriptor()
 	// user.DefaultPoints holds the default value on creation for the points field.
 	user.DefaultPoints = userDescPoints.Default.(int)
 	// user.PointsValidator is a validator for the "points" field. It is called by the builders before save.
 	user.PointsValidator = userDescPoints.Validators[0].(func(int) error)
 	// userDescCurrency is the schema descriptor for currency field.
-	userDescCurrency := userFields[11].Descriptor()
+	userDescCurrency := userFields[9].Descriptor()
 	// user.DefaultCurrency holds the default value on creation for the currency field.
 	user.DefaultCurrency = userDescCurrency.Default.(int)
 	// user.CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	user.CurrencyValidator = userDescCurrency.Validators[0].(func(int) error)
-	// userDescID is the schema descriptor for id field.
-	userDescID := userFields[0].Descriptor()
-	// user.IDValidator is a validator for the "id" field. It is called by the builders before save.
-	user.IDValidator = userDescID.Validators[0].(func(int) error)
 	userbalancelogMixin := schema.UserBalanceLog{}.Mixin()
 	userbalancelogMixinFields0 := userbalancelogMixin[0].Fields()
 	_ = userbalancelogMixinFields0
@@ -413,17 +402,36 @@ func init() {
 	// userbalancelog.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	userbalancelog.UpdateDefaultUpdatedAt = userbalancelogDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// userbalancelogDescUserID is the schema descriptor for user_id field.
-	userbalancelogDescUserID := userbalancelogFields[1].Descriptor()
+	userbalancelogDescUserID := userbalancelogFields[0].Descriptor()
 	// userbalancelog.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
 	userbalancelog.UserIDValidator = userbalancelogDescUserID.Validators[0].(func(int) error)
 	// userbalancelogDescReason is the schema descriptor for reason field.
-	userbalancelogDescReason := userbalancelogFields[6].Descriptor()
+	userbalancelogDescReason := userbalancelogFields[5].Descriptor()
 	// userbalancelog.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
 	userbalancelog.ReasonValidator = userbalancelogDescReason.Validators[0].(func(string) error)
-	// userbalancelogDescID is the schema descriptor for id field.
-	userbalancelogDescID := userbalancelogFields[0].Descriptor()
-	// userbalancelog.IDValidator is a validator for the "id" field. It is called by the builders before save.
-	userbalancelog.IDValidator = userbalancelogDescID.Validators[0].(func(int) error)
+	userfollowMixin := schema.UserFollow{}.Mixin()
+	userfollowMixinFields0 := userfollowMixin[0].Fields()
+	_ = userfollowMixinFields0
+	userfollowFields := schema.UserFollow{}.Fields()
+	_ = userfollowFields
+	// userfollowDescCreatedAt is the schema descriptor for created_at field.
+	userfollowDescCreatedAt := userfollowMixinFields0[0].Descriptor()
+	// userfollow.DefaultCreatedAt holds the default value on creation for the created_at field.
+	userfollow.DefaultCreatedAt = userfollowDescCreatedAt.Default.(func() time.Time)
+	// userfollowDescUpdatedAt is the schema descriptor for updated_at field.
+	userfollowDescUpdatedAt := userfollowMixinFields0[1].Descriptor()
+	// userfollow.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	userfollow.DefaultUpdatedAt = userfollowDescUpdatedAt.Default.(func() time.Time)
+	// userfollow.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	userfollow.UpdateDefaultUpdatedAt = userfollowDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// userfollowDescFollowerID is the schema descriptor for follower_id field.
+	userfollowDescFollowerID := userfollowFields[0].Descriptor()
+	// userfollow.FollowerIDValidator is a validator for the "follower_id" field. It is called by the builders before save.
+	userfollow.FollowerIDValidator = userfollowDescFollowerID.Validators[0].(func(int) error)
+	// userfollowDescFollowingID is the schema descriptor for following_id field.
+	userfollowDescFollowingID := userfollowFields[1].Descriptor()
+	// userfollow.FollowingIDValidator is a validator for the "following_id" field. It is called by the builders before save.
+	userfollow.FollowingIDValidator = userfollowDescFollowingID.Validators[0].(func(int) error)
 	userloginlogMixin := schema.UserLoginLog{}.Mixin()
 	userloginlogMixinFields0 := userloginlogMixin[0].Fields()
 	_ = userloginlogMixinFields0
@@ -440,21 +448,17 @@ func init() {
 	// userloginlog.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	userloginlog.UpdateDefaultUpdatedAt = userloginlogDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// userloginlogDescUserID is the schema descriptor for user_id field.
-	userloginlogDescUserID := userloginlogFields[1].Descriptor()
+	userloginlogDescUserID := userloginlogFields[0].Descriptor()
 	// userloginlog.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
 	userloginlog.UserIDValidator = userloginlogDescUserID.Validators[0].(func(int) error)
 	// userloginlogDescIPAddress is the schema descriptor for ip_address field.
-	userloginlogDescIPAddress := userloginlogFields[2].Descriptor()
+	userloginlogDescIPAddress := userloginlogFields[1].Descriptor()
 	// userloginlog.IPAddressValidator is a validator for the "ip_address" field. It is called by the builders before save.
 	userloginlog.IPAddressValidator = userloginlogDescIPAddress.Validators[0].(func(string) error)
 	// userloginlogDescSuccess is the schema descriptor for success field.
-	userloginlogDescSuccess := userloginlogFields[5].Descriptor()
+	userloginlogDescSuccess := userloginlogFields[4].Descriptor()
 	// userloginlog.DefaultSuccess holds the default value on creation for the success field.
 	userloginlog.DefaultSuccess = userloginlogDescSuccess.Default.(bool)
-	// userloginlogDescID is the schema descriptor for id field.
-	userloginlogDescID := userloginlogFields[0].Descriptor()
-	// userloginlog.IDValidator is a validator for the "id" field. It is called by the builders before save.
-	userloginlog.IDValidator = userloginlogDescID.Validators[0].(func(int) error)
 	useroauthMixin := schema.UserOAuth{}.Mixin()
 	useroauthMixinFields0 := useroauthMixin[0].Fields()
 	_ = useroauthMixinFields0
@@ -471,17 +475,13 @@ func init() {
 	// useroauth.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	useroauth.UpdateDefaultUpdatedAt = useroauthDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// useroauthDescUserID is the schema descriptor for user_id field.
-	useroauthDescUserID := useroauthFields[1].Descriptor()
+	useroauthDescUserID := useroauthFields[0].Descriptor()
 	// useroauth.UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
 	useroauth.UserIDValidator = useroauthDescUserID.Validators[0].(func(int) error)
 	// useroauthDescProviderUserID is the schema descriptor for provider_user_id field.
-	useroauthDescProviderUserID := useroauthFields[3].Descriptor()
+	useroauthDescProviderUserID := useroauthFields[2].Descriptor()
 	// useroauth.ProviderUserIDValidator is a validator for the "provider_user_id" field. It is called by the builders before save.
 	useroauth.ProviderUserIDValidator = useroauthDescProviderUserID.Validators[0].(func(string) error)
-	// useroauthDescID is the schema descriptor for id field.
-	useroauthDescID := useroauthFields[0].Descriptor()
-	// useroauth.IDValidator is a validator for the "id" field. It is called by the builders before save.
-	useroauth.IDValidator = useroauthDescID.Validators[0].(func(int) error)
 	usersigninlogsMixin := schema.UserSigninLogs{}.Mixin()
 	usersigninlogsMixinFields0 := usersigninlogsMixin[0].Fields()
 	_ = usersigninlogsMixinFields0

@@ -71,8 +71,6 @@ var (
 	UserIDValidator func(int) error
 	// ProviderUserIDValidator is a validator for the "provider_user_id" field. It is called by the builders before save.
 	ProviderUserIDValidator func(string) error
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int) error
 )
 
 // Provider defines the type for the "provider" enum field.
@@ -80,12 +78,10 @@ type Provider string
 
 // Provider values.
 const (
-	ProviderQQ       Provider = "QQ"
-	ProviderGitHub   Provider = "GitHub"
-	ProviderApple    Provider = "Apple"
-	ProviderGoogle   Provider = "Google"
-	ProviderTelegram Provider = "Telegram"
-	ProviderFIDO2    Provider = "FIDO2"
+	ProviderQQ     Provider = "QQ"
+	ProviderGitHub Provider = "GitHub"
+	ProviderGoogle Provider = "Google"
+	ProviderFIDO2  Provider = "FIDO2"
 )
 
 func (pr Provider) String() string {
@@ -95,7 +91,7 @@ func (pr Provider) String() string {
 // ProviderValidator is a validator for the "provider" field enum values. It is called by the builders before save.
 func ProviderValidator(pr Provider) error {
 	switch pr {
-	case ProviderQQ, ProviderGitHub, ProviderApple, ProviderGoogle, ProviderTelegram, ProviderFIDO2:
+	case ProviderQQ, ProviderGitHub, ProviderGoogle, ProviderFIDO2:
 		return nil
 	default:
 		return fmt.Errorf("useroauth: invalid enum value for provider field: %q", pr)

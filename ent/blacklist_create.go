@@ -60,12 +60,6 @@ func (_c *BlacklistCreate) SetBlockedUserID(v int) *BlacklistCreate {
 	return _c
 }
 
-// SetID sets the "id" field.
-func (_c *BlacklistCreate) SetID(v int) *BlacklistCreate {
-	_c.mutation.SetID(v)
-	return _c
-}
-
 // Mutation returns the BlacklistMutation object of the builder.
 func (_c *BlacklistCreate) Mutation() *BlacklistMutation {
 	return _c.mutation
@@ -135,11 +129,6 @@ func (_c *BlacklistCreate) check() error {
 			return &ValidationError{Name: "blocked_user_id", err: fmt.Errorf(`ent: validator failed for field "Blacklist.blocked_user_id": %w`, err)}
 		}
 	}
-	if v, ok := _c.mutation.ID(); ok {
-		if err := blacklist.IDValidator(v); err != nil {
-			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Blacklist.id": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -154,10 +143,8 @@ func (_c *BlacklistCreate) sqlSave(ctx context.Context) (*Blacklist, error) {
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = int(id)
-	}
+	id := _spec.ID.Value.(int64)
+	_node.ID = int(id)
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
 	return _node, nil
@@ -168,10 +155,6 @@ func (_c *BlacklistCreate) createSpec() (*Blacklist, *sqlgraph.CreateSpec) {
 		_node = &Blacklist{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(blacklist.Table, sqlgraph.NewFieldSpec(blacklist.FieldID, field.TypeInt))
 	)
-	if id, ok := _c.mutation.ID(); ok {
-		_node.ID = id
-		_spec.ID.Value = id
-	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(blacklist.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -236,7 +219,7 @@ func (_c *BlacklistCreateBulk) Save(ctx context.Context) ([]*Blacklist, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
+				if specs[i].ID.Value != nil {
 					id := specs[i].ID.Value.(int64)
 					nodes[i].ID = int(id)
 				}

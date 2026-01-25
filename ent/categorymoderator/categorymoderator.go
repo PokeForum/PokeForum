@@ -55,8 +55,6 @@ var (
 	CategoryIDValidator func(int) error
 	// UserIDValidator is a validator for the "user_id" field. It is called by the builders before save.
 	UserIDValidator func(int) error
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int) error
 )
 
 // OrderOption defines the ordering options for the CategoryModerator queries.

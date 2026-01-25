@@ -86,8 +86,6 @@ var (
 	UserIDValidator func(int) error
 	// ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
 	ReasonValidator func(string) error
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int) error
 )
 
 // Type defines the type for the "type" enum field.

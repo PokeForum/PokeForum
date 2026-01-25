@@ -84,9 +84,9 @@ func Content(v string) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldContent, v))
 }
 
-// ReadPermission applies equality check predicate on the "read_permission" field. It's identical to ReadPermissionEQ.
-func ReadPermission(v string) predicate.Post {
-	return predicate.Post(sql.FieldEQ(FieldReadPermission, v))
+// ReadPermissionPoints applies equality check predicate on the "read_permission_points" field. It's identical to ReadPermissionPointsEQ.
+func ReadPermissionPoints(v int) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldReadPermissionPoints, v))
 }
 
 // ViewCount applies equality check predicate on the "view_count" field. It's identical to ViewCountEQ.
@@ -420,78 +420,63 @@ func ContentContainsFold(v string) predicate.Post {
 }
 
 // ReadPermissionEQ applies the EQ predicate on the "read_permission" field.
-func ReadPermissionEQ(v string) predicate.Post {
+func ReadPermissionEQ(v ReadPermission) predicate.Post {
 	return predicate.Post(sql.FieldEQ(FieldReadPermission, v))
 }
 
 // ReadPermissionNEQ applies the NEQ predicate on the "read_permission" field.
-func ReadPermissionNEQ(v string) predicate.Post {
+func ReadPermissionNEQ(v ReadPermission) predicate.Post {
 	return predicate.Post(sql.FieldNEQ(FieldReadPermission, v))
 }
 
 // ReadPermissionIn applies the In predicate on the "read_permission" field.
-func ReadPermissionIn(vs ...string) predicate.Post {
+func ReadPermissionIn(vs ...ReadPermission) predicate.Post {
 	return predicate.Post(sql.FieldIn(FieldReadPermission, vs...))
 }
 
 // ReadPermissionNotIn applies the NotIn predicate on the "read_permission" field.
-func ReadPermissionNotIn(vs ...string) predicate.Post {
+func ReadPermissionNotIn(vs ...ReadPermission) predicate.Post {
 	return predicate.Post(sql.FieldNotIn(FieldReadPermission, vs...))
 }
 
-// ReadPermissionGT applies the GT predicate on the "read_permission" field.
-func ReadPermissionGT(v string) predicate.Post {
-	return predicate.Post(sql.FieldGT(FieldReadPermission, v))
+// ReadPermissionPointsEQ applies the EQ predicate on the "read_permission_points" field.
+func ReadPermissionPointsEQ(v int) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldReadPermissionPoints, v))
 }
 
-// ReadPermissionGTE applies the GTE predicate on the "read_permission" field.
-func ReadPermissionGTE(v string) predicate.Post {
-	return predicate.Post(sql.FieldGTE(FieldReadPermission, v))
+// ReadPermissionPointsNEQ applies the NEQ predicate on the "read_permission_points" field.
+func ReadPermissionPointsNEQ(v int) predicate.Post {
+	return predicate.Post(sql.FieldNEQ(FieldReadPermissionPoints, v))
 }
 
-// ReadPermissionLT applies the LT predicate on the "read_permission" field.
-func ReadPermissionLT(v string) predicate.Post {
-	return predicate.Post(sql.FieldLT(FieldReadPermission, v))
+// ReadPermissionPointsIn applies the In predicate on the "read_permission_points" field.
+func ReadPermissionPointsIn(vs ...int) predicate.Post {
+	return predicate.Post(sql.FieldIn(FieldReadPermissionPoints, vs...))
 }
 
-// ReadPermissionLTE applies the LTE predicate on the "read_permission" field.
-func ReadPermissionLTE(v string) predicate.Post {
-	return predicate.Post(sql.FieldLTE(FieldReadPermission, v))
+// ReadPermissionPointsNotIn applies the NotIn predicate on the "read_permission_points" field.
+func ReadPermissionPointsNotIn(vs ...int) predicate.Post {
+	return predicate.Post(sql.FieldNotIn(FieldReadPermissionPoints, vs...))
 }
 
-// ReadPermissionContains applies the Contains predicate on the "read_permission" field.
-func ReadPermissionContains(v string) predicate.Post {
-	return predicate.Post(sql.FieldContains(FieldReadPermission, v))
+// ReadPermissionPointsGT applies the GT predicate on the "read_permission_points" field.
+func ReadPermissionPointsGT(v int) predicate.Post {
+	return predicate.Post(sql.FieldGT(FieldReadPermissionPoints, v))
 }
 
-// ReadPermissionHasPrefix applies the HasPrefix predicate on the "read_permission" field.
-func ReadPermissionHasPrefix(v string) predicate.Post {
-	return predicate.Post(sql.FieldHasPrefix(FieldReadPermission, v))
+// ReadPermissionPointsGTE applies the GTE predicate on the "read_permission_points" field.
+func ReadPermissionPointsGTE(v int) predicate.Post {
+	return predicate.Post(sql.FieldGTE(FieldReadPermissionPoints, v))
 }
 
-// ReadPermissionHasSuffix applies the HasSuffix predicate on the "read_permission" field.
-func ReadPermissionHasSuffix(v string) predicate.Post {
-	return predicate.Post(sql.FieldHasSuffix(FieldReadPermission, v))
+// ReadPermissionPointsLT applies the LT predicate on the "read_permission_points" field.
+func ReadPermissionPointsLT(v int) predicate.Post {
+	return predicate.Post(sql.FieldLT(FieldReadPermissionPoints, v))
 }
 
-// ReadPermissionIsNil applies the IsNil predicate on the "read_permission" field.
-func ReadPermissionIsNil() predicate.Post {
-	return predicate.Post(sql.FieldIsNull(FieldReadPermission))
-}
-
-// ReadPermissionNotNil applies the NotNil predicate on the "read_permission" field.
-func ReadPermissionNotNil() predicate.Post {
-	return predicate.Post(sql.FieldNotNull(FieldReadPermission))
-}
-
-// ReadPermissionEqualFold applies the EqualFold predicate on the "read_permission" field.
-func ReadPermissionEqualFold(v string) predicate.Post {
-	return predicate.Post(sql.FieldEqualFold(FieldReadPermission, v))
-}
-
-// ReadPermissionContainsFold applies the ContainsFold predicate on the "read_permission" field.
-func ReadPermissionContainsFold(v string) predicate.Post {
-	return predicate.Post(sql.FieldContainsFold(FieldReadPermission, v))
+// ReadPermissionPointsLTE applies the LTE predicate on the "read_permission_points" field.
+func ReadPermissionPointsLTE(v int) predicate.Post {
+	return predicate.Post(sql.FieldLTE(FieldReadPermissionPoints, v))
 }
 
 // ViewCountEQ applies the EQ predicate on the "view_count" field.
@@ -672,6 +657,26 @@ func IsPinnedEQ(v bool) predicate.Post {
 // IsPinnedNEQ applies the NEQ predicate on the "is_pinned" field.
 func IsPinnedNEQ(v bool) predicate.Post {
 	return predicate.Post(sql.FieldNEQ(FieldIsPinned, v))
+}
+
+// PinScopeEQ applies the EQ predicate on the "pin_scope" field.
+func PinScopeEQ(v PinScope) predicate.Post {
+	return predicate.Post(sql.FieldEQ(FieldPinScope, v))
+}
+
+// PinScopeNEQ applies the NEQ predicate on the "pin_scope" field.
+func PinScopeNEQ(v PinScope) predicate.Post {
+	return predicate.Post(sql.FieldNEQ(FieldPinScope, v))
+}
+
+// PinScopeIn applies the In predicate on the "pin_scope" field.
+func PinScopeIn(vs ...PinScope) predicate.Post {
+	return predicate.Post(sql.FieldIn(FieldPinScope, vs...))
+}
+
+// PinScopeNotIn applies the NotIn predicate on the "pin_scope" field.
+func PinScopeNotIn(vs ...PinScope) predicate.Post {
+	return predicate.Post(sql.FieldNotIn(FieldPinScope, vs...))
 }
 
 // PublishIPEQ applies the EQ predicate on the "publish_ip" field.

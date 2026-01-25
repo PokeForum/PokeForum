@@ -4,10 +4,10 @@ import (
 	"github.com/PokeForum/PokeForum/ent/user"
 )
 
-// GetUserRole 获取用户身份权限
+// GetUserRole Get user identity permissions | 获取用户身份权限
 func GetUserRole(role string) []string {
 	switch role {
-	case user.RoleUser.String(): // 普通用户
+	case user.RoleUser.String(): // Regular user | 普通用户
 		return []string{user.RoleUser.String()}
 	case user.RoleModerator.String():
 		return []string{
@@ -28,7 +28,7 @@ func GetUserRole(role string) []string {
 			user.RoleSuperAdmin.String(),
 		}
 	default:
-		// 不存在身份用户
+		// User with non-existent identity | 不存在身份用户
 		return []string{}
 	}
 }

@@ -4,21 +4,24 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
 )
 
-// QQProvider QQ OAuth提供商
+// QQProvider QQ OAuth provider | QQ OAuth提供商
 type QQProvider struct {
 	*BaseProvider
 }
 
-// NewQQProvider 创建QQ OAuth提供商实例
+const (
+	// unknownParseErrMsg unknown parse error message | 未知解析错误消息
+	unknownParseErrMsg = "unknown error"
+)
+
+// NewQQProvider Create QQ OAuth provider instance | 创建QQ OAuth提供商实例
 func NewQQProvider(config *Config) (IProvider, error) {
-	// 设置QQ默认配置
+	// Set QQ default configuration | 设置QQ默认配置
 	if config.AuthURL == "" {
 		config.AuthURL = "https://graph.qq.com/oauth2.0/authorize"
 	}
@@ -37,114 +40,84 @@ func NewQQProvider(config *Config) (IProvider, error) {
 	}, nil
 }
 
-// GetAuthURL 获取QQ授权URL
-func (q *QQProvider) GetAuthURL(state string) string {
-	return q.BuildAuthURL(state, nil)
+// GetAuthURL Get QQ authorization URL | 获取QQ授权URL
+func (q *QQProvider) GetAuthURL(state string, redirectURL string) string {
+	return q.BuildAuthURL(state, redirectURL, nil)
 }
 
-// ExchangeToken 使用授权码换取访问令牌
-// QQ返回的是URL编码格式，不是JSON
-func (q *QQProvider) ExchangeToken(ctx context.Context, code string) (*TokenResponse, error) {
-	data := url.Values{}
-	data.Set("client_id", q.config.ClientID)
-	data.Set("client_secret", q.config.ClientSecret)
-	data.Set("code", code)
-	data.Set("redirect_uri", q.config.RedirectURL)
-	data.Set("grant_type", "authorization_code")
+// ExchangeToken Exchange authorization code for access token | 使用授权码换取访问令牌
+// QQ returns URL encoded format by default, but can also return JSON format | QQ默认返回URL编码格式，但也可能返回JSON格式
+func (q *QQProvider) ExchangeToken(ctx context.Context, code string, redirectURI string) (*TokenResponse, error) {
+	resp, err := q.httpClient.R().
+		SetContext(ctx).
+		SetQueryParams(map[string]string{
+			"client_id":     q.config.ClientID,
+			"client_secret": q.config.ClientSecret,
+			"code":          code,
+			"grant_type":    "authorization_code",
+			"redirect_uri":  redirectURI,
+			"fmt":           "json", // Specify JSON format return | 指定返回JSON格式
+		}).
+		Get(q.config.TokenURL)
 
-	req, err := http.NewRequestWithContext(ctx, "GET", q.config.TokenURL+"?"+data.Encode(), http.NoBody)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrExchangeTokenFailed, err)
-	}
-
-	resp, err := q.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrNetworkRequest, err)
 	}
-	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrParseResponse, err)
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("%w: status=%d, body=%s", ErrExchangeTokenFailed, resp.StatusCode(), resp.String())
 	}
 
-	// QQ返回格式: access_token=xxx&expires_in=7776000&refresh_token=xxx
-	params, err := url.ParseQuery(string(body))
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrParseResponse, err)
-	}
-
-	accessToken := params.Get("access_token")
-	if accessToken == "" {
-		return nil, fmt.Errorf("%w: access_token is empty, response: %s", ErrExchangeTokenFailed, string(body))
-	}
-
-	expiresIn := 7776000 // QQ默认90天
-	if params.Get("expires_in") != "" {
-		_, _ = fmt.Sscanf(params.Get("expires_in"), "%d", &expiresIn) //nolint:errcheck // 解析失败保持默认值
-	}
-
-	return &TokenResponse{
-		AccessToken:  accessToken,
-		TokenType:    "Bearer",
-		ExpiresIn:    expiresIn,
-		RefreshToken: params.Get("refresh_token"),
-	}, nil
+	return q.parseTokenResponse(resp.Body(), ErrExchangeTokenFailed)
 }
 
-// GetUserInfo 获取QQ用户信息
-// QQ需要先获取OpenID，再获取用户信息
+// GetUserInfo Get QQ user information | 获取QQ用户信息
+// QQ needs to get OpenID first, then get user information | QQ需要先获取OpenID，再获取用户信息
 func (q *QQProvider) GetUserInfo(ctx context.Context, accessToken string) (*UserInfo, error) {
-	// 第一步：获取OpenID
+	// Step 1: Get OpenID | 第一步：获取OpenID
 	openID, err := q.getOpenID(ctx, accessToken)
 	if err != nil {
 		return nil, err
 	}
 
-	// 第二步：获取用户信息
-	params := url.Values{}
-	params.Set("access_token", accessToken)
-	params.Set("oauth_consumer_key", q.config.ClientID)
-	params.Set("openid", openID)
+	// Step 2: Get user information | 第二步：获取用户信息
+	var userInfoMap map[string]interface{}
 
-	req, err := http.NewRequestWithContext(ctx, "GET", q.config.UserInfoURL+"?"+params.Encode(), http.NoBody)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrGetUserInfoFailed, err)
-	}
+	resp, err := q.httpClient.R().
+		SetContext(ctx).
+		SetQueryParams(map[string]string{
+			"access_token":       accessToken,
+			"oauth_consumer_key": q.config.ClientID,
+			"openid":             openID,
+		}).
+		SetResult(&userInfoMap).
+		Get(q.config.UserInfoURL)
 
-	resp, err := q.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrNetworkRequest, err)
 	}
-	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrParseResponse, err)
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("%w: status=%d, body=%s", ErrGetUserInfoFailed, resp.StatusCode(), resp.String())
 	}
 
-	var userInfoMap map[string]interface{}
-	if err := json.Unmarshal(body, &userInfoMap); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrParseResponse, err)
-	}
-
-	// 检查返回码
+	// Check return code | 检查返回码
 	if ret, ok := userInfoMap["ret"].(float64); ok && ret != 0 {
 		return nil, fmt.Errorf("%w: ret=%v, msg=%v", ErrGetUserInfoFailed, ret, userInfoMap["msg"])
 	}
 
-	// 解析QQ用户信息
+	// Parse QQ user information | 解析QQ用户信息
 	userInfo := &UserInfo{
 		ProviderUserID: openID,
 		ExtraData:      userInfoMap,
 	}
 
-	// 昵称
+	// Nickname | 昵称
 	if nickname, ok := userInfoMap["nickname"].(string); ok {
 		userInfo.Username = nickname
 	}
 
-	// 头像
+	// Avatar | 头像
 	if figureurl, ok := userInfoMap["figureurl_qq_2"].(string); ok {
 		userInfo.Avatar = figureurl
 	} else if figureurl, ok := userInfoMap["figureurl_qq_1"].(string); ok {
@@ -154,34 +127,31 @@ func (q *QQProvider) GetUserInfo(ctx context.Context, accessToken string) (*User
 	return userInfo, nil
 }
 
-// getOpenID 获取QQ OpenID
+// getOpenID Get QQ OpenID | 获取QQ OpenID
 func (q *QQProvider) getOpenID(ctx context.Context, accessToken string) (string, error) {
 	openIDURL := "https://graph.qq.com/oauth2.0/me"
-	params := url.Values{}
-	params.Set("access_token", accessToken)
 
-	req, err := http.NewRequestWithContext(ctx, "GET", openIDURL+"?"+params.Encode(), http.NoBody)
-	if err != nil {
-		return "", fmt.Errorf("%w: %v", ErrGetUserInfoFailed, err)
-	}
+	resp, err := q.httpClient.R().
+		SetContext(ctx).
+		SetQueryParam("access_token", accessToken).
+		Get(openIDURL)
 
-	resp, err := q.httpClient.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("%w: %v", ErrNetworkRequest, err)
 	}
-	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("%w: %v", ErrParseResponse, err)
+	if resp.StatusCode() != 200 {
+		return "", fmt.Errorf("%w: status=%d, body=%s", ErrGetUserInfoFailed, resp.StatusCode(), resp.String())
 	}
 
-	// QQ返回格式: callback( {"client_id":"YOUR_APPID","openid":"YOUR_OPENID"} );
-	// 需要提取JSON部分
+	body := resp.String()
+
+	// QQ return format: callback( {"client_id":"YOUR_APPID","openid":"YOUR_OPENID"} )
+	// Need to extract JSON part | 需要提取JSON部分
 	re := regexp.MustCompile(`\{.*}`)
-	jsonStr := re.FindString(string(body))
+	jsonStr := re.FindString(body)
 	if jsonStr == "" {
-		return "", fmt.Errorf("%w: cannot extract json from response: %s", ErrParseResponse, string(body))
+		return "", fmt.Errorf("%w: cannot extract json from response: %s", ErrParseResponse, body)
 	}
 
 	var result map[string]interface{}
@@ -197,54 +167,95 @@ func (q *QQProvider) getOpenID(ctx context.Context, accessToken string) (string,
 	return openID, nil
 }
 
-// RefreshToken 刷新访问令牌
+// RefreshToken Refresh access token | 刷新访问令牌
 func (q *QQProvider) RefreshToken(ctx context.Context, refreshToken string) (*TokenResponse, error) {
-	data := url.Values{}
-	data.Set("client_id", q.config.ClientID)
-	data.Set("client_secret", q.config.ClientSecret)
-	data.Set("refresh_token", refreshToken)
-	data.Set("grant_type", "refresh_token")
+	resp, err := q.httpClient.R().
+		SetContext(ctx).
+		SetQueryParams(map[string]string{
+			"client_id":     q.config.ClientID,
+			"client_secret": q.config.ClientSecret,
+			"refresh_token": refreshToken,
+			"grant_type":    "refresh_token",
+			"fmt":           "json", // Specify JSON format return | 指定返回JSON格式
+		}).
+		Get(q.config.TokenURL)
 
-	req, err := http.NewRequestWithContext(ctx, "GET", q.config.TokenURL+"?"+data.Encode(), http.NoBody)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrRefreshTokenFailed, err)
-	}
-
-	resp, err := q.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrNetworkRequest, err)
 	}
-	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrParseResponse, err)
+	if resp.StatusCode() != 200 {
+		return nil, fmt.Errorf("%w: status=%d, body=%s", ErrRefreshTokenFailed, resp.StatusCode(), resp.String())
 	}
 
-	params, err := url.ParseQuery(string(body))
-	if err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrParseResponse, err)
+	return q.parseTokenResponse(resp.Body(), ErrRefreshTokenFailed)
+}
+
+// parseTokenResponse Parse token response from QQ API | 解析QQ API的token响应
+// QQ returns JSON format or URL encoded format | QQ返回JSON格式或URL编码格式
+func (q *QQProvider) parseTokenResponse(bodyBytes []byte, errToWrap error) (*TokenResponse, error) {
+	// Try JSON format first | 先尝试JSON格式
+	var tokenResp struct {
+		AccessToken  string `json:"access_token"`
+		ExpiresIn    string `json:"expires_in"` // QQ returns string type | QQ返回字符串类型
+		RefreshToken string `json:"refresh_token"`
 	}
 
-	accessToken := params.Get("access_token")
+	jsonErr := json.Unmarshal(bodyBytes, &tokenResp)
+	if jsonErr == nil && tokenResp.AccessToken != "" {
+		// JSON parsing successful | JSON解析成功
+		expiresIn := 7776000 // QQ default 90 days | QQ默认90天
+		if tokenResp.ExpiresIn != "" {
+			if _, err := fmt.Sscanf(tokenResp.ExpiresIn, "%d", &expiresIn); err != nil || expiresIn == 0 {
+				expiresIn = 7776000 // Keep default value if parsing fails | 解析失败保持默认值
+			}
+		}
+
+		return &TokenResponse{
+			AccessToken:  tokenResp.AccessToken,
+			TokenType:    "Bearer",
+			ExpiresIn:    expiresIn,
+			RefreshToken: tokenResp.RefreshToken,
+		}, nil
+	}
+
+	// JSON parsing failed or AccessToken is empty, try URL encoded format
+	// JSON解析失败或AccessToken为空,尝试URL编码格式
+	bodyString := string(bodyBytes)
+	values, err := url.ParseQuery(bodyString)
+	if err != nil {
+		parseErrMsg := unknownParseErrMsg
+		if jsonErr != nil {
+			parseErrMsg = fmt.Sprintf("json parse error: %v", jsonErr)
+		}
+		return nil, fmt.Errorf("%w: url parse failed (%v), %s, body: %s", errToWrap, err, parseErrMsg, bodyString)
+	}
+
+	accessToken := values.Get("access_token")
 	if accessToken == "" {
-		return nil, fmt.Errorf("%w: access_token is empty", ErrRefreshTokenFailed)
+		parseErrMsg := unknownParseErrMsg
+		if jsonErr != nil {
+			parseErrMsg = fmt.Sprintf("json parse error: %v", jsonErr)
+		}
+		return nil, fmt.Errorf("%w: access_token is empty in both json and url encoded response, %s, body: %s", errToWrap, parseErrMsg, bodyString)
 	}
 
-	expiresIn := 7776000
-	if params.Get("expires_in") != "" {
-		_, _ = fmt.Sscanf(params.Get("expires_in"), "%d", &expiresIn) //nolint:errcheck // 解析失败保持默认值
+	expiresIn := 7776000 // QQ default 90 days | QQ默认90天
+	if expiresInStr := values.Get("expires_in"); expiresInStr != "" {
+		if _, err := fmt.Sscanf(expiresInStr, "%d", &expiresIn); err != nil || expiresIn == 0 {
+			expiresIn = 7776000 // Keep default value if parsing fails | 解析失败保持默认值
+		}
 	}
 
 	return &TokenResponse{
 		AccessToken:  accessToken,
 		TokenType:    "Bearer",
 		ExpiresIn:    expiresIn,
-		RefreshToken: params.Get("refresh_token"),
+		RefreshToken: values.Get("refresh_token"),
 	}, nil
 }
 
-// ValidateToken 验证访问令牌是否有效
+// ValidateToken Validate if access token is valid | 验证访问令牌是否有效
 func (q *QQProvider) ValidateToken(ctx context.Context, accessToken string) (bool, error) {
 	_, err := q.getOpenID(ctx, accessToken)
 	if err != nil {

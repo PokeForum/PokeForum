@@ -59,8 +59,6 @@ var (
 	UserIDValidator func(int) error
 	// PostIDValidator is a validator for the "post_id" field. It is called by the builders before save.
 	PostIDValidator func(int) error
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int) error
 )
 
 // ActionType defines the type for the "action_type" enum field.

@@ -59,8 +59,6 @@ var (
 	UserIDValidator func(int) error
 	// CommentIDValidator is a validator for the "comment_id" field. It is called by the builders before save.
 	CommentIDValidator func(int) error
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int) error
 )
 
 // ActionType defines the type for the "action_type" enum field.

@@ -73,15 +73,29 @@ func (_c *PostCreate) SetContent(v string) *PostCreate {
 }
 
 // SetReadPermission sets the "read_permission" field.
-func (_c *PostCreate) SetReadPermission(v string) *PostCreate {
+func (_c *PostCreate) SetReadPermission(v post.ReadPermission) *PostCreate {
 	_c.mutation.SetReadPermission(v)
 	return _c
 }
 
 // SetNillableReadPermission sets the "read_permission" field if the given value is not nil.
-func (_c *PostCreate) SetNillableReadPermission(v *string) *PostCreate {
+func (_c *PostCreate) SetNillableReadPermission(v *post.ReadPermission) *PostCreate {
 	if v != nil {
 		_c.SetReadPermission(*v)
+	}
+	return _c
+}
+
+// SetReadPermissionPoints sets the "read_permission_points" field.
+func (_c *PostCreate) SetReadPermissionPoints(v int) *PostCreate {
+	_c.mutation.SetReadPermissionPoints(v)
+	return _c
+}
+
+// SetNillableReadPermissionPoints sets the "read_permission_points" field if the given value is not nil.
+func (_c *PostCreate) SetNillableReadPermissionPoints(v *int) *PostCreate {
+	if v != nil {
+		_c.SetReadPermissionPoints(*v)
 	}
 	return _c
 }
@@ -170,6 +184,20 @@ func (_c *PostCreate) SetNillableIsPinned(v *bool) *PostCreate {
 	return _c
 }
 
+// SetPinScope sets the "pin_scope" field.
+func (_c *PostCreate) SetPinScope(v post.PinScope) *PostCreate {
+	_c.mutation.SetPinScope(v)
+	return _c
+}
+
+// SetNillablePinScope sets the "pin_scope" field if the given value is not nil.
+func (_c *PostCreate) SetNillablePinScope(v *post.PinScope) *PostCreate {
+	if v != nil {
+		_c.SetPinScope(*v)
+	}
+	return _c
+}
+
 // SetPublishIP sets the "publish_ip" field.
 func (_c *PostCreate) SetPublishIP(v string) *PostCreate {
 	_c.mutation.SetPublishIP(v)
@@ -209,12 +237,6 @@ func (_c *PostCreate) SetNillableLastEditedAt(v *time.Time) *PostCreate {
 	if v != nil {
 		_c.SetLastEditedAt(*v)
 	}
-	return _c
-}
-
-// SetID sets the "id" field.
-func (_c *PostCreate) SetID(v int) *PostCreate {
-	_c.mutation.SetID(v)
 	return _c
 }
 
@@ -265,6 +287,10 @@ func (_c *PostCreate) defaults() {
 		v := post.DefaultReadPermission
 		_c.mutation.SetReadPermission(v)
 	}
+	if _, ok := _c.mutation.ReadPermissionPoints(); !ok {
+		v := post.DefaultReadPermissionPoints
+		_c.mutation.SetReadPermissionPoints(v)
+	}
 	if _, ok := _c.mutation.ViewCount(); !ok {
 		v := post.DefaultViewCount
 		_c.mutation.SetViewCount(v)
@@ -288,6 +314,10 @@ func (_c *PostCreate) defaults() {
 	if _, ok := _c.mutation.IsPinned(); !ok {
 		v := post.DefaultIsPinned
 		_c.mutation.SetIsPinned(v)
+	}
+	if _, ok := _c.mutation.PinScope(); !ok {
+		v := post.DefaultPinScope
+		_c.mutation.SetPinScope(v)
 	}
 	if _, ok := _c.mutation.Status(); !ok {
 		v := post.DefaultStatus
@@ -335,6 +365,22 @@ func (_c *PostCreate) check() error {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Post.content": %w`, err)}
 		}
 	}
+	if _, ok := _c.mutation.ReadPermission(); !ok {
+		return &ValidationError{Name: "read_permission", err: errors.New(`ent: missing required field "Post.read_permission"`)}
+	}
+	if v, ok := _c.mutation.ReadPermission(); ok {
+		if err := post.ReadPermissionValidator(v); err != nil {
+			return &ValidationError{Name: "read_permission", err: fmt.Errorf(`ent: validator failed for field "Post.read_permission": %w`, err)}
+		}
+	}
+	if _, ok := _c.mutation.ReadPermissionPoints(); !ok {
+		return &ValidationError{Name: "read_permission_points", err: errors.New(`ent: missing required field "Post.read_permission_points"`)}
+	}
+	if v, ok := _c.mutation.ReadPermissionPoints(); ok {
+		if err := post.ReadPermissionPointsValidator(v); err != nil {
+			return &ValidationError{Name: "read_permission_points", err: fmt.Errorf(`ent: validator failed for field "Post.read_permission_points": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.ViewCount(); !ok {
 		return &ValidationError{Name: "view_count", err: errors.New(`ent: missing required field "Post.view_count"`)}
 	}
@@ -373,17 +419,20 @@ func (_c *PostCreate) check() error {
 	if _, ok := _c.mutation.IsPinned(); !ok {
 		return &ValidationError{Name: "is_pinned", err: errors.New(`ent: missing required field "Post.is_pinned"`)}
 	}
+	if _, ok := _c.mutation.PinScope(); !ok {
+		return &ValidationError{Name: "pin_scope", err: errors.New(`ent: missing required field "Post.pin_scope"`)}
+	}
+	if v, ok := _c.mutation.PinScope(); ok {
+		if err := post.PinScopeValidator(v); err != nil {
+			return &ValidationError{Name: "pin_scope", err: fmt.Errorf(`ent: validator failed for field "Post.pin_scope": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Post.status"`)}
 	}
 	if v, ok := _c.mutation.Status(); ok {
 		if err := post.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Post.status": %w`, err)}
-		}
-	}
-	if v, ok := _c.mutation.ID(); ok {
-		if err := post.IDValidator(v); err != nil {
-			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "Post.id": %w`, err)}
 		}
 	}
 	return nil
@@ -400,10 +449,8 @@ func (_c *PostCreate) sqlSave(ctx context.Context) (*Post, error) {
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = int(id)
-	}
+	id := _spec.ID.Value.(int64)
+	_node.ID = int(id)
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
 	return _node, nil
@@ -414,10 +461,6 @@ func (_c *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 		_node = &Post{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(post.Table, sqlgraph.NewFieldSpec(post.FieldID, field.TypeInt))
 	)
-	if id, ok := _c.mutation.ID(); ok {
-		_node.ID = id
-		_spec.ID.Value = id
-	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(post.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -443,8 +486,12 @@ func (_c *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 		_node.Content = value
 	}
 	if value, ok := _c.mutation.ReadPermission(); ok {
-		_spec.SetField(post.FieldReadPermission, field.TypeString, value)
+		_spec.SetField(post.FieldReadPermission, field.TypeEnum, value)
 		_node.ReadPermission = value
+	}
+	if value, ok := _c.mutation.ReadPermissionPoints(); ok {
+		_spec.SetField(post.FieldReadPermissionPoints, field.TypeInt, value)
+		_node.ReadPermissionPoints = value
 	}
 	if value, ok := _c.mutation.ViewCount(); ok {
 		_spec.SetField(post.FieldViewCount, field.TypeInt, value)
@@ -469,6 +516,10 @@ func (_c *PostCreate) createSpec() (*Post, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.IsPinned(); ok {
 		_spec.SetField(post.FieldIsPinned, field.TypeBool, value)
 		_node.IsPinned = value
+	}
+	if value, ok := _c.mutation.PinScope(); ok {
+		_spec.SetField(post.FieldPinScope, field.TypeEnum, value)
+		_node.PinScope = value
 	}
 	if value, ok := _c.mutation.PublishIP(); ok {
 		_spec.SetField(post.FieldPublishIP, field.TypeString, value)
@@ -530,7 +581,7 @@ func (_c *PostCreateBulk) Save(ctx context.Context) ([]*Post, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
+				if specs[i].ID.Value != nil {
 					id := specs[i].ID.Value.(int64)
 					nodes[i].ID = int(id)
 				}

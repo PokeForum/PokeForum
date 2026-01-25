@@ -55,8 +55,6 @@ var (
 	UserIDValidator func(int) error
 	// BlockedUserIDValidator is a validator for the "blocked_user_id" field. It is called by the builders before save.
 	BlockedUserIDValidator func(int) error
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int) error
 )
 
 // OrderOption defines the ordering options for the Blacklist queries.

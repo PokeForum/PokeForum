@@ -21,9 +21,9 @@ type UserSigninLogs struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// 用户ID
+	// User ID | 用户ID
 	UserID int64 `json:"user_id,omitempty"`
-	// 签到日期
+	// Sign-in date | 签到日期
 	SignDate     time.Time `json:"sign_date,omitempty"`
 	selectValues sql.SelectValues
 }

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-// Exists 检查指定的文件或目录是否存在
+// Exists checks if the specified file or directory exists | 检查指定的文件或目录是否存在
 func Exists(name string) bool {
 	if _, err := os.Stat(name); err != nil {
 		if os.IsNotExist(err) {
@@ -16,11 +16,11 @@ func Exists(name string) bool {
 	return true
 }
 
-// CreatNestedFile 给定path创建文件，如果目录不存在就递归创建
+// CreatNestedFile creates a file for the given path, recursively creating directories if they don't exist | 给定path创建文件，如果目录不存在就递归创建
 func CreatNestedFile(path string) (*os.File, error) {
-	// 获取文件所在的目录
+	// Get the directory where the file is located | 获取文件所在的目录
 	basePath := filepath.Dir(path)
-	// 如果目录不存在，递归创建
+	// If the directory doesn't exist, create it recursively | 如果目录不存在，递归创建
 	if !Exists(basePath) {
 		err := os.MkdirAll(basePath, 0700)
 		if err != nil {
@@ -28,13 +28,13 @@ func CreatNestedFile(path string) (*os.File, error) {
 		}
 	}
 
-	// 创建文件
-	return os.Create(path) //nolint:gosec // 路径由调用方控制，已在调用处验证安全性
+	// Create the file | 创建文件
+	return os.Create(path) //nolint:gosec // Path is controlled by caller, security is verified at call site
 }
 
-// CreatNestedFolder 使用给定的路径创建文件夹，如果目录不存在则递归创建
+// CreatNestedFolder creates a folder using the given path, recursively creating directories if they don't exist | 使用给定的路径创建文件夹，如果目录不存在则递归创建
 func CreatNestedFolder(path string) error {
-	// 如果目录不存在，递归创建
+	// If the directory doesn't exist, create it recursively | 如果目录不存在，递归创建
 	if !Exists(path) {
 		err := os.MkdirAll(path, 0700)
 		if err != nil {
@@ -45,10 +45,10 @@ func CreatNestedFolder(path string) error {
 	return nil
 }
 
-// IsEmpty 返回给定目录是否为空目录
+// IsEmpty returns whether the given directory is empty | 返回给定目录是否为空目录
 func IsEmpty(name string) (bool, error) {
-	// 打开目录
-	f, err := os.Open(name) //nolint:gosec // 路径由调用方控制，已在调用处验证安全性
+	// Open the directory | 打开目录
+	f, err := os.Open(name) //nolint:gosec // Path is controlled by caller, security is verified at call site
 	if err != nil {
 		return false, err
 	}
@@ -56,24 +56,24 @@ func IsEmpty(name string) (bool, error) {
 		_ = f.Close()
 	}(f)
 
-	// 尝试读取一个目录项，如果返回 EOF 说明目录为空
+	// Try to read one directory entry, if EOF is returned, the directory is empty | 尝试读取一个目录项，如果返回 EOF 说明目录为空
 	_, err = f.Readdirnames(1)
 	if err == io.EOF {
 		return true, nil
 	}
-	// 如果有错误或目录不为空都返回 false
+	// Return false if there's an error or the directory is not empty | 如果有错误或目录不为空都返回 false
 	return false, err
 }
 
-// CallbackReader 是一个包装了回调函数的读取器，在每次读取时调用回调函数
+// CallbackReader is a reader wrapper with a callback function that gets called on each read | 是一个包装了回调函数的读取器，在每次读取时调用回调函数
 type CallbackReader struct {
-	// reader 底层的读取器
+	// reader is the underlying reader | reader 底层的读取器
 	reader io.Reader
-	// callback 每次读取后调用的回调函数，参数为读取的字节数
+	// callback is the function called after each read, parameter is the number of bytes read | callback 每次读取后调用的回调函数，参数为读取的字节数
 	callback func(int64)
 }
 
-// NewCallbackReader 创建一个新的 CallbackReader 实例
+// NewCallbackReader creates a new CallbackReader instance | 创建一个新的 CallbackReader 实例
 func NewCallbackReader(reader io.Reader, callback func(int64)) *CallbackReader {
 	return &CallbackReader{
 		reader:   reader,
@@ -81,7 +81,7 @@ func NewCallbackReader(reader io.Reader, callback func(int64)) *CallbackReader {
 	}
 }
 
-// Read 实现 io.Reader 接口，读取数据并调用回调函数
+// Read implements the io.Reader interface, reads data and calls the callback function | 实现 io.Reader 接口，读取数据并调用回调函数
 func (r *CallbackReader) Read(p []byte) (n int, err error) {
 	n, err = r.reader.Read(p)
 	r.callback(int64(n))

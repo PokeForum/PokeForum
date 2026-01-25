@@ -17,12 +17,14 @@ import (
 	"github.com/PokeForum/PokeForum/ent/categorymoderator"
 	"github.com/PokeForum/PokeForum/ent/comment"
 	"github.com/PokeForum/PokeForum/ent/commentaction"
+	"github.com/PokeForum/PokeForum/ent/invitationcode"
 	"github.com/PokeForum/PokeForum/ent/oauthprovider"
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
 	"github.com/PokeForum/PokeForum/ent/settings"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
+	"github.com/PokeForum/PokeForum/ent/userfollow"
 	"github.com/PokeForum/PokeForum/ent/userloginlog"
 	"github.com/PokeForum/PokeForum/ent/useroauth"
 	"github.com/PokeForum/PokeForum/ent/usersigninlogs"
@@ -92,12 +94,14 @@ func checkColumn(t, c string) error {
 			categorymoderator.Table: categorymoderator.ValidColumn,
 			comment.Table:           comment.ValidColumn,
 			commentaction.Table:     commentaction.ValidColumn,
+			invitationcode.Table:    invitationcode.ValidColumn,
 			oauthprovider.Table:     oauthprovider.ValidColumn,
 			post.Table:              post.ValidColumn,
 			postaction.Table:        postaction.ValidColumn,
 			settings.Table:          settings.ValidColumn,
 			user.Table:              user.ValidColumn,
 			userbalancelog.Table:    userbalancelog.ValidColumn,
+			userfollow.Table:        userfollow.ValidColumn,
 			userloginlog.Table:      userloginlog.ValidColumn,
 			useroauth.Table:         useroauth.ValidColumn,
 			usersigninlogs.Table:    usersigninlogs.ValidColumn,

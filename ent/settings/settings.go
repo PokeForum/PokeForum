@@ -60,8 +60,6 @@ var (
 	UpdateDefaultUpdatedAt func() time.Time
 	// KeyValidator is a validator for the "key" field. It is called by the builders before save.
 	KeyValidator func(string) error
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int) error
 )
 
 // Module defines the type for the "module" enum field.
@@ -69,13 +67,14 @@ type Module string
 
 // Module values.
 const (
-	ModuleSite     Module = "Site"
-	ModuleHomePage Module = "HomePage"
-	ModuleComment  Module = "Comment"
-	ModuleSeo      Module = "Seo"
-	ModuleSecurity Module = "Security"
-	ModuleFunction Module = "Function"
-	ModuleSignin   Module = "Signin"
+	ModuleSite           Module = "Site"
+	ModuleHomePage       Module = "HomePage"
+	ModuleComment        Module = "Comment"
+	ModuleSeo            Module = "Seo"
+	ModuleSecurity       Module = "Security"
+	ModuleFunction       Module = "Function"
+	ModuleSignin         Module = "Signin"
+	ModuleInvitationCode Module = "InvitationCode"
 )
 
 func (m Module) String() string {
@@ -85,7 +84,7 @@ func (m Module) String() string {
 // ModuleValidator is a validator for the "module" field enum values. It is called by the builders before save.
 func ModuleValidator(m Module) error {
 	switch m {
-	case ModuleSite, ModuleHomePage, ModuleComment, ModuleSeo, ModuleSecurity, ModuleFunction, ModuleSignin:
+	case ModuleSite, ModuleHomePage, ModuleComment, ModuleSeo, ModuleSecurity, ModuleFunction, ModuleSignin, ModuleInvitationCode:
 		return nil
 	default:
 		return fmt.Errorf("settings: invalid enum value for module field: %q", m)

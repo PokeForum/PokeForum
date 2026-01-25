@@ -21,6 +21,9 @@ type Comment func(*sql.Selector)
 // CommentAction is the predicate function for commentaction builders.
 type CommentAction func(*sql.Selector)
 
+// InvitationCode is the predicate function for invitationcode builders.
+type InvitationCode func(*sql.Selector)
+
 // OAuthProvider is the predicate function for oauthprovider builders.
 type OAuthProvider func(*sql.Selector)
 
@@ -38,6 +41,9 @@ type User func(*sql.Selector)
 
 // UserBalanceLog is the predicate function for userbalancelog builders.
 type UserBalanceLog func(*sql.Selector)
+
+// UserFollow is the predicate function for userfollow builders.
+type UserFollow func(*sql.Selector)
 
 // UserLoginLog is the predicate function for userloginlog builders.
 type UserLoginLog func(*sql.Selector)

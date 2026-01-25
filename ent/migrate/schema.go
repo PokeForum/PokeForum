@@ -3,6 +3,7 @@
 package migrate
 
 import (
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/schema/field"
 )
@@ -178,18 +179,61 @@ var (
 			},
 		},
 	}
+	// InvitationCodesColumns holds the columns for the "invitation_codes" table.
+	InvitationCodesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "code", Type: field.TypeString, Unique: true},
+		{Name: "creator_id", Type: field.TypeInt},
+		{Name: "used_by_id", Type: field.TypeInt, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"unused", "used", "disabled"}, Default: "unused"},
+		{Name: "generation_mode", Type: field.TypeEnum, Enums: []string{"direct", "points", "currency"}, Default: "direct"},
+		{Name: "cost_amount", Type: field.TypeInt, Default: 0},
+		{Name: "used_at", Type: field.TypeTime, Nullable: true},
+		{Name: "used_ip", Type: field.TypeString, Nullable: true},
+		{Name: "used_user_agent", Type: field.TypeString, Nullable: true},
+		{Name: "remark", Type: field.TypeString, Nullable: true},
+	}
+	// InvitationCodesTable holds the schema information for the "invitation_codes" table.
+	InvitationCodesTable = &schema.Table{
+		Name:       "invitation_codes",
+		Columns:    InvitationCodesColumns,
+		PrimaryKey: []*schema.Column{InvitationCodesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "invitationcode_creator_id",
+				Unique:  false,
+				Columns: []*schema.Column{InvitationCodesColumns[4]},
+			},
+			{
+				Name:    "invitationcode_used_by_id",
+				Unique:  false,
+				Columns: []*schema.Column{InvitationCodesColumns[5]},
+			},
+			{
+				Name:    "invitationcode_status",
+				Unique:  false,
+				Columns: []*schema.Column{InvitationCodesColumns[6]},
+			},
+			{
+				Name:    "invitationcode_creator_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{InvitationCodesColumns[4], InvitationCodesColumns[6]},
+			},
+		},
+	}
 	// OauthProvidersColumns holds the columns for the "oauth_providers" table.
 	OauthProvidersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "provider", Type: field.TypeEnum, Enums: []string{"QQ", "GitHub", "Apple", "Google", "Telegram", "FIDO2"}},
+		{Name: "provider", Type: field.TypeEnum, Enums: []string{"QQ", "GitHub", "Google", "FIDO2"}},
 		{Name: "client_id", Type: field.TypeString, Nullable: true},
 		{Name: "client_secret", Type: field.TypeString, Nullable: true},
 		{Name: "auth_url", Type: field.TypeString, Nullable: true},
 		{Name: "token_url", Type: field.TypeString, Nullable: true},
 		{Name: "user_info_url", Type: field.TypeString, Nullable: true},
-		{Name: "redirect_url", Type: field.TypeString, Nullable: true},
 		{Name: "scopes", Type: field.TypeJSON, Nullable: true},
 		{Name: "extra_config", Type: field.TypeJSON, Nullable: true},
 		{Name: "enabled", Type: field.TypeBool, Default: false},
@@ -209,12 +253,12 @@ var (
 			{
 				Name:    "oauthprovider_enabled",
 				Unique:  false,
-				Columns: []*schema.Column{OauthProvidersColumns[12]},
+				Columns: []*schema.Column{OauthProvidersColumns[11]},
 			},
 			{
 				Name:    "oauthprovider_sort_order",
 				Unique:  false,
-				Columns: []*schema.Column{OauthProvidersColumns[13]},
+				Columns: []*schema.Column{OauthProvidersColumns[12]},
 			},
 		},
 	}
@@ -227,13 +271,15 @@ var (
 		{Name: "category_id", Type: field.TypeInt},
 		{Name: "title", Type: field.TypeString},
 		{Name: "content", Type: field.TypeString, Size: 2147483647},
-		{Name: "read_permission", Type: field.TypeString, Nullable: true, Default: "public"},
+		{Name: "read_permission", Type: field.TypeEnum, Enums: []string{"public", "login_required", "points_required"}, Default: "public"},
+		{Name: "read_permission_points", Type: field.TypeInt, Default: 0},
 		{Name: "view_count", Type: field.TypeInt, Default: 0},
 		{Name: "like_count", Type: field.TypeInt, Default: 0},
 		{Name: "dislike_count", Type: field.TypeInt, Default: 0},
 		{Name: "favorite_count", Type: field.TypeInt, Default: 0},
 		{Name: "is_essence", Type: field.TypeBool, Default: false},
 		{Name: "is_pinned", Type: field.TypeBool, Default: false},
+		{Name: "pin_scope", Type: field.TypeEnum, Enums: []string{"None", "Home", "Category", "Global"}, Default: "None"},
 		{Name: "publish_ip", Type: field.TypeString, Nullable: true},
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"Normal", "Locked", "Draft", "Private", "Ban"}, Default: "Normal"},
 		{Name: "last_edited_at", Type: field.TypeTime, Nullable: true},
@@ -257,27 +303,43 @@ var (
 			{
 				Name:    "post_status",
 				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[15]},
+				Columns: []*schema.Column{PostsColumns[17]},
 			},
 			{
 				Name:    "post_is_essence",
 				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[12]},
+				Columns: []*schema.Column{PostsColumns[13]},
 			},
 			{
 				Name:    "post_is_pinned",
 				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[13]},
+				Columns: []*schema.Column{PostsColumns[14]},
+			},
+			{
+				Name:    "post_pin_scope",
+				Unique:  false,
+				Columns: []*schema.Column{PostsColumns[15]},
 			},
 			{
 				Name:    "post_last_edited_at",
 				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[16]},
+				Columns: []*schema.Column{PostsColumns[18]},
 			},
 			{
 				Name:    "post_category_id_status_created_at",
 				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[4], PostsColumns[15], PostsColumns[1]},
+				Columns: []*schema.Column{PostsColumns[4], PostsColumns[17], PostsColumns[1]},
+			},
+			{
+				Name:    "post_title",
+				Unique:  false,
+				Columns: []*schema.Column{PostsColumns[5]},
+				Annotation: &entsql.IndexAnnotation{
+					OpClass: "gin_trgm_ops",
+					Types: map[string]string{
+						"postgres": "GIN",
+					},
+				},
 			},
 		},
 	}
@@ -318,7 +380,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
-		{Name: "module", Type: field.TypeEnum, Enums: []string{"Site", "HomePage", "Comment", "Seo", "Security", "Function", "Signin"}},
+		{Name: "module", Type: field.TypeEnum, Enums: []string{"Site", "HomePage", "Comment", "Seo", "Security", "Function", "Signin", "InvitationCode"}},
 		{Name: "key", Type: field.TypeString},
 		{Name: "value", Type: field.TypeString, Nullable: true},
 		{Name: "value_type", Type: field.TypeEnum, Enums: []string{"string", "number", "boolean", "json", "text"}, Default: "string"},
@@ -343,7 +405,6 @@ var (
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "email", Type: field.TypeString, Unique: true},
 		{Name: "password", Type: field.TypeString},
-		{Name: "password_salt", Type: field.TypeString},
 		{Name: "username", Type: field.TypeString, Unique: true},
 		{Name: "avatar", Type: field.TypeString, Nullable: true},
 		{Name: "signature", Type: field.TypeString, Nullable: true},
@@ -352,7 +413,7 @@ var (
 		{Name: "experience", Type: field.TypeInt, Default: 0},
 		{Name: "points", Type: field.TypeInt, Default: 0},
 		{Name: "currency", Type: field.TypeInt, Default: 0},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"Normal", "Mute", "Blocked", "RiskControl"}, Default: "Normal"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"Normal", "Mute", "Blocked"}, Default: "Normal"},
 		{Name: "role", Type: field.TypeEnum, Enums: []string{"User", "Moderator", "Admin", "SuperAdmin"}, Default: "User"},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -364,17 +425,17 @@ var (
 			{
 				Name:    "user_status",
 				Unique:  false,
-				Columns: []*schema.Column{UsersColumns[14]},
+				Columns: []*schema.Column{UsersColumns[13]},
 			},
 			{
 				Name:    "user_role",
 				Unique:  false,
-				Columns: []*schema.Column{UsersColumns[15]},
+				Columns: []*schema.Column{UsersColumns[14]},
 			},
 			{
 				Name:    "user_email_verified",
 				Unique:  false,
-				Columns: []*schema.Column{UsersColumns[10]},
+				Columns: []*schema.Column{UsersColumns[9]},
 			},
 		},
 	}
@@ -424,6 +485,47 @@ var (
 			},
 		},
 	}
+	// UserFollowsColumns holds the columns for the "user_follows" table.
+	UserFollowsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "follower_id", Type: field.TypeInt},
+		{Name: "following_id", Type: field.TypeInt},
+	}
+	// UserFollowsTable holds the schema information for the "user_follows" table.
+	UserFollowsTable = &schema.Table{
+		Name:       "user_follows",
+		Columns:    UserFollowsColumns,
+		PrimaryKey: []*schema.Column{UserFollowsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "userfollow_follower_id_following_id",
+				Unique:  true,
+				Columns: []*schema.Column{UserFollowsColumns[3], UserFollowsColumns[4]},
+			},
+			{
+				Name:    "userfollow_following_id",
+				Unique:  false,
+				Columns: []*schema.Column{UserFollowsColumns[4]},
+			},
+			{
+				Name:    "userfollow_follower_id",
+				Unique:  false,
+				Columns: []*schema.Column{UserFollowsColumns[3]},
+			},
+			{
+				Name:    "userfollow_following_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{UserFollowsColumns[4], UserFollowsColumns[1]},
+			},
+			{
+				Name:    "userfollow_follower_id_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{UserFollowsColumns[3], UserFollowsColumns[1]},
+			},
+		},
+	}
 	// UserLoginLogsColumns holds the columns for the "user_login_logs" table.
 	UserLoginLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -465,7 +567,7 @@ var (
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "user_id", Type: field.TypeInt},
-		{Name: "provider", Type: field.TypeEnum, Enums: []string{"QQ", "GitHub", "Apple", "Google", "Telegram", "FIDO2"}},
+		{Name: "provider", Type: field.TypeEnum, Enums: []string{"QQ", "GitHub", "Google", "FIDO2"}},
 		{Name: "provider_user_id", Type: field.TypeString},
 		{Name: "provider_username", Type: field.TypeString, Nullable: true},
 		{Name: "provider_email", Type: field.TypeString, Nullable: true},
@@ -561,12 +663,14 @@ var (
 		CategoryModeratorsTable,
 		CommentsTable,
 		CommentActionsTable,
+		InvitationCodesTable,
 		OauthProvidersTable,
 		PostsTable,
 		PostActionsTable,
 		SettingsTable,
 		UsersTable,
 		UserBalanceLogsTable,
+		UserFollowsTable,
 		UserLoginLogsTable,
 		UserOauthsTable,
 		UserSigninLogsTable,

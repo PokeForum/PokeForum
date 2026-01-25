@@ -21,9 +21,9 @@ type CategoryModerator struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// 版块ID
+	// Category ID | 版块ID
 	CategoryID int `json:"category_id,omitempty"`
-	// 版主用户ID
+	// Moderator user ID | 版主用户ID
 	UserID       int `json:"user_id,omitempty"`
 	selectValues sql.SelectValues
 }

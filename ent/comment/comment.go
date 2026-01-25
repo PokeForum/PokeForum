@@ -96,8 +96,6 @@ var (
 	DefaultIsSelected bool
 	// DefaultIsPinned holds the default value on creation for the "is_pinned" field.
 	DefaultIsPinned bool
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int) error
 )
 
 // OrderOption defines the ordering options for the Comment queries.

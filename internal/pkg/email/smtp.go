@@ -13,7 +13,7 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 )
 
-// message 邮件消息
+// message Email message | 邮件消息
 type message struct {
 	msg     *mail.Msg
 	to      string
@@ -22,28 +22,28 @@ type message struct {
 	userID  int
 }
 
-// SMTPPool SMTP协议发送邮件（基于channel队列）
+// SMTPPool Send emails using SMTP protocol (based on channel queue) | SMTP协议发送邮件（基于channel队列）
 type SMTPPool struct {
 	config SMTPConfig
 	ch     chan *message
 	chOpen bool
-	ready  chan struct{} // 初始化完成信号
+	ready  chan struct{} // Initialization completion signal | 初始化完成信号
 	logger *zap.Logger
 }
 
-// SMTPConfig SMTP发送配置
+// SMTPConfig SMTP sending configuration | SMTP发送配置
 type SMTPConfig struct {
-	Name       string // 发送者名
-	Address    string // 发送者地址
-	Host       string // 服务器主机名
-	Port       int    // 服务器端口
-	User       string // 用户名
-	Password   string // 密码
-	Encryption bool   // 是否启用加密
-	Keepalive  int    // SMTP 连接保留时长
+	Name       string // Sender name | 发送者名
+	Address    string // Sender address | 发送者地址
+	Host       string // Server hostname | 服务器主机名
+	Port       int    // Server port | 服务器端口
+	User       string // Username | 用户名
+	Password   string // Password | 密码
+	Encryption bool   // Whether to enable encryption | 是否启用加密
+	Keepalive  int    // SMTP connection keepalive duration | SMTP 连接保留时长
 }
 
-// NewSMTPPool 初始化一个新的SMTP邮件发送队列
+// NewSMTPPool Initialize a new SMTP email sending queue | 初始化一个新的SMTP邮件发送队列
 func NewSMTPPool(config SMTPConfig, logger *zap.Logger) *SMTPPool {
 	client := &SMTPPool{
 		config: config,
@@ -55,7 +55,7 @@ func NewSMTPPool(config SMTPConfig, logger *zap.Logger) *SMTPPool {
 
 	client.Init()
 
-	// 等待初始化完成（最多5秒）
+	// Wait for initialization to complete (up to 5 seconds) | 等待初始化完成（最多5秒）
 	select {
 	case <-client.ready:
 	case <-time.After(5 * time.Second):
@@ -65,18 +65,18 @@ func NewSMTPPool(config SMTPConfig, logger *zap.Logger) *SMTPPool {
 	return client
 }
 
-// Send 发送邮件（提交到channel队列）
+// Send Send email (submit to channel queue) | 发送邮件（提交到channel队列）
 func (client *SMTPPool) Send(ctx context.Context, to, title, body string) error {
 	if !client.chOpen {
 		return fmt.Errorf("SMTP pool is closed")
 	}
 
-	// 忽略通过QQ登录的邮箱
+	// Ignore emails from QQ login | 忽略通过QQ登录的邮箱
 	if strings.HasSuffix(to, "@login.qq.com") {
 		return nil
 	}
 
-	// 创建邮件消息
+	// Create email message | 创建邮件消息
 	m := mail.NewMsg()
 	if err := m.FromFormat(client.config.Name, client.config.Address); err != nil {
 		return err
@@ -88,7 +88,7 @@ func (client *SMTPPool) Send(ctx context.Context, to, title, body string) error 
 	m.SetMessageID()
 	m.SetBodyString(mail.TypeTextHTML, body)
 
-	// 提交到队列
+	// Submit to queue | 提交到队列
 	client.ch <- &message{
 		msg:     m,
 		subject: title,
@@ -99,14 +99,14 @@ func (client *SMTPPool) Send(ctx context.Context, to, title, body string) error 
 	return nil
 }
 
-// Close 关闭发送队列
+// Close Close sending queue | 关闭发送队列
 func (client *SMTPPool) Close() {
 	if client.ch != nil {
 		close(client.ch)
 	}
 }
 
-// Init 初始化发送队列
+// Init Initialize sending queue | 初始化发送队列
 func (client *SMTPPool) Init() {
 	go func() {
 		client.logger.Info("初始化并启动SMTP邮件队列...")
@@ -119,7 +119,7 @@ func (client *SMTPPool) Init() {
 			}
 		}()
 
-		// 创建SMTP客户端选项
+		// Create SMTP client options | 创建SMTP客户端选项
 		opts := []mail.Option{
 			mail.WithPort(client.config.Port),
 			mail.WithTimeout(time.Duration(client.config.Keepalive+5) * time.Second),
@@ -132,7 +132,7 @@ func (client *SMTPPool) Init() {
 			opts = append(opts, mail.WithSSL())
 		}
 
-		// 创建SMTP客户端
+		// Create SMTP client | 创建SMTP客户端
 		d, diaErr := mail.NewClient(client.config.Host, opts...)
 		if diaErr != nil {
 			client.logger.Panic("创建SMTP客户端失败", zap.Error(diaErr))
@@ -140,7 +140,7 @@ func (client *SMTPPool) Init() {
 		}
 
 		client.chOpen = true
-		close(client.ready) // 通知初始化完成
+		close(client.ready) // Notify initialization completed | 通知初始化完成
 
 		var err error
 		open := false
@@ -153,7 +153,7 @@ func (client *SMTPPool) Init() {
 					return
 				}
 
-				// 按需建立连接
+				// Establish connection on demand | 按需建立连接
 				if !open {
 					if err = d.DialWithContext(context.Background()); err != nil {
 						panic(err)
@@ -161,9 +161,9 @@ func (client *SMTPPool) Init() {
 					open = true
 				}
 
-				// 发送邮件
+				// Send email | 发送邮件
 				if err := d.Send(m.msg); err != nil {
-					// 检查是否为SMTP RESET错误（邮件已发送成功）
+					// Check if it's an SMTP RESET error (email sent successfully) | 检查是否为SMTP RESET错误（邮件已发送成功）
 					var sendErr *mail.SendError
 					if errors.As(err, &sendErr) && sendErr.Reason == mail.ErrSMTPReset {
 						open = false
@@ -186,7 +186,7 @@ func (client *SMTPPool) Init() {
 						zap.Int("userId", m.userID))
 				}
 
-			// 长时间没有新邮件，则关闭SMTP连接
+			// Close SMTP connection after a long time without new emails | 长时间没有新邮件，则关闭SMTP连接
 			case <-time.After(time.Duration(client.config.Keepalive) * time.Second):
 				if open {
 					if err := d.Close(); err != nil {

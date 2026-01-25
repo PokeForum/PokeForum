@@ -41,3 +41,6 @@ data/theme/*
 
 # Build File
 pf-linux-*
+
+# AI File
+CLAUDE.md

@@ -21,13 +21,13 @@ type UserSigninStatus struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	// 用户ID
+	// User ID | 用户ID
 	UserID int64 `json:"user_id,omitempty"`
-	// 最近签到日期
+	// Last sign-in date | 最近签到日期
 	LastSigninDate time.Time `json:"last_signin_date,omitempty"`
-	// 连续签到天数
+	// Continuous sign-in days | 连续签到天数
 	ContinuousDays int `json:"continuous_days,omitempty"`
-	// 累计签到天数
+	// Total sign-in days | 累计签到天数
 	TotalDays    int `json:"total_days,omitempty"`
 	selectValues sql.SelectValues
 }

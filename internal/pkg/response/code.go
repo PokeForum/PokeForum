@@ -6,6 +6,7 @@ const (
 	CodeSuccess ResCode = 20000
 
 	CodeInvalidParam = 40000
+	CodeNoPermission = 40100 // No read permission | 无阅读权限
 
 	CodeGenericError    = 50000
 	CodeServerBusy      = 50001
@@ -16,12 +17,13 @@ const (
 var codeMsgMap = map[ResCode]string{
 	CodeSuccess: "Success",
 
-	CodeInvalidParam: "请求参数错误",
+	CodeInvalidParam: "Invalid request parameters | 请求参数错误",
+	CodeNoPermission: "No read permission | 无阅读权限",
 
 	CodeGenericError:    "Error",
-	CodeServerBusy:      "系统繁忙，请稍候再试",
-	CodeTooManyRequests: "请求过于频繁，请稍后再试",
-	CodeNeedLogin:       "未登录",
+	CodeServerBusy:      "The system is busy, please try again later | 系统繁忙，请稍候再试",
+	CodeTooManyRequests: "Too many requests, please try again later | 请求过于频繁，请稍后再试",
+	CodeNeedLogin:       "Not logged in | 未登录",
 }
 
 func (c ResCode) Msg() string {

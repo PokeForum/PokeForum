@@ -28,6 +28,8 @@ const (
 	FieldContent = "content"
 	// FieldReadPermission holds the string denoting the read_permission field in the database.
 	FieldReadPermission = "read_permission"
+	// FieldReadPermissionPoints holds the string denoting the read_permission_points field in the database.
+	FieldReadPermissionPoints = "read_permission_points"
 	// FieldViewCount holds the string denoting the view_count field in the database.
 	FieldViewCount = "view_count"
 	// FieldLikeCount holds the string denoting the like_count field in the database.
@@ -40,6 +42,8 @@ const (
 	FieldIsEssence = "is_essence"
 	// FieldIsPinned holds the string denoting the is_pinned field in the database.
 	FieldIsPinned = "is_pinned"
+	// FieldPinScope holds the string denoting the pin_scope field in the database.
+	FieldPinScope = "pin_scope"
 	// FieldPublishIP holds the string denoting the publish_ip field in the database.
 	FieldPublishIP = "publish_ip"
 	// FieldStatus holds the string denoting the status field in the database.
@@ -60,12 +64,14 @@ var Columns = []string{
 	FieldTitle,
 	FieldContent,
 	FieldReadPermission,
+	FieldReadPermissionPoints,
 	FieldViewCount,
 	FieldLikeCount,
 	FieldDislikeCount,
 	FieldFavoriteCount,
 	FieldIsEssence,
 	FieldIsPinned,
+	FieldPinScope,
 	FieldPublishIP,
 	FieldStatus,
 	FieldLastEditedAt,
@@ -96,8 +102,10 @@ var (
 	TitleValidator func(string) error
 	// ContentValidator is a validator for the "content" field. It is called by the builders before save.
 	ContentValidator func(string) error
-	// DefaultReadPermission holds the default value on creation for the "read_permission" field.
-	DefaultReadPermission string
+	// DefaultReadPermissionPoints holds the default value on creation for the "read_permission_points" field.
+	DefaultReadPermissionPoints int
+	// ReadPermissionPointsValidator is a validator for the "read_permission_points" field. It is called by the builders before save.
+	ReadPermissionPointsValidator func(int) error
 	// DefaultViewCount holds the default value on creation for the "view_count" field.
 	DefaultViewCount int
 	// ViewCountValidator is a validator for the "view_count" field. It is called by the builders before save.
@@ -118,9 +126,62 @@ var (
 	DefaultIsEssence bool
 	// DefaultIsPinned holds the default value on creation for the "is_pinned" field.
 	DefaultIsPinned bool
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int) error
 )
+
+// ReadPermission defines the type for the "read_permission" enum field.
+type ReadPermission string
+
+// ReadPermissionPublic is the default value of the ReadPermission enum.
+const DefaultReadPermission = ReadPermissionPublic
+
+// ReadPermission values.
+const (
+	ReadPermissionPublic         ReadPermission = "public"
+	ReadPermissionLoginRequired  ReadPermission = "login_required"
+	ReadPermissionPointsRequired ReadPermission = "points_required"
+)
+
+func (rp ReadPermission) String() string {
+	return string(rp)
+}
+
+// ReadPermissionValidator is a validator for the "read_permission" field enum values. It is called by the builders before save.
+func ReadPermissionValidator(rp ReadPermission) error {
+	switch rp {
+	case ReadPermissionPublic, ReadPermissionLoginRequired, ReadPermissionPointsRequired:
+		return nil
+	default:
+		return fmt.Errorf("post: invalid enum value for read_permission field: %q", rp)
+	}
+}
+
+// PinScope defines the type for the "pin_scope" enum field.
+type PinScope string
+
+// PinScopeNone is the default value of the PinScope enum.
+const DefaultPinScope = PinScopeNone
+
+// PinScope values.
+const (
+	PinScopeNone     PinScope = "None"
+	PinScopeHome     PinScope = "Home"
+	PinScopeCategory PinScope = "Category"
+	PinScopeGlobal   PinScope = "Global"
+)
+
+func (ps PinScope) String() string {
+	return string(ps)
+}
+
+// PinScopeValidator is a validator for the "pin_scope" field enum values. It is called by the builders before save.
+func PinScopeValidator(ps PinScope) error {
+	switch ps {
+	case PinScopeNone, PinScopeHome, PinScopeCategory, PinScopeGlobal:
+		return nil
+	default:
+		return fmt.Errorf("post: invalid enum value for pin_scope field: %q", ps)
+	}
+}
 
 // Status defines the type for the "status" enum field.
 type Status string
@@ -194,6 +255,11 @@ func ByReadPermission(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldReadPermission, opts...).ToFunc()
 }
 
+// ByReadPermissionPoints orders the results by the read_permission_points field.
+func ByReadPermissionPoints(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldReadPermissionPoints, opts...).ToFunc()
+}
+
 // ByViewCount orders the results by the view_count field.
 func ByViewCount(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldViewCount, opts...).ToFunc()
@@ -222,6 +288,11 @@ func ByIsEssence(opts ...sql.OrderTermOption) OrderOption {
 // ByIsPinned orders the results by the is_pinned field.
 func ByIsPinned(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldIsPinned, opts...).ToFunc()
+}
+
+// ByPinScope orders the results by the pin_scope field.
+func ByPinScope(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPinScope, opts...).ToFunc()
 }
 
 // ByPublishIP orders the results by the publish_ip field.

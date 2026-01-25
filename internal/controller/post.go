@@ -1,89 +1,72 @@
 package controller
 
 import (
-	"fmt"
-	"strconv"
-
 	saGin "github.com/click33/sa-token-go/integrations/gin"
-	"github.com/click33/sa-token-go/stputil"
 	"github.com/gin-gonic/gin"
-	"github.com/samber/do"
 
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
+	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 )
 
-// PostController 帖子控制器
+// PostController Post Controller | 帖子控制器
 type PostController struct {
-	// 注入器实例，用于获取服务
-	injector *do.Injector
+	postService service.IPostService
 }
 
-// NewPostController 创建帖子控制器实例
-func NewPostController(injector *do.Injector) *PostController {
+// NewPostController Create post controller instance | 创建帖子控制器实例
+func NewPostController(postService service.IPostService) *PostController {
 	return &PostController{
-		injector: injector,
+		postService: postService,
 	}
 }
 
-// getUserID 从Header中获取token并解析用户ID
+// getUserID Get user ID from Cookie | 从 Cookie 获取用户ID
 func (ctrl *PostController) getUserID(c *gin.Context) (int, error) {
-	// 从Header中获取token
-	token := c.GetHeader("Authorization")
-	if token == "" {
-		return 0, fmt.Errorf("未找到Authorization header")
-	}
-
-	// 使用stputil获取登录用户ID
-	loginID, err := stputil.GetLoginID(token)
-	if err != nil {
-		return 0, err
-	}
-
-	// String转Int
-	sID, err := strconv.Atoi(loginID)
-	if err != nil {
-		return 0, err
-	}
-
-	return sID, nil
+	return satoken.GetUserIDFromCookie(c)
 }
 
-// PostRouter 帖子相关路由注册
+// PostRouter Post-related route registration | 帖子相关路由注册
 func (ctrl *PostController) PostRouter(router *gin.RouterGroup) {
-	// 发布新帖
-	router.POST("", saGin.CheckRole(user.RoleUser.String()), ctrl.CreatePost)
-	// 保存草稿
-	router.POST("/draft", saGin.CheckRole(user.RoleUser.String()), ctrl.SaveDraft)
-	// 编辑帖子
-	router.PUT("", saGin.CheckRole(user.RoleUser.String()), ctrl.UpdatePost)
-	// 设置帖子私有
-	router.PUT("/private", saGin.CheckRole(user.RoleUser.String()), ctrl.SetPostPrivate)
-	// 点赞帖子
-	router.POST("/like", saGin.CheckRole(user.RoleUser.String()), ctrl.LikePost)
-	// 点踩帖子
-	router.POST("/dislike", saGin.CheckRole(user.RoleUser.String()), ctrl.DislikePost)
-	// 收藏帖子
-	router.POST("/favorite", saGin.CheckRole(user.RoleUser.String()), ctrl.FavoritePost)
-	// 获取帖子列表
+	// Get post list | 获取帖子列表
 	router.GET("", ctrl.GetPostList)
-	// 获取帖子详情
+	// Get post detail | 获取帖子详情
 	router.GET("/:id", ctrl.GetPostDetail)
+
+	router.Use(saGin.CheckRole(user.RoleUser.String()))
+	// Publish new post | 发布新帖
+	router.POST("", ctrl.CreatePost)
+	// Get draft list | 获取草稿列表
+	router.GET("/draft", ctrl.GetDraftList)
+	// Save draft | 保存草稿
+	router.POST("/draft", ctrl.SaveDraft)
+	// Delete draft | 删除草稿
+	router.DELETE("/draft", ctrl.DeleteDraft)
+	// Edit post | 编辑帖子
+	router.PUT("", ctrl.UpdatePost)
+	// Set post as private | 设置帖子私有
+	router.PUT("/private", ctrl.SetPostPrivate)
+	// Like post | 点赞帖子
+	router.POST("/like", ctrl.LikePost)
+	// Dislike post | 点踩帖子
+	router.POST("/dislike", ctrl.DislikePost)
+	// Favorite post | 收藏帖子
+	router.POST("/favorite", ctrl.FavoritePost)
 }
 
-// CreatePost 发布新帖
-// @Summary 发布新帖
-// @Description 用户发布新的主题帖
-// @Tags [用户]主题贴
+// CreatePost Publish new post | 发布新帖
+// @Summary Publish new post | 发布新帖
+// @Description User publishes a new topic post | 用户发布新的主题帖
+// @Tags [User]Topic Posts | [用户]主题贴
 // @Accept json
 // @Produce json
-// @Param request body schema.UserPostCreateRequest true "帖子信息"
-// @Success 200 {object} response.Data{data=schema.UserPostCreateResponse} "发布成功"
-// @Failure 400 {object} response.Data "请求参数错误"
-// @Failure 401 {object} response.Data "未登录"
-// @Failure 500 {object} response.Data "服务器错误"
+// @Param request body schema.UserPostCreateRequest true "Post information | 帖子信息"
+// @Success 200 {object} response.Data{data=schema.UserPostCreateResponse} "Published successfully | 发布成功"
+// @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
+// @Failure 401 {object} response.Data "Not logged in | 未登录"
+// @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /posts [post]
 func (ctrl *PostController) CreatePost(c *gin.Context) {
 	var req schema.UserPostCreateRequest
@@ -92,22 +75,15 @@ func (ctrl *PostController) CreatePost(c *gin.Context) {
 		return
 	}
 
-	// 获取用户ID
+	// Get user ID | 获取用户ID
 	userID, err := ctrl.getUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
 	}
 
-	// 获取服务
-	postService, err := do.Invoke[service.IPostService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	// 调用服务
-	result, err := postService.CreatePost(c.Request.Context(), userID, req)
+	// Call service | 调用服务
+	result, err := ctrl.postService.CreatePost(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -116,17 +92,18 @@ func (ctrl *PostController) CreatePost(c *gin.Context) {
 	response.ResSuccess(c, result)
 }
 
-// SaveDraft 保存草稿
-// @Summary 保存草稿
-// @Description 用户保存帖子草稿
-// @Tags [用户]主题贴
+// SaveDraft Save draft | 保存草稿
+// @Summary Save draft | 保存草稿
+// @Description User saves post draft. If ID is provided, updates existing draft; otherwise creates new draft (max 10 drafts per user) | 用户保存帖子草稿。如果提供ID则更新现有草稿，否则创建新草稿（每个用户最多10篇草稿）
+// @Tags [User]Topic Posts | [用户]主题贴
 // @Accept json
 // @Produce json
-// @Param request body schema.UserPostCreateRequest true "帖子信息"
-// @Success 200 {object} response.Data{data=schema.UserPostCreateResponse} "保存成功"
-// @Failure 400 {object} response.Data "请求参数错误"
-// @Failure 401 {object} response.Data "未登录"
-// @Failure 500 {object} response.Data "服务器错误"
+// @Param request body schema.UserPostCreateRequest true "Post information (id is optional for update) | 帖子信息（id为可选字段，用于更新）"
+// @Success 200 {object} response.Data{data=schema.UserPostCreateResponse} "Saved successfully | 保存成功"
+// @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
+// @Failure 401 {object} response.Data "Not logged in | 未登录"
+// @Failure 403 {object} response.Data "Draft limit reached or insufficient permissions | 草稿数量已达上限或权限不足"
+// @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /posts/draft [post]
 func (ctrl *PostController) SaveDraft(c *gin.Context) {
 	var req schema.UserPostCreateRequest
@@ -135,22 +112,15 @@ func (ctrl *PostController) SaveDraft(c *gin.Context) {
 		return
 	}
 
-	// 获取用户ID
+	// Get user ID | 获取用户ID
 	userID, err := ctrl.getUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
 	}
 
-	// 获取服务
-	postService, err := do.Invoke[service.IPostService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	// 调用服务
-	result, err := postService.SaveDraft(c.Request.Context(), userID, req)
+	// Call service | 调用服务
+	result, err := ctrl.postService.SaveDraft(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -159,18 +129,100 @@ func (ctrl *PostController) SaveDraft(c *gin.Context) {
 	response.ResSuccess(c, result)
 }
 
-// UpdatePost 编辑帖子
-// @Summary 编辑帖子
-// @Description 用户编辑自己的帖子（每三分钟可操作一次）
-// @Tags [用户]主题贴
+// GetDraftList Get draft list | 获取草稿列表
+// @Summary Get draft list | 获取草稿列表
+// @Description User gets their draft post list | 用户获取自己的草稿帖子列表
+// @Tags [User]Topic Posts | [用户]主题贴
 // @Accept json
 // @Produce json
-// @Param request body schema.UserPostUpdateRequest true "帖子信息"
-// @Success 200 {object} response.Data{data=schema.UserPostUpdateResponse} "编辑成功"
-// @Failure 400 {object} response.Data "请求参数错误"
-// @Failure 401 {object} response.Data "未登录"
-// @Failure 403 {object} response.Data "权限不足或操作过于频繁"
-// @Failure 500 {object} response.Data "服务器错误"
+// @Param page query int false "Page number, default 1 | 页码,默认1" default(1)
+// @Param page_size query int false "Items per page, default 20, max 100 | 每页数量,默认20,最大100" default(20)
+// @Success 200 {object} response.Data{data=schema.UserPostListResponse} "Retrieved successfully | 获取成功"
+// @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
+// @Failure 401 {object} response.Data "Not logged in | 未登录"
+// @Failure 500 {object} response.Data "Server error | 服务器错误"
+// @Router /posts/draft [get]
+func (ctrl *PostController) GetDraftList(c *gin.Context) {
+	var req schema.UserDraftListRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, err.Error())
+		return
+	}
+
+	// Set default values | 设置默认值
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 20
+	}
+
+	// Get user ID | 获取用户ID
+	userID, err := ctrl.getUserID(c)
+	if err != nil {
+		response.ResError(c, response.CodeNeedLogin)
+		return
+	}
+
+	// Call service | 调用服务
+	result, err := ctrl.postService.GetDraftList(c.Request.Context(), userID, req)
+	if err != nil {
+		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
+		return
+	}
+
+	response.ResSuccess(c, result)
+}
+
+// DeleteDraft Delete draft | 删除草稿
+// @Summary Delete draft | 删除草稿
+// @Description User deletes their draft post | 用户删除自己的草稿帖子
+// @Tags [User]Topic Posts | [用户]主题贴
+// @Accept json
+// @Produce json
+// @Param request body schema.UserDraftDeleteRequest true "Draft ID | 草稿ID"
+// @Success 200 {object} response.Data "Deleted successfully | 删除成功"
+// @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
+// @Failure 401 {object} response.Data "Not logged in | 未登录"
+// @Failure 403 {object} response.Data "Insufficient permissions | 权限不足"
+// @Failure 500 {object} response.Data "Server error | 服务器错误"
+// @Router /posts/draft [delete]
+func (ctrl *PostController) DeleteDraft(c *gin.Context) {
+	var req schema.UserDraftDeleteRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, err.Error())
+		return
+	}
+
+	// Get user ID | 获取用户ID
+	userID, err := ctrl.getUserID(c)
+	if err != nil {
+		response.ResError(c, response.CodeNeedLogin)
+		return
+	}
+
+	// Call service | 调用服务
+	err = ctrl.postService.DeleteDraft(c.Request.Context(), userID, req)
+	if err != nil {
+		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
+		return
+	}
+
+	response.ResSuccess(c, nil)
+}
+
+// UpdatePost Edit post | 编辑帖子
+// @Summary Edit post | 编辑帖子
+// @Description User edits their own post (can be operated once every three minutes). Locked and banned posts cannot be edited | 用户编辑自己的帖子(每三分钟可操作一次)。锁定和封禁的帖子不允许编辑
+// @Tags [User]Topic Posts | [用户]主题贴
+// @Accept json
+// @Produce json
+// @Param request body schema.UserPostUpdateRequest true "Post information | 帖子信息"
+// @Success 200 {object} response.Data{data=schema.UserPostUpdateResponse} "Edited successfully | 编辑成功"
+// @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
+// @Failure 401 {object} response.Data "Not logged in | 未登录"
+// @Failure 403 {object} response.Data "Insufficient permissions or too frequent operations | 权限不足或操作过于频繁"
+// @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /posts [put]
 func (ctrl *PostController) UpdatePost(c *gin.Context) {
 	var req schema.UserPostUpdateRequest
@@ -179,22 +231,15 @@ func (ctrl *PostController) UpdatePost(c *gin.Context) {
 		return
 	}
 
-	// 获取用户ID
+	// Get user ID | 获取用户ID
 	userID, err := ctrl.getUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
 	}
 
-	// 获取服务
-	postService, err := do.Invoke[service.IPostService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	// 调用服务
-	result, err := postService.UpdatePost(c.Request.Context(), userID, req)
+	// Call service | 调用服务
+	result, err := ctrl.postService.UpdatePost(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -203,18 +248,18 @@ func (ctrl *PostController) UpdatePost(c *gin.Context) {
 	response.ResSuccess(c, result)
 }
 
-// SetPostPrivate 设置帖子私有
-// @Summary 设置帖子私有
-// @Description 用户设置帖子为私有或公开（每三日可操作一次）
-// @Tags [用户]主题贴
+// SetPostPrivate Set post as private | 设置帖子私有
+// @Summary Set post as private | 设置帖子私有
+// @Description User sets post as private or public (can be operated once every three days) | 用户设置帖子为私有或公开(每三日可操作一次)
+// @Tags [User]Topic Posts | [用户]主题贴
 // @Accept json
 // @Produce json
-// @Param request body schema.UserPostActionRequest true "帖子信息"
-// @Success 200 {object} response.Data{data=schema.UserPostActionResponse} "设置成功"
-// @Failure 400 {object} response.Data "请求参数错误"
-// @Failure 401 {object} response.Data "未登录"
-// @Failure 403 {object} response.Data "权限不足或操作过于频繁"
-// @Failure 500 {object} response.Data "服务器错误"
+// @Param request body schema.UserPostActionRequest true "Post information | 帖子信息"
+// @Success 200 {object} response.Data{data=schema.UserPostActionResponse} "Set successfully | 设置成功"
+// @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
+// @Failure 401 {object} response.Data "Not logged in | 未登录"
+// @Failure 403 {object} response.Data "Insufficient permissions or too frequent operations | 权限不足或操作过于频繁"
+// @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /posts/private [put]
 func (ctrl *PostController) SetPostPrivate(c *gin.Context) {
 	var req schema.UserPostActionRequest
@@ -223,22 +268,15 @@ func (ctrl *PostController) SetPostPrivate(c *gin.Context) {
 		return
 	}
 
-	// 获取用户ID
+	// Get user ID | 获取用户ID
 	userID, err := ctrl.getUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
 	}
 
-	// 获取服务
-	postService, err := do.Invoke[service.IPostService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	// 调用服务
-	result, err := postService.SetPostPrivate(c.Request.Context(), userID, req)
+	// Call service | 调用服务
+	result, err := ctrl.postService.SetPostPrivate(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -247,18 +285,18 @@ func (ctrl *PostController) SetPostPrivate(c *gin.Context) {
 	response.ResSuccess(c, result)
 }
 
-// LikePost 点赞帖子
-// @Summary 点赞帖子
-// @Description 用户点赞帖子（单向，不可取消点赞）
-// @Tags [用户]主题贴
+// LikePost Like post | 点赞帖子
+// @Summary Like post | 点赞帖子
+// @Description User likes a post (one-way, cannot cancel like) | 用户点赞帖子(单向,不可取消点赞)
+// @Tags [User]Topic Posts | [用户]主题贴
 // @Accept json
 // @Produce json
-// @Param request body schema.UserPostActionRequest true "帖子信息"
-// @Success 200 {object} response.Data{data=schema.UserPostActionResponse} "点赞成功"
-// @Failure 400 {object} response.Data "请求参数错误"
-// @Failure 401 {object} response.Data "未登录"
-// @Failure 403 {object} response.Data "已经点赞过"
-// @Failure 500 {object} response.Data "服务器错误"
+// @Param request body schema.UserPostActionRequest true "Post information | 帖子信息"
+// @Success 200 {object} response.Data{data=schema.UserPostActionResponse} "Liked successfully | 点赞成功"
+// @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
+// @Failure 401 {object} response.Data "Not logged in | 未登录"
+// @Failure 403 {object} response.Data "Already liked | 已经点赞过"
+// @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /posts/like [post]
 func (ctrl *PostController) LikePost(c *gin.Context) {
 	var req schema.UserPostActionRequest
@@ -267,22 +305,15 @@ func (ctrl *PostController) LikePost(c *gin.Context) {
 		return
 	}
 
-	// 获取用户ID
+	// Get user ID | 获取用户ID
 	userID, err := ctrl.getUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
 	}
 
-	// 获取服务
-	postService, err := do.Invoke[service.IPostService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	// 调用服务
-	result, err := postService.LikePost(c.Request.Context(), userID, req)
+	// Call service | 调用服务
+	result, err := ctrl.postService.LikePost(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -291,18 +322,18 @@ func (ctrl *PostController) LikePost(c *gin.Context) {
 	response.ResSuccess(c, result)
 }
 
-// DislikePost 点踩帖子
-// @Summary 点踩帖子
-// @Description 用户点踩帖子（单向，不可取消点踩）
-// @Tags [用户]主题贴
+// DislikePost Dislike post | 点踩帖子
+// @Summary Dislike post | 点踩帖子
+// @Description User dislikes a post (one-way, cannot cancel dislike) | 用户点踩帖子(单向,不可取消点踩)
+// @Tags [User]Topic Posts | [用户]主题贴
 // @Accept json
 // @Produce json
-// @Param request body schema.UserPostActionRequest true "帖子信息"
-// @Success 200 {object} response.Data{data=schema.UserPostActionResponse} "点踩成功"
-// @Failure 400 {object} response.Data "请求参数错误"
-// @Failure 401 {object} response.Data "未登录"
-// @Failure 403 {object} response.Data "已经点踩过"
-// @Failure 500 {object} response.Data "服务器错误"
+// @Param request body schema.UserPostActionRequest true "Post information | 帖子信息"
+// @Success 200 {object} response.Data{data=schema.UserPostActionResponse} "Disliked successfully | 点踩成功"
+// @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
+// @Failure 401 {object} response.Data "Not logged in | 未登录"
+// @Failure 403 {object} response.Data "Already disliked | 已经点踩过"
+// @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /posts/dislike [post]
 func (ctrl *PostController) DislikePost(c *gin.Context) {
 	var req schema.UserPostActionRequest
@@ -311,22 +342,15 @@ func (ctrl *PostController) DislikePost(c *gin.Context) {
 		return
 	}
 
-	// 获取用户ID
+	// Get user ID | 获取用户ID
 	userID, err := ctrl.getUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
 	}
 
-	// 获取服务
-	postService, err := do.Invoke[service.IPostService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	// 调用服务
-	result, err := postService.DislikePost(c.Request.Context(), userID, req)
+	// Call service | 调用服务
+	result, err := ctrl.postService.DislikePost(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -335,17 +359,17 @@ func (ctrl *PostController) DislikePost(c *gin.Context) {
 	response.ResSuccess(c, result)
 }
 
-// FavoritePost 收藏帖子
-// @Summary 收藏帖子
-// @Description 用户收藏或取消收藏帖子（双向操作）
-// @Tags [用户]主题贴
+// FavoritePost Favorite post | 收藏帖子
+// @Summary Favorite post | 收藏帖子
+// @Description User favorites or unfavorites a post (two-way operation) | 用户收藏或取消收藏帖子(双向操作)
+// @Tags [User]Topic Posts | [用户]主题贴
 // @Accept json
 // @Produce json
-// @Param request body schema.UserPostActionRequest true "帖子信息"
-// @Success 200 {object} response.Data{data=schema.UserPostActionResponse} "操作成功"
-// @Failure 400 {object} response.Data "请求参数错误"
-// @Failure 401 {object} response.Data "未登录"
-// @Failure 500 {object} response.Data "服务器错误"
+// @Param request body schema.UserPostActionRequest true "Post information | 帖子信息"
+// @Success 200 {object} response.Data{data=schema.UserPostActionResponse} "Operation successful | 操作成功"
+// @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
+// @Failure 401 {object} response.Data "Not logged in | 未登录"
+// @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /posts/favorite [post]
 func (ctrl *PostController) FavoritePost(c *gin.Context) {
 	var req schema.UserPostActionRequest
@@ -354,22 +378,15 @@ func (ctrl *PostController) FavoritePost(c *gin.Context) {
 		return
 	}
 
-	// 获取用户ID
+	// Get user ID | 获取用户ID
 	userID, err := ctrl.getUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
 	}
 
-	// 获取服务
-	postService, err := do.Invoke[service.IPostService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	// 调用服务
-	result, err := postService.FavoritePost(c.Request.Context(), userID, req)
+	// Call service | 调用服务
+	result, err := ctrl.postService.FavoritePost(c.Request.Context(), userID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -378,19 +395,21 @@ func (ctrl *PostController) FavoritePost(c *gin.Context) {
 	response.ResSuccess(c, result)
 }
 
-// GetPostList 获取帖子列表
-// @Summary 获取帖子列表
-// @Description 获取帖子列表，支持分页和排序
-// @Tags [用户]主题贴
+// GetPostList Get post list | 获取帖子列表
+// @Summary Get post list | 获取帖子列表
+// @Description Get post list with pagination and sorting support. Only returns posts with Normal or Locked status. Content is hidden in list view. Supports filtering by category (via ID or slug) and keyword search on title. Pinned posts are returned separately in pinned_posts field | 获取帖子列表,支持分页和排序。只返回正常或锁定状态的帖子。列表中内容已隐藏。支持通过版块ID或slug筛选,以及标题关键词搜索。置顶帖子单独返回在pinned_posts字段中
+// @Tags [User]Topic Posts | [用户]主题贴
 // @Accept json
 // @Produce json
-// @Param category_id query int false "版块ID"
-// @Param page query int false "页码，默认1" default(1)
-// @Param page_size query int false "每页数量，默认20，最大100" default(20)
-// @Param sort query string false "排序方式：latest(最新)、hot(热门)、essence(精华)" default(latest)
-// @Success 200 {object} response.Data{data=schema.UserPostListResponse} "获取成功"
-// @Failure 400 {object} response.Data "请求参数错误"
-// @Failure 500 {object} response.Data "服务器错误"
+// @Param category_id query int false "Category ID | 版块ID"
+// @Param slug query string false "Category slug | 版块slug"
+// @Param keyword query string false "Keyword for title search | 标题关键词搜索"
+// @Param page query int false "Page number, default 1 | 页码,默认1" default(1)
+// @Param page_size query int false "Items per page, default 20, max 100 | 每页数量,默认20,最大100" default(20)
+// @Param sort query string false "Sort method: latest (newest), hot (popular), essence (featured) | 排序方式:latest(最新)、hot(热门)、essence(精华)" default(latest)
+// @Success 200 {object} response.Data{data=schema.UserPostListResponse} "Retrieved successfully | 获取成功"
+// @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
+// @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /posts [get]
 func (ctrl *PostController) GetPostList(c *gin.Context) {
 	var req schema.UserPostListRequest
@@ -399,15 +418,16 @@ func (ctrl *PostController) GetPostList(c *gin.Context) {
 		return
 	}
 
-	// 获取服务
-	postService, err := do.Invoke[service.IPostService](ctrl.injector)
-	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
+	// Set default values | 设置默认值
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = 20
 	}
 
-	// 调用服务
-	result, err := postService.GetPostList(c.Request.Context(), req)
+	// Call service | 调用服务
+	result, err := ctrl.postService.GetPostList(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -416,17 +436,18 @@ func (ctrl *PostController) GetPostList(c *gin.Context) {
 	response.ResSuccess(c, result)
 }
 
-// GetPostDetail 获取帖子详情
-// @Summary 获取帖子详情
-// @Description 获取指定帖子的详细信息，并增加浏览数
-// @Tags [用户]主题贴
+// GetPostDetail Get post detail | 获取帖子详情
+// @Summary Get post detail | 获取帖子详情
+// @Description Get detailed information of the specified post and increment view count. Authors can view their own posts regardless of status. Other users can only view Normal/Locked posts. Access depends on read_permission: public (anyone), login_required (logged-in users), points:x (users with points >= x) | 获取指定帖子的详细信息,并增加浏览数。作者可以查看自己的所有状态帖子。其他用户只能查看正常/锁定状态的帖子。访问权限取决于read_permission：public（任何人）、login_required（登录用户）、points:x（积分>=x的用户）
+// @Tags [User]Topic Posts | [用户]主题贴
 // @Accept json
 // @Produce json
-// @Param id path int true "帖子ID"
-// @Success 200 {object} response.Data{data=schema.UserPostDetailResponse} "获取成功"
-// @Failure 400 {object} response.Data "请求参数错误"
-// @Failure 404 {object} response.Data "帖子不存在"
-// @Failure 500 {object} response.Data "服务器错误"
+// @Param id path int true "Post ID | 帖子ID"
+// @Success 200 {object} response.Data{data=schema.UserPostDetailResponse} "Retrieved successfully | 获取成功"
+// @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
+// @Failure 401 {object} response.Data "No read permission | 无阅读权限"
+// @Failure 404 {object} response.Data "Post not found | 帖子不存在"
+// @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /posts/{id} [get]
 func (ctrl *PostController) GetPostDetail(c *gin.Context) {
 	var req schema.UserPostDetailRequest
@@ -435,16 +456,14 @@ func (ctrl *PostController) GetPostDetail(c *gin.Context) {
 		return
 	}
 
-	// 获取服务
-	postService, err := do.Invoke[service.IPostService](ctrl.injector)
+	// Call service | 调用服务
+	result, err := ctrl.postService.GetPostDetail(c.Request.Context(), req)
 	if err != nil {
-		response.ResError(c, response.CodeServerBusy)
-		return
-	}
-
-	// 调用服务
-	result, err := postService.GetPostDetail(c.Request.Context(), req)
-	if err != nil {
+		// Check if error is NoPermissionError | 检查是否为无权限错误
+		if noPermErr, ok := err.(*service.NoPermissionError); ok {
+			response.ResErrorWithMsg(c, response.CodeNoPermission, noPermErr.Reason)
+			return
+		}
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
 	}

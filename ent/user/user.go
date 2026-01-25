@@ -22,8 +22,6 @@ const (
 	FieldEmail = "email"
 	// FieldPassword holds the string denoting the password field in the database.
 	FieldPassword = "password"
-	// FieldPasswordSalt holds the string denoting the password_salt field in the database.
-	FieldPasswordSalt = "password_salt"
 	// FieldUsername holds the string denoting the username field in the database.
 	FieldUsername = "username"
 	// FieldAvatar holds the string denoting the avatar field in the database.
@@ -55,7 +53,6 @@ var Columns = []string{
 	FieldUpdatedAt,
 	FieldEmail,
 	FieldPassword,
-	FieldPasswordSalt,
 	FieldUsername,
 	FieldAvatar,
 	FieldSignature,
@@ -89,8 +86,6 @@ var (
 	EmailValidator func(string) error
 	// PasswordValidator is a validator for the "password" field. It is called by the builders before save.
 	PasswordValidator func(string) error
-	// PasswordSaltValidator is a validator for the "password_salt" field. It is called by the builders before save.
-	PasswordSaltValidator func(string) error
 	// UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	UsernameValidator func(string) error
 	// DefaultEmailVerified holds the default value on creation for the "email_verified" field.
@@ -107,8 +102,6 @@ var (
 	DefaultCurrency int
 	// CurrencyValidator is a validator for the "currency" field. It is called by the builders before save.
 	CurrencyValidator func(int) error
-	// IDValidator is a validator for the "id" field. It is called by the builders before save.
-	IDValidator func(int) error
 )
 
 // Status defines the type for the "status" enum field.
@@ -119,10 +112,9 @@ const DefaultStatus = StatusNormal
 
 // Status values.
 const (
-	StatusNormal      Status = "Normal"
-	StatusMute        Status = "Mute"
-	StatusBlocked     Status = "Blocked"
-	StatusRiskControl Status = "RiskControl"
+	StatusNormal  Status = "Normal"
+	StatusMute    Status = "Mute"
+	StatusBlocked Status = "Blocked"
 )
 
 func (s Status) String() string {
@@ -132,7 +124,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusNormal, StatusMute, StatusBlocked, StatusRiskControl:
+	case StatusNormal, StatusMute, StatusBlocked:
 		return nil
 	default:
 		return fmt.Errorf("user: invalid enum value for status field: %q", s)
@@ -193,11 +185,6 @@ func ByEmail(opts ...sql.OrderTermOption) OrderOption {
 // ByPassword orders the results by the password field.
 func ByPassword(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPassword, opts...).ToFunc()
-}
-
-// ByPasswordSalt orders the results by the password_salt field.
-func ByPasswordSalt(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldPasswordSalt, opts...).ToFunc()
 }
 
 // ByUsername orders the results by the username field.

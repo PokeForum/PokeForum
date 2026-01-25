@@ -62,20 +62,6 @@ func (_u *UserUpdate) SetNillablePassword(v *string) *UserUpdate {
 	return _u
 }
 
-// SetPasswordSalt sets the "password_salt" field.
-func (_u *UserUpdate) SetPasswordSalt(v string) *UserUpdate {
-	_u.mutation.SetPasswordSalt(v)
-	return _u
-}
-
-// SetNillablePasswordSalt sets the "password_salt" field if the given value is not nil.
-func (_u *UserUpdate) SetNillablePasswordSalt(v *string) *UserUpdate {
-	if v != nil {
-		_u.SetPasswordSalt(*v)
-	}
-	return _u
-}
-
 // SetUsername sets the "username" field.
 func (_u *UserUpdate) SetUsername(v string) *UserUpdate {
 	_u.mutation.SetUsername(v)
@@ -308,11 +294,6 @@ func (_u *UserUpdate) check() error {
 			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.PasswordSalt(); ok {
-		if err := user.PasswordSaltValidator(v); err != nil {
-			return &ValidationError{Name: "password_salt", err: fmt.Errorf(`ent: validator failed for field "User.password_salt": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Username(); ok {
 		if err := user.UsernameValidator(v); err != nil {
 			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
@@ -366,9 +347,6 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.PasswordSalt(); ok {
-		_spec.SetField(user.FieldPasswordSalt, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)
@@ -468,20 +446,6 @@ func (_u *UserUpdateOne) SetPassword(v string) *UserUpdateOne {
 func (_u *UserUpdateOne) SetNillablePassword(v *string) *UserUpdateOne {
 	if v != nil {
 		_u.SetPassword(*v)
-	}
-	return _u
-}
-
-// SetPasswordSalt sets the "password_salt" field.
-func (_u *UserUpdateOne) SetPasswordSalt(v string) *UserUpdateOne {
-	_u.mutation.SetPasswordSalt(v)
-	return _u
-}
-
-// SetNillablePasswordSalt sets the "password_salt" field if the given value is not nil.
-func (_u *UserUpdateOne) SetNillablePasswordSalt(v *string) *UserUpdateOne {
-	if v != nil {
-		_u.SetPasswordSalt(*v)
 	}
 	return _u
 }
@@ -731,11 +695,6 @@ func (_u *UserUpdateOne) check() error {
 			return &ValidationError{Name: "password", err: fmt.Errorf(`ent: validator failed for field "User.password": %w`, err)}
 		}
 	}
-	if v, ok := _u.mutation.PasswordSalt(); ok {
-		if err := user.PasswordSaltValidator(v); err != nil {
-			return &ValidationError{Name: "password_salt", err: fmt.Errorf(`ent: validator failed for field "User.password_salt": %w`, err)}
-		}
-	}
 	if v, ok := _u.mutation.Username(); ok {
 		if err := user.UsernameValidator(v); err != nil {
 			return &ValidationError{Name: "username", err: fmt.Errorf(`ent: validator failed for field "User.username": %w`, err)}
@@ -806,9 +765,6 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 	}
 	if value, ok := _u.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
-	}
-	if value, ok := _u.mutation.PasswordSalt(); ok {
-		_spec.SetField(user.FieldPasswordSalt, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.Username(); ok {
 		_spec.SetField(user.FieldUsername, field.TypeString, value)

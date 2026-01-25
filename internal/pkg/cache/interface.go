@@ -3,21 +3,23 @@ package cache
 import (
 	"context"
 	"time"
+
+	"github.com/redis/go-redis/v9"
 )
 
-// ZMember 有序集合成员
+// ZMember Sorted set member | 有序集合成员
 type ZMember struct {
 	Member string
 	Score  float64
 }
 
-// ICacheService Redis缓存服务接口
-// 提供统一的缓存操作方法，避免在各个Service中重复编写Redis操作代码
+// ICacheService Redis cache service interface | Redis缓存服务接口
+// Provides unified cache operation methods to avoid repeatedly writing Redis operation code in各个Service | 提供统一的缓存操作方法，避免在各个Service中重复编写Redis操作代码
 type ICacheService interface {
-	// Get 获取缓存值
-	// ctx: 上下文
-	// key: 缓存键名
-	// 返回: 缓存值和错误信息
+	// Get Get cache value | 获取缓存值
+	// ctx: context | ctx: 上下文
+	// key: cache key name | key: 缓存键名
+	// Returns: cache value and error information | 返回: 缓存值和错误信息
 	Get(ctx context.Context, key string) (string, error)
 
 	// Set 设置缓存值（永久有效）
@@ -238,4 +240,9 @@ type ICacheService interface {
 	// stream: Stream键名
 	// 返回: Stream长度和错误信息
 	XLen(ctx context.Context, stream string) (int64, error)
+
+	// Ping Check Redis connection | 检查Redis连接
+	// ctx: context | ctx: 上下文
+	// Returns: status command | 返回: 状态命令
+	Ping(ctx context.Context) *redis.StatusCmd
 }

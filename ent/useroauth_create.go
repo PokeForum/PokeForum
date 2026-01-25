@@ -114,12 +114,6 @@ func (_c *UserOAuthCreate) SetExtraData(v map[string]interface{}) *UserOAuthCrea
 	return _c
 }
 
-// SetID sets the "id" field.
-func (_c *UserOAuthCreate) SetID(v int) *UserOAuthCreate {
-	_c.mutation.SetID(v)
-	return _c
-}
-
 // Mutation returns the UserOAuthMutation object of the builder.
 func (_c *UserOAuthCreate) Mutation() *UserOAuthMutation {
 	return _c.mutation
@@ -197,11 +191,6 @@ func (_c *UserOAuthCreate) check() error {
 			return &ValidationError{Name: "provider_user_id", err: fmt.Errorf(`ent: validator failed for field "UserOAuth.provider_user_id": %w`, err)}
 		}
 	}
-	if v, ok := _c.mutation.ID(); ok {
-		if err := useroauth.IDValidator(v); err != nil {
-			return &ValidationError{Name: "id", err: fmt.Errorf(`ent: validator failed for field "UserOAuth.id": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -216,10 +205,8 @@ func (_c *UserOAuthCreate) sqlSave(ctx context.Context) (*UserOAuth, error) {
 		}
 		return nil, err
 	}
-	if _spec.ID.Value != _node.ID {
-		id := _spec.ID.Value.(int64)
-		_node.ID = int(id)
-	}
+	id := _spec.ID.Value.(int64)
+	_node.ID = int(id)
 	_c.mutation.id = &_node.ID
 	_c.mutation.done = true
 	return _node, nil
@@ -230,10 +217,6 @@ func (_c *UserOAuthCreate) createSpec() (*UserOAuth, *sqlgraph.CreateSpec) {
 		_node = &UserOAuth{config: _c.config}
 		_spec = sqlgraph.NewCreateSpec(useroauth.Table, sqlgraph.NewFieldSpec(useroauth.FieldID, field.TypeInt))
 	)
-	if id, ok := _c.mutation.ID(); ok {
-		_node.ID = id
-		_spec.ID.Value = id
-	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(useroauth.FieldCreatedAt, field.TypeTime, value)
 		_node.CreatedAt = value
@@ -318,7 +301,7 @@ func (_c *UserOAuthCreateBulk) Save(ctx context.Context) ([]*UserOAuth, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil && nodes[i].ID == 0 {
+				if specs[i].ID.Value != nil {
 					id := specs[i].ID.Value.(int64)
 					nodes[i].ID = int(id)
 				}

@@ -26,7 +26,7 @@ const docTemplate = `{
     "paths": {
         "/auth/forgot-password": {
             "post": {
-                "description": "向用户邮箱发送找回密码验证码",
+                "description": "Send forgot password verification code to user email | 向用户邮箱发送找回密码验证码",
                 "consumes": [
                     "application/json"
                 ],
@@ -34,12 +34,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "认证"
+                    "Authentication | 认证"
                 ],
-                "summary": "发送找回密码验证码",
+                "summary": "Send forgot password verification code | 发送找回密码验证码",
                 "parameters": [
                     {
-                        "description": "找回密码请求",
+                        "description": "Forgot password request | 找回密码请求",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -50,7 +50,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "发送成功",
+                        "description": "Send successful | 发送成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -68,19 +68,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "429": {
-                        "description": "发送频率过高",
+                        "description": "Too many requests | 发送频率过高",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -90,7 +90,7 @@ const docTemplate = `{
         },
         "/auth/login": {
             "post": {
-                "description": "用户登录获取认证信息",
+                "description": "User login to obtain authentication information | 用户登录获取认证信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -98,12 +98,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "认证"
+                    "Authentication | 认证"
                 ],
-                "summary": "用户登录",
+                "summary": "User login | 用户登录",
                 "parameters": [
                     {
-                        "description": "登录信息",
+                        "description": "Login information | 登录信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -114,7 +114,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "登录成功",
+                        "description": "Login successful | 登录成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -132,13 +132,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -148,12 +148,7 @@ const docTemplate = `{
         },
         "/auth/logout": {
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "用户退出登录，清除认证信息",
+                "description": "User logout and clear authentication information | 用户退出登录，清除认证信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -161,18 +156,197 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "认证"
+                    "Authentication | 认证"
                 ],
-                "summary": "用户退出登录",
+                "summary": "User logout | 用户退出登录",
                 "responses": {
                     "200": {
-                        "description": "退出登录成功",
+                        "description": "Logout successful | 退出登录成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/oauth/providers": {
+            "get": {
+                "description": "Get all enabled OAuth providers for frontend display | 获取所有已启用的OAuth提供商，用于前端展示",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth | OAuth登录"
+                ],
+                "summary": "Get enabled OAuth providers list | 获取已启用的OAuth提供商列表",
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.OAuthProviderPublicListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/oauth/{provider}/authorize": {
+            "get": {
+                "description": "Get authorization URL for specified OAuth provider | 获取指定OAuth提供商的授权URL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth | OAuth登录"
+                ],
+                "summary": "Get OAuth authorization URL | 获取OAuth授权URL",
+                "parameters": [
+                    {
+                        "enum": [
+                            "QQ",
+                            "GitHub",
+                            "Google"
+                        ],
+                        "type": "string",
+                        "description": "Provider type | 提供商类型",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Frontend callback URL | 前端回调地址",
+                        "name": "redirect_uri",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.OAuthAuthorizeResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/oauth/{provider}/callback": {
+            "post": {
+                "description": "Handle OAuth callback, auto login or register | 处理OAuth回调，自动登录或注册",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth | OAuth登录"
+                ],
+                "summary": "Handle OAuth callback | 处理OAuth回调",
+                "parameters": [
+                    {
+                        "enum": [
+                            "QQ",
+                            "GitHub",
+                            "Google"
+                        ],
+                        "type": "string",
+                        "description": "Provider type | 提供商类型",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "OAuth callback parameters | OAuth回调参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.OAuthCallbackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 处理成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.OAuthCallbackResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -182,7 +356,7 @@ const docTemplate = `{
         },
         "/auth/register": {
             "post": {
-                "description": "创建新用户账户",
+                "description": "Create new user account | 创建新用户账户",
                 "consumes": [
                     "application/json"
                 ],
@@ -190,12 +364,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "认证"
+                    "Authentication | 认证"
                 ],
-                "summary": "用户注册",
+                "summary": "User registration | 用户注册",
                 "parameters": [
                     {
-                        "description": "注册信息",
+                        "description": "Registration information | 注册信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -206,7 +380,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "注册成功",
+                        "description": "Registration successful | 注册成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -224,13 +398,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -240,7 +414,7 @@ const docTemplate = `{
         },
         "/auth/reset-password": {
             "post": {
-                "description": "通过验证码重置用户密码",
+                "description": "Reset user password through verification code | 通过验证码重置用户密码",
                 "consumes": [
                     "application/json"
                 ],
@@ -248,12 +422,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "认证"
+                    "Authentication | 认证"
                 ],
-                "summary": "重置密码",
+                "summary": "Reset password | 重置密码",
                 "parameters": [
                     {
-                        "description": "重置密码请求",
+                        "description": "Reset password request | 重置密码请求",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -264,7 +438,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "重置成功",
+                        "description": "Reset successful | 重置成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -282,13 +456,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -298,7 +472,7 @@ const docTemplate = `{
         },
         "/categories": {
             "get": {
-                "description": "获取用户可见的版块列表，包括正常、登录可见和锁定状态的版块，隐藏版块不可见",
+                "description": "Get list of categories visible to users. Normal and Locked categories are visible to everyone. LoginRequired categories are only visible to logged-in users. Hidden categories are not returned but can be accessed via direct URL | 获取用户可见的版块列表。Normal和Locked状态对所有人可见，LoginRequired仅登录用户可见，Hidden不在列表返回但可通过URL直接访问",
                 "consumes": [
                     "application/json"
                 ],
@@ -306,12 +480,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]版块"
+                    "[User]Category | [用户]版块"
                 ],
-                "summary": "获取版块列表",
+                "summary": "Get category list | 获取版块列表",
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -329,7 +503,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -339,7 +513,7 @@ const docTemplate = `{
         },
         "/comments": {
             "get": {
-                "description": "分页获取指定帖子的评论列表，支持排序",
+                "description": "Get paginated comment list for specified post with sorting support | 分页获取指定帖子的评论列表,支持排序",
                 "consumes": [
                     "application/json"
                 ],
@@ -347,27 +521,27 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]评论"
+                    "[User]Comments | [用户]评论"
                 ],
-                "summary": "获取评论列表",
+                "summary": "Get comment list | 获取评论列表",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "帖子ID",
+                        "description": "Post ID | 帖子ID",
                         "name": "post_id",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "description": "Page number | 页码",
                         "name": "page",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "每页数量",
+                        "description": "Items per page | 每页数量",
                         "name": "page_size",
                         "in": "query",
                         "required": true
@@ -375,20 +549,20 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "\"created_at\"",
-                        "description": "排序字段：created_at, like_count",
+                        "description": "Sort field: created_at, like_count | 排序字段:created_at, like_count",
                         "name": "sort_by",
                         "in": "query"
                     },
                     {
                         "type": "boolean",
-                        "description": "是否降序",
+                        "description": "Is descending order | 是否降序",
                         "name": "sort_desc",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Retrieved successfully | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -406,13 +580,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Server internal error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -420,7 +594,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "用户更新自己的评论内容",
+                "description": "User updates their own comment content | 用户更新自己的评论内容",
                 "consumes": [
                     "application/json"
                 ],
@@ -428,12 +602,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]评论"
+                    "[User]Comments | [用户]评论"
                 ],
-                "summary": "更新评论",
+                "summary": "Update comment | 更新评论",
                 "parameters": [
                     {
-                        "description": "更新评论请求",
+                        "description": "Update comment request | 更新评论请求",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -444,7 +618,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Updated successfully | 更新成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -462,25 +636,25 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "403": {
-                        "description": "权限不足",
+                        "description": "Insufficient permissions | 权限不足",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Server internal error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -488,7 +662,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "用户创建新评论，支持回复评论和回复用户",
+                "description": "User creates new comment, supports replying to comments and users | 用户创建新评论,支持回复评论和回复用户",
                 "consumes": [
                     "application/json"
                 ],
@@ -496,12 +670,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]评论"
+                    "[User]Comments | [用户]评论"
                 ],
-                "summary": "创建评论",
+                "summary": "Create comment | 创建评论",
                 "parameters": [
                     {
-                        "description": "创建评论请求",
+                        "description": "Create comment request | 创建评论请求",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -512,7 +686,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "创建成功",
+                        "description": "Created successfully | 创建成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -530,19 +704,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Server internal error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -552,7 +726,7 @@ const docTemplate = `{
         },
         "/comments/dislike": {
             "post": {
-                "description": "用户点踩评论，单向操作不可取消",
+                "description": "User dislikes comment, one-way operation cannot be cancelled | 用户点踩评论,单向操作不可取消",
                 "consumes": [
                     "application/json"
                 ],
@@ -560,12 +734,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]评论"
+                    "[User]Comments | [用户]评论"
                 ],
-                "summary": "点踩评论",
+                "summary": "Dislike comment | 点踩评论",
                 "parameters": [
                     {
-                        "description": "点踩评论请求",
+                        "description": "Dislike comment request | 点踩评论请求",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -576,7 +750,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "点踩成功",
+                        "description": "Disliked successfully | 点踩成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -594,19 +768,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Server internal error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -616,7 +790,7 @@ const docTemplate = `{
         },
         "/comments/like": {
             "post": {
-                "description": "用户点赞评论，单向操作不可取消",
+                "description": "User likes comment, one-way operation cannot be cancelled | 用户点赞评论,单向操作不可取消",
                 "consumes": [
                     "application/json"
                 ],
@@ -624,12 +798,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]评论"
+                    "[User]Comments | [用户]评论"
                 ],
-                "summary": "点赞评论",
+                "summary": "Like comment | 点赞评论",
                 "parameters": [
                     {
-                        "description": "点赞评论请求",
+                        "description": "Like comment request | 点赞评论请求",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -640,7 +814,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "点赞成功",
+                        "description": "Liked successfully | 点赞成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -658,19 +832,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Server internal error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -680,7 +854,7 @@ const docTemplate = `{
         },
         "/config": {
             "get": {
-                "description": "获取客户端所需的公开配置，包括常规、首页、SEO、安全、代码、评论配置",
+                "description": "Get public configuration required by client, including routine, home, SEO, security, code, and comment settings | 获取客户端所需的公开配置,包括常规、首页、SEO、安全、代码、评论配置",
                 "consumes": [
                     "application/json"
                 ],
@@ -688,12 +862,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "公开配置"
+                    "Public Configuration | 公开配置"
                 ],
-                "summary": "获取公开配置",
+                "summary": "Get public configuration | 获取公开配置",
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -711,7 +885,178 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "description": "Check health status of all dependent services | 检查所有依赖服务的健康状态",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Health Check | 健康检查"
+                ],
+                "summary": "Detailed health check | 详细健康检查",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "Whether to return detailed system information | 是否返回系统详细信息",
+                        "name": "detail",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Service healthy | 服务健康",
+                        "schema": {
+                            "$ref": "#/definitions/schema.HealthStatus"
+                        }
+                    },
+                    "503": {
+                        "description": "Service unhealthy | 服务不健康",
+                        "schema": {
+                            "$ref": "#/definitions/schema.HealthStatus"
+                        }
+                    }
+                }
+            }
+        },
+        "/invitation-codes": {
+            "post": {
+                "description": "Generate an invitation code for the current user. May cost points or currency depending on system settings | 为当前用户生成邀请码。根据系统设置可能需要消耗积分或货币",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]Invitation Code | [用户]邀请码"
+                ],
+                "summary": "Generate invitation code | 生成邀请码",
+                "responses": {
+                    "200": {
+                        "description": "Invitation code generated successfully | 邀请码生成成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserInvitationCodeDetail"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "Invitation code feature not enabled | 邀请码功能未启用",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "409": {
+                        "description": "Insufficient points/currency or maximum generation count reached | 积分/货币不足或已达到最大生成数量",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/invitation-codes/my": {
+            "get": {
+                "description": "Get paginated list of invitation codes created by the current user | 获取当前用户创建的邀请码分页列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]Invitation Code | [用户]邀请码"
+                ],
+                "summary": "Get my invitation codes | 获取我的邀请码列表",
+                "parameters": [
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Page number | 页码",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "description": "Items per page | 每页数量",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Retrieve successful | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserInvitationCodeListData"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -721,7 +1066,7 @@ const docTemplate = `{
         },
         "/manage/categories": {
             "get": {
-                "description": "分页获取版块列表，支持关键词搜索和状态筛选",
+                "description": "Get paginated category list with support for keyword search and status filtering | 分页获取版块列表，支持关键词搜索和状态筛选",
                 "consumes": [
                     "application/json"
                 ],
@@ -729,20 +1074,20 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]版块管理"
+                    "[Admin]Category Management | [管理员]版块管理"
                 ],
-                "summary": "获取版块列表",
+                "summary": "Get category list | 获取版块列表",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "description": "Page number | 页码",
                         "name": "page",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "每页数量",
+                        "description": "Items per page | 每页数量",
                         "name": "page_size",
                         "in": "query",
                         "required": true
@@ -750,21 +1095,21 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "\"技术\"",
-                        "description": "搜索关键词",
+                        "description": "Search keyword | 搜索关键词",
                         "name": "keyword",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "\"Normal\"",
-                        "description": "版块状态",
+                        "description": "Category status | 版块状态",
                         "name": "status",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -782,13 +1127,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -796,7 +1141,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "更新版块的基本信息",
+                "description": "Update basic information of category | 更新版块的基本信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -804,12 +1149,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]版块管理"
+                    "[Admin]Category Management | [管理员]版块管理"
                 ],
-                "summary": "更新版块信息",
+                "summary": "Update category information | 更新版块信息",
                 "parameters": [
                     {
-                        "description": "版块信息",
+                        "description": "Category information | 版块信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -820,7 +1165,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Updated successfully | 更新成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -838,13 +1183,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -852,7 +1197,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "管理员创建新版块",
+                "description": "Admin creates new category | 管理员创建新版块",
                 "consumes": [
                     "application/json"
                 ],
@@ -860,12 +1205,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]版块管理"
+                    "[Admin]Category Management | [管理员]版块管理"
                 ],
-                "summary": "创建版块",
+                "summary": "Create category | 创建版块",
                 "parameters": [
                     {
-                        "description": "版块信息",
+                        "description": "Category information | 版块信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -876,7 +1221,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "创建成功",
+                        "description": "Created successfully | 创建成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -894,13 +1239,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -910,7 +1255,7 @@ const docTemplate = `{
         },
         "/manage/categories/moderators": {
             "put": {
-                "description": "为指定版块设置版主列表",
+                "description": "Set moderator list for specified category | 为指定版块设置版主列表",
                 "consumes": [
                     "application/json"
                 ],
@@ -918,12 +1263,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]版块管理"
+                    "[Admin]Category Management | [管理员]版块管理"
                 ],
-                "summary": "设置版块版主",
+                "summary": "Set category moderators | 设置版块版主",
                 "parameters": [
                     {
-                        "description": "版主信息",
+                        "description": "Moderator information | 版主信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -934,19 +1279,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "设置成功",
+                        "description": "Set successfully | 设置成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -956,7 +1301,7 @@ const docTemplate = `{
         },
         "/manage/categories/status": {
             "put": {
-                "description": "更新版块的状态（正常、登录可见、会员可见、隐藏、锁定）",
+                "description": "Update category status (normal, login-visible, member-visible, hidden, locked) | 更新版块的状态（正常、登录可见、会员可见、隐藏、锁定）",
                 "consumes": [
                     "application/json"
                 ],
@@ -964,12 +1309,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]版块管理"
+                    "[Admin]Category Management | [管理员]版块管理"
                 ],
-                "summary": "更新版块状态",
+                "summary": "Update category status | 更新版块状态",
                 "parameters": [
                     {
-                        "description": "状态信息",
+                        "description": "Status information | 状态信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -980,19 +1325,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Updated successfully | 更新成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -1002,7 +1347,7 @@ const docTemplate = `{
         },
         "/manage/categories/{id}": {
             "get": {
-                "description": "获取指定版块的详细信息",
+                "description": "Get detailed information of specified category | 获取指定版块的详细信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -1010,13 +1355,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]版块管理"
+                    "[Admin]Category Management | [管理员]版块管理"
                 ],
-                "summary": "获取版块详情",
+                "summary": "Get category details | 获取版块详情",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "版块ID",
+                        "description": "Category ID | 版块ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1024,7 +1369,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -1042,13 +1387,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -1056,7 +1401,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "软删除版块（将状态设为隐藏）",
+                "description": "Soft delete category (set status to hidden) | 软删除版块（将状态设为隐藏）",
                 "consumes": [
                     "application/json"
                 ],
@@ -1064,13 +1409,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]版块管理"
+                    "[Admin]Category Management | [管理员]版块管理"
                 ],
-                "summary": "删除版块",
+                "summary": "Delete category | 删除版块",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "版块ID",
+                        "description": "Category ID | 版块ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1078,19 +1423,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "删除成功",
+                        "description": "Deleted successfully | 删除成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -1100,7 +1445,7 @@ const docTemplate = `{
         },
         "/manage/comments": {
             "get": {
-                "description": "分页获取评论列表，支持多种筛选条件",
+                "description": "Get paginated comment list with multiple filtering conditions | 分页获取评论列表,支持多种筛选条件",
                 "consumes": [
                     "application/json"
                 ],
@@ -1108,20 +1453,20 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]评论管理"
+                    "[Admin]Comment Management | [管理员]评论管理"
                 ],
-                "summary": "获取评论列表",
+                "summary": "Get comment list | 获取评论列表",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "description": "Page number | 页码",
                         "name": "page",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "每页数量",
+                        "description": "Items per page | 每页数量",
                         "name": "page_size",
                         "in": "query",
                         "required": true
@@ -1129,50 +1474,50 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "\"技术\"",
-                        "description": "搜索关键词",
+                        "description": "Search keyword | 搜索关键词",
                         "name": "keyword",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "帖子ID",
+                        "description": "Post ID | 帖子ID",
                         "name": "post_id",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "用户ID",
+                        "description": "User ID | 用户ID",
                         "name": "user_id",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "父评论ID",
+                        "description": "Parent comment ID | 父评论ID",
                         "name": "parent_id",
                         "in": "query"
                     },
                     {
                         "type": "boolean",
-                        "description": "是否精选评论",
+                        "description": "Is featured comment | 是否精选评论",
                         "name": "is_selected",
                         "in": "query"
                     },
                     {
                         "type": "boolean",
-                        "description": "是否置顶评论",
+                        "description": "Is pinned comment | 是否置顶评论",
                         "name": "is_pinned",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "回复目标用户ID",
+                        "description": "Reply target user ID | 回复目标用户ID",
                         "name": "reply_to_id",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Retrieved successfully | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -1190,13 +1535,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -1204,7 +1549,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "更新评论的内容信息",
+                "description": "Update comment content information | 更新评论的内容信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -1212,12 +1557,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]评论管理"
+                    "[Admin]Comment Management | [管理员]评论管理"
                 ],
-                "summary": "更新评论信息",
+                "summary": "Update comment information | 更新评论信息",
                 "parameters": [
                     {
-                        "description": "评论信息",
+                        "description": "Comment information | 评论信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1228,7 +1573,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Updated successfully | 更新成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -1246,13 +1591,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -1260,7 +1605,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "管理员创建新评论",
+                "description": "Admin creates new comment | 管理员创建新评论",
                 "consumes": [
                     "application/json"
                 ],
@@ -1268,12 +1613,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]评论管理"
+                    "[Admin]Comment Management | [管理员]评论管理"
                 ],
-                "summary": "创建评论",
+                "summary": "Create comment | 创建评论",
                 "parameters": [
                     {
-                        "description": "评论信息",
+                        "description": "Comment information | 评论信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1284,7 +1629,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "创建成功",
+                        "description": "Created successfully | 创建成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -1302,13 +1647,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -1318,7 +1663,7 @@ const docTemplate = `{
         },
         "/manage/comments/pin": {
             "put": {
-                "description": "设置或取消评论的置顶状态",
+                "description": "Set or cancel pinned status of a comment | 设置或取消评论的置顶状态",
                 "consumes": [
                     "application/json"
                 ],
@@ -1326,12 +1671,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]评论管理"
+                    "[Admin]Comment Management | [管理员]评论管理"
                 ],
-                "summary": "设置评论置顶",
+                "summary": "Set comment as pinned | 设置评论置顶",
                 "parameters": [
                     {
-                        "description": "置顶信息",
+                        "description": "Pin information | 置顶信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1342,19 +1687,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "设置成功",
+                        "description": "Set successfully | 设置成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -1364,7 +1709,7 @@ const docTemplate = `{
         },
         "/manage/comments/selected": {
             "put": {
-                "description": "设置或取消评论的精选状态",
+                "description": "Set or cancel featured status of a comment | 设置或取消评论的精选状态",
                 "consumes": [
                     "application/json"
                 ],
@@ -1372,12 +1717,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]评论管理"
+                    "[Admin]Comment Management | [管理员]评论管理"
                 ],
-                "summary": "设置评论精选",
+                "summary": "Set comment as featured | 设置评论精选",
                 "parameters": [
                     {
-                        "description": "精选信息",
+                        "description": "Featured information | 精选信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1388,19 +1733,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "设置成功",
+                        "description": "Set successfully | 设置成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -1410,7 +1755,7 @@ const docTemplate = `{
         },
         "/manage/comments/{id}": {
             "get": {
-                "description": "获取指定评论的详细信息",
+                "description": "Get detailed information of the specified comment | 获取指定评论的详细信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -1418,13 +1763,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]评论管理"
+                    "[Admin]Comment Management | [管理员]评论管理"
                 ],
-                "summary": "获取评论详情",
+                "summary": "Get comment detail | 获取评论详情",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "评论ID",
+                        "description": "Comment ID | 评论ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1432,7 +1777,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Retrieved successfully | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -1450,13 +1795,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -1464,7 +1809,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "删除指定的评论",
+                "description": "Delete the specified comment | 删除指定的评论",
                 "consumes": [
                     "application/json"
                 ],
@@ -1472,13 +1817,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]评论管理"
+                    "[Admin]Comment Management | [管理员]评论管理"
                 ],
-                "summary": "删除评论",
+                "summary": "Delete comment | 删除评论",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "评论ID",
+                        "description": "Comment ID | 评论ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1486,19 +1831,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "删除成功",
+                        "description": "Deleted successfully | 删除成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -1508,7 +1853,7 @@ const docTemplate = `{
         },
         "/manage/dashboard/activity": {
             "get": {
-                "description": "获取系统最近的活动，包括最近帖子、评论和新用户",
+                "description": "Get recent system activity including recent posts, comments and new users | 获取系统最近的活动，包括最近帖子、评论和新用户",
                 "consumes": [
                     "application/json"
                 ],
@@ -1516,12 +1861,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]仪表盘"
+                    "[Admin]Dashboard | [管理员]仪表盘"
                 ],
-                "summary": "获取最近活动",
+                "summary": "Get recent activity | 获取最近活动",
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -1539,13 +1884,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -1555,7 +1900,7 @@ const docTemplate = `{
         },
         "/manage/dashboard/popular-categories": {
             "get": {
-                "description": "获取帖子数量最多的热门版块列表",
+                "description": "Get list of popular categories with most posts | 获取帖子数量最多的热门版块列表",
                 "consumes": [
                     "application/json"
                 ],
@@ -1563,12 +1908,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]仪表盘"
+                    "[Admin]Dashboard | [管理员]仪表盘"
                 ],
-                "summary": "获取热门版块",
+                "summary": "Get popular categories | 获取热门版块",
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -1586,13 +1931,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -1602,7 +1947,7 @@ const docTemplate = `{
         },
         "/manage/dashboard/popular-posts": {
             "get": {
-                "description": "获取浏览量最高的热门帖子列表",
+                "description": "Get list of popular posts with highest view counts | 获取浏览量最高的热门帖子列表",
                 "consumes": [
                     "application/json"
                 ],
@@ -1610,12 +1955,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]仪表盘"
+                    "[Admin]Dashboard | [管理员]仪表盘"
                 ],
-                "summary": "获取热门帖子",
+                "summary": "Get popular posts | 获取热门帖子",
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -1633,13 +1978,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -1649,7 +1994,7 @@ const docTemplate = `{
         },
         "/manage/dashboard/stats": {
             "get": {
-                "description": "获取系统各项统计数据，包括用户、帖子、评论、版块和系统统计",
+                "description": "Get system statistics including users, posts, comments, categories and system stats | 获取系统各项统计数据，包括用户、帖子、评论、版块和系统统计",
                 "consumes": [
                     "application/json"
                 ],
@@ -1657,28 +2002,28 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]仪表盘"
+                    "[Admin]Dashboard | [管理员]仪表盘"
                 ],
-                "summary": "获取仪表盘统计数据",
+                "summary": "Get dashboard statistics | 获取仪表盘统计数据",
                 "parameters": [
                     {
                         "type": "string",
                         "example": "\"2024-01-01\"",
-                        "description": "开始日期",
+                        "description": "Start date | 开始日期",
                         "name": "start_date",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "\"2024-12-31\"",
-                        "description": "结束日期",
+                        "description": "End date | 结束日期",
                         "name": "end_date",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -1696,13 +2041,406 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/invitation-codes": {
+            "get": {
+                "description": "Get paginated invitation code list with support for keyword search and status filtering | 分页获取邀请码列表，支持关键词搜索和状态筛选",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[Admin]Invitation Code Management | [管理员]邀请码管理"
+                ],
+                "summary": "Get invitation code list | 获取邀请码列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page number | 页码",
+                        "name": "page",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Items per page | 每页数量",
+                        "name": "page_size",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"abc123\"",
+                        "description": "Search keyword (invitation code) | 搜索关键词（邀请码）",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"unused\"",
+                        "description": "Status filter: unused, used, expired, disabled | 状态筛选",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "\"direct\"",
+                        "description": "Generation mode filter | 生成方式筛选",
+                        "name": "mode",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.InvitationCodeListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update basic information of invitation code | 更新邀请码的基本信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[Admin]Invitation Code Management | [管理员]邀请码管理"
+                ],
+                "summary": "Update invitation code information | 更新邀请码信息",
+                "parameters": [
+                    {
+                        "description": "Invitation code information | 邀请码信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.InvitationCodeUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated successfully | 更新成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.InvitationCodeDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Admin creates invitation code manually | 管理员手动创建邀请码",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[Admin]Invitation Code Management | [管理员]邀请码管理"
+                ],
+                "summary": "Create invitation code | 创建邀请码",
+                "parameters": [
+                    {
+                        "description": "Invitation code information | 邀请码信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.InvitationCodeCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Created successfully | 创建成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.InvitationCodeDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/invitation-codes/stats": {
+            "get": {
+                "description": "Get statistics of invitation codes including counts by status | 获取邀请码统计信息，包括按状态统计的数量",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[Admin]Invitation Code Management | [管理员]邀请码管理"
+                ],
+                "summary": "Get invitation code statistics | 获取邀请码统计信息",
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.InvitationCodeStatsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/invitation-codes/status": {
+            "put": {
+                "description": "Update status of invitation code | 更新邀请码的状态",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[Admin]Invitation Code Management | [管理员]邀请码管理"
+                ],
+                "summary": "Update invitation code status | 更新邀请码状态",
+                "parameters": [
+                    {
+                        "description": "Status information | 状态信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.InvitationCodeStatusUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated successfully | 更新成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.InvitationCodeDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/invitation-codes/{id}": {
+            "get": {
+                "description": "Get detailed information of invitation code | 获取邀请码的详细信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[Admin]Invitation Code Management | [管理员]邀请码管理"
+                ],
+                "summary": "Get invitation code details | 获取邀请码详情",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Invitation code ID | 邀请码ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.InvitationCodeDetailResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete invitation code (unused codes only) | 删除邀请码（仅限未使用的邀请码）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[Admin]Invitation Code Management | [管理员]邀请码管理"
+                ],
+                "summary": "Delete invitation code | 删除邀请码",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Invitation code ID | 邀请码ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deleted successfully | 删除成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -1712,7 +2450,7 @@ const docTemplate = `{
         },
         "/manage/posts": {
             "get": {
-                "description": "分页获取帖子列表，支持多种筛选条件",
+                "description": "Get paginated post list with multiple filtering conditions | 分页获取帖子列表,支持多种筛选条件",
                 "consumes": [
                     "application/json"
                 ],
@@ -1720,20 +2458,20 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]主题贴管理"
+                    "[Admin]Post Management | [管理员]主题贴管理"
                 ],
-                "summary": "获取帖子列表",
+                "summary": "Get post list | 获取帖子列表",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "description": "Page number | 页码",
                         "name": "page",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "每页数量",
+                        "description": "Items per page | 每页数量",
                         "name": "page_size",
                         "in": "query",
                         "required": true
@@ -1741,45 +2479,45 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "\"技术\"",
-                        "description": "搜索关键词",
+                        "description": "Search keyword | 搜索关键词",
                         "name": "keyword",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "\"Normal\"",
-                        "description": "帖子状态",
+                        "description": "Post status | 帖子状态",
                         "name": "status",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "版块ID",
+                        "description": "Category ID | 版块ID",
                         "name": "category_id",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "用户ID",
+                        "description": "User ID | 用户ID",
                         "name": "user_id",
                         "in": "query"
                     },
                     {
                         "type": "boolean",
-                        "description": "是否精华帖",
+                        "description": "Is featured post | 是否精华帖",
                         "name": "is_essence",
                         "in": "query"
                     },
                     {
                         "type": "boolean",
-                        "description": "是否置顶",
+                        "description": "Is pinned | 是否置顶",
                         "name": "is_pinned",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Retrieved successfully | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -1797,13 +2535,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -1811,7 +2549,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "更新帖子的基本信息",
+                "description": "Update basic information of a post | 更新帖子的基本信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -1819,12 +2557,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]主题贴管理"
+                    "[Admin]Post Management | [管理员]主题贴管理"
                 ],
-                "summary": "更新帖子信息",
+                "summary": "Update post information | 更新帖子信息",
                 "parameters": [
                     {
-                        "description": "帖子信息",
+                        "description": "Post information | 帖子信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1835,7 +2573,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Updated successfully | 更新成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -1853,13 +2591,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -1867,7 +2605,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "管理员创建新帖子",
+                "description": "Admin creates new post | 管理员创建新帖子",
                 "consumes": [
                     "application/json"
                 ],
@@ -1875,12 +2613,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]主题贴管理"
+                    "[Admin]Post Management | [管理员]主题贴管理"
                 ],
-                "summary": "创建帖子",
+                "summary": "Create post | 创建帖子",
                 "parameters": [
                     {
-                        "description": "帖子信息",
+                        "description": "Post information | 帖子信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1891,7 +2629,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "创建成功",
+                        "description": "Created successfully | 创建成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -1909,13 +2647,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -1925,7 +2663,7 @@ const docTemplate = `{
         },
         "/manage/posts/essence": {
             "put": {
-                "description": "设置或取消帖子的精华状态",
+                "description": "Set or cancel featured status of a post | 设置或取消帖子的精华状态",
                 "consumes": [
                     "application/json"
                 ],
@@ -1933,12 +2671,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]主题贴管理"
+                    "[Admin]Post Management | [管理员]主题贴管理"
                 ],
-                "summary": "设置帖子精华",
+                "summary": "Set post as featured | 设置帖子精华",
                 "parameters": [
                     {
-                        "description": "精华信息",
+                        "description": "Featured information | 精华信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1949,19 +2687,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "设置成功",
+                        "description": "Set successfully | 设置成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -1971,7 +2709,7 @@ const docTemplate = `{
         },
         "/manage/posts/move": {
             "put": {
-                "description": "将帖子移动到指定的版块",
+                "description": "Move post to the specified category | 将帖子移动到指定的版块",
                 "consumes": [
                     "application/json"
                 ],
@@ -1979,12 +2717,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]主题贴管理"
+                    "[Admin]Post Management | [管理员]主题贴管理"
                 ],
-                "summary": "移动帖子",
+                "summary": "Move post | 移动帖子",
                 "parameters": [
                     {
-                        "description": "移动信息",
+                        "description": "Move information | 移动信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -1995,19 +2733,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "移动成功",
+                        "description": "Moved successfully | 移动成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -2017,7 +2755,7 @@ const docTemplate = `{
         },
         "/manage/posts/pin": {
             "put": {
-                "description": "设置或取消帖子的置顶状态",
+                "description": "Set or cancel pinned status of a post with pin scope | 设置或取消帖子的置顶状态及置顶范围",
                 "consumes": [
                     "application/json"
                 ],
@@ -2025,12 +2763,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]主题贴管理"
+                    "[Admin]Post Management | [管理员]主题贴管理"
                 ],
-                "summary": "设置帖子置顶",
+                "summary": "Set post as pinned | 设置帖子置顶",
                 "parameters": [
                     {
-                        "description": "置顶信息",
+                        "description": "Pin information | 置顶信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -2041,19 +2779,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "设置成功",
+                        "description": "Set successfully | 设置成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -2063,7 +2801,7 @@ const docTemplate = `{
         },
         "/manage/posts/status": {
             "put": {
-                "description": "更新帖子的状态（正常、锁定、草稿、私有、封禁）",
+                "description": "Update post status (normal, locked, draft, private, banned) | 更新帖子的状态(正常、锁定、草稿、私有、封禁)",
                 "consumes": [
                     "application/json"
                 ],
@@ -2071,12 +2809,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]主题贴管理"
+                    "[Admin]Post Management | [管理员]主题贴管理"
                 ],
-                "summary": "更新帖子状态",
+                "summary": "Update post status | 更新帖子状态",
                 "parameters": [
                     {
-                        "description": "状态信息",
+                        "description": "Status information | 状态信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -2087,19 +2825,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Updated successfully | 更新成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -2109,7 +2847,7 @@ const docTemplate = `{
         },
         "/manage/posts/{id}": {
             "get": {
-                "description": "获取指定帖子的详细信息",
+                "description": "Get detailed information of the specified post | 获取指定帖子的详细信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -2117,13 +2855,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]主题贴管理"
+                    "[Admin]Post Management | [管理员]主题贴管理"
                 ],
-                "summary": "获取帖子详情",
+                "summary": "Get post detail | 获取帖子详情",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "帖子ID",
+                        "description": "Post ID | 帖子ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2131,7 +2869,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Retrieved successfully | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -2149,13 +2887,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -2163,7 +2901,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "description": "软删除帖子（将状态设为封禁）",
+                "description": "Soft delete post (set status to banned) | 软删除帖子(将状态设为封禁)",
                 "consumes": [
                     "application/json"
                 ],
@@ -2171,13 +2909,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]主题贴管理"
+                    "[Admin]Post Management | [管理员]主题贴管理"
                 ],
-                "summary": "删除帖子",
+                "summary": "Delete post | 删除帖子",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "帖子ID",
+                        "description": "Post ID | 帖子ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2185,19 +2923,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "删除成功",
+                        "description": "Deleted successfully | 删除成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -2207,7 +2945,7 @@ const docTemplate = `{
         },
         "/manage/users": {
             "get": {
-                "description": "分页获取用户列表，支持关键词搜索和状态筛选",
+                "description": "Get paginated user list with keyword search and status filtering support | 分页获取用户列表，支持关键词搜索和状态筛选",
                 "consumes": [
                     "application/json"
                 ],
@@ -2215,20 +2953,20 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]用户管理"
+                    "[Admin]User Management | [管理员]用户管理"
                 ],
-                "summary": "获取用户列表",
+                "summary": "Get user list | 获取用户列表",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "description": "Page number | 页码",
                         "name": "page",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "每页数量",
+                        "description": "Items per page | 每页数量",
                         "name": "page_size",
                         "in": "query",
                         "required": true
@@ -2236,28 +2974,28 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "\"test\"",
-                        "description": "搜索关键词",
+                        "description": "Search keyword | 搜索关键词",
                         "name": "keyword",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "\"Normal\"",
-                        "description": "用户状态",
+                        "description": "User status | 用户状态",
                         "name": "status",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "\"User\"",
-                        "description": "用户身份",
+                        "description": "User role | 用户身份",
                         "name": "role",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Retrieve successful | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -2275,13 +3013,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -2289,7 +3027,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "更新用户的基本信息",
+                "description": "Update user's basic information | 更新用户的基本信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -2297,12 +3035,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]用户管理"
+                    "[Admin]User Management | [管理员]用户管理"
                 ],
-                "summary": "更新用户信息",
+                "summary": "Update user information | 更新用户信息",
                 "parameters": [
                     {
-                        "description": "用户信息",
+                        "description": "User information | 用户信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -2313,7 +3051,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Update successful | 更新成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -2331,13 +3069,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -2345,7 +3083,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "管理员创建新用户账户",
+                "description": "Administrator creates new user account | 管理员创建新用户账户",
                 "consumes": [
                     "application/json"
                 ],
@@ -2353,12 +3091,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]用户管理"
+                    "[Admin]User Management | [管理员]用户管理"
                 ],
-                "summary": "创建用户",
+                "summary": "Create user | 创建用户",
                 "parameters": [
                     {
-                        "description": "用户信息",
+                        "description": "User information | 用户信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -2369,7 +3107,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "创建成功",
+                        "description": "Creation successful | 创建成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -2387,13 +3125,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -2403,7 +3141,7 @@ const docTemplate = `{
         },
         "/manage/users/balance/logs": {
             "get": {
-                "description": "分页获取用户余额变动记录，支持多种筛选条件",
+                "description": "Get paginated user balance change logs with various filtering options | 分页获取用户余额变动记录，支持多种筛选条件",
                 "consumes": [
                     "application/json"
                 ],
@@ -2411,68 +3149,68 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]用户管理"
+                    "[Admin]User Management | [管理员]用户管理"
                 ],
-                "summary": "获取用户余额变动记录",
+                "summary": "Get user balance change logs | 获取用户余额变动记录",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "description": "Page number | 页码",
                         "name": "page",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "每页数量",
+                        "description": "Items per page | 每页数量",
                         "name": "page_size",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "用户ID筛选",
+                        "description": "User ID filter | 用户ID筛选",
                         "name": "user_id",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "\"points\"",
-                        "description": "变动类型筛选",
+                        "description": "Change type filter | 变动类型筛选",
                         "name": "type",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "\"2024-01-01\"",
-                        "description": "开始日期",
+                        "description": "Start date | 开始日期",
                         "name": "start_date",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "\"2024-12-31\"",
-                        "description": "结束日期",
+                        "description": "End date | 结束日期",
                         "name": "end_date",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "操作者ID筛选",
+                        "description": "Operator ID filter | 操作者ID筛选",
                         "name": "operator_id",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "example": "\"post\"",
-                        "description": "关联业务类型筛选",
+                        "description": "Related business type filter | 关联业务类型筛选",
                         "name": "related_type",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Retrieve successful | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -2490,13 +3228,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -2506,7 +3244,7 @@ const docTemplate = `{
         },
         "/manage/users/balance/summary/{id}": {
             "get": {
-                "description": "获取指定用户的余额汇总统计信息",
+                "description": "Get balance summary statistics for specified user | 获取指定用户的余额汇总统计信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -2514,13 +3252,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]用户管理"
+                    "[Admin]User Management | [管理员]用户管理"
                 ],
-                "summary": "获取用户余额汇总信息",
+                "summary": "Get user balance summary information | 获取用户余额汇总信息",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户ID",
+                        "description": "User ID | 用户ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2528,7 +3266,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Retrieve successful | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -2546,13 +3284,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -2562,7 +3300,7 @@ const docTemplate = `{
         },
         "/manage/users/ban": {
             "post": {
-                "description": "封禁指定用户，支持短期封禁和永久封禁",
+                "description": "Ban specified user, supports temporary and permanent bans | 封禁指定用户，支持短期封禁和永久封禁",
                 "consumes": [
                     "application/json"
                 ],
@@ -2570,12 +3308,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]用户管理"
+                    "[Admin]User Management | [管理员]用户管理"
                 ],
-                "summary": "封禁用户",
+                "summary": "Ban user | 封禁用户",
                 "parameters": [
                     {
-                        "description": "封禁信息",
+                        "description": "Ban information | 封禁信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -2586,19 +3324,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "封禁成功",
+                        "description": "Ban successful | 封禁成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -2608,7 +3346,7 @@ const docTemplate = `{
         },
         "/manage/users/currency": {
             "put": {
-                "description": "为用户增加或减少货币",
+                "description": "Add or deduct currency for user | 为用户增加或减少货币",
                 "consumes": [
                     "application/json"
                 ],
@@ -2616,12 +3354,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]用户管理"
+                    "[Admin]User Management | [管理员]用户管理"
                 ],
-                "summary": "更新用户货币",
+                "summary": "Update user currency | 更新用户货币",
                 "parameters": [
                     {
-                        "description": "货币信息",
+                        "description": "Currency information | 货币信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -2632,19 +3370,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Update successful | 更新成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -2654,7 +3392,7 @@ const docTemplate = `{
         },
         "/manage/users/moderator/categories": {
             "put": {
-                "description": "为指定版主设置其管理的版块列表",
+                "description": "Set the list of categories managed by specified moderator | 为指定版主设置其管理的版块列表",
                 "consumes": [
                     "application/json"
                 ],
@@ -2662,12 +3400,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]用户管理"
+                    "[Admin]User Management | [管理员]用户管理"
                 ],
-                "summary": "设置版主管理版块",
+                "summary": "Set moderator categories | 设置版主管理版块",
                 "parameters": [
                     {
-                        "description": "版块信息",
+                        "description": "Category information | 版块信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -2678,19 +3416,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "设置成功",
+                        "description": "Setting successful | 设置成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -2700,7 +3438,7 @@ const docTemplate = `{
         },
         "/manage/users/points": {
             "put": {
-                "description": "为用户增加或减少积分",
+                "description": "Add or deduct points for user | 为用户增加或减少积分",
                 "consumes": [
                     "application/json"
                 ],
@@ -2708,12 +3446,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]用户管理"
+                    "[Admin]User Management | [管理员]用户管理"
                 ],
-                "summary": "更新用户积分",
+                "summary": "Update user points | 更新用户积分",
                 "parameters": [
                     {
-                        "description": "积分信息",
+                        "description": "Points information | 积分信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -2724,19 +3462,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Update successful | 更新成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -2746,7 +3484,7 @@ const docTemplate = `{
         },
         "/manage/users/role": {
             "put": {
-                "description": "更新用户的身份权限（普通用户、版主、管理员等）",
+                "description": "Update user's role permissions (Regular User, Moderator, Admin, etc.) | 更新用户的身份权限（普通用户、版主、管理员等）",
                 "consumes": [
                     "application/json"
                 ],
@@ -2754,12 +3492,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]用户管理"
+                    "[Admin]User Management | [管理员]用户管理"
                 ],
-                "summary": "更新用户身份",
+                "summary": "Update user role | 更新用户身份",
                 "parameters": [
                     {
-                        "description": "身份信息",
+                        "description": "Role information | 身份信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -2770,19 +3508,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Update successful | 更新成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -2792,7 +3530,7 @@ const docTemplate = `{
         },
         "/manage/users/status": {
             "put": {
-                "description": "更新用户的状态（正常、禁言、封禁等）",
+                "description": "Update user's status (Normal, Muted, Banned, etc.) | 更新用户的状态（正常、禁言、封禁等）",
                 "consumes": [
                     "application/json"
                 ],
@@ -2800,12 +3538,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]用户管理"
+                    "[Admin]User Management | [管理员]用户管理"
                 ],
-                "summary": "更新用户状态",
+                "summary": "Update user status | 更新用户状态",
                 "parameters": [
                     {
-                        "description": "状态信息",
+                        "description": "Status information | 状态信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -2816,19 +3554,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Update successful | 更新成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -2838,7 +3576,7 @@ const docTemplate = `{
         },
         "/manage/users/unban": {
             "post": {
-                "description": "解除指定用户的封禁状态",
+                "description": "Remove ban status from specified user | 解除指定用户的封禁状态",
                 "consumes": [
                     "application/json"
                 ],
@@ -2846,12 +3584,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]用户管理"
+                    "[Admin]User Management | [管理员]用户管理"
                 ],
-                "summary": "解封用户",
+                "summary": "Unban user | 解封用户",
                 "parameters": [
                     {
-                        "description": "解封信息",
+                        "description": "Unban information | 解封信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -2862,19 +3600,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "解封成功",
+                        "description": "Unban successful | 解封成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -2884,7 +3622,7 @@ const docTemplate = `{
         },
         "/manage/users/{id}": {
             "get": {
-                "description": "获取指定用户的详细信息",
+                "description": "Get detailed information for specified user | 获取指定用户的详细信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -2892,13 +3630,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[管理员]用户管理"
+                    "[Admin]User Management | [管理员]用户管理"
                 ],
-                "summary": "获取用户详情",
+                "summary": "Get user details | 获取用户详情",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户ID",
+                        "description": "User ID | 用户ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2906,7 +3644,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Retrieve successful | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -2924,13 +3662,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -2940,7 +3678,7 @@ const docTemplate = `{
         },
         "/moderator/categories": {
             "get": {
-                "description": "获取当前版主有管理权限的所有版块列表",
+                "description": "Get list of all categories that the current moderator has permission to manage | 获取当前版主有管理权限的所有版块列表",
                 "consumes": [
                     "application/json"
                 ],
@@ -2948,12 +3686,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[版主]版块管理"
+                    "[Moderator]Category Management | [版主]版块管理"
                 ],
-                "summary": "获取版主管理的版块列表",
+                "summary": "Get list of categories managed by moderator | 获取版主管理的版块列表",
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -2971,25 +3709,25 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "403": {
-                        "description": "权限不足",
+                        "description": "Insufficient permissions | 权限不足",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -2997,7 +3735,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "版主编辑自己管理的版块信息",
+                "description": "Moderator edits information of categories they manage | 版主编辑自己管理的版块信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -3005,12 +3743,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[版主]版块管理"
+                    "[Moderator]Category Management | [版主]版块管理"
                 ],
-                "summary": "编辑版块",
+                "summary": "Edit category | 编辑版块",
                 "parameters": [
                     {
-                        "description": "版块信息",
+                        "description": "Category information | 版块信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -3021,31 +3759,31 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "编辑成功",
+                        "description": "Edited successfully | 编辑成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "403": {
-                        "description": "权限不足",
+                        "description": "Insufficient permissions | 权限不足",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -3055,7 +3793,7 @@ const docTemplate = `{
         },
         "/moderator/categories/announcement": {
             "post": {
-                "description": "版主为自己管理的版块创建公告",
+                "description": "Moderator creates announcement for categories they manage | 版主为自己管理的版块创建公告",
                 "consumes": [
                     "application/json"
                 ],
@@ -3063,12 +3801,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[版主]版块管理"
+                    "[Moderator]Category Management | [版主]版块管理"
                 ],
-                "summary": "创建版块公告",
+                "summary": "Create category announcement | 创建版块公告",
                 "parameters": [
                     {
-                        "description": "公告信息",
+                        "description": "Announcement information | 公告信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -3079,7 +3817,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "创建成功",
+                        "description": "Created successfully | 创建成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -3097,25 +3835,25 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "403": {
-                        "description": "权限不足",
+                        "description": "Insufficient permissions | 权限不足",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -3125,7 +3863,7 @@ const docTemplate = `{
         },
         "/moderator/categories/{category_id}/announcements": {
             "get": {
-                "description": "获取指定版块的公告列表",
+                "description": "Get announcement list of specified category | 获取指定版块的公告列表",
                 "consumes": [
                     "application/json"
                 ],
@@ -3133,13 +3871,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[版主]版块管理"
+                    "[Moderator]Category Management | [版主]版块管理"
                 ],
-                "summary": "获取版块公告列表",
+                "summary": "Get category announcement list | 获取版块公告列表",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "版块ID",
+                        "description": "Category ID | 版块ID",
                         "name": "category_id",
                         "in": "path",
                         "required": true
@@ -3147,7 +3885,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -3168,25 +3906,25 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "403": {
-                        "description": "权限不足",
+                        "description": "Insufficient permissions | 权限不足",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -3196,7 +3934,7 @@ const docTemplate = `{
         },
         "/moderator/posts": {
             "put": {
-                "description": "版主编辑指定版块内的帖子内容",
+                "description": "Moderator edits post content within specified category | 版主编辑指定版块内的帖子内容",
                 "consumes": [
                     "application/json"
                 ],
@@ -3204,12 +3942,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[版主]版块管理"
+                    "[Moderator]Category Management | [版主]版块管理"
                 ],
-                "summary": "编辑帖子",
+                "summary": "Edit post | 编辑帖子",
                 "parameters": [
                     {
-                        "description": "帖子信息",
+                        "description": "Post information | 帖子信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -3220,7 +3958,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "编辑成功",
+                        "description": "Edited successfully | 编辑成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -3238,25 +3976,25 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "403": {
-                        "description": "权限不足",
+                        "description": "Insufficient permissions | 权限不足",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -3266,7 +4004,7 @@ const docTemplate = `{
         },
         "/moderator/posts/ban": {
             "post": {
-                "description": "版主封禁指定版块内的帖子",
+                "description": "Moderator bans a post within specified category | 版主封禁指定版块内的帖子",
                 "consumes": [
                     "application/json"
                 ],
@@ -3274,12 +4012,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[版主]版块管理"
+                    "[Moderator]Category Management | [版主]版块管理"
                 ],
-                "summary": "封禁帖子",
+                "summary": "Ban post | 封禁帖子",
                 "parameters": [
                     {
-                        "description": "封禁信息",
+                        "description": "Ban information | 封禁信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -3290,31 +4028,31 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "封禁成功",
+                        "description": "Banned successfully | 封禁成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "403": {
-                        "description": "权限不足",
+                        "description": "Insufficient permissions | 权限不足",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -3324,7 +4062,7 @@ const docTemplate = `{
         },
         "/moderator/posts/essence": {
             "put": {
-                "description": "版主设置或取消帖子的精华状态",
+                "description": "Moderator sets or cancels post essence status | 版主设置或取消帖子的精华状态",
                 "consumes": [
                     "application/json"
                 ],
@@ -3332,12 +4070,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[版主]版块管理"
+                    "[Moderator]Category Management | [版主]版块管理"
                 ],
-                "summary": "设置帖子精华",
+                "summary": "Set post essence | 设置帖子精华",
                 "parameters": [
                     {
-                        "description": "精华信息",
+                        "description": "Essence information | 精华信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -3348,31 +4086,31 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "设置成功",
+                        "description": "Set successfully | 设置成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "403": {
-                        "description": "权限不足",
+                        "description": "Insufficient permissions | 权限不足",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -3382,7 +4120,7 @@ const docTemplate = `{
         },
         "/moderator/posts/lock": {
             "put": {
-                "description": "版主锁定或解锁帖子，锁定后用户无法回复",
+                "description": "Moderator locks or unlocks post, users cannot reply after locking | 版主锁定或解锁帖子，锁定后用户无法回复",
                 "consumes": [
                     "application/json"
                 ],
@@ -3390,12 +4128,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[版主]版块管理"
+                    "[Moderator]Category Management | [版主]版块管理"
                 ],
-                "summary": "锁定帖子",
+                "summary": "Lock post | 锁定帖子",
                 "parameters": [
                     {
-                        "description": "锁定信息",
+                        "description": "Lock information | 锁定信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -3406,31 +4144,31 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "设置成功",
+                        "description": "Set successfully | 设置成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "403": {
-                        "description": "权限不足",
+                        "description": "Insufficient permissions | 权限不足",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -3440,7 +4178,7 @@ const docTemplate = `{
         },
         "/moderator/posts/move": {
             "put": {
-                "description": "版主将帖子移动到自己有权限的其他版块",
+                "description": "Moderator moves post to other categories they have permission for | 版主将帖子移动到自己有权限的其他版块",
                 "consumes": [
                     "application/json"
                 ],
@@ -3448,12 +4186,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[版主]版块管理"
+                    "[Moderator]Category Management | [版主]版块管理"
                 ],
-                "summary": "移动帖子",
+                "summary": "Move post | 移动帖子",
                 "parameters": [
                     {
-                        "description": "移动信息",
+                        "description": "Move information | 移动信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -3464,31 +4202,31 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "移动成功",
+                        "description": "Moved successfully | 移动成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "403": {
-                        "description": "权限不足",
+                        "description": "Insufficient permissions | 权限不足",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -3498,7 +4236,7 @@ const docTemplate = `{
         },
         "/moderator/posts/pin": {
             "put": {
-                "description": "版主置顶或取消置顶帖子",
+                "description": "Moderator pins or unpins post | 版主置顶或取消置顶帖子",
                 "consumes": [
                     "application/json"
                 ],
@@ -3506,12 +4244,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[版主]版块管理"
+                    "[Moderator]Category Management | [版主]版块管理"
                 ],
-                "summary": "置顶帖子",
+                "summary": "Pin post | 置顶帖子",
                 "parameters": [
                     {
-                        "description": "置顶信息",
+                        "description": "Pin information | 置顶信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -3522,31 +4260,31 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "设置成功",
+                        "description": "Set successfully | 设置成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "403": {
-                        "description": "权限不足",
+                        "description": "Insufficient permissions | 权限不足",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -3554,9 +4292,29 @@ const docTemplate = `{
                 }
             }
         },
+        "/ping": {
+            "get": {
+                "description": "Simple liveness probe, returns pong | 简单的存活检测,返回pong",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Health Check | 健康检查"
+                ],
+                "summary": "Liveness probe | 存活检测",
+                "responses": {
+                    "200": {
+                        "description": "pong",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/posts": {
             "get": {
-                "description": "获取帖子列表，支持分页和排序",
+                "description": "Get post list with pagination and sorting support. Only returns posts with Normal or Locked status. Content is hidden in list view. Supports filtering by category (via ID or slug) and keyword search on title. Pinned posts are returned separately in pinned_posts field | 获取帖子列表,支持分页和排序。只返回正常或锁定状态的帖子。列表中内容已隐藏。支持通过版块ID或slug筛选,以及标题关键词搜索。置顶帖子单独返回在pinned_posts字段中",
                 "consumes": [
                     "application/json"
                 ],
@@ -3564,41 +4322,53 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]主题贴"
+                    "[User]Topic Posts | [用户]主题贴"
                 ],
-                "summary": "获取帖子列表",
+                "summary": "Get post list | 获取帖子列表",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "版块ID",
+                        "description": "Category ID | 版块ID",
                         "name": "category_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Category slug | 版块slug",
+                        "name": "slug",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Keyword for title search | 标题关键词搜索",
+                        "name": "keyword",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "default": 1,
-                        "description": "页码，默认1",
+                        "description": "Page number, default 1 | 页码,默认1",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "default": 20,
-                        "description": "每页数量，默认20，最大100",
+                        "description": "Items per page, default 20, max 100 | 每页数量,默认20,最大100",
                         "name": "page_size",
                         "in": "query"
                     },
                     {
                         "type": "string",
                         "default": "latest",
-                        "description": "排序方式：latest(最新)、hot(热门)、essence(精华)",
+                        "description": "Sort method: latest (newest), hot (popular), essence (featured) | 排序方式:latest(最新)、hot(热门)、essence(精华)",
                         "name": "sort",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Retrieved successfully | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -3616,13 +4386,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -3630,7 +4400,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "description": "用户编辑自己的帖子（每三分钟可操作一次）",
+                "description": "User edits their own post (can be operated once every three minutes). Locked and banned posts cannot be edited | 用户编辑自己的帖子(每三分钟可操作一次)。锁定和封禁的帖子不允许编辑",
                 "consumes": [
                     "application/json"
                 ],
@@ -3638,12 +4408,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]主题贴"
+                    "[User]Topic Posts | [用户]主题贴"
                 ],
-                "summary": "编辑帖子",
+                "summary": "Edit post | 编辑帖子",
                 "parameters": [
                     {
-                        "description": "帖子信息",
+                        "description": "Post information | 帖子信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -3654,7 +4424,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "编辑成功",
+                        "description": "Edited successfully | 编辑成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -3672,25 +4442,25 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未登录",
+                        "description": "Not logged in | 未登录",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "403": {
-                        "description": "权限不足或操作过于频繁",
+                        "description": "Insufficient permissions or too frequent operations | 权限不足或操作过于频繁",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -3698,7 +4468,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "用户发布新的主题帖",
+                "description": "User publishes a new topic post | 用户发布新的主题帖",
                 "consumes": [
                     "application/json"
                 ],
@@ -3706,12 +4476,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]主题贴"
+                    "[User]Topic Posts | [用户]主题贴"
                 ],
-                "summary": "发布新帖",
+                "summary": "Publish new post | 发布新帖",
                 "parameters": [
                     {
-                        "description": "帖子信息",
+                        "description": "Post information | 帖子信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -3722,7 +4492,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "发布成功",
+                        "description": "Published successfully | 发布成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -3740,19 +4510,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未登录",
+                        "description": "Not logged in | 未登录",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -3762,7 +4532,7 @@ const docTemplate = `{
         },
         "/posts/dislike": {
             "post": {
-                "description": "用户点踩帖子（单向，不可取消点踩）",
+                "description": "User dislikes a post (one-way, cannot cancel dislike) | 用户点踩帖子(单向,不可取消点踩)",
                 "consumes": [
                     "application/json"
                 ],
@@ -3770,12 +4540,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]主题贴"
+                    "[User]Topic Posts | [用户]主题贴"
                 ],
-                "summary": "点踩帖子",
+                "summary": "Dislike post | 点踩帖子",
                 "parameters": [
                     {
-                        "description": "帖子信息",
+                        "description": "Post information | 帖子信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -3786,7 +4556,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "点踩成功",
+                        "description": "Disliked successfully | 点踩成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -3804,25 +4574,25 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未登录",
+                        "description": "Not logged in | 未登录",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "403": {
-                        "description": "已经点踩过",
+                        "description": "Already disliked | 已经点踩过",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -3831,8 +4601,8 @@ const docTemplate = `{
             }
         },
         "/posts/draft": {
-            "post": {
-                "description": "用户保存帖子草稿",
+            "get": {
+                "description": "User gets their draft post list | 用户获取自己的草稿帖子列表",
                 "consumes": [
                     "application/json"
                 ],
@@ -3840,12 +4610,79 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]主题贴"
+                    "[User]Topic Posts | [用户]主题贴"
                 ],
-                "summary": "保存草稿",
+                "summary": "Get draft list | 获取草稿列表",
                 "parameters": [
                     {
-                        "description": "帖子信息",
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number, default 1 | 页码,默认1",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Items per page, default 20, max 100 | 每页数量,默认20,最大100",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Retrieved successfully | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserPostListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Not logged in | 未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "User saves post draft. If ID is provided, updates existing draft; otherwise creates new draft (max 10 drafts per user) | 用户保存帖子草稿。如果提供ID则更新现有草稿，否则创建新草稿（每个用户最多10篇草稿）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]Topic Posts | [用户]主题贴"
+                ],
+                "summary": "Save draft | 保存草稿",
+                "parameters": [
+                    {
+                        "description": "Post information (id is optional for update) | 帖子信息（id为可选字段，用于更新）",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -3856,7 +4693,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "保存成功",
+                        "description": "Saved successfully | 保存成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -3874,19 +4711,81 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未登录",
+                        "description": "Not logged in | 未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "Draft limit reached or insufficient permissions | 草稿数量已达上限或权限不足",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "User deletes their draft post | 用户删除自己的草稿帖子",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]Topic Posts | [用户]主题贴"
+                ],
+                "summary": "Delete draft | 删除草稿",
+                "parameters": [
+                    {
+                        "description": "Draft ID | 草稿ID",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserDraftDeleteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deleted successfully | 删除成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Not logged in | 未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "Insufficient permissions | 权限不足",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -3896,7 +4795,7 @@ const docTemplate = `{
         },
         "/posts/favorite": {
             "post": {
-                "description": "用户收藏或取消收藏帖子（双向操作）",
+                "description": "User favorites or unfavorites a post (two-way operation) | 用户收藏或取消收藏帖子(双向操作)",
                 "consumes": [
                     "application/json"
                 ],
@@ -3904,12 +4803,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]主题贴"
+                    "[User]Topic Posts | [用户]主题贴"
                 ],
-                "summary": "收藏帖子",
+                "summary": "Favorite post | 收藏帖子",
                 "parameters": [
                     {
-                        "description": "帖子信息",
+                        "description": "Post information | 帖子信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -3920,7 +4819,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "操作成功",
+                        "description": "Operation successful | 操作成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -3938,19 +4837,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未登录",
+                        "description": "Not logged in | 未登录",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -3960,7 +4859,7 @@ const docTemplate = `{
         },
         "/posts/like": {
             "post": {
-                "description": "用户点赞帖子（单向，不可取消点赞）",
+                "description": "User likes a post (one-way, cannot cancel like) | 用户点赞帖子(单向,不可取消点赞)",
                 "consumes": [
                     "application/json"
                 ],
@@ -3968,12 +4867,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]主题贴"
+                    "[User]Topic Posts | [用户]主题贴"
                 ],
-                "summary": "点赞帖子",
+                "summary": "Like post | 点赞帖子",
                 "parameters": [
                     {
-                        "description": "帖子信息",
+                        "description": "Post information | 帖子信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -3984,7 +4883,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "点赞成功",
+                        "description": "Liked successfully | 点赞成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -4002,25 +4901,25 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未登录",
+                        "description": "Not logged in | 未登录",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "403": {
-                        "description": "已经点赞过",
+                        "description": "Already liked | 已经点赞过",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -4030,7 +4929,7 @@ const docTemplate = `{
         },
         "/posts/private": {
             "put": {
-                "description": "用户设置帖子为私有或公开（每三日可操作一次）",
+                "description": "User sets post as private or public (can be operated once every three days) | 用户设置帖子为私有或公开(每三日可操作一次)",
                 "consumes": [
                     "application/json"
                 ],
@@ -4038,12 +4937,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]主题贴"
+                    "[User]Topic Posts | [用户]主题贴"
                 ],
-                "summary": "设置帖子私有",
+                "summary": "Set post as private | 设置帖子私有",
                 "parameters": [
                     {
-                        "description": "帖子信息",
+                        "description": "Post information | 帖子信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -4054,7 +4953,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "设置成功",
+                        "description": "Set successfully | 设置成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -4072,25 +4971,25 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未登录",
+                        "description": "Not logged in | 未登录",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "403": {
-                        "description": "权限不足或操作过于频繁",
+                        "description": "Insufficient permissions or too frequent operations | 权限不足或操作过于频繁",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -4100,7 +4999,7 @@ const docTemplate = `{
         },
         "/posts/{id}": {
             "get": {
-                "description": "获取指定帖子的详细信息，并增加浏览数",
+                "description": "Get detailed information of the specified post and increment view count. Authors can view their own posts regardless of status. Other users can only view Normal/Locked posts. Access depends on read_permission: public (anyone), login_required (logged-in users), points:x (users with points \u003e= x) | 获取指定帖子的详细信息,并增加浏览数。作者可以查看自己的所有状态帖子。其他用户只能查看正常/锁定状态的帖子。访问权限取决于read_permission：public（任何人）、login_required（登录用户）、points:x（积分\u003e=x的用户）",
                 "consumes": [
                     "application/json"
                 ],
@@ -4108,13 +5007,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]主题贴"
+                    "[User]Topic Posts | [用户]主题贴"
                 ],
-                "summary": "获取帖子详情",
+                "summary": "Get post detail | 获取帖子详情",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "帖子ID",
+                        "description": "Post ID | 帖子ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -4122,7 +5021,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Retrieved successfully | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -4140,19 +5039,25 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "No read permission | 无阅读权限",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "404": {
-                        "description": "帖子不存在",
+                        "description": "Post not found | 帖子不存在",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -4162,7 +5067,7 @@ const docTemplate = `{
         },
         "/profile/avatar": {
             "put": {
-                "description": "修改当前登录用户的头像",
+                "description": "Update current logged-in user's avatar | 修改当前登录用户的头像",
                 "consumes": [
                     "application/json"
                 ],
@@ -4170,12 +5075,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]个人中心"
+                    "[User]Profile | [用户]个人中心"
                 ],
-                "summary": "修改头像",
+                "summary": "Update avatar | 修改头像",
                 "parameters": [
                     {
-                        "description": "修改头像请求",
+                        "description": "Update avatar request | 修改头像请求",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -4186,7 +5091,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "修改成功",
+                        "description": "Update successful | 修改成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -4204,19 +5109,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Internal server error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -4226,7 +5131,7 @@ const docTemplate = `{
         },
         "/profile/blacklist/add": {
             "post": {
-                "description": "将指定用户添加到当前用户的黑名单中",
+                "description": "Add a specified user to the current user's blacklist | 将指定用户添加到当前用户的黑名单中",
                 "consumes": [
                     "application/json"
                 ],
@@ -4234,12 +5139,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]黑名单管理"
+                    "[User]Blacklist Management | [用户]黑名单管理"
                 ],
-                "summary": "添加用户到黑名单",
+                "summary": "Add user to blacklist | 添加用户到黑名单",
                 "parameters": [
                     {
-                        "description": "添加黑名单请求",
+                        "description": "Add to blacklist request | 添加黑名单请求",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -4250,7 +5155,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "添加成功",
+                        "description": "Added successfully | 添加成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -4268,31 +5173,31 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "403": {
-                        "description": "禁止操作",
+                        "description": "Forbidden operation | 禁止操作",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "404": {
-                        "description": "用户不存在",
+                        "description": "User not found | 用户不存在",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Internal server error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -4302,7 +5207,7 @@ const docTemplate = `{
         },
         "/profile/blacklist/list": {
             "get": {
-                "description": "获取当前用户的黑名单列表，支持分页",
+                "description": "Get the current user's blacklist, supports pagination | 获取当前用户的黑名单列表,支持分页",
                 "consumes": [
                     "application/json"
                 ],
@@ -4310,28 +5215,28 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]黑名单管理"
+                    "[User]Blacklist Management | [用户]黑名单管理"
                 ],
-                "summary": "获取用户黑名单列表",
+                "summary": "Get user blacklist list | 获取用户黑名单列表",
                 "parameters": [
                     {
                         "type": "integer",
                         "default": 1,
-                        "description": "页码",
+                        "description": "Page number | 页码",
                         "name": "page",
                         "in": "query"
                     },
                     {
                         "type": "integer",
                         "default": 20,
-                        "description": "每页数量",
+                        "description": "Items per page | 每页数量",
                         "name": "page_size",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -4349,19 +5254,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Internal server error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -4371,7 +5276,7 @@ const docTemplate = `{
         },
         "/profile/blacklist/remove": {
             "delete": {
-                "description": "将指定用户从当前用户的黑名单中移除",
+                "description": "Remove a specified user from the current user's blacklist | 将指定用户从当前用户的黑名单中移除",
                 "consumes": [
                     "application/json"
                 ],
@@ -4379,12 +5284,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]黑名单管理"
+                    "[User]Blacklist Management | [用户]黑名单管理"
                 ],
-                "summary": "从黑名单移除用户",
+                "summary": "Remove user from blacklist | 从黑名单移除用户",
                 "parameters": [
                     {
-                        "description": "移除黑名单请求",
+                        "description": "Remove from blacklist request | 移除黑名单请求",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -4395,7 +5300,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "移除成功",
+                        "description": "Removed successfully | 移除成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -4413,25 +5318,25 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "404": {
-                        "description": "黑名单记录不存在",
+                        "description": "Blacklist record not found | 黑名单记录不存在",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Internal server error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -4441,7 +5346,7 @@ const docTemplate = `{
         },
         "/profile/comments": {
             "get": {
-                "description": "获取指定用户发布的评论列表，支持分页，不传user_id则获取当前登录用户的评论",
+                "description": "Get comments published by specified user, supports pagination, retrieves current logged-in user's comments if user_id not provided | 获取指定用户发布的评论列表，支持分页，不传user_id则获取当前登录用户的评论",
                 "consumes": [
                     "application/json"
                 ],
@@ -4449,26 +5354,26 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]个人中心"
+                    "[User]Profile | [用户]个人中心"
                 ],
-                "summary": "获取用户评论列表",
+                "summary": "Get user comments list | 获取用户评论列表",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户ID，不传则查询当前登录用户",
+                        "description": "User ID, queries current logged-in user if not provided | 用户ID，不传则查询当前登录用户",
                         "name": "user_id",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "description": "Page number | 页码",
                         "name": "page",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "每页数量",
+                        "description": "Items per page | 每页数量",
                         "name": "page_size",
                         "in": "query",
                         "required": true
@@ -4476,7 +5381,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Retrieve successful | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -4494,19 +5399,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Internal server error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -4516,7 +5421,7 @@ const docTemplate = `{
         },
         "/profile/email/verify": {
             "post": {
-                "description": "通过验证码验证用户邮箱真实性",
+                "description": "Verify user email authenticity through verification code | 通过验证码验证用户邮箱真实性",
                 "consumes": [
                     "application/json"
                 ],
@@ -4524,12 +5429,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]个人中心"
+                    "[User]Profile | [用户]个人中心"
                 ],
-                "summary": "验证邮箱",
+                "summary": "Verify email | 验证邮箱",
                 "parameters": [
                     {
-                        "description": "验证邮箱请求",
+                        "description": "Verify email request | 验证邮箱请求",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -4540,7 +5445,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "验证成功",
+                        "description": "Verification successful | 验证成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -4558,25 +5463,25 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "404": {
-                        "description": "验证码不存在或已过期",
+                        "description": "Verification code does not exist or has expired | 验证码不存在或已过期",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Internal server error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -4586,7 +5491,7 @@ const docTemplate = `{
         },
         "/profile/email/verify-code": {
             "post": {
-                "description": "向用户注册邮箱发送验证码，用于邮箱验证",
+                "description": "Send verification code to user's registered email for email verification | 向用户注册邮箱发送验证码，用于邮箱验证",
                 "consumes": [
                     "application/json"
                 ],
@@ -4594,12 +5499,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]个人中心"
+                    "[User]Profile | [用户]个人中心"
                 ],
-                "summary": "发送邮箱验证码",
+                "summary": "Send email verification code | 发送邮箱验证码",
                 "responses": {
                     "200": {
-                        "description": "发送成功",
+                        "description": "Send successful | 发送成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -4617,19 +5522,19 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "429": {
-                        "description": "发送频率过高",
+                        "description": "Too many requests | 发送频率过高",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Internal server error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -4639,7 +5544,7 @@ const docTemplate = `{
         },
         "/profile/favorites": {
             "get": {
-                "description": "获取指定用户收藏的帖子列表，支持分页，不传user_id则获取当前登录用户的收藏",
+                "description": "Get posts favorited by specified user, supports pagination, retrieves current logged-in user's favorites if user_id not provided | 获取指定用户收藏的帖子列表，支持分页，不传user_id则获取当前登录用户的收藏",
                 "consumes": [
                     "application/json"
                 ],
@@ -4647,26 +5552,26 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]个人中心"
+                    "[User]Profile | [用户]个人中心"
                 ],
-                "summary": "获取用户收藏列表",
+                "summary": "Get user favorites list | 获取用户收藏列表",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户ID，不传则查询当前登录用户",
+                        "description": "User ID, queries current logged-in user if not provided | 用户ID，不传则查询当前登录用户",
                         "name": "user_id",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "description": "Page number | 页码",
                         "name": "page",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "每页数量",
+                        "description": "Items per page | 每页数量",
                         "name": "page_size",
                         "in": "query",
                         "required": true
@@ -4674,7 +5579,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Retrieve successful | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -4692,19 +5597,357 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/follow": {
+            "post": {
+                "description": "Follow a specified user | 关注指定用户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User] User Follow | [用户个人中心] 用户关注"
+                ],
+                "summary": "Follow user | 关注用户",
+                "parameters": [
+                    {
+                        "description": "Follow user request | 关注用户请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.UserFollowRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Followed successfully | 关注成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserFollowResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/follow/followers": {
+            "get": {
+                "description": "Get the specified user's followers list, supports pagination. If user_id is not provided, returns current user's followers | 获取指定用户的粉丝列表，支持分页。如果不提供user_id，则返回当前登录用户的粉丝列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User] User Follow | [用户个人中心] 用户关注"
+                ],
+                "summary": "Get user followers list | 获取用户粉丝列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID, default to current user | 用户ID，默认为当前用户",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number | 页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Items per page | 每页数量",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserFollowersResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/follow/following": {
+            "get": {
+                "description": "Get the specified user's following list, supports pagination. If user_id is not provided, returns current user's following | 获取指定用户的关注列表，支持分页。如果不提供user_id，则返回当前登录用户的关注列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User] User Follow | [用户个人中心] 用户关注"
+                ],
+                "summary": "Get user following list | 获取用户关注列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID, default to current user | 用户ID，默认为当前用户",
+                        "name": "user_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number | 页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Items per page | 每页数量",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserFollowingResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/follow/status/{user_id}": {
+            "get": {
+                "description": "Get the follow status between current user and specified user | 获取当前用户与指定用户之间的关注状态",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User] User Follow | [用户个人中心] 用户关注"
+                ],
+                "summary": "Get follow status | 获取关注状态",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Target user ID | 目标用户ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserFollowStatusResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/profile/follow/{user_id}": {
+            "delete": {
+                "description": "Unfollow a specified user | 取消关注指定用户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User] User Follow | [用户个人中心] 用户关注"
+                ],
+                "summary": "Unfollow user | 取消关注用户",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID to unfollow | 要取消关注的用户ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Unfollowed successfully | 取消关注成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserUnfollowResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -4714,7 +5957,7 @@ const docTemplate = `{
         },
         "/profile/overview": {
             "get": {
-                "description": "获取指定用户的个人信息和统计数据，不传user_id则获取当前登录用户信息",
+                "description": "Get personal information and statistics for specified user, retrieves current logged-in user if user_id not provided | 获取指定用户的个人信息和统计数据，不传user_id则获取当前登录用户信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -4722,20 +5965,20 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]个人中心"
+                    "[User]Profile | [用户]个人中心"
                 ],
-                "summary": "获取用户个人中心概览",
+                "summary": "Get user profile overview | 获取用户个人中心概览",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户ID，不传则查询当前登录用户",
+                        "description": "User ID, queries current logged-in user if not provided | 用户ID，不传则查询当前登录用户",
                         "name": "user_id",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Retrieve successful | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -4753,13 +5996,13 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Internal server error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -4769,7 +6012,7 @@ const docTemplate = `{
         },
         "/profile/password": {
             "put": {
-                "description": "修改当前登录用户的密码",
+                "description": "Update current logged-in user's password | 修改当前登录用户的密码",
                 "consumes": [
                     "application/json"
                 ],
@@ -4777,12 +6020,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]个人中心"
+                    "[User]Profile | [用户]个人中心"
                 ],
-                "summary": "修改密码",
+                "summary": "Update password | 修改密码",
                 "parameters": [
                     {
-                        "description": "修改密码请求",
+                        "description": "Update password request | 修改密码请求",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -4793,7 +6036,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "修改成功",
+                        "description": "Update successful | 修改成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -4811,19 +6054,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Internal server error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -4833,7 +6076,7 @@ const docTemplate = `{
         },
         "/profile/posts": {
             "get": {
-                "description": "获取指定用户发布的主题帖列表，支持分页和状态筛选，不传user_id则获取当前登录用户的帖子",
+                "description": "Get posts published by specified user, supports pagination and status filtering, retrieves current logged-in user's posts if user_id not provided | 获取指定用户发布的主题帖列表，支持分页和状态筛选，不传user_id则获取当前登录用户的帖子",
                 "consumes": [
                     "application/json"
                 ],
@@ -4841,26 +6084,26 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]个人中心"
+                    "[User]Profile | [用户]个人中心"
                 ],
-                "summary": "获取用户主题帖列表",
+                "summary": "Get user posts list | 获取用户主题帖列表",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "用户ID，不传则查询当前登录用户",
+                        "description": "User ID, queries current logged-in user if not provided | 用户ID，不传则查询当前登录用户",
                         "name": "user_id",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "description": "Page number | 页码",
                         "name": "page",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "每页数量",
+                        "description": "Items per page | 每页数量",
                         "name": "page_size",
                         "in": "query",
                         "required": true
@@ -4868,14 +6111,14 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "\"Normal\"",
-                        "description": "帖子状态筛选：Normal、Draft、Private",
+                        "description": "Post status filter: Normal, Draft, Private | 帖子状态筛选：Normal、Draft、Private",
                         "name": "status",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Retrieve successful | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -4893,19 +6136,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Internal server error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -4915,7 +6158,7 @@ const docTemplate = `{
         },
         "/profile/username": {
             "put": {
-                "description": "修改当前登录用户的用户名（每七日可操作一次）",
+                "description": "Update current logged-in user's username (can be done once every seven days) | 修改当前登录用户的用户名（每七日可操作一次）",
                 "consumes": [
                     "application/json"
                 ],
@@ -4923,12 +6166,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]个人中心"
+                    "[User]Profile | [用户]个人中心"
                 ],
-                "summary": "修改用户名",
+                "summary": "Update username | 修改用户名",
                 "parameters": [
                     {
-                        "description": "修改用户名请求",
+                        "description": "Update username request | 修改用户名请求",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -4939,7 +6182,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "修改成功",
+                        "description": "Update successful | 修改成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -4957,25 +6200,25 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "403": {
-                        "description": "操作过于频繁",
+                        "description": "Operation too frequent | 操作过于频繁",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Internal server error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -4985,7 +6228,7 @@ const docTemplate = `{
         },
         "/ranking": {
             "get": {
-                "description": "根据排行榜类型和时间范围获取排行榜数据，支持阅读榜和评论榜",
+                "description": "Get ranking data by ranking type and time range, supports reading and comment rankings | 根据排行榜类型和时间范围获取排行榜数据，支持阅读榜和评论榜",
                 "consumes": [
                     "application/json"
                 ],
@@ -4993,14 +6236,14 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]排行榜"
+                    "[User]Ranking | [用户]排行榜"
                 ],
-                "summary": "获取排行榜列表",
+                "summary": "Get ranking list | 获取排行榜列表",
                 "parameters": [
                     {
                         "type": "string",
                         "example": "\"reading\"",
-                        "description": "排行榜类型：reading(阅读榜), comment(评论榜)",
+                        "description": "Ranking type: reading(reading ranking), comment(comment ranking) | 排行榜类型：reading(阅读榜), comment(评论榜)",
                         "name": "type",
                         "in": "query",
                         "required": true
@@ -5008,21 +6251,21 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "example": "\"all\"",
-                        "description": "时间范围：all(总榜), month(月榜), week(周榜)",
+                        "description": "Time range: all(all-time), month(monthly), week(weekly) | 时间范围：all(总榜), month(月榜), week(周榜)",
                         "name": "time_range",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "页码",
+                        "description": "Page number | 页码",
                         "name": "page",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "integer",
-                        "description": "每页数量",
+                        "description": "Items per page | 每页数量",
                         "name": "page_size",
                         "in": "query",
                         "required": true
@@ -5030,7 +6273,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -5048,13 +6291,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Server internal error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -5062,9 +6305,41 @@ const docTemplate = `{
                 }
             }
         },
+        "/ready": {
+            "get": {
+                "description": "Check if service is ready to receive traffic | 检查服务是否准备好接收流量",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Health Check | 健康检查"
+                ],
+                "summary": "Readiness check | 就绪检查",
+                "responses": {
+                    "200": {
+                        "description": "Service ready | 服务就绪",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "Service not ready | 服务未就绪",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/signin": {
             "post": {
-                "description": "用户执行每日签到，获得积分和经验值奖励",
+                "description": "User performs daily sign-in and receives points and experience rewards | 用户执行每日签到，获得积分和经验值奖励",
                 "consumes": [
                     "application/json"
                 ],
@@ -5072,12 +6347,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]签到"
+                    "[User]Sign-in | [用户]签到"
                 ],
-                "summary": "执行签到",
+                "summary": "Perform sign-in | 执行签到",
                 "responses": {
                     "200": {
-                        "description": "签到成功",
+                        "description": "Sign-in successful | 签到成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -5095,31 +6370,31 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "403": {
-                        "description": "签到功能未启用",
+                        "description": "Sign-in feature not enabled | 签到功能未启用",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "409": {
-                        "description": "今日已签到",
+                        "description": "Already signed in today | 今日已签到",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Internal server error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -5129,7 +6404,7 @@ const docTemplate = `{
         },
         "/signin/ranking/continuous": {
             "get": {
-                "description": "获取连续签到天数排行榜，按连续签到天数从高到低排序，最多返回前100名",
+                "description": "Get continuous sign-in days ranking, sorted by consecutive days descending, returns top 100 max | 获取连续签到天数排行榜，按连续签到天数从高到低排序，最多返回前100名",
                 "consumes": [
                     "application/json"
                 ],
@@ -5137,20 +6412,20 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]签到"
+                    "[User]Sign-in | [用户]签到"
                 ],
-                "summary": "获取连续签到排行榜",
+                "summary": "Get continuous sign-in ranking | 获取连续签到排行榜",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "返回数量限制，默认10，最大100",
+                        "description": "Return count limit, default 10, max 100 | 返回数量限制，默认10，最大100",
                         "name": "limit",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Retrieve successful | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -5168,13 +6443,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Internal server error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -5184,7 +6459,7 @@ const docTemplate = `{
         },
         "/signin/ranking/daily": {
             "get": {
-                "description": "获取指定日期的签到排行榜，按奖励积分从高到低排序，最多返回前100名",
+                "description": "Get sign-in ranking for specified date, sorted by reward points descending, returns top 100 max | 获取指定日期的签到排行榜，按奖励积分从高到低排序，最多返回前100名",
                 "consumes": [
                     "application/json"
                 ],
@@ -5192,26 +6467,26 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]签到"
+                    "[User]Sign-in | [用户]签到"
                 ],
-                "summary": "获取每日签到排行榜",
+                "summary": "Get daily sign-in ranking | 获取每日签到排行榜",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "查询日期，格式：YYYY-MM-DD，不传则查询今日",
+                        "description": "Query date in format YYYY-MM-DD, defaults to today if not provided | 查询日期，格式：YYYY-MM-DD，不传则查询今日",
                         "name": "date",
                         "in": "query"
                     },
                     {
                         "type": "integer",
-                        "description": "返回数量限制，默认10，最大100",
+                        "description": "Return count limit, default 10, max 100 | 返回数量限制，默认10，最大100",
                         "name": "limit",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Retrieve successful | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -5229,13 +6504,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Internal server error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -5245,7 +6520,7 @@ const docTemplate = `{
         },
         "/signin/status": {
             "get": {
-                "description": "获取用户的签到状态，包括连续签到天数、总签到天数等信息",
+                "description": "Get user's sign-in status including consecutive days, total days, etc. | 获取用户的签到状态，包括连续签到天数、总签到天数等信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -5253,12 +6528,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[用户]签到"
+                    "[User]Sign-in | [用户]签到"
                 ],
-                "summary": "获取签到状态",
+                "summary": "Get sign-in status | 获取签到状态",
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Retrieve successful | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -5276,155 +6551,21 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "401": {
-                        "description": "未授权",
+                        "description": "Unauthorized | 未授权",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器内部错误",
+                        "description": "Internal server error | 服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/super/manage/performance/history": {
-            "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "查询指定时间范围内的历史监控数据",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[超级管理员]性能监控"
-                ],
-                "summary": "获取历史监控数据",
-                "parameters": [
-                    {
-                        "enum": [
-                            "system",
-                            "pgsql",
-                            "redis"
-                        ],
-                        "type": "string",
-                        "default": "system",
-                        "description": "监控模块",
-                        "name": "module",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "开始时间戳（默认1小时前）",
-                        "name": "start",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "结束时间戳（默认当前时间）",
-                        "name": "end",
-                        "in": "query"
-                    },
-                    {
-                        "enum": [
-                            "1m",
-                            "5m",
-                            "1h",
-                            "1d"
-                        ],
-                        "type": "string",
-                        "default": "1m",
-                        "description": "数据间隔",
-                        "name": "interval",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "获取成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.PerformanceHistoryResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            }
-        },
-        "/super/manage/performance/stream": {
-            "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "通过 SSE 实时推送性能监控数据",
-                "produces": [
-                    "text/event-stream"
-                ],
-                "tags": [
-                    "[超级管理员]性能监控"
-                ],
-                "summary": "性能监控 SSE 流",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "default": "system,pgsql,redis",
-                        "description": "监控模块，逗号分隔",
-                        "name": "modules",
-                        "in": "query"
-                    },
-                    {
-                        "maximum": 60,
-                        "minimum": 1,
-                        "type": "integer",
-                        "default": 3,
-                        "description": "推送间隔秒数",
-                        "name": "interval",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "SSE 数据流",
-                        "schema": {
-                            "$ref": "#/definitions/schema.PerformanceWSResponse"
                         }
                     }
                 }
@@ -5432,12 +6573,7 @@ const docTemplate = `{
         },
         "/super/manage/settings/code": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "获取自定义代码配置，包括页头、页脚代码和自定义CSS",
+                "description": "Get custom code configuration including header, footer code and custom CSS | 获取自定义代码配置，包括页头、页脚代码和自定义CSS",
                 "consumes": [
                     "application/json"
                 ],
@@ -5445,12 +6581,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]系统设置"
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
                 ],
-                "summary": "获取代码配置",
+                "summary": "Get code configuration | 获取代码配置",
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -5468,7 +6604,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -5476,12 +6612,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "更新自定义代码配置",
+                "description": "Update custom code configuration | 更新自定义代码配置",
                 "consumes": [
                     "application/json"
                 ],
@@ -5489,12 +6620,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]系统设置"
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
                 ],
-                "summary": "更新代码配置",
+                "summary": "Update code configuration | 更新代码配置",
                 "parameters": [
                     {
-                        "description": "代码配置信息",
+                        "description": "Code configuration information | 代码配置信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -5505,19 +6636,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Updated successfully | 更新成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -5527,12 +6658,7 @@ const docTemplate = `{
         },
         "/super/manage/settings/comment": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "获取评论相关的配置，包括审核、黑名单等",
+                "description": "Get comment related configuration including review, blacklist, etc. | 获取评论相关的配置，包括审核、黑名单等",
                 "consumes": [
                     "application/json"
                 ],
@@ -5540,12 +6666,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]系统设置"
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
                 ],
-                "summary": "获取评论设置",
+                "summary": "Get comment settings | 获取评论设置",
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -5563,7 +6689,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -5571,12 +6697,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "更新评论相关的配置",
+                "description": "Update comment related configuration | 更新评论相关的配置",
                 "consumes": [
                     "application/json"
                 ],
@@ -5584,12 +6705,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]系统设置"
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
                 ],
-                "summary": "更新评论设置",
+                "summary": "Update comment settings | 更新评论设置",
                 "parameters": [
                     {
-                        "description": "评论设置信息",
+                        "description": "Comment settings information | 评论设置信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -5600,19 +6721,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Updated successfully | 更新成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -5622,12 +6743,7 @@ const docTemplate = `{
         },
         "/super/manage/settings/email": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "获取SMTP邮箱服务配置",
+                "description": "Get SMTP email service configuration | 获取SMTP邮箱服务配置",
                 "consumes": [
                     "application/json"
                 ],
@@ -5635,12 +6751,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]系统设置"
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
                 ],
-                "summary": "获取邮箱设置",
+                "summary": "Get email settings | 获取邮箱设置",
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -5658,7 +6774,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -5666,12 +6782,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "更新SMTP邮箱服务配置",
+                "description": "Update SMTP email service configuration | 更新SMTP邮箱服务配置",
                 "consumes": [
                     "application/json"
                 ],
@@ -5679,12 +6790,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]系统设置"
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
                 ],
-                "summary": "更新邮箱设置",
+                "summary": "Update email settings | 更新邮箱设置",
                 "parameters": [
                     {
-                        "description": "SMTP配置信息",
+                        "description": "SMTP configuration information | SMTP配置信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -5695,19 +6806,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Updated successfully | 更新成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -5717,12 +6828,7 @@ const docTemplate = `{
         },
         "/super/manage/settings/email/test": {
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "使用当前SMTP配置发送一封测试邮件",
+                "description": "Send a test email using current SMTP configuration | 使用当前SMTP配置发送一封测试邮件",
                 "consumes": [
                     "application/json"
                 ],
@@ -5730,12 +6836,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]系统设置"
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
                 ],
-                "summary": "发送测试邮件",
+                "summary": "Send test email | 发送测试邮件",
                 "parameters": [
                     {
-                        "description": "收件人邮箱",
+                        "description": "Recipient email | 收件人邮箱",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -5746,7 +6852,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "发送成功",
+                        "description": "Sent successfully | 发送成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -5764,13 +6870,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -5780,12 +6886,7 @@ const docTemplate = `{
         },
         "/super/manage/settings/home": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "获取首页的配置，包括幻灯片、友情链接等",
+                "description": "Get home page configuration including slides, friend links, etc. | 获取首页的配置，包括幻灯片、友情链接等",
                 "consumes": [
                     "application/json"
                 ],
@@ -5793,12 +6894,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]系统设置"
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
                 ],
-                "summary": "获取首页设置",
+                "summary": "Get home settings | 获取首页设置",
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -5816,7 +6917,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -5824,12 +6925,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "更新首页的配置",
+                "description": "Update home page configuration | 更新首页的配置",
                 "consumes": [
                     "application/json"
                 ],
@@ -5837,12 +6933,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]系统设置"
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
                 ],
-                "summary": "更新首页设置",
+                "summary": "Update home settings | 更新首页设置",
                 "parameters": [
                     {
-                        "description": "首页设置信息",
+                        "description": "Home settings information | 首页设置信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -5853,19 +6949,104 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Updated successfully | 更新成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/super/manage/settings/invitation-code": {
+            "get": {
+                "description": "Get invitation code feature related configuration including mode, cost, reward, etc. | 获取邀请码功能相关配置，包括模式、费用、奖励等",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
+                ],
+                "summary": "Get invitation code settings | 获取邀请码设置",
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.InvitationCodeSettingsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Update invitation code feature related configuration | 更新邀请码功能相关配置",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
+                ],
+                "summary": "Update invitation code settings | 更新邀请码设置",
+                "parameters": [
+                    {
+                        "description": "Invitation code settings information | 邀请码设置信息",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.InvitationCodeSettingsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated successfully | 更新成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -5875,12 +7056,7 @@ const docTemplate = `{
         },
         "/super/manage/settings/oauth": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "获取所有OAuth提供商列表，支持提供商类型和启用状态筛选",
+                "description": "Get all OAuth provider list, supports filtering by provider type and enabled status | 获取所有OAuth提供商列表,支持提供商类型和启用状态筛选",
                 "consumes": [
                     "application/json"
                 ],
@@ -5888,28 +7064,28 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]OAuth提供商管理"
+                    "[Super Admin]OAuth Provider Management | [超级管理员]OAuth提供商管理"
                 ],
-                "summary": "获取OAuth提供商列表",
+                "summary": "Get OAuth provider list | 获取OAuth提供商列表",
                 "parameters": [
                     {
                         "type": "string",
                         "example": "\"GitHub\"",
-                        "description": "提供商类型",
+                        "description": "Provider type | 提供商类型",
                         "name": "provider",
                         "in": "query"
                     },
                     {
                         "type": "boolean",
                         "example": true,
-                        "description": "是否启用",
+                        "description": "Is enabled | 是否启用",
                         "name": "enabled",
                         "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -5927,13 +7103,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -5941,12 +7117,7 @@ const docTemplate = `{
                 }
             },
             "put": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "更新OAuth提供商的配置信息",
+                "description": "Update OAuth provider configuration information | 更新OAuth提供商的配置信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -5954,12 +7125,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]OAuth提供商管理"
+                    "[Super Admin]OAuth Provider Management | [超级管理员]OAuth提供商管理"
                 ],
-                "summary": "更新OAuth提供商信息",
+                "summary": "Update OAuth provider information | 更新OAuth提供商信息",
                 "parameters": [
                     {
-                        "description": "OAuth提供商信息",
+                        "description": "OAuth provider information | OAuth提供商信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -5970,7 +7141,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Updated successfully | 更新成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -5988,13 +7159,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -6002,12 +7173,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "管理员创建新的OAuth提供商配置",
+                "description": "Admin creates new OAuth provider configuration | 管理员创建新的OAuth提供商配置",
                 "consumes": [
                     "application/json"
                 ],
@@ -6015,12 +7181,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]OAuth提供商管理"
+                    "[Super Admin]OAuth Provider Management | [超级管理员]OAuth提供商管理"
                 ],
-                "summary": "创建OAuth提供商",
+                "summary": "Create OAuth provider | 创建OAuth提供商",
                 "parameters": [
                     {
-                        "description": "OAuth提供商信息",
+                        "description": "OAuth provider information | OAuth提供商信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -6031,7 +7197,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "创建成功",
+                        "description": "Created successfully | 创建成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -6049,13 +7215,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -6065,12 +7231,7 @@ const docTemplate = `{
         },
         "/super/manage/settings/oauth/status": {
             "put": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "启用或禁用OAuth提供商",
+                "description": "Enable or disable OAuth provider | 启用或禁用OAuth提供商",
                 "consumes": [
                     "application/json"
                 ],
@@ -6078,12 +7239,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]OAuth提供商管理"
+                    "[Super Admin]OAuth Provider Management | [超级管理员]OAuth提供商管理"
                 ],
-                "summary": "更新OAuth提供商状态",
+                "summary": "Update OAuth provider status | 更新OAuth提供商状态",
                 "parameters": [
                     {
-                        "description": "状态更新信息",
+                        "description": "Status update information | 状态更新信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -6094,25 +7255,25 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Updated successfully | 更新成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "404": {
-                        "description": "OAuth提供商不存在",
+                        "description": "OAuth provider not found | OAuth提供商不存在",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -6122,12 +7283,7 @@ const docTemplate = `{
         },
         "/super/manage/settings/oauth/{id}": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "获取指定OAuth提供商的详细信息",
+                "description": "Get detailed information of specified OAuth provider | 获取指定OAuth提供商的详细信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -6135,13 +7291,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]OAuth提供商管理"
+                    "[Super Admin]OAuth Provider Management | [超级管理员]OAuth提供商管理"
                 ],
-                "summary": "获取OAuth提供商详情",
+                "summary": "Get OAuth provider details | 获取OAuth提供商详情",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "OAuth提供商ID",
+                        "description": "OAuth provider ID | OAuth提供商ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6149,7 +7305,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -6167,19 +7323,19 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "404": {
-                        "description": "OAuth提供商不存在",
+                        "description": "OAuth provider not found | OAuth提供商不存在",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -6187,12 +7343,7 @@ const docTemplate = `{
                 }
             },
             "delete": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "删除指定的OAuth提供商配置",
+                "description": "Delete specified OAuth provider configuration | 删除指定的OAuth提供商配置",
                 "consumes": [
                     "application/json"
                 ],
@@ -6200,13 +7351,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]OAuth提供商管理"
+                    "[Super Admin]OAuth Provider Management | [超级管理员]OAuth提供商管理"
                 ],
-                "summary": "删除OAuth提供商",
+                "summary": "Delete OAuth provider | 删除OAuth提供商",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "OAuth提供商ID",
+                        "description": "OAuth provider ID | OAuth提供商ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -6214,25 +7365,25 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "删除成功",
+                        "description": "Deleted successfully | 删除成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "404": {
-                        "description": "OAuth提供商不存在",
+                        "description": "OAuth provider not found | OAuth提供商不存在",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -6242,12 +7393,7 @@ const docTemplate = `{
         },
         "/super/manage/settings/routine": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "获取网站的常规配置，包括Logo、Icon、备案号等",
+                "description": "Get website routine configuration including Logo, Icon, filing number, etc. | 获取网站的常规配置，包括Logo、Icon、备案号等",
                 "consumes": [
                     "application/json"
                 ],
@@ -6255,12 +7401,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]系统设置"
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
                 ],
-                "summary": "获取常规设置",
+                "summary": "Get routine settings | 获取常规设置",
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -6278,7 +7424,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -6286,12 +7432,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "更新网站的常规配置",
+                "description": "Update website routine configuration | 更新网站的常规配置",
                 "consumes": [
                     "application/json"
                 ],
@@ -6299,12 +7440,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]系统设置"
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
                 ],
-                "summary": "更新常规设置",
+                "summary": "Update routine settings | 更新常规设置",
                 "parameters": [
                     {
-                        "description": "常规设置信息",
+                        "description": "Routine settings information | 常规设置信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -6315,19 +7456,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Updated successfully | 更新成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -6337,12 +7478,7 @@ const docTemplate = `{
         },
         "/super/manage/settings/safe": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "获取安全相关配置，包括注册控制、邮箱白名单等",
+                "description": "Get security related configuration including registration control, email whitelist, etc. | 获取安全相关配置，包括注册控制、邮箱白名单等",
                 "consumes": [
                     "application/json"
                 ],
@@ -6350,12 +7486,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]系统设置"
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
                 ],
-                "summary": "获取安全设置",
+                "summary": "Get security settings | 获取安全设置",
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -6373,7 +7509,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -6381,12 +7517,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "更新安全相关配置",
+                "description": "Update security related configuration | 更新安全相关配置",
                 "consumes": [
                     "application/json"
                 ],
@@ -6394,12 +7525,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]系统设置"
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
                 ],
-                "summary": "更新安全设置",
+                "summary": "Update security settings | 更新安全设置",
                 "parameters": [
                     {
-                        "description": "安全设置信息",
+                        "description": "Security settings information | 安全设置信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -6410,19 +7541,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Updated successfully | 更新成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -6432,12 +7563,7 @@ const docTemplate = `{
         },
         "/super/manage/settings/seo": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "获取网站SEO相关配置，包括网站名称、关键词、描述等",
+                "description": "Get website SEO related configuration including site name, keywords, description, etc. | 获取网站SEO相关配置，包括网站名称、关键词、描述等",
                 "consumes": [
                     "application/json"
                 ],
@@ -6445,12 +7571,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]系统设置"
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
                 ],
-                "summary": "获取SEO设置",
+                "summary": "Get SEO settings | 获取SEO设置",
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -6468,7 +7594,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -6476,12 +7602,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "更新网站SEO相关配置",
+                "description": "Update website SEO related configuration | 更新网站SEO相关配置",
                 "consumes": [
                     "application/json"
                 ],
@@ -6489,12 +7610,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]系统设置"
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
                 ],
-                "summary": "更新SEO设置",
+                "summary": "Update SEO settings | 更新SEO设置",
                 "parameters": [
                     {
-                        "description": "SEO设置信息",
+                        "description": "SEO settings information | SEO设置信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -6505,19 +7626,19 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Updated successfully | 更新成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -6527,12 +7648,7 @@ const docTemplate = `{
         },
         "/super/manage/settings/signin": {
             "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "获取签到功能相关配置，包括奖励规则、模式等",
+                "description": "Get sign-in feature related configuration including reward rules, mode, etc. | 获取签到功能相关配置，包括奖励规则、模式等",
                 "consumes": [
                     "application/json"
                 ],
@@ -6540,12 +7656,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]系统设置"
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
                 ],
-                "summary": "获取签到设置",
+                "summary": "Get sign-in settings | 获取签到设置",
                 "responses": {
                     "200": {
-                        "description": "获取成功",
+                        "description": "Success | 获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -6563,7 +7679,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -6571,12 +7687,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "更新签到功能相关配置",
+                "description": "Update sign-in feature related configuration | 更新签到功能相关配置",
                 "consumes": [
                     "application/json"
                 ],
@@ -6584,12 +7695,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "[超级管理员]系统设置"
+                    "[Super Admin]System Settings | [超级管理员]系统设置"
                 ],
-                "summary": "更新签到设置",
+                "summary": "Update sign-in settings | 更新签到设置",
                 "parameters": [
                     {
-                        "description": "签到设置信息",
+                        "description": "Sign-in settings information | 签到设置信息",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -6600,19 +7711,259 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "更新成功",
+                        "description": "Updated successfully | 更新成功",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "400": {
-                        "description": "请求参数错误",
+                        "description": "Invalid request parameters | 请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "服务器错误",
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/oauth/bindlist": {
+            "get": {
+                "description": "Get current user's all OAuth bindings | 获取当前用户的所有OAuth绑定",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]OAuth | [用户]OAuth登录"
+                ],
+                "summary": "Get user OAuth binding list | 获取用户OAuth绑定列表",
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.OAuthUserBindListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/oauth/{provider}": {
+            "delete": {
+                "description": "Unbind OAuth account from current user | 从当前用户解绑OAuth账号",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]OAuth | [用户]OAuth登录"
+                ],
+                "summary": "Unbind OAuth account | 解绑OAuth账号",
+                "parameters": [
+                    {
+                        "enum": [
+                            "QQ",
+                            "GitHub",
+                            "Google"
+                        ],
+                        "type": "string",
+                        "description": "Provider type | 提供商类型",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 解绑成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/oauth/{provider}/bindcallback": {
+            "post": {
+                "description": "Handle OAuth bind callback, bindOAuth account to current user | 处理OAuth绑定回调，将OAuth账号绑定到当前用户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]OAuth | [用户]OAuth登录"
+                ],
+                "summary": "Handle OAuth bind callback | 处理OAuth绑定回调",
+                "parameters": [
+                    {
+                        "enum": [
+                            "QQ",
+                            "GitHub",
+                            "Google"
+                        ],
+                        "type": "string",
+                        "description": "Provider type | 提供商类型",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "OAuth bind callback parameters | OAuth绑定回调参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.OAuthBindCallbackRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 绑定成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/oauth/{provider}/bindurl": {
+            "get": {
+                "description": "Get authorization URL for binding OAuth account | 获取绑定OAuth账号的授权URL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]OAuth | [用户]OAuth登录"
+                ],
+                "summary": "Get OAuth bind authorization URL | 获取OAuth绑定授权URL",
+                "parameters": [
+                    {
+                        "enum": [
+                            "QQ",
+                            "GitHub",
+                            "Google"
+                        ],
+                        "type": "string",
+                        "description": "Provider type | 提供商类型",
+                        "name": "provider",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Frontend callback URL | 前端回调地址",
+                        "name": "redirect_uri",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.OAuthAuthorizeResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未登录",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Server error | 服务器错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -6642,31 +7993,6 @@ const docTemplate = `{
                 "CodeSuccess"
             ]
         },
-        "schema.CPUMetrics": {
-            "type": "object",
-            "properties": {
-                "cores": {
-                    "description": "CPU 核心数",
-                    "type": "integer"
-                },
-                "idle_percent": {
-                    "description": "空闲 CPU",
-                    "type": "number"
-                },
-                "system_percent": {
-                    "description": "内核态 CPU",
-                    "type": "number"
-                },
-                "usage_percent": {
-                    "description": "CPU 总使用率",
-                    "type": "number"
-                },
-                "user_percent": {
-                    "description": "用户态 CPU",
-                    "type": "number"
-                }
-            }
-        },
         "schema.CategoryAnnouncementRequest": {
             "type": "object",
             "required": [
@@ -6676,24 +8002,24 @@ const docTemplate = `{
             ],
             "properties": {
                 "category_id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer",
                     "example": 1
                 },
                 "content": {
-                    "description": "公告内容",
+                    "description": "Announcement content | 公告内容",
                     "type": "string",
                     "maxLength": 1000,
                     "minLength": 1,
                     "example": "版块公告内容"
                 },
                 "is_pinned": {
-                    "description": "是否置顶公告",
+                    "description": "Whether pinned announcement | 是否置顶公告",
                     "type": "boolean",
                     "example": true
                 },
                 "title": {
-                    "description": "公告标题",
+                    "description": "Announcement title | 公告标题",
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 1,
@@ -6705,42 +8031,42 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "category_id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer",
                     "example": 1
                 },
                 "content": {
-                    "description": "公告内容",
+                    "description": "Announcement content | 公告内容",
                     "type": "string",
                     "example": "版块公告内容"
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "id": {
-                    "description": "公告ID",
+                    "description": "Announcement ID | 公告ID",
                     "type": "integer",
                     "example": 1
                 },
                 "is_pinned": {
-                    "description": "是否置顶",
+                    "description": "Whether pinned | 是否置顶",
                     "type": "boolean",
                     "example": true
                 },
                 "title": {
-                    "description": "公告标题",
+                    "description": "Announcement title | 公告标题",
                     "type": "string",
                     "example": "版块公告标题"
                 },
                 "updated_at": {
-                    "description": "更新时间",
+                    "description": "Update time | 更新时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "username": {
-                    "description": "发布者用户名",
+                    "description": "Publisher username | 发布者用户名",
                     "type": "string",
                     "example": "moderator"
                 }
@@ -6750,17 +8076,17 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer",
                     "example": 1
                 },
                 "name": {
-                    "description": "版块名称",
+                    "description": "Category name | 版块名称",
                     "type": "string",
                     "example": "综合讨论"
                 },
                 "slug": {
-                    "description": "版块标识",
+                    "description": "Category slug | 版块标识",
                     "type": "string",
                     "example": "general"
                 }
@@ -6775,32 +8101,32 @@ const docTemplate = `{
             ],
             "properties": {
                 "description": {
-                    "description": "版块描述",
+                    "description": "Category description | 版块描述",
                     "type": "string",
                     "maxLength": 500,
                     "example": "技术相关话题讨论区"
                 },
                 "icon": {
-                    "description": "版块图标",
+                    "description": "Category icon | 版块图标",
                     "type": "string",
                     "example": "https://example.com/icon.png"
                 },
                 "name": {
-                    "description": "版块名称",
+                    "description": "Category name | 版块名称",
                     "type": "string",
                     "maxLength": 50,
                     "minLength": 2,
                     "example": "技术讨论"
                 },
                 "slug": {
-                    "description": "版块英文标识",
+                    "description": "Category slug | 版块英文标识",
                     "type": "string",
                     "maxLength": 50,
                     "minLength": 2,
                     "example": "tech"
                 },
                 "status": {
-                    "description": "版块状态",
+                    "description": "Category status | 版块状态",
                     "type": "string",
                     "enum": [
                         "Normal",
@@ -6811,7 +8137,7 @@ const docTemplate = `{
                     "example": "Normal"
                 },
                 "weight": {
-                    "description": "权重排序",
+                    "description": "Sort weight | 权重排序",
                     "type": "integer",
                     "minimum": 0,
                     "example": 0
@@ -6822,47 +8148,47 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "description": {
-                    "description": "版块描述",
+                    "description": "Category description | 版块描述",
                     "type": "string",
                     "example": "技术相关话题讨论区"
                 },
                 "icon": {
-                    "description": "版块图标",
+                    "description": "Category icon | 版块图标",
                     "type": "string",
                     "example": "https://example.com/icon.png"
                 },
                 "id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer",
                     "example": 1
                 },
                 "name": {
-                    "description": "版块名称",
+                    "description": "Category name | 版块名称",
                     "type": "string",
                     "example": "技术讨论"
                 },
                 "slug": {
-                    "description": "版块英文标识",
+                    "description": "Category slug | 版块英文标识",
                     "type": "string",
                     "example": "tech"
                 },
                 "status": {
-                    "description": "版块状态",
+                    "description": "Category status | 版块状态",
                     "type": "string",
                     "example": "Normal"
                 },
                 "updated_at": {
-                    "description": "更新时间",
+                    "description": "Update time | 更新时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "weight": {
-                    "description": "权重排序",
+                    "description": "Sort weight | 权重排序",
                     "type": "integer",
                     "example": 0
                 }
@@ -6876,22 +8202,22 @@ const docTemplate = `{
             ],
             "properties": {
                 "description": {
-                    "description": "版块描述",
+                    "description": "Category description | 版块描述",
                     "type": "string",
                     "example": "技术相关话题讨论区"
                 },
                 "icon": {
-                    "description": "版块图标",
+                    "description": "Category icon | 版块图标",
                     "type": "string",
                     "example": "tech"
                 },
                 "id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer",
                     "example": 1
                 },
                 "name": {
-                    "description": "版块名称",
+                    "description": "Category name | 版块名称",
                     "type": "string",
                     "maxLength": 50,
                     "minLength": 1,
@@ -6903,47 +8229,47 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "description": {
-                    "description": "版块描述",
+                    "description": "Category description | 版块描述",
                     "type": "string",
                     "example": "技术相关话题讨论区"
                 },
                 "icon": {
-                    "description": "版块图标",
+                    "description": "Category icon | 版块图标",
                     "type": "string",
                     "example": "https://example.com/icon.png"
                 },
                 "id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer",
                     "example": 1
                 },
                 "name": {
-                    "description": "版块名称",
+                    "description": "Category name | 版块名称",
                     "type": "string",
                     "example": "技术讨论"
                 },
                 "slug": {
-                    "description": "版块英文标识",
+                    "description": "Category slug | 版块英文标识",
                     "type": "string",
                     "example": "tech"
                 },
                 "status": {
-                    "description": "版块状态",
+                    "description": "Category status | 版块状态",
                     "type": "string",
                     "example": "Normal"
                 },
                 "updated_at": {
-                    "description": "更新时间",
+                    "description": "Update time | 更新时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "weight": {
-                    "description": "权重排序",
+                    "description": "Sort weight | 权重排序",
                     "type": "integer",
                     "example": 0
                 }
@@ -6953,22 +8279,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "list": {
-                    "description": "版块列表",
+                    "description": "Category list | 版块列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.CategoryListItem"
                     }
                 },
                 "page": {
-                    "description": "当前页码",
+                    "description": "Current page number | 当前页码",
                     "type": "integer"
                 },
                 "page_size": {
-                    "description": "每页数量",
+                    "description": "Items per page | 每页数量",
                     "type": "integer"
                 },
                 "total": {
-                    "description": "总数量",
+                    "description": "Total count | 总数量",
                     "type": "integer"
                 }
             }
@@ -6981,17 +8307,17 @@ const docTemplate = `{
             ],
             "properties": {
                 "category_id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer",
                     "example": 1
                 },
                 "reason": {
-                    "description": "操作原因",
+                    "description": "Operation reason | 操作原因",
                     "type": "string",
                     "example": "版主任命"
                 },
                 "user_id": {
-                    "description": "版主用户ID",
+                    "description": "Moderator user ID | 版主用户ID",
                     "type": "integer",
                     "example": 10
                 }
@@ -7001,19 +8327,19 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "active_categories": {
-                    "description": "活跃版块数",
+                    "description": "Active categories | 活跃版块数",
                     "type": "integer"
                 },
                 "hidden_categories": {
-                    "description": "隐藏版块数",
+                    "description": "Hidden categories | 隐藏版块数",
                     "type": "integer"
                 },
                 "locked_categories": {
-                    "description": "锁定版块数",
+                    "description": "Locked categories | 锁定版块数",
                     "type": "integer"
                 },
                 "total_categories": {
-                    "description": "总版块数",
+                    "description": "Total categories | 总版块数",
                     "type": "integer"
                 }
             }
@@ -7026,17 +8352,17 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer",
                     "example": 1
                 },
                 "reason": {
-                    "description": "操作原因",
+                    "description": "Operation reason | 操作原因",
                     "type": "string",
                     "example": "版块调整"
                 },
                 "status": {
-                    "description": "版块状态",
+                    "description": "Category status | 版块状态",
                     "type": "string",
                     "enum": [
                         "Normal",
@@ -7055,37 +8381,37 @@ const docTemplate = `{
             ],
             "properties": {
                 "description": {
-                    "description": "版块描述",
+                    "description": "Category description | 版块描述",
                     "type": "string",
                     "maxLength": 500,
                     "example": "技术相关话题讨论区"
                 },
                 "icon": {
-                    "description": "版块图标",
+                    "description": "Category icon | 版块图标",
                     "type": "string",
                     "example": "https://example.com/icon.png"
                 },
                 "id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer",
                     "example": 1
                 },
                 "name": {
-                    "description": "版块名称",
+                    "description": "Category name | 版块名称",
                     "type": "string",
                     "maxLength": 50,
                     "minLength": 2,
                     "example": "技术讨论"
                 },
                 "slug": {
-                    "description": "版块英文标识",
+                    "description": "Category slug | 版块英文标识",
                     "type": "string",
                     "maxLength": 50,
                     "minLength": 2,
                     "example": "tech"
                 },
                 "status": {
-                    "description": "版块状态",
+                    "description": "Category status | 版块状态",
                     "type": "string",
                     "enum": [
                         "Normal",
@@ -7096,10 +8422,27 @@ const docTemplate = `{
                     "example": "Normal"
                 },
                 "weight": {
-                    "description": "权重排序",
+                    "description": "Sort weight | 权重排序",
                     "type": "integer",
                     "minimum": 0,
                     "example": 0
+                }
+            }
+        },
+        "schema.Check": {
+            "type": "object",
+            "properties": {
+                "latency": {
+                    "description": "Response latency | 响应延迟",
+                    "type": "string"
+                },
+                "message": {
+                    "description": "Additional information | 额外信息",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status: up, down | 状态: up, down",
+                    "type": "string"
                 }
             }
         },
@@ -7107,19 +8450,19 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "customization_css": {
-                    "description": "自定义CSS",
+                    "description": "Custom CSS | 自定义CSS",
                     "type": "string",
                     "maxLength": 50000,
                     "example": "body { background-color: #f0f0f0; }"
                 },
                 "footer": {
-                    "description": "页脚代码（HTML/JavaScript）",
+                    "description": "Footer code (HTML/JavaScript) | 页脚代码（HTML/JavaScript）",
                     "type": "string",
                     "maxLength": 10000,
                     "example": "\u003cscript\u003econsole.log('footer');\u003c/script\u003e"
                 },
                 "header": {
-                    "description": "页头代码（HTML/JavaScript）",
+                    "description": "Header code (HTML/JavaScript) | 页头代码（HTML/JavaScript）",
                     "type": "string",
                     "maxLength": 10000,
                     "example": "\u003cscript\u003econsole.log('header');\u003c/script\u003e"
@@ -7130,17 +8473,17 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "customization_css": {
-                    "description": "自定义CSS",
+                    "description": "Custom CSS | 自定义CSS",
                     "type": "string",
                     "example": "body { background-color: #f0f0f0; }"
                 },
                 "footer": {
-                    "description": "页脚代码",
+                    "description": "Footer code | 页脚代码",
                     "type": "string",
                     "example": "\u003cscript\u003econsole.log('footer');\u003c/script\u003e"
                 },
                 "header": {
-                    "description": "页头代码",
+                    "description": "Header code | 页头代码",
                     "type": "string",
                     "example": "\u003cscript\u003econsole.log('header');\u003c/script\u003e"
                 }
@@ -7155,39 +8498,39 @@ const docTemplate = `{
             ],
             "properties": {
                 "commenter_ip": {
-                    "description": "评论者IP",
+                    "description": "Commenter IP | 评论者IP",
                     "type": "string",
                     "example": "192.168.1.1"
                 },
                 "content": {
-                    "description": "评论内容",
+                    "description": "Comment content | 评论内容",
                     "type": "string",
                     "maxLength": 1000,
                     "minLength": 1,
                     "example": "很有见地的评论"
                 },
                 "device_info": {
-                    "description": "设备信息",
+                    "description": "Device info | 设备信息",
                     "type": "string",
                     "example": "Chrome/Windows"
                 },
                 "parent_id": {
-                    "description": "父评论ID",
+                    "description": "Parent comment ID | 父评论ID",
                     "type": "integer",
                     "example": 1
                 },
                 "post_id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "reply_to_user_id": {
-                    "description": "回复目标用户ID",
+                    "description": "Reply target user ID | 回复目标用户ID",
                     "type": "integer",
                     "example": 2
                 },
                 "user_id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 }
@@ -7197,87 +8540,87 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "commenter_ip": {
-                    "description": "评论者IP",
+                    "description": "Commenter IP | 评论者IP",
                     "type": "string",
                     "example": "192.168.1.1"
                 },
                 "content": {
-                    "description": "评论内容",
+                    "description": "Comment content | 评论内容",
                     "type": "string",
                     "example": "很有见地的评论"
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "device_info": {
-                    "description": "设备信息",
+                    "description": "Device info | 设备信息",
                     "type": "string",
                     "example": "Chrome/Windows"
                 },
                 "dislike_count": {
-                    "description": "点踩数",
+                    "description": "Dislike count | 点踩数",
                     "type": "integer",
                     "example": 1
                 },
                 "id": {
-                    "description": "评论ID",
+                    "description": "Comment ID | 评论ID",
                     "type": "integer",
                     "example": 1
                 },
                 "is_pinned": {
-                    "description": "是否置顶",
+                    "description": "Whether pinned | 是否置顶",
                     "type": "boolean",
                     "example": false
                 },
                 "is_selected": {
-                    "description": "是否精选",
+                    "description": "Whether selected | 是否精选",
                     "type": "boolean",
                     "example": true
                 },
                 "like_count": {
-                    "description": "点赞数",
+                    "description": "Like count | 点赞数",
                     "type": "integer",
                     "example": 10
                 },
                 "parent_id": {
-                    "description": "父评论ID",
+                    "description": "Parent comment ID | 父评论ID",
                     "type": "integer",
                     "example": 1
                 },
                 "post_id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "post_title": {
-                    "description": "帖子标题",
+                    "description": "Post title | 帖子标题",
                     "type": "string",
                     "example": "技术分享帖"
                 },
                 "reply_to_user_id": {
-                    "description": "回复目标用户ID",
+                    "description": "Reply target user ID | 回复目标用户ID",
                     "type": "integer",
                     "example": 2
                 },
                 "reply_to_username": {
-                    "description": "回复目标用户名",
+                    "description": "Reply target username | 回复目标用户名",
                     "type": "string",
                     "example": "targetuser"
                 },
                 "updated_at": {
-                    "description": "更新时间",
+                    "description": "Update time | 更新时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "user_id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 },
                 "username": {
-                    "description": "用户名",
+                    "description": "Username | 用户名",
                     "type": "string",
                     "example": "testuser"
                 }
@@ -7286,88 +8629,98 @@ const docTemplate = `{
         "schema.CommentListItem": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "description": "User avatar | 用户头像",
+                    "type": "string",
+                    "example": "https://example.com/avatar.jpg"
+                },
                 "commenter_ip": {
-                    "description": "评论者IP",
+                    "description": "Commenter IP | 评论者IP",
                     "type": "string",
                     "example": "192.168.1.1"
                 },
                 "content": {
-                    "description": "评论内容",
+                    "description": "Comment content | 评论内容",
                     "type": "string",
                     "example": "很有见地的评论"
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "device_info": {
-                    "description": "设备信息",
+                    "description": "Device info | 设备信息",
                     "type": "string",
                     "example": "Chrome/Windows"
                 },
                 "dislike_count": {
-                    "description": "点踩数",
+                    "description": "Dislike count | 点踩数",
                     "type": "integer",
                     "example": 1
                 },
                 "id": {
-                    "description": "评论ID",
+                    "description": "Comment ID | 评论ID",
                     "type": "integer",
                     "example": 1
                 },
                 "is_pinned": {
-                    "description": "是否置顶",
+                    "description": "Whether pinned | 是否置顶",
                     "type": "boolean",
                     "example": false
                 },
                 "is_selected": {
-                    "description": "是否精选",
+                    "description": "Whether selected | 是否精选",
                     "type": "boolean",
                     "example": true
                 },
                 "like_count": {
-                    "description": "点赞数",
+                    "description": "Like count | 点赞数",
                     "type": "integer",
                     "example": 10
                 },
                 "parent_id": {
-                    "description": "父评论ID",
+                    "description": "Parent comment ID | 父评论ID",
                     "type": "integer",
                     "example": 1
                 },
                 "post_id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "post_title": {
-                    "description": "帖子标题",
+                    "description": "Post title | 帖子标题",
                     "type": "string",
                     "example": "技术分享帖"
                 },
+                "reply_to_avatar": {
+                    "description": "Reply target user avatar | 回复目标用户头像",
+                    "type": "string",
+                    "example": "https://example.com/avatar2.jpg"
+                },
                 "reply_to_user_id": {
-                    "description": "回复目标用户ID",
+                    "description": "Reply target user ID | 回复目标用户ID",
                     "type": "integer",
                     "example": 2
                 },
                 "reply_to_username": {
-                    "description": "回复目标用户名",
+                    "description": "Reply target username | 回复目标用户名",
                     "type": "string",
                     "example": "targetuser"
                 },
                 "updated_at": {
-                    "description": "更新时间",
+                    "description": "Update time | 更新时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "user_id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 },
                 "username": {
-                    "description": "用户名",
+                    "description": "Username | 用户名",
                     "type": "string",
                     "example": "testuser"
                 }
@@ -7377,22 +8730,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "list": {
-                    "description": "评论列表",
+                    "description": "Comment list | 评论列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.CommentListItem"
                     }
                 },
                 "page": {
-                    "description": "当前页码",
+                    "description": "Current page number | 当前页码",
                     "type": "integer"
                 },
                 "page_size": {
-                    "description": "每页数量",
+                    "description": "Items per page | 每页数量",
                     "type": "integer"
                 },
                 "total": {
-                    "description": "总数量",
+                    "description": "Total count | 总数量",
                     "type": "integer"
                 }
             }
@@ -7404,17 +8757,17 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "description": "评论ID",
+                    "description": "Comment ID | 评论ID",
                     "type": "integer",
                     "example": 1
                 },
                 "is_pinned": {
-                    "description": "是否置顶",
+                    "description": "Whether pinned | 是否置顶",
                     "type": "boolean",
                     "example": true
                 },
                 "reason": {
-                    "description": "操作原因",
+                    "description": "Operation reason | 操作原因",
                     "type": "string",
                     "example": "重要评论"
                 }
@@ -7427,17 +8780,17 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "description": "评论ID",
+                    "description": "Comment ID | 评论ID",
                     "type": "integer",
                     "example": 1
                 },
                 "is_selected": {
-                    "description": "是否精选",
+                    "description": "Whether selected | 是否精选",
                     "type": "boolean",
                     "example": true
                 },
                 "reason": {
-                    "description": "操作原因",
+                    "description": "Operation reason | 操作原因",
                     "type": "string",
                     "example": "优质评论"
                 }
@@ -7447,18 +8800,18 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "keyword_blacklist": {
-                    "description": "关键词黑名单（逗号分隔）",
+                    "description": "Keyword blacklist (comma-separated) | 关键词黑名单（逗号分隔）",
                     "type": "string",
                     "maxLength": 5000,
                     "example": "垃圾,广告,spam"
                 },
                 "require_approval": {
-                    "description": "是否需要审核评论",
+                    "description": "Whether comment approval is required | 是否需要审核评论",
                     "type": "boolean",
                     "example": false
                 },
                 "show_comment_info": {
-                    "description": "是否显示评论者信息",
+                    "description": "Whether to show commenter information | 是否显示评论者信息",
                     "type": "boolean",
                     "example": true
                 }
@@ -7468,17 +8821,17 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "keyword_blacklist": {
-                    "description": "关键词黑名单",
+                    "description": "Keyword blacklist | 关键词黑名单",
                     "type": "string",
                     "example": "垃圾,广告,spam"
                 },
                 "require_approval": {
-                    "description": "是否需要审核评论",
+                    "description": "Whether comment approval is required | 是否需要审核评论",
                     "type": "boolean",
                     "example": false
                 },
                 "show_comment_info": {
-                    "description": "是否显示评论者信息",
+                    "description": "Whether to show commenter information | 是否显示评论者信息",
                     "type": "boolean",
                     "example": true
                 }
@@ -7488,19 +8841,19 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "pinned_comments": {
-                    "description": "置顶评论数",
+                    "description": "Pinned comments | 置顶评论数",
                     "type": "integer"
                 },
                 "selected_comments": {
-                    "description": "精选评论数",
+                    "description": "Selected comments | 精选评论数",
                     "type": "integer"
                 },
                 "today_comments": {
-                    "description": "今日新增评论数",
+                    "description": "New comments today | 今日新增评论数",
                     "type": "integer"
                 },
                 "total_comments": {
-                    "description": "总评论数",
+                    "description": "Total comments | 总评论数",
                     "type": "integer"
                 }
             }
@@ -7513,14 +8866,14 @@ const docTemplate = `{
             ],
             "properties": {
                 "content": {
-                    "description": "评论内容",
+                    "description": "Comment content | 评论内容",
                     "type": "string",
                     "maxLength": 1000,
                     "minLength": 1,
                     "example": "更新后的评论内容"
                 },
                 "id": {
-                    "description": "评论ID",
+                    "description": "Comment ID | 评论ID",
                     "type": "integer",
                     "example": 1
                 }
@@ -7530,7 +8883,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "category_stats": {
-                    "description": "版块统计",
+                    "description": "Category statistics | 版块统计",
                     "allOf": [
                         {
                             "$ref": "#/definitions/schema.CategoryStats"
@@ -7538,7 +8891,7 @@ const docTemplate = `{
                     ]
                 },
                 "comment_stats": {
-                    "description": "评论统计",
+                    "description": "Comment statistics | 评论统计",
                     "allOf": [
                         {
                             "$ref": "#/definitions/schema.CommentStats"
@@ -7546,7 +8899,7 @@ const docTemplate = `{
                     ]
                 },
                 "post_stats": {
-                    "description": "帖子统计",
+                    "description": "Post statistics | 帖子统计",
                     "allOf": [
                         {
                             "$ref": "#/definitions/schema.PostStats"
@@ -7554,7 +8907,7 @@ const docTemplate = `{
                     ]
                 },
                 "system_stats": {
-                    "description": "系统统计",
+                    "description": "System statistics | 系统统计",
                     "allOf": [
                         {
                             "$ref": "#/definitions/schema.SystemStats"
@@ -7562,7 +8915,7 @@ const docTemplate = `{
                     ]
                 },
                 "user_stats": {
-                    "description": "用户统计",
+                    "description": "User statistics | 用户统计",
                     "allOf": [
                         {
                             "$ref": "#/definitions/schema.UserStats"
@@ -7571,107 +8924,60 @@ const docTemplate = `{
                 }
             }
         },
-        "schema.DiskMetrics": {
-            "type": "object",
-            "properties": {
-                "free": {
-                    "description": "可用空间 (bytes)",
-                    "type": "integer"
-                },
-                "read_bytes": {
-                    "description": "读取字节数",
-                    "type": "integer"
-                },
-                "read_count": {
-                    "description": "读取次数",
-                    "type": "integer"
-                },
-                "total": {
-                    "description": "磁盘总量 (bytes)",
-                    "type": "integer"
-                },
-                "usage_percent": {
-                    "description": "使用率",
-                    "type": "number"
-                },
-                "used": {
-                    "description": "已用空间 (bytes)",
-                    "type": "integer"
-                },
-                "write_bytes": {
-                    "description": "写入字节数",
-                    "type": "integer"
-                },
-                "write_count": {
-                    "description": "写入次数",
-                    "type": "integer"
-                }
-            }
-        },
         "schema.EmailSMTPConfigRequest": {
             "type": "object",
-            "required": [
-                "address",
-                "connection_validity",
-                "host",
-                "is_enable",
-                "password",
-                "port",
-                "sender",
-                "username"
-            ],
             "properties": {
                 "address": {
-                    "description": "发件人邮箱地址，用于SMTP认证和邮件发送",
+                    "description": "Sender email address, used for SMTP authentication and email sending | 发件人邮箱地址，用于SMTP认证和邮件发送",
                     "type": "string",
                     "example": "noreply@example.com"
                 },
                 "connection_validity": {
-                    "description": "SMTP连接有效期（单位：秒），长时间无邮件发送时自动断开连接",
+                    "description": "SMTP connection validity period (in seconds), automatically disconnect when no email is sent for a long time | SMTP连接有效期（单位：秒），长时间无邮件发送时自动断开连接",
                     "type": "integer",
                     "maximum": 3600,
                     "minimum": 10,
                     "example": 300
                 },
                 "forced_ssl": {
-                    "description": "是否强制使用SSL加密连接，true表示使用SSL，false表示不使用",
+                    "description": "Whether to force SSL encrypted connection, true means using SSL, false means not using | 是否强制使用SSL加密连接，true表示使用SSL，false表示不使用",
                     "type": "boolean",
                     "example": false
                 },
                 "host": {
-                    "description": "SMTP服务器主机名或IP地址",
+                    "description": "SMTP server hostname or IP address | SMTP服务器主机名或IP地址",
                     "type": "string",
                     "maxLength": 255,
                     "minLength": 1,
                     "example": "smtp.example.com"
                 },
                 "is_enable": {
-                    "description": "是否启用邮箱服务，true表示启用，false表示禁用",
+                    "description": "Whether to enable email service, true means enabled, false means disabled | 是否启用邮箱服务，true表示启用，false表示禁用",
                     "type": "boolean",
                     "example": true
                 },
                 "password": {
-                    "description": "SMTP密码或授权码，用于SMTP认证",
+                    "description": "SMTP password or authorization code, used for SMTP authentication | SMTP密码或授权码，用于SMTP认证",
                     "type": "string",
                     "minLength": 1,
                     "example": "password123"
                 },
                 "port": {
-                    "description": "SMTP服务器端口号，常见端口为25、587、465等",
+                    "description": "SMTP server port number, common ports are 25, 587, 465, etc. | SMTP服务器端口号，常见端口为25、587、465等",
                     "type": "integer",
                     "maximum": 65535,
                     "minimum": 1,
                     "example": 587
                 },
                 "sender": {
-                    "description": "发件人名称，显示在邮件发件人处",
+                    "description": "Sender name, displayed in the email sender field | 发件人名称，显示在邮件发件人处",
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 1,
                     "example": "PokeForum"
                 },
                 "username": {
-                    "description": "SMTP用户名，通常为邮箱地址或账户名",
+                    "description": "SMTP username, usually email address or account name | SMTP用户名，通常为邮箱地址或账户名",
                     "type": "string",
                     "maxLength": 255,
                     "minLength": 1,
@@ -7683,47 +8989,47 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "address": {
-                    "description": "发件人邮箱地址",
+                    "description": "Sender email address | 发件人邮箱地址",
                     "type": "string",
                     "example": "noreply@example.com"
                 },
                 "connection_validity": {
-                    "description": "SMTP连接有效期（单位：秒）",
+                    "description": "SMTP connection validity period (in seconds) | SMTP连接有效期（单位：秒）",
                     "type": "integer",
                     "example": 300
                 },
                 "forced_ssl": {
-                    "description": "是否强制使用SSL加密连接",
+                    "description": "Whether to force SSL encrypted connection | 是否强制使用SSL加密连接",
                     "type": "boolean",
                     "example": false
                 },
                 "host": {
-                    "description": "SMTP服务器主机名",
+                    "description": "SMTP server hostname | SMTP服务器主机名",
                     "type": "string",
                     "example": "smtp.example.com"
                 },
                 "is_enable": {
-                    "description": "是否启用邮箱服务",
+                    "description": "Whether email service is enabled | 是否启用邮箱服务",
                     "type": "boolean",
                     "example": true
                 },
                 "password": {
-                    "description": "SMTP密码",
+                    "description": "SMTP password | SMTP密码",
                     "type": "string",
                     "example": "password123"
                 },
                 "port": {
-                    "description": "SMTP服务器端口号",
+                    "description": "SMTP server port number | SMTP服务器端口号",
                     "type": "integer",
                     "example": 587
                 },
                 "sender": {
-                    "description": "发件人名称",
+                    "description": "Sender name | 发件人名称",
                     "type": "string",
                     "example": "PokeForum"
                 },
                 "username": {
-                    "description": "SMTP用户名",
+                    "description": "SMTP username | SMTP用户名",
                     "type": "string",
                     "example": "user@example.com"
                 }
@@ -7736,7 +9042,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "to_email": {
-                    "description": "收件人邮箱地址，用于接收测试邮件",
+                    "description": "Recipient email address for receiving test email | 收件人邮箱地址，用于接收测试邮件",
                     "type": "string",
                     "example": "test@example.com"
                 }
@@ -7746,12 +9052,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "message": {
-                    "description": "提示信息，包含发送结果的详细说明",
+                    "description": "Prompt message, contains detailed description of sending result | 提示信息，包含发送结果的详细说明",
                     "type": "string",
                     "example": "测试邮件已发送"
                 },
                 "success": {
-                    "description": "是否发送成功，true表示成功，false表示失败",
+                    "description": "Whether sending is successful, true means success, false means failure | 是否发送成功，true表示成功，false表示失败",
                     "type": "boolean",
                     "example": true
                 }
@@ -7761,17 +9067,17 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "expires_in": {
-                    "description": "验证码有效期（秒）",
+                    "description": "Verification code expiry time (seconds) | 验证码有效期（秒）",
                     "type": "integer",
                     "example": 600
                 },
                 "message": {
-                    "description": "提示信息",
+                    "description": "Notification message | 提示信息",
                     "type": "string",
                     "example": "验证码已发送到您的邮箱，请查收"
                 },
                 "sent": {
-                    "description": "验证码发送状态",
+                    "description": "Verification code sent status | 验证码发送状态",
                     "type": "boolean",
                     "example": true
                 }
@@ -7784,7 +9090,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "code": {
-                    "description": "验证码",
+                    "description": "Verification code | 验证码",
                     "type": "string",
                     "example": "123456"
                 }
@@ -7794,12 +9100,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "message": {
-                    "description": "提示信息",
+                    "description": "Notification message | 提示信息",
                     "type": "string",
                     "example": "邮箱验证成功"
                 },
                 "verified": {
-                    "description": "验证状态",
+                    "description": "Verification status | 验证状态",
                     "type": "boolean",
                     "example": true
                 }
@@ -7812,7 +9118,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "description": "邮箱",
+                    "description": "Email address | 邮箱",
                     "type": "string",
                     "example": "test@example.com"
                 }
@@ -7822,19 +9128,55 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "expires_in": {
-                    "description": "验证码有效期（秒）",
+                    "description": "Verification code expiry time (seconds) | 验证码有效期（秒）",
                     "type": "integer",
                     "example": 600
                 },
                 "message": {
-                    "description": "提示信息",
+                    "description": "Notification message | 提示信息",
                     "type": "string",
                     "example": "验证码已发送到您的邮箱，请查收"
                 },
                 "sent": {
-                    "description": "验证码发送状态",
+                    "description": "Verification code sent status | 验证码发送状态",
                     "type": "boolean",
                     "example": true
+                }
+            }
+        },
+        "schema.HealthStatus": {
+            "type": "object",
+            "properties": {
+                "checks": {
+                    "description": "Component check results | 各组件检查结果",
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/schema.Check"
+                    }
+                },
+                "status": {
+                    "description": "Overall status: healthy, degraded, unhealthy | 整体状态: healthy, degraded, unhealthy",
+                    "type": "string"
+                },
+                "system": {
+                    "description": "System information (detail mode only) | 系统信息(仅详细模式)",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/schema.SystemInfo"
+                        }
+                    ]
+                },
+                "timestamp": {
+                    "description": "Check time | 检查时间",
+                    "type": "string"
+                },
+                "uptime": {
+                    "description": "Uptime | 运行时间",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "Application version | 应用版本",
+                    "type": "string"
                 }
             }
         },
@@ -7842,14 +9184,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "links": {
-                    "description": "友情链接列表",
+                    "description": "Friendly links list | 友情链接列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.LinkItem"
                     }
                 },
                 "slides": {
-                    "description": "幻灯片列表",
+                    "description": "Slide list | 幻灯片列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.SlideItem"
@@ -7861,18 +9203,407 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "links": {
-                    "description": "友情链接列表",
+                    "description": "Friendly links list | 友情链接列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.LinkItem"
                     }
                 },
                 "slides": {
-                    "description": "幻灯片列表",
+                    "description": "Slide list | 幻灯片列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.SlideItem"
                     }
+                }
+            }
+        },
+        "schema.InvitationCodeCreateRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "creator_id",
+                "mode"
+            ],
+            "properties": {
+                "code": {
+                    "description": "Invitation code | 邀请码",
+                    "type": "string",
+                    "maxLength": 32,
+                    "minLength": 6,
+                    "example": "abc123def456"
+                },
+                "cost_amount": {
+                    "description": "Cost amount | 消耗数量",
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 0
+                },
+                "creator_id": {
+                    "description": "Creator user ID | 创建者用户ID",
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
+                },
+                "mode": {
+                    "description": "Generation mode | 生成方式",
+                    "type": "string",
+                    "enum": [
+                        "direct",
+                        "points",
+                        "currency"
+                    ],
+                    "example": "direct"
+                },
+                "remark": {
+                    "description": "Remark | 备注",
+                    "type": "string",
+                    "maxLength": 500,
+                    "example": "Created by admin"
+                }
+            }
+        },
+        "schema.InvitationCodeDetailResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "Invitation code | 邀请码",
+                    "type": "string",
+                    "example": "abc123def456"
+                },
+                "cost_amount": {
+                    "description": "Cost amount | 消耗数量",
+                    "type": "integer",
+                    "example": 0
+                },
+                "created_at": {
+                    "description": "Creation time | 创建时间",
+                    "type": "string",
+                    "example": "2024-01-01 00:00:00"
+                },
+                "creator_id": {
+                    "description": "Creator user ID | 创建者用户ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "generation_mode": {
+                    "description": "Generation mode | 生成方式",
+                    "type": "string",
+                    "example": "direct"
+                },
+                "id": {
+                    "description": "Invitation code ID | 邀请码ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "remark": {
+                    "description": "Remark | 备注",
+                    "type": "string",
+                    "example": "Created by admin"
+                },
+                "status": {
+                    "description": "Status | 状态",
+                    "type": "string",
+                    "example": "unused"
+                },
+                "updated_at": {
+                    "description": "Update time | 更新时间",
+                    "type": "string",
+                    "example": "2024-01-01 00:00:00"
+                },
+                "used_at": {
+                    "description": "Used at timestamp | 使用时间",
+                    "type": "string",
+                    "example": "2024-01-01 12:00:00"
+                },
+                "used_by_id": {
+                    "description": "Used by user ID | 使用者用户ID",
+                    "type": "integer",
+                    "example": 2
+                },
+                "used_ip": {
+                    "description": "Used IP address | 使用时的IP地址",
+                    "type": "string",
+                    "example": "192.168.1.1"
+                },
+                "used_user_agent": {
+                    "description": "Used user agent | 使用时的用户代理",
+                    "type": "string",
+                    "example": "Mozilla/5.0"
+                }
+            }
+        },
+        "schema.InvitationCodeListItem": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "Invitation code | 邀请码",
+                    "type": "string",
+                    "example": "abc123def456"
+                },
+                "cost_amount": {
+                    "description": "Cost amount | 消耗数量",
+                    "type": "integer",
+                    "example": 0
+                },
+                "created_at": {
+                    "description": "Creation time | 创建时间",
+                    "type": "string",
+                    "example": "2024-01-01 00:00:00"
+                },
+                "creator_id": {
+                    "description": "Creator user ID | 创建者用户ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "generation_mode": {
+                    "description": "Generation mode | 生成方式",
+                    "type": "string",
+                    "example": "direct"
+                },
+                "id": {
+                    "description": "Invitation code ID | 邀请码ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "remark": {
+                    "description": "Remark | 备注",
+                    "type": "string",
+                    "example": "Created by admin"
+                },
+                "status": {
+                    "description": "Status | 状态",
+                    "type": "string",
+                    "example": "unused"
+                },
+                "updated_at": {
+                    "description": "Update time | 更新时间",
+                    "type": "string",
+                    "example": "2024-01-01 00:00:00"
+                },
+                "used_at": {
+                    "description": "Used at timestamp | 使用时间",
+                    "type": "string",
+                    "example": "2024-01-01 12:00:00"
+                },
+                "used_by_id": {
+                    "description": "Used by user ID | 使用者用户ID",
+                    "type": "integer",
+                    "example": 2
+                },
+                "used_ip": {
+                    "description": "Used IP address | 使用时的IP地址",
+                    "type": "string",
+                    "example": "192.168.1.1"
+                },
+                "used_user_agent": {
+                    "description": "Used user agent | 使用时的用户代理",
+                    "type": "string",
+                    "example": "Mozilla/5.0"
+                }
+            }
+        },
+        "schema.InvitationCodeListResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "description": "Invitation code list | 邀请码列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.InvitationCodeListItem"
+                    }
+                },
+                "page": {
+                    "description": "Current page number | 当前页码",
+                    "type": "integer"
+                },
+                "page_size": {
+                    "description": "Items per page | 每页数量",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "Total count | 总数量",
+                    "type": "integer"
+                }
+            }
+        },
+        "schema.InvitationCodeSettingsRequest": {
+            "type": "object",
+            "required": [
+                "mode"
+            ],
+            "properties": {
+                "cost": {
+                    "description": "Invitation code cost (only for points, currency) | 邀请码费用（限积分、货币模式）",
+                    "type": "integer",
+                    "maximum": 10000,
+                    "minimum": 0,
+                    "example": 100
+                },
+                "invitee_reward": {
+                    "description": "Invitee reward points | 被邀请人奖励积分",
+                    "type": "integer",
+                    "maximum": 10000,
+                    "minimum": 0,
+                    "example": 20
+                },
+                "is_enable": {
+                    "description": "Whether to enable invitation code | 是否启用邀请码",
+                    "type": "boolean",
+                    "example": true
+                },
+                "max_generation_count": {
+                    "description": "Maximum number of invitation codes a user can generate | 用户最大可生成邀请码数量",
+                    "type": "integer",
+                    "maximum": 1000,
+                    "minimum": 1,
+                    "example": 10
+                },
+                "mode": {
+                    "description": "Invitation code mode: direct, points, currency | 邀请码模式：direct、points、currency",
+                    "type": "string",
+                    "enum": [
+                        "direct",
+                        "points",
+                        "currency"
+                    ],
+                    "example": "direct"
+                },
+                "referral_bonus": {
+                    "description": "Referral bonus points | 邀请人奖励积分",
+                    "type": "integer",
+                    "maximum": 10000,
+                    "minimum": 0,
+                    "example": 50
+                },
+                "reward_is_enable": {
+                    "description": "Whether to enable invitation code reward | 是否启用邀请码奖励",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "schema.InvitationCodeSettingsResponse": {
+            "type": "object",
+            "properties": {
+                "cost": {
+                    "description": "Invitation code cost (only for points, currency) | 邀请码费用（限积分、货币模式）",
+                    "type": "integer",
+                    "example": 100
+                },
+                "invitee_reward": {
+                    "description": "Invitee reward points | 被邀请人奖励积分",
+                    "type": "integer",
+                    "example": 20
+                },
+                "is_enable": {
+                    "description": "Whether to enable invitation code | 是否启用邀请码",
+                    "type": "boolean",
+                    "example": true
+                },
+                "max_generation_count": {
+                    "description": "Maximum number of invitation codes a user can generate | 用户最大可生成邀请码数量",
+                    "type": "integer",
+                    "example": 10
+                },
+                "mode": {
+                    "description": "Invitation code mode: direct, points, currency | 邀请码模式：direct、points、currency",
+                    "type": "string",
+                    "example": "direct"
+                },
+                "referral_bonus": {
+                    "description": "Referral bonus points | 邀请人奖励积分",
+                    "type": "integer",
+                    "example": 50
+                },
+                "reward_is_enable": {
+                    "description": "Whether to enable invitation code reward | 是否启用邀请码奖励",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "schema.InvitationCodeStatsResponse": {
+            "type": "object",
+            "properties": {
+                "disabled_count": {
+                    "description": "Disabled codes | 已禁用数量",
+                    "type": "integer",
+                    "example": 2
+                },
+                "expired_count": {
+                    "description": "Expired codes | 已过期数量",
+                    "type": "integer",
+                    "example": 8
+                },
+                "total_count": {
+                    "description": "Total codes | 总邀请码数",
+                    "type": "integer",
+                    "example": 100
+                },
+                "total_used_count": {
+                    "description": "Total used count | 总使用次数",
+                    "type": "integer",
+                    "example": 40
+                },
+                "unused_count": {
+                    "description": "Unused codes | 未使用数量",
+                    "type": "integer",
+                    "example": 50
+                },
+                "used_count": {
+                    "description": "Used codes | 已使用数量",
+                    "type": "integer",
+                    "example": 40
+                }
+            }
+        },
+        "schema.InvitationCodeStatusUpdateRequest": {
+            "type": "object",
+            "required": [
+                "id",
+                "status"
+            ],
+            "properties": {
+                "id": {
+                    "description": "Invitation code ID | 邀请码ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "reason": {
+                    "description": "Operation reason | 操作原因",
+                    "type": "string",
+                    "example": "违规操作"
+                },
+                "status": {
+                    "description": "Status | 状态",
+                    "type": "string",
+                    "enum": [
+                        "unused",
+                        "used",
+                        "expired",
+                        "disabled"
+                    ],
+                    "example": "disabled"
+                }
+            }
+        },
+        "schema.InvitationCodeUpdateRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "description": "Invitation code ID | 邀请码ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "remark": {
+                    "description": "Remark | 备注",
+                    "type": "string",
+                    "maxLength": 500,
+                    "example": "Update remark"
                 }
             }
         },
@@ -7884,39 +9615,22 @@ const docTemplate = `{
             ],
             "properties": {
                 "description": {
-                    "description": "链接描述",
+                    "description": "Link description | 链接描述",
                     "type": "string",
                     "maxLength": 200,
                     "example": "一个很棒的网站"
                 },
                 "name": {
-                    "description": "链接名称",
+                    "description": "Link name | 链接名称",
                     "type": "string",
                     "maxLength": 50,
                     "minLength": 1,
                     "example": "示例网站"
                 },
                 "url": {
-                    "description": "链接URL",
+                    "description": "Link URL | 链接URL",
                     "type": "string",
                     "example": "https://example.com"
-                }
-            }
-        },
-        "schema.LoadMetrics": {
-            "type": "object",
-            "properties": {
-                "load1": {
-                    "description": "1分钟负载",
-                    "type": "number"
-                },
-                "load15": {
-                    "description": "15分钟负载",
-                    "type": "number"
-                },
-                "load5": {
-                    "description": "5分钟负载",
-                    "type": "number"
                 }
             }
         },
@@ -7928,12 +9642,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "description": "邮箱",
+                    "description": "Email address | 邮箱",
                     "type": "string",
                     "example": "test@example.com"
                 },
                 "password": {
-                    "description": "密码",
+                    "description": "Password | 密码",
                     "type": "string",
                     "minLength": 8,
                     "example": "password123"
@@ -7944,49 +9658,16 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer"
                 },
                 "token": {
-                    "description": "Token",
+                    "description": "Authentication token | Token",
                     "type": "string"
                 },
                 "username": {
-                    "description": "用户名",
+                    "description": "Username | 用户名",
                     "type": "string"
-                }
-            }
-        },
-        "schema.MemoryMetrics": {
-            "type": "object",
-            "properties": {
-                "available": {
-                    "description": "可用内存 (bytes)",
-                    "type": "integer"
-                },
-                "swap_percent": {
-                    "description": "交换分区使用率",
-                    "type": "number"
-                },
-                "swap_total": {
-                    "description": "交换分区总量 (bytes)",
-                    "type": "integer"
-                },
-                "swap_used": {
-                    "description": "交换分区已用 (bytes)",
-                    "type": "integer"
-                },
-                "total": {
-                    "description": "总内存 (bytes)",
-                    "type": "integer"
-                },
-                "usage_percent": {
-                    "description": "内存使用率",
-                    "type": "number"
-                },
-                "used": {
-                    "description": "已用内存 (bytes)",
-                    "type": "integer"
                 }
             }
         },
@@ -7994,7 +9675,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "categories": {
-                    "description": "版主管理的版块列表",
+                    "description": "Moderator managed categories list | 版主管理的版块列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.ModeratorCategory"
@@ -8006,42 +9687,42 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "description": {
-                    "description": "版块描述",
+                    "description": "Category description | 版块描述",
                     "type": "string",
                     "example": "技术相关话题讨论区"
                 },
                 "icon": {
-                    "description": "版块图标",
+                    "description": "Category icon | 版块图标",
                     "type": "string",
                     "example": "tech"
                 },
                 "id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer",
                     "example": 1
                 },
                 "name": {
-                    "description": "版块名称",
+                    "description": "Category name | 版块名称",
                     "type": "string",
                     "example": "技术讨论"
                 },
                 "post_count": {
-                    "description": "帖子数量",
+                    "description": "Post count | 帖子数量",
                     "type": "integer",
                     "example": 100
                 },
                 "slug": {
-                    "description": "版块标识",
+                    "description": "Category slug | 版块标识",
                     "type": "string",
                     "example": "tech"
                 },
                 "status": {
-                    "description": "版块状态",
+                    "description": "Category status | 版块状态",
                     "type": "string",
                     "example": "Normal"
                 }
@@ -8055,19 +9736,19 @@ const docTemplate = `{
             ],
             "properties": {
                 "category_ids": {
-                    "description": "版块ID列表",
+                    "description": "Category ID list | 版块ID列表",
                     "type": "array",
                     "items": {
                         "type": "integer"
                     }
                 },
                 "reason": {
-                    "description": "操作原因",
+                    "description": "Operation reason | 操作原因",
                     "type": "string",
                     "example": "版主任命"
                 },
                 "user_id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 }
@@ -8077,115 +9758,74 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "category_id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer",
                     "example": 1
                 },
                 "category_name": {
-                    "description": "版块名称",
+                    "description": "Category name | 版块名称",
                     "type": "string",
                     "example": "技术讨论"
                 },
                 "comment_count": {
-                    "description": "评论数",
+                    "description": "Comment count | 评论数",
                     "type": "integer",
                     "example": 25
                 },
                 "content": {
-                    "description": "帖子内容",
+                    "description": "Post content | 帖子内容",
                     "type": "string",
                     "example": "很有见地的内容"
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "is_essence": {
-                    "description": "是否精华",
+                    "description": "Whether essence | 是否精华",
                     "type": "boolean",
                     "example": true
                 },
                 "is_pinned": {
-                    "description": "是否置顶",
+                    "description": "Whether pinned | 是否置顶",
                     "type": "boolean",
                     "example": false
                 },
                 "like_count": {
-                    "description": "点赞数",
+                    "description": "Like count | 点赞数",
                     "type": "integer",
                     "example": 50
                 },
                 "status": {
-                    "description": "帖子状态",
+                    "description": "Post status | 帖子状态",
                     "type": "string",
                     "example": "Normal"
                 },
                 "title": {
-                    "description": "帖子标题",
+                    "description": "Post title | 帖子标题",
                     "type": "string",
                     "example": "技术分享帖"
                 },
                 "updated_at": {
-                    "description": "更新时间",
+                    "description": "Update time | 更新时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "username": {
-                    "description": "作者用户名",
+                    "description": "Author username | 作者用户名",
                     "type": "string",
                     "example": "testuser"
                 },
                 "view_count": {
-                    "description": "浏览数",
+                    "description": "View count | 浏览数",
                     "type": "integer",
                     "example": 1500
-                }
-            }
-        },
-        "schema.NetworkMetrics": {
-            "type": "object",
-            "properties": {
-                "bytes_recv": {
-                    "description": "接收字节数",
-                    "type": "integer"
-                },
-                "bytes_sent": {
-                    "description": "发送字节数",
-                    "type": "integer"
-                },
-                "connections": {
-                    "description": "连接数",
-                    "type": "integer"
-                },
-                "drop_in": {
-                    "description": "接收丢包数",
-                    "type": "integer"
-                },
-                "drop_out": {
-                    "description": "发送丢包数",
-                    "type": "integer"
-                },
-                "err_in": {
-                    "description": "接收错误数",
-                    "type": "integer"
-                },
-                "err_out": {
-                    "description": "发送错误数",
-                    "type": "integer"
-                },
-                "packets_recv": {
-                    "description": "接收包数",
-                    "type": "integer"
-                },
-                "packets_sent": {
-                    "description": "发送包数",
-                    "type": "integer"
                 }
             }
         },
@@ -8193,29 +9833,101 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "avatar": {
-                    "description": "用户头像",
+                    "description": "User avatar | 用户头像",
                     "type": "string",
                     "example": "https://example.com/avatar.png"
                 },
                 "created_at": {
-                    "description": "注册时间",
+                    "description": "Registration time | 注册时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "email": {
-                    "description": "邮箱",
+                    "description": "Email | 邮箱",
                     "type": "string",
                     "example": "new@example.com"
                 },
                 "id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 },
                 "username": {
-                    "description": "用户名",
+                    "description": "Username | 用户名",
                     "type": "string",
                     "example": "newuser"
+                }
+            }
+        },
+        "schema.OAuthAuthorizeResponse": {
+            "type": "object",
+            "properties": {
+                "authorize_url": {
+                    "description": "Full authorization URL | 完整授权URL",
+                    "type": "string"
+                },
+                "state": {
+                    "description": "State parameter (frontend needs to pass back) | state参数(前端需回传)",
+                    "type": "string"
+                }
+            }
+        },
+        "schema.OAuthBindCallbackRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "state"
+            ],
+            "properties": {
+                "code": {
+                    "description": "Authorization code | 授权码",
+                    "type": "string"
+                },
+                "state": {
+                    "description": "State parameter | state参数",
+                    "type": "string"
+                }
+            }
+        },
+        "schema.OAuthCallbackRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "state"
+            ],
+            "properties": {
+                "code": {
+                    "description": "Authorization code | 授权码",
+                    "type": "string"
+                },
+                "state": {
+                    "description": "State parameter | state参数",
+                    "type": "string"
+                }
+            }
+        },
+        "schema.OAuthCallbackResponse": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "description": "Executed action: login/register/bindRequired | 执行的操作: login/register/bindRequired",
+                    "type": "string"
+                },
+                "message": {
+                    "description": "Message | 消息",
+                    "type": "string"
+                },
+                "token": {
+                    "description": "Token (returned for login/register) | Token（登录/注册场景返回）",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "User ID | 用户ID",
+                    "type": "integer"
+                },
+                "username": {
+                    "description": "Username | 用户名",
+                    "type": "string"
                 }
             }
         },
@@ -8228,50 +9940,43 @@ const docTemplate = `{
             ],
             "properties": {
                 "auth_url": {
-                    "description": "授权URL",
+                    "description": "Authorization URL | 授权URL",
                     "type": "string",
                     "example": "https://github.com/login/oauth/authorize"
                 },
                 "client_id": {
-                    "description": "客户端ID",
+                    "description": "Client ID | 客户端ID",
                     "type": "string",
                     "example": "your_client_id"
                 },
                 "client_secret": {
-                    "description": "客户端密钥",
+                    "description": "Client secret | 客户端密钥",
                     "type": "string",
                     "example": "your_client_secret"
                 },
                 "enabled": {
-                    "description": "是否启用",
+                    "description": "Whether enabled | 是否启用",
                     "type": "boolean",
                     "example": true
                 },
                 "extra_config": {
-                    "description": "额外配置参数",
+                    "description": "Extra config parameters | 额外配置参数",
                     "type": "object",
                     "additionalProperties": true
                 },
                 "provider": {
-                    "description": "提供商类型",
+                    "description": "Provider type | 提供商类型",
                     "type": "string",
                     "enum": [
                         "QQ",
                         "GitHub",
-                        "Apple",
                         "Google",
-                        "Telegram",
                         "FIDO2"
                     ],
                     "example": "GitHub"
                 },
-                "redirect_url": {
-                    "description": "回调URL",
-                    "type": "string",
-                    "example": "https://example.com/auth/callback"
-                },
                 "scopes": {
-                    "description": "请求范围",
+                    "description": "Request scopes | 请求范围",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -8281,18 +9986,18 @@ const docTemplate = `{
                     ]
                 },
                 "sort_order": {
-                    "description": "排序顺序",
+                    "description": "Sort order | 排序顺序",
                     "type": "integer",
                     "minimum": 0,
                     "example": 0
                 },
                 "token_url": {
-                    "description": "Token获取URL",
+                    "description": "Token URL | Token获取URL",
                     "type": "string",
                     "example": "https://github.com/login/oauth/access_token"
                 },
                 "user_info_url": {
-                    "description": "用户信息获取URL",
+                    "description": "User info URL | 用户信息获取URL",
                     "type": "string",
                     "example": "https://api.github.com/user"
                 }
@@ -8302,52 +10007,47 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "auth_url": {
-                    "description": "授权URL",
+                    "description": "Authorization URL | 授权URL",
                     "type": "string",
                     "example": "https://github.com/login/oauth/authorize"
                 },
                 "client_id": {
-                    "description": "客户端ID",
+                    "description": "Client ID | 客户端ID",
                     "type": "string",
                     "example": "your_client_id"
                 },
                 "client_secret": {
-                    "description": "客户端密钥（脱敏）",
+                    "description": "Client secret (masked) | 客户端密钥（脱敏）",
                     "type": "string",
                     "example": "***"
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "enabled": {
-                    "description": "是否启用",
+                    "description": "Whether enabled | 是否启用",
                     "type": "boolean",
                     "example": true
                 },
                 "extra_config": {
-                    "description": "额外配置参数",
+                    "description": "Extra config parameters | 额外配置参数",
                     "type": "object",
                     "additionalProperties": true
                 },
                 "id": {
-                    "description": "提供商ID",
+                    "description": "Provider ID | 提供商ID",
                     "type": "integer",
                     "example": 1
                 },
                 "provider": {
-                    "description": "提供商类型",
+                    "description": "Provider type | 提供商类型",
                     "type": "string",
                     "example": "GitHub"
                 },
-                "redirect_url": {
-                    "description": "回调URL",
-                    "type": "string",
-                    "example": "https://example.com/auth/callback"
-                },
                 "scopes": {
-                    "description": "请求范围",
+                    "description": "Request scopes | 请求范围",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -8357,22 +10057,22 @@ const docTemplate = `{
                     ]
                 },
                 "sort_order": {
-                    "description": "排序顺序",
+                    "description": "Sort order | 排序顺序",
                     "type": "integer",
                     "example": 0
                 },
                 "token_url": {
-                    "description": "Token获取URL",
+                    "description": "Token URL | Token获取URL",
                     "type": "string",
                     "example": "https://github.com/login/oauth/access_token"
                 },
                 "updated_at": {
-                    "description": "更新时间",
+                    "description": "Update time | 更新时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "user_info_url": {
-                    "description": "用户信息获取URL",
+                    "description": "User info URL | 用户信息获取URL",
                     "type": "string",
                     "example": "https://api.github.com/user"
                 }
@@ -8382,42 +10082,37 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "auth_url": {
-                    "description": "授权URL",
+                    "description": "Authorization URL | 授权URL",
                     "type": "string",
                     "example": "https://github.com/login/oauth/authorize"
                 },
                 "client_id": {
-                    "description": "客户端ID",
+                    "description": "Client ID | 客户端ID",
                     "type": "string",
                     "example": "your_client_id"
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "enabled": {
-                    "description": "是否启用",
+                    "description": "Whether enabled | 是否启用",
                     "type": "boolean",
                     "example": true
                 },
                 "id": {
-                    "description": "提供商ID",
+                    "description": "Provider ID | 提供商ID",
                     "type": "integer",
                     "example": 1
                 },
                 "provider": {
-                    "description": "提供商类型",
+                    "description": "Provider type | 提供商类型",
                     "type": "string",
                     "example": "GitHub"
                 },
-                "redirect_url": {
-                    "description": "回调URL",
-                    "type": "string",
-                    "example": "https://example.com/auth/callback"
-                },
                 "scopes": {
-                    "description": "请求范围",
+                    "description": "Request scopes | 请求范围",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -8427,22 +10122,22 @@ const docTemplate = `{
                     ]
                 },
                 "sort_order": {
-                    "description": "排序顺序",
+                    "description": "Sort order | 排序顺序",
                     "type": "integer",
                     "example": 0
                 },
                 "token_url": {
-                    "description": "Token获取URL",
+                    "description": "Token URL | Token获取URL",
                     "type": "string",
                     "example": "https://github.com/login/oauth/access_token"
                 },
                 "updated_at": {
-                    "description": "更新时间",
+                    "description": "Update time | 更新时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "user_info_url": {
-                    "description": "用户信息获取URL",
+                    "description": "User info URL | 用户信息获取URL",
                     "type": "string",
                     "example": "https://api.github.com/user"
                 }
@@ -8452,10 +10147,37 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "list": {
-                    "description": "提供商列表",
+                    "description": "Provider list | 提供商列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.OAuthProviderListItem"
+                    }
+                }
+            }
+        },
+        "schema.OAuthProviderPublicItem": {
+            "type": "object",
+            "properties": {
+                "provider": {
+                    "description": "Provider type | 提供商类型",
+                    "type": "string",
+                    "example": "GitHub"
+                },
+                "sort_order": {
+                    "description": "Sort order | 排序顺序",
+                    "type": "integer",
+                    "example": 0
+                }
+            }
+        },
+        "schema.OAuthProviderPublicListResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "description": "Provider list | 提供商列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.OAuthProviderPublicItem"
                     }
                 }
             }
@@ -8467,12 +10189,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "enabled": {
-                    "description": "是否启用",
+                    "description": "Whether enabled | 是否启用",
                     "type": "boolean",
                     "example": true
                 },
                 "id": {
-                    "description": "提供商ID",
+                    "description": "Provider ID | 提供商ID",
                     "type": "integer",
                     "example": 1
                 }
@@ -8485,42 +10207,37 @@ const docTemplate = `{
             ],
             "properties": {
                 "auth_url": {
-                    "description": "授权URL",
+                    "description": "Authorization URL | 授权URL",
                     "type": "string",
                     "example": "https://github.com/login/oauth/authorize"
                 },
                 "client_id": {
-                    "description": "客户端ID",
+                    "description": "Client ID | 客户端ID",
                     "type": "string",
                     "example": "your_client_id"
                 },
                 "client_secret": {
-                    "description": "客户端密钥（为空则不更新）",
+                    "description": "Client secret (empty to skip update) | 客户端密钥（为空则不更新）",
                     "type": "string",
                     "example": "your_client_secret"
                 },
                 "enabled": {
-                    "description": "是否启用",
+                    "description": "Whether enabled | 是否启用",
                     "type": "boolean",
                     "example": true
                 },
                 "extra_config": {
-                    "description": "额外配置参数",
+                    "description": "Extra config parameters | 额外配置参数",
                     "type": "object",
                     "additionalProperties": true
                 },
                 "id": {
-                    "description": "提供商ID",
+                    "description": "Provider ID | 提供商ID",
                     "type": "integer",
                     "example": 1
                 },
-                "redirect_url": {
-                    "description": "回调URL",
-                    "type": "string",
-                    "example": "https://example.com/auth/callback"
-                },
                 "scopes": {
-                    "description": "请求范围",
+                    "description": "Request scopes | 请求范围",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -8530,221 +10247,56 @@ const docTemplate = `{
                     ]
                 },
                 "sort_order": {
-                    "description": "排序顺序",
+                    "description": "Sort order | 排序顺序",
                     "type": "integer",
                     "minimum": 0,
                     "example": 0
                 },
                 "token_url": {
-                    "description": "Token获取URL",
+                    "description": "Token URL | Token获取URL",
                     "type": "string",
                     "example": "https://github.com/login/oauth/access_token"
                 },
                 "user_info_url": {
-                    "description": "用户信息获取URL",
+                    "description": "User info URL | 用户信息获取URL",
                     "type": "string",
                     "example": "https://api.github.com/user"
                 }
             }
         },
-        "schema.PerformanceHistoryResponse": {
+        "schema.OAuthUserBindItem": {
             "type": "object",
             "properties": {
-                "data": {
-                    "description": "历史数据",
+                "bound_at": {
+                    "description": "Binding time | 绑定时间",
+                    "type": "string",
+                    "example": "2024-01-01 00:00:00"
+                },
+                "provider": {
+                    "description": "Provider type | 提供商类型",
+                    "type": "string",
+                    "example": "GitHub"
+                },
+                "provider_avatar": {
+                    "description": "Provider avatar | 提供商头像",
+                    "type": "string"
+                },
+                "provider_username": {
+                    "description": "Provider username | 提供商用户名",
+                    "type": "string",
+                    "example": "octocat"
+                }
+            }
+        },
+        "schema.OAuthUserBindListResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "description": "Binding list | 绑定列表",
                     "type": "array",
-                    "items": {}
-                },
-                "end_time": {
-                    "description": "结束时间",
-                    "type": "integer"
-                },
-                "interval": {
-                    "description": "数据间隔",
-                    "type": "string"
-                },
-                "module": {
-                    "description": "模块",
-                    "type": "string"
-                },
-                "start_time": {
-                    "description": "开始时间",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.PerformanceWSResponse": {
-            "type": "object",
-            "properties": {
-                "pgsql": {
-                    "description": "PostgreSQL 指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.PostgreSQLMetrics"
-                        }
-                    ]
-                },
-                "redis": {
-                    "description": "Redis 指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.RedisMetrics"
-                        }
-                    ]
-                },
-                "system": {
-                    "description": "系统指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.SystemMetrics"
-                        }
-                    ]
-                },
-                "timestamp": {
-                    "description": "时间戳",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.PgCache": {
-            "type": "object",
-            "properties": {
-                "blocks_hit": {
-                    "description": "缓存命中块数",
-                    "type": "integer"
-                },
-                "blocks_read": {
-                    "description": "磁盘读取块数",
-                    "type": "integer"
-                },
-                "hit_ratio": {
-                    "description": "缓存命中率",
-                    "type": "number"
-                },
-                "temp_bytes": {
-                    "description": "临时文件大小",
-                    "type": "integer"
-                },
-                "temp_files": {
-                    "description": "临时文件数",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.PgConnections": {
-            "type": "object",
-            "properties": {
-                "active": {
-                    "description": "活跃连接数",
-                    "type": "integer"
-                },
-                "idle": {
-                    "description": "空闲连接数",
-                    "type": "integer"
-                },
-                "idle_in_tx": {
-                    "description": "事务中空闲连接数",
-                    "type": "integer"
-                },
-                "max_conn": {
-                    "description": "最大连接数",
-                    "type": "integer"
-                },
-                "total": {
-                    "description": "总连接数",
-                    "type": "integer"
-                },
-                "usage_percent": {
-                    "description": "连接使用率",
-                    "type": "number"
-                },
-                "waiting": {
-                    "description": "等待连接数",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.PgDatabase": {
-            "type": "object",
-            "properties": {
-                "index_size": {
-                    "description": "索引大小 (bytes)",
-                    "type": "integer"
-                },
-                "size": {
-                    "description": "数据库大小 (bytes)",
-                    "type": "integer"
-                },
-                "table_count": {
-                    "description": "表数量",
-                    "type": "integer"
-                },
-                "table_size": {
-                    "description": "表大小 (bytes)",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.PgLocks": {
-            "type": "object",
-            "properties": {
-                "access_share": {
-                    "description": "AccessShare 锁数",
-                    "type": "integer"
-                },
-                "deadlocks": {
-                    "description": "死锁数",
-                    "type": "integer"
-                },
-                "row_excl": {
-                    "description": "RowExclusive 锁数",
-                    "type": "integer"
-                },
-                "row_share": {
-                    "description": "RowShare 锁数",
-                    "type": "integer"
-                },
-                "total": {
-                    "description": "锁总数",
-                    "type": "integer"
-                },
-                "waiting": {
-                    "description": "等待锁数",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.PgReplication": {
-            "type": "object",
-            "properties": {
-                "is_replica": {
-                    "description": "是否为副本",
-                    "type": "boolean"
-                },
-                "lag_bytes": {
-                    "description": "复制延迟 (bytes)",
-                    "type": "integer"
-                },
-                "replica_count": {
-                    "description": "副本数量",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.PgTransaction": {
-            "type": "object",
-            "properties": {
-                "committed": {
-                    "description": "已提交事务数",
-                    "type": "integer"
-                },
-                "rolled_back": {
-                    "description": "已回滚事务数",
-                    "type": "integer"
-                },
-                "tps": {
-                    "description": "每秒事务数",
-                    "type": "number"
+                    "items": {
+                        "$ref": "#/definitions/schema.OAuthUserBindItem"
+                    }
                 }
             }
         },
@@ -8752,7 +10304,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "categories": {
-                    "description": "热门版块列表",
+                    "description": "Popular categories list | 热门版块列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.PopularCategory"
@@ -8764,22 +10316,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "description": {
-                    "description": "版块描述",
+                    "description": "Category description | 版块描述",
                     "type": "string",
                     "example": "技术相关话题讨论区"
                 },
                 "id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer",
                     "example": 1
                 },
                 "name": {
-                    "description": "版块名称",
+                    "description": "Category name | 版块名称",
                     "type": "string",
                     "example": "技术讨论"
                 },
                 "post_count": {
-                    "description": "帖子数量",
+                    "description": "Post count | 帖子数量",
                     "type": "integer",
                     "example": 500
                 }
@@ -8789,47 +10341,52 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "avatar": {
-                    "description": "作者头像",
+                    "description": "Author avatar | 作者头像",
                     "type": "string",
                     "example": "https://example.com/avatar.png"
                 },
                 "category_name": {
-                    "description": "版块名称",
+                    "description": "Category name | 版块名称",
                     "type": "string",
                     "example": "技术讨论"
                 },
                 "comment_count": {
-                    "description": "评论数",
+                    "description": "Comment count | 评论数",
                     "type": "integer",
                     "example": 25
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "like_count": {
-                    "description": "点赞数",
+                    "description": "Like count | 点赞数",
                     "type": "integer",
                     "example": 50
                 },
                 "title": {
-                    "description": "帖子标题",
+                    "description": "Post title | 帖子标题",
                     "type": "string",
                     "example": "技术分享帖"
                 },
+                "user_id": {
+                    "description": "Author ID | 作者 ID",
+                    "type": "integer",
+                    "example": 1
+                },
                 "username": {
-                    "description": "作者用户名",
+                    "description": "Author username | 作者用户名",
                     "type": "string",
                     "example": "testuser"
                 },
                 "view_count": {
-                    "description": "浏览数",
+                    "description": "View count | 浏览数",
                     "type": "integer",
                     "example": 1500
                 }
@@ -8839,7 +10396,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "posts": {
-                    "description": "热门帖子列表",
+                    "description": "Popular posts list | 热门帖子列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.PopularPost"
@@ -8854,12 +10411,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "reason": {
-                    "description": "封禁原因",
+                    "description": "Ban reason | 封禁原因",
                     "type": "string",
                     "example": "违规内容"
                 }
@@ -8876,28 +10433,39 @@ const docTemplate = `{
             ],
             "properties": {
                 "category_id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer",
                     "example": 1
                 },
                 "content": {
-                    "description": "帖子内容",
+                    "description": "Post content | 帖子内容",
                     "type": "string",
                     "minLength": 10,
                     "example": "## 技术分享\n这是内容"
                 },
                 "publish_ip": {
-                    "description": "发布IP",
+                    "description": "Publish IP | 发布IP",
                     "type": "string",
                     "example": "192.168.1.1"
                 },
-                "read_permission": {
-                    "description": "阅读限制",
+                "read_permission_points": {
+                    "description": "Read permission points | 阅读所需积分",
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 0
+                },
+                "read_permission_type": {
+                    "description": "Read permission type | 阅读权限类型",
                     "type": "string",
-                    "example": "login"
+                    "enum": [
+                        "public",
+                        "login_required",
+                        "points"
+                    ],
+                    "example": "public"
                 },
                 "status": {
-                    "description": "帖子状态",
+                    "description": "Post status | 帖子状态",
                     "type": "string",
                     "enum": [
                         "Normal",
@@ -8909,14 +10477,14 @@ const docTemplate = `{
                     "example": "Normal"
                 },
                 "title": {
-                    "description": "帖子标题",
+                    "description": "Post title | 帖子标题",
                     "type": "string",
                     "maxLength": 200,
                     "minLength": 2,
                     "example": "技术分享帖"
                 },
                 "user_id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 }
@@ -8926,92 +10494,102 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "category_id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer",
                     "example": 1
                 },
                 "category_name": {
-                    "description": "版块名称",
+                    "description": "Category name | 版块名称",
                     "type": "string",
                     "example": "技术讨论"
                 },
                 "content": {
-                    "description": "帖子内容",
+                    "description": "Post content | 帖子内容",
                     "type": "string",
                     "example": "## 技术分享\n这是内容"
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "dislike_count": {
-                    "description": "点踩数",
+                    "description": "Dislike count | 点踩数",
                     "type": "integer",
                     "example": 2
                 },
                 "favorite_count": {
-                    "description": "收藏数",
+                    "description": "Favorite count | 收藏数",
                     "type": "integer",
                     "example": 10
                 },
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "is_essence": {
-                    "description": "是否精华帖",
+                    "description": "Whether essence post | 是否精华帖",
                     "type": "boolean",
                     "example": true
                 },
                 "is_pinned": {
-                    "description": "是否置顶",
+                    "description": "Whether pinned | 是否置顶",
                     "type": "boolean",
                     "example": false
                 },
                 "like_count": {
-                    "description": "点赞数",
+                    "description": "Like count | 点赞数",
                     "type": "integer",
                     "example": 25
                 },
+                "pin_scope": {
+                    "description": "Pin scope | 置顶范围：None、Home、Category、Global",
+                    "type": "string",
+                    "example": "None"
+                },
                 "publish_ip": {
-                    "description": "发布IP",
+                    "description": "Publish IP | 发布IP",
                     "type": "string",
                     "example": "192.168.1.1"
                 },
-                "read_permission": {
-                    "description": "阅读限制",
+                "read_permission_points": {
+                    "description": "Read permission points | 阅读所需积分",
+                    "type": "integer",
+                    "example": 0
+                },
+                "read_permission_type": {
+                    "description": "Read permission type | 阅读权限类型",
                     "type": "string",
-                    "example": "login"
+                    "example": "public"
                 },
                 "status": {
-                    "description": "帖子状态",
+                    "description": "Post status | 帖子状态",
                     "type": "string",
                     "example": "Normal"
                 },
                 "title": {
-                    "description": "帖子标题",
+                    "description": "Post title | 帖子标题",
                     "type": "string",
                     "example": "技术分享帖"
                 },
                 "updated_at": {
-                    "description": "更新时间",
+                    "description": "Update time | 更新时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "user_id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 },
                 "username": {
-                    "description": "用户名",
+                    "description": "Username | 用户名",
                     "type": "string",
                     "example": "testuser"
                 },
                 "view_count": {
-                    "description": "浏览数",
+                    "description": "View count | 浏览数",
                     "type": "integer",
                     "example": 150
                 }
@@ -9026,19 +10604,19 @@ const docTemplate = `{
             ],
             "properties": {
                 "content": {
-                    "description": "帖子内容",
+                    "description": "Post content | 帖子内容",
                     "type": "string",
                     "maxLength": 10000,
                     "minLength": 1,
                     "example": "修改后的内容"
                 },
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "title": {
-                    "description": "帖子标题",
+                    "description": "Post title | 帖子标题",
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 1,
@@ -9053,17 +10631,17 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "is_essence": {
-                    "description": "是否精华",
+                    "description": "Whether essence | 是否精华",
                     "type": "boolean",
                     "example": true
                 },
                 "reason": {
-                    "description": "操作原因",
+                    "description": "Operation reason | 操作原因",
                     "type": "string",
                     "example": "优质内容"
                 }
@@ -9076,17 +10654,17 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "is_essence": {
-                    "description": "是否精华",
+                    "description": "Whether essence | 是否精华",
                     "type": "boolean",
                     "example": true
                 },
                 "reason": {
-                    "description": "操作原因",
+                    "description": "Operation reason | 操作原因",
                     "type": "string",
                     "example": "优质内容"
                 }
@@ -9095,88 +10673,98 @@ const docTemplate = `{
         "schema.PostListItem": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "description": "User avatar | 用户头像",
+                    "type": "string",
+                    "example": "https://example.com/avatar.jpg"
+                },
                 "category_id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer",
                     "example": 1
                 },
                 "category_name": {
-                    "description": "版块名称",
+                    "description": "Category name | 版块名称",
                     "type": "string",
                     "example": "技术讨论"
                 },
                 "content": {
-                    "description": "帖子内容（截取前100字符）",
+                    "description": "Post content (first 100 characters) | 帖子内容（截取前100字符）",
                     "type": "string",
                     "example": "## 技术分享\n这是内容"
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "dislike_count": {
-                    "description": "点踩数",
+                    "description": "Dislike count | 点踩数",
                     "type": "integer",
                     "example": 2
                 },
                 "favorite_count": {
-                    "description": "收藏数",
+                    "description": "Favorite count | 收藏数",
                     "type": "integer",
                     "example": 10
                 },
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "is_essence": {
-                    "description": "是否精华帖",
+                    "description": "Whether essence post | 是否精华帖",
                     "type": "boolean",
                     "example": true
                 },
                 "is_pinned": {
-                    "description": "是否置顶",
+                    "description": "Whether pinned | 是否置顶",
                     "type": "boolean",
                     "example": false
                 },
                 "like_count": {
-                    "description": "点赞数",
+                    "description": "Like count | 点赞数",
                     "type": "integer",
                     "example": 25
                 },
+                "pin_scope": {
+                    "description": "Pin scope | 置顶范围：None、Home、Category、Global",
+                    "type": "string",
+                    "example": "None"
+                },
                 "publish_ip": {
-                    "description": "发布IP",
+                    "description": "Publish IP | 发布IP",
                     "type": "string",
                     "example": "192.168.1.1"
                 },
                 "status": {
-                    "description": "帖子状态",
+                    "description": "Post status | 帖子状态",
                     "type": "string",
                     "example": "Normal"
                 },
                 "title": {
-                    "description": "帖子标题",
+                    "description": "Post title | 帖子标题",
                     "type": "string",
                     "example": "技术分享帖"
                 },
                 "updated_at": {
-                    "description": "更新时间",
+                    "description": "Update time | 更新时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "user_id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 },
                 "username": {
-                    "description": "用户名",
+                    "description": "Username | 用户名",
                     "type": "string",
                     "example": "testuser"
                 },
                 "view_count": {
-                    "description": "浏览数",
+                    "description": "View count | 浏览数",
                     "type": "integer",
                     "example": 150
                 }
@@ -9186,22 +10774,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "list": {
-                    "description": "帖子列表",
+                    "description": "Post list | 帖子列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.PostListItem"
                     }
                 },
                 "page": {
-                    "description": "当前页码",
+                    "description": "Current page number | 当前页码",
                     "type": "integer"
                 },
                 "page_size": {
-                    "description": "每页数量",
+                    "description": "Items per page | 每页数量",
                     "type": "integer"
                 },
                 "total": {
-                    "description": "总数量",
+                    "description": "Total count | 总数量",
                     "type": "integer"
                 }
             }
@@ -9213,17 +10801,17 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "is_lock": {
-                    "description": "是否锁定",
+                    "description": "Whether locked | 是否锁定",
                     "type": "boolean",
                     "example": true
                 },
                 "reason": {
-                    "description": "操作原因",
+                    "description": "Operation reason | 操作原因",
                     "type": "string",
                     "example": "违规讨论"
                 }
@@ -9237,17 +10825,17 @@ const docTemplate = `{
             ],
             "properties": {
                 "category_id": {
-                    "description": "目标版块ID",
+                    "description": "Target category ID | 目标版块ID",
                     "type": "integer",
                     "example": 2
                 },
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "reason": {
-                    "description": "操作原因",
+                    "description": "Operation reason | 操作原因",
                     "type": "string",
                     "example": "内容更适合该版块"
                 }
@@ -9260,17 +10848,17 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "is_pin": {
-                    "description": "是否置顶",
+                    "description": "Whether pinned | 是否置顶",
                     "type": "boolean",
                     "example": true
                 },
                 "reason": {
-                    "description": "操作原因",
+                    "description": "Operation reason | 操作原因",
                     "type": "string",
                     "example": "重要公告"
                 }
@@ -9283,19 +10871,25 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "is_pinned": {
-                    "description": "是否置顶",
+                    "description": "Whether pinned | 是否置顶",
                     "type": "boolean",
                     "example": true
                 },
-                "reason": {
-                    "description": "操作原因",
+                "pin_scope": {
+                    "description": "Pin scope | 置顶范围：None、Home、Category、Global",
                     "type": "string",
-                    "example": "重要公告"
+                    "enum": [
+                        "None",
+                        "Home",
+                        "Category",
+                        "Global"
+                    ],
+                    "example": "Home"
                 }
             }
         },
@@ -9303,31 +10897,31 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "draft_posts": {
-                    "description": "草稿帖子数",
+                    "description": "Draft posts | 草稿帖子数",
                     "type": "integer"
                 },
                 "essence_posts": {
-                    "description": "精华帖子数",
+                    "description": "Essence posts | 精华帖子数",
                     "type": "integer"
                 },
                 "locked_posts": {
-                    "description": "被锁定帖子数",
+                    "description": "Locked posts | 被锁定帖子数",
                     "type": "integer"
                 },
                 "pinned_posts": {
-                    "description": "置顶帖子数",
+                    "description": "Pinned posts | 置顶帖子数",
                     "type": "integer"
                 },
                 "published_posts": {
-                    "description": "已发布帖子数",
+                    "description": "Published posts | 已发布帖子数",
                     "type": "integer"
                 },
                 "today_posts": {
-                    "description": "今日新增帖子数",
+                    "description": "New posts today | 今日新增帖子数",
                     "type": "integer"
                 },
                 "total_posts": {
-                    "description": "总帖子数",
+                    "description": "Total posts | 总帖子数",
                     "type": "integer"
                 }
             }
@@ -9340,17 +10934,17 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "reason": {
-                    "description": "操作原因",
+                    "description": "Operation reason | 操作原因",
                     "type": "string",
                     "example": "违规内容"
                 },
                 "status": {
-                    "description": "帖子状态",
+                    "description": "Post status | 帖子状态",
                     "type": "string",
                     "enum": [
                         "Normal",
@@ -9370,23 +10964,34 @@ const docTemplate = `{
             ],
             "properties": {
                 "content": {
-                    "description": "帖子内容",
+                    "description": "Post content | 帖子内容",
                     "type": "string",
                     "minLength": 10,
                     "example": "## 技术分享\n这是内容"
                 },
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
-                "read_permission": {
-                    "description": "阅读限制",
+                "read_permission_points": {
+                    "description": "Read permission points | 阅读所需积分",
+                    "type": "integer",
+                    "minimum": 0,
+                    "example": 0
+                },
+                "read_permission_type": {
+                    "description": "Read permission type | 阅读权限类型",
                     "type": "string",
-                    "example": "login"
+                    "enum": [
+                        "public",
+                        "login_required",
+                        "points"
+                    ],
+                    "example": "public"
                 },
                 "status": {
-                    "description": "帖子状态",
+                    "description": "Post status | 帖子状态",
                     "type": "string",
                     "enum": [
                         "Normal",
@@ -9398,64 +11003,11 @@ const docTemplate = `{
                     "example": "Normal"
                 },
                 "title": {
-                    "description": "帖子标题",
+                    "description": "Post title | 帖子标题",
                     "type": "string",
                     "maxLength": 200,
                     "minLength": 2,
                     "example": "技术分享帖"
-                }
-            }
-        },
-        "schema.PostgreSQLMetrics": {
-            "type": "object",
-            "properties": {
-                "cache": {
-                    "description": "缓存指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.PgCache"
-                        }
-                    ]
-                },
-                "connections": {
-                    "description": "连接指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.PgConnections"
-                        }
-                    ]
-                },
-                "database": {
-                    "description": "数据库指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.PgDatabase"
-                        }
-                    ]
-                },
-                "locks": {
-                    "description": "锁指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.PgLocks"
-                        }
-                    ]
-                },
-                "replication": {
-                    "description": "复制指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.PgReplication"
-                        }
-                    ]
-                },
-                "transaction": {
-                    "description": "事务指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.PgTransaction"
-                        }
-                    ]
                 }
             }
         },
@@ -9471,6 +11023,9 @@ const docTemplate = `{
                 "home": {
                     "$ref": "#/definitions/schema.HomeSettingsResponse"
                 },
+                "invitation_code": {
+                    "$ref": "#/definitions/schema.InvitationCodeSettingsResponse"
+                },
                 "routine": {
                     "$ref": "#/definitions/schema.RoutineSettingsResponse"
                 },
@@ -9479,6 +11034,9 @@ const docTemplate = `{
                 },
                 "seo": {
                     "$ref": "#/definitions/schema.SeoSettingsResponse"
+                },
+                "signin": {
+                    "$ref": "#/definitions/schema.SigninSettingsResponse"
                 }
             }
         },
@@ -9486,31 +11044,31 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "count": {
-                    "description": "统计数值",
+                    "description": "Statistical value | 统计数值",
                     "type": "integer"
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Created time | 创建时间",
                     "type": "string"
                 },
                 "post_id": {
-                    "description": "帖子ID（阅读榜）",
+                    "description": "Post ID (reading ranking) | 帖子ID（阅读榜）",
                     "type": "integer"
                 },
                 "post_title": {
-                    "description": "帖子标题（阅读榜）",
+                    "description": "Post title (reading ranking) | 帖子标题（阅读榜）",
                     "type": "string"
                 },
                 "rank": {
-                    "description": "排名",
+                    "description": "Rank | 排名",
                     "type": "integer"
                 },
                 "user_id": {
-                    "description": "用户ID（评论榜）",
+                    "description": "User ID (comment ranking) | 用户ID（评论榜）",
                     "type": "integer"
                 },
                 "username": {
-                    "description": "用户名（评论榜）",
+                    "description": "Username (comment ranking) | 用户名（评论榜）",
                     "type": "string"
                 }
             }
@@ -9519,21 +11077,21 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "new_users": {
-                    "description": "新用户",
+                    "description": "New users | 新用户",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.NewUser"
                     }
                 },
                 "recent_comments": {
-                    "description": "最近评论",
+                    "description": "Recent comments | 最近评论",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.RecentComment"
                     }
                 },
                 "recent_posts": {
-                    "description": "最近帖子",
+                    "description": "Recent posts | 最近帖子",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.RecentPost"
@@ -9545,32 +11103,32 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "avatar": {
-                    "description": "评论者头像",
+                    "description": "Commenter avatar | 评论者头像",
                     "type": "string",
                     "example": "https://example.com/avatar.png"
                 },
                 "content": {
-                    "description": "评论内容（截取前100字符）",
+                    "description": "Comment content (truncated to first 100 characters) | 评论内容（截取前100字符）",
                     "type": "string",
                     "example": "很有见地的评论"
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "id": {
-                    "description": "评论ID",
+                    "description": "Comment ID | 评论ID",
                     "type": "integer",
                     "example": 1
                 },
                 "post_title": {
-                    "description": "帖子标题",
+                    "description": "Post title | 帖子标题",
                     "type": "string",
                     "example": "技术分享帖"
                 },
                 "username": {
-                    "description": "评论者用户名",
+                    "description": "Commenter username | 评论者用户名",
                     "type": "string",
                     "example": "testuser"
                 }
@@ -9580,237 +11138,39 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "avatar": {
-                    "description": "作者头像",
+                    "description": "Author avatar | 作者头像",
                     "type": "string",
                     "example": "https://example.com/avatar.png"
                 },
                 "category_name": {
-                    "description": "版块名称",
+                    "description": "Category name | 版块名称",
                     "type": "string",
                     "example": "技术讨论"
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "title": {
-                    "description": "帖子标题",
+                    "description": "Post title | 帖子标题",
                     "type": "string",
                     "example": "技术分享帖"
                 },
+                "user_id": {
+                    "description": "Author ID | 作者 ID",
+                    "type": "integer",
+                    "example": 1
+                },
                 "username": {
-                    "description": "作者用户名",
+                    "description": "Author username | 作者用户名",
                     "type": "string",
                     "example": "testuser"
-                }
-            }
-        },
-        "schema.RedisConnections": {
-            "type": "object",
-            "properties": {
-                "blocked": {
-                    "description": "阻塞客户端数",
-                    "type": "integer"
-                },
-                "connected": {
-                    "description": "已连接客户端数",
-                    "type": "integer"
-                },
-                "max_clients": {
-                    "description": "最大客户端数",
-                    "type": "integer"
-                },
-                "rejected_conns": {
-                    "description": "拒绝连接数",
-                    "type": "integer"
-                },
-                "total_connections": {
-                    "description": "历史总连接数",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.RedisKeyspace": {
-            "type": "object",
-            "properties": {
-                "avg_ttl": {
-                    "description": "平均 TTL (ms)",
-                    "type": "integer"
-                },
-                "expires_keys": {
-                    "description": "设置过期的键数",
-                    "type": "integer"
-                },
-                "total_keys": {
-                    "description": "键总数",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.RedisMemory": {
-            "type": "object",
-            "properties": {
-                "fragmentation_ratio": {
-                    "description": "内存碎片率",
-                    "type": "number"
-                },
-                "max_memory": {
-                    "description": "最大内存 (bytes)",
-                    "type": "integer"
-                },
-                "usage_percent": {
-                    "description": "内存使用率",
-                    "type": "number"
-                },
-                "used": {
-                    "description": "已用内存 (bytes)",
-                    "type": "integer"
-                },
-                "used_peak": {
-                    "description": "内存峰值 (bytes)",
-                    "type": "integer"
-                },
-                "used_rss": {
-                    "description": "RSS 内存 (bytes)",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.RedisMetrics": {
-            "type": "object",
-            "properties": {
-                "connections": {
-                    "description": "连接指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.RedisConnections"
-                        }
-                    ]
-                },
-                "keyspace": {
-                    "description": "键空间指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.RedisKeyspace"
-                        }
-                    ]
-                },
-                "memory": {
-                    "description": "内存指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.RedisMemory"
-                        }
-                    ]
-                },
-                "operations": {
-                    "description": "操作指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.RedisOperations"
-                        }
-                    ]
-                },
-                "persistence": {
-                    "description": "持久化指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.RedisPersistence"
-                        }
-                    ]
-                },
-                "replication": {
-                    "description": "复制指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.RedisReplication"
-                        }
-                    ]
-                }
-            }
-        },
-        "schema.RedisOperations": {
-            "type": "object",
-            "properties": {
-                "evicted_keys": {
-                    "description": "驱逐键数",
-                    "type": "integer"
-                },
-                "expired_keys": {
-                    "description": "过期键数",
-                    "type": "integer"
-                },
-                "hit_rate": {
-                    "description": "命中率",
-                    "type": "number"
-                },
-                "hits": {
-                    "description": "命中次数",
-                    "type": "integer"
-                },
-                "misses": {
-                    "description": "未命中次数",
-                    "type": "integer"
-                },
-                "ops_per_sec": {
-                    "description": "每秒操作数",
-                    "type": "integer"
-                },
-                "total_commands": {
-                    "description": "命令总数",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.RedisPersistence": {
-            "type": "object",
-            "properties": {
-                "aof_current_size": {
-                    "description": "AOF 当前大小",
-                    "type": "integer"
-                },
-                "aof_enabled": {
-                    "description": "AOF 是否启用",
-                    "type": "boolean"
-                },
-                "aof_rewrite_in_prog": {
-                    "description": "AOF 重写是否进行中",
-                    "type": "boolean"
-                },
-                "rdb_changes_since": {
-                    "description": "上次保存后的变更数",
-                    "type": "integer"
-                },
-                "rdb_last_save_time": {
-                    "description": "上次 RDB 保存时间",
-                    "type": "integer"
-                }
-            }
-        },
-        "schema.RedisReplication": {
-            "type": "object",
-            "properties": {
-                "connected_slaves": {
-                    "description": "已连接从节点数",
-                    "type": "integer"
-                },
-                "master_last_io": {
-                    "description": "上次与主节点通信时间",
-                    "type": "integer"
-                },
-                "master_link_status": {
-                    "description": "主节点连接状态",
-                    "type": "string"
-                },
-                "role": {
-                    "description": "角色 (master/slave)",
-                    "type": "string"
                 }
             }
         },
@@ -9823,18 +11183,23 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "description": "邮箱",
+                    "description": "Email address | 邮箱",
                     "type": "string",
                     "example": "test@example.com"
                 },
+                "invitation_code": {
+                    "description": "Invitation code (optional, required when enabled) | 邀请码（可选，启用时必填）",
+                    "type": "string",
+                    "example": "abc123def456"
+                },
                 "password": {
-                    "description": "密码",
+                    "description": "Password | 密码",
                     "type": "string",
                     "minLength": 8,
                     "example": "password123"
                 },
                 "username": {
-                    "description": "用户名",
+                    "description": "Username | 用户名",
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 3,
@@ -9851,17 +11216,17 @@ const docTemplate = `{
             ],
             "properties": {
                 "code": {
-                    "description": "验证码",
+                    "description": "Verification code | 验证码",
                     "type": "string",
                     "example": "123456"
                 },
                 "email": {
-                    "description": "邮箱",
+                    "description": "Email address | 邮箱",
                     "type": "string",
                     "example": "test@example.com"
                 },
                 "new_password": {
-                    "description": "新密码",
+                    "description": "New password | 新密码",
                     "type": "string",
                     "minLength": 8,
                     "example": "newpass123"
@@ -9872,12 +11237,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "message": {
-                    "description": "提示信息",
+                    "description": "Notification message | 提示信息",
                     "type": "string",
                     "example": "密码重置成功"
                 },
                 "success": {
-                    "description": "是否成功",
+                    "description": "Whether successful | 是否成功",
                     "type": "boolean",
                     "example": true
                 }
@@ -9887,29 +11252,29 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "icp_record": {
-                    "description": "ICP备案号",
+                    "description": "ICP filing number | ICP备案号",
                     "type": "string",
                     "maxLength": 100,
                     "example": "京ICP备12345678号"
                 },
                 "is_close_copyright": {
-                    "description": "是否关闭版权信息显示",
+                    "description": "Whether to close copyright information display | 是否关闭版权信息显示",
                     "type": "boolean",
                     "example": false
                 },
                 "public_security_network": {
-                    "description": "公安联网备案号",
+                    "description": "Public security network filing number | 公安联网备案号",
                     "type": "string",
                     "maxLength": 100,
                     "example": "京公网安备11010802012345号"
                 },
                 "website_icon": {
-                    "description": "网站Icon URL",
+                    "description": "Website Icon URL | 网站Icon URL",
                     "type": "string",
                     "example": "https://example.com/icon.ico"
                 },
                 "website_logo": {
-                    "description": "网站Logo URL",
+                    "description": "Website Logo URL | 网站Logo URL",
                     "type": "string",
                     "example": "https://example.com/logo.png"
                 }
@@ -9919,27 +11284,27 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "icp_record": {
-                    "description": "ICP备案号",
+                    "description": "ICP filing number | ICP备案号",
                     "type": "string",
                     "example": "京ICP备12345678号"
                 },
                 "is_close_copyright": {
-                    "description": "是否关闭版权信息显示",
+                    "description": "Whether to close copyright information display | 是否关闭版权信息显示",
                     "type": "boolean",
                     "example": false
                 },
                 "public_security_network": {
-                    "description": "公安联网备案号",
+                    "description": "Public security network filing number | 公安联网备案号",
                     "type": "string",
                     "example": "京公网安备11010802012345号"
                 },
                 "website_icon": {
-                    "description": "网站Icon URL",
+                    "description": "Website Icon URL | 网站Icon URL",
                     "type": "string",
                     "example": "https://example.com/icon.ico"
                 },
                 "website_logo": {
-                    "description": "网站Logo URL",
+                    "description": "Website Logo URL | 网站Logo URL",
                     "type": "string",
                     "example": "https://example.com/logo.png"
                 }
@@ -9949,23 +11314,23 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "email_whitelist": {
-                    "description": "邮箱白名单（逗号分隔的域名）",
+                    "description": "Email whitelist (comma-separated domains) | 邮箱白名单（逗号分隔的域名）",
                     "type": "string",
                     "maxLength": 5000,
                     "example": "gmail.com,qq.com,163.com"
                 },
                 "is_close_register": {
-                    "description": "是否关闭注册",
+                    "description": "Whether to close registration | 是否关闭注册",
                     "type": "boolean",
                     "example": false
                 },
                 "is_enable_email_whitelist": {
-                    "description": "是否启用邮箱白名单",
+                    "description": "Whether to enable email whitelist | 是否启用邮箱白名单",
                     "type": "boolean",
                     "example": false
                 },
                 "verify_email": {
-                    "description": "是否需要验证邮箱",
+                    "description": "Whether email verification is required | 是否需要验证邮箱",
                     "type": "boolean",
                     "example": true
                 }
@@ -9975,22 +11340,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "email_whitelist": {
-                    "description": "邮箱白名单",
+                    "description": "Email whitelist | 邮箱白名单",
                     "type": "string",
                     "example": "gmail.com,qq.com,163.com"
                 },
                 "is_close_register": {
-                    "description": "是否关闭注册",
+                    "description": "Whether to close registration | 是否关闭注册",
                     "type": "boolean",
                     "example": false
                 },
                 "is_enable_email_whitelist": {
-                    "description": "是否启用邮箱白名单",
+                    "description": "Whether to enable email whitelist | 是否启用邮箱白名单",
                     "type": "boolean",
                     "example": false
                 },
                 "verify_email": {
-                    "description": "是否需要验证邮箱",
+                    "description": "Whether email verification is required | 是否需要验证邮箱",
                     "type": "boolean",
                     "example": true
                 }
@@ -10003,19 +11368,19 @@ const docTemplate = `{
             ],
             "properties": {
                 "website_description": {
-                    "description": "网站描述",
+                    "description": "Website description | 网站描述",
                     "type": "string",
                     "maxLength": 1000,
                     "example": "一个友好的在线社区论坛"
                 },
                 "website_keyword": {
-                    "description": "网站关键词",
+                    "description": "Website keywords | 网站关键词",
                     "type": "string",
                     "maxLength": 500,
                     "example": "论坛,社区,讨论"
                 },
                 "website_name": {
-                    "description": "网站名称",
+                    "description": "Website name | 网站名称",
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 1,
@@ -10027,17 +11392,17 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "website_description": {
-                    "description": "网站描述",
+                    "description": "Website description | 网站描述",
                     "type": "string",
                     "example": "一个友好的在线社区论坛"
                 },
                 "website_keyword": {
-                    "description": "网站关键词",
+                    "description": "Website keywords | 网站关键词",
                     "type": "string",
                     "example": "论坛,社区,讨论"
                 },
                 "website_name": {
-                    "description": "网站名称",
+                    "description": "Website name | 网站名称",
                     "type": "string",
                     "example": "PokeForum"
                 }
@@ -10047,37 +11412,37 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "avatar": {
-                    "description": "头像",
+                    "description": "Avatar | 头像",
                     "type": "string",
                     "example": "https://example.com/avatar.jpg"
                 },
                 "continuous_days": {
-                    "description": "连续签到天数",
+                    "description": "Continuous sign-in days | 连续签到天数",
                     "type": "integer",
                     "example": 30
                 },
                 "rank": {
-                    "description": "排名",
+                    "description": "Ranking | 排名",
                     "type": "integer",
                     "example": 1
                 },
                 "reward_points": {
-                    "description": "奖励积分（仅每日排行榜有此字段）",
+                    "description": "Reward points (only for daily ranking) | 奖励积分（仅每日排行榜有此字段）",
                     "type": "integer",
                     "example": 50
                 },
                 "total_days": {
-                    "description": "总签到天数",
+                    "description": "Total sign-in days | 总签到天数",
                     "type": "integer",
                     "example": 100
                 },
                 "user_id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1001
                 },
                 "username": {
-                    "description": "用户名",
+                    "description": "Username | 用户名",
                     "type": "string",
                     "example": "张三"
                 }
@@ -10087,14 +11452,14 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "list": {
-                    "description": "排行榜列表",
+                    "description": "Ranking list | 排行榜列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.SigninRankingItem"
                     }
                 },
                 "my_rank": {
-                    "description": "当前用户排名（从1开始，0表示未上榜）",
+                    "description": "Current user ranking (starting from 1, 0 means not ranked) | 当前用户排名（从1开始，0表示未上榜）",
                     "type": "integer",
                     "example": 5
                 }
@@ -10104,12 +11469,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "code": {
-                    "description": "响应状态码",
+                    "description": "Response status code | 响应状态码",
                     "type": "integer",
                     "example": 200
                 },
                 "data": {
-                    "description": "响应数据",
+                    "description": "Response data | 响应数据",
                     "allOf": [
                         {
                             "$ref": "#/definitions/schema.SigninResult"
@@ -10117,7 +11482,7 @@ const docTemplate = `{
                     ]
                 },
                 "message": {
-                    "description": "响应消息",
+                    "description": "Response message | 响应消息",
                     "type": "string",
                     "example": "签到成功"
                 }
@@ -10127,37 +11492,37 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "continuous_days": {
-                    "description": "连续签到天数",
+                    "description": "Continuous sign-in days | 连续签到天数",
                     "type": "integer",
                     "example": 5
                 },
                 "is_success": {
-                    "description": "是否签到成功",
+                    "description": "Whether sign-in successful | 是否签到成功",
                     "type": "boolean",
                     "example": true
                 },
                 "message": {
-                    "description": "提示信息",
+                    "description": "Notification message | 提示信息",
                     "type": "string",
                     "example": "签到成功！获得10积分，连续签到5天，继续加油！"
                 },
                 "rank": {
-                    "description": "当前排名（从1开始，0表示未上榜）",
+                    "description": "Current ranking (starting from 1, 0 means not ranked) | 当前排名（从1开始，0表示未上榜）",
                     "type": "integer",
                     "example": 1
                 },
                 "reward_experience": {
-                    "description": "获得的经验值奖励",
+                    "description": "Experience points reward earned | 获得的经验值奖励",
                     "type": "integer",
                     "example": 10
                 },
                 "reward_points": {
-                    "description": "获得的积分奖励",
+                    "description": "Points reward earned | 获得的积分奖励",
                     "type": "integer",
                     "example": 10
                 },
                 "total_days": {
-                    "description": "总签到天数",
+                    "description": "Total sign-in days | 总签到天数",
                     "type": "integer",
                     "example": 30
                 }
@@ -10170,47 +11535,47 @@ const docTemplate = `{
             ],
             "properties": {
                 "experience_reward": {
-                    "description": "经验值奖励比例",
+                    "description": "Experience reward ratio | 经验值奖励比例",
                     "type": "number",
                     "maximum": 10,
                     "minimum": 0,
                     "example": 1
                 },
                 "fixed_reward": {
-                    "description": "固定模式奖励积分",
+                    "description": "Fixed mode reward points | 固定模式奖励积分",
                     "type": "integer",
                     "maximum": 1000,
                     "minimum": 1,
                     "example": 10
                 },
                 "increment_base": {
-                    "description": "递增模式基础奖励",
+                    "description": "Increment mode base reward | 递增模式基础奖励",
                     "type": "integer",
                     "maximum": 1000,
                     "minimum": 1,
                     "example": 5
                 },
                 "increment_cycle": {
-                    "description": "递增周期（天数），超过此周期后重新开始递增",
+                    "description": "Increment cycle (days), restart increment after this period | 递增周期（天数），超过此周期后重新开始递增",
                     "type": "integer",
                     "maximum": 365,
                     "minimum": 1,
                     "example": 7
                 },
                 "increment_step": {
-                    "description": "递增模式步长",
+                    "description": "Increment mode step | 递增模式步长",
                     "type": "integer",
                     "maximum": 100,
                     "minimum": 1,
                     "example": 1
                 },
                 "is_enable": {
-                    "description": "是否启用签到功能",
+                    "description": "Whether to enable sign-in feature | 是否启用签到功能",
                     "type": "boolean",
                     "example": true
                 },
                 "mode": {
-                    "description": "签到模式：fixed、increment、random",
+                    "description": "Sign-in mode: fixed, increment, random | 签到模式：fixed、increment、random",
                     "type": "string",
                     "enum": [
                         "fixed",
@@ -10220,14 +11585,14 @@ const docTemplate = `{
                     "example": "fixed"
                 },
                 "random_max": {
-                    "description": "随机模式最大奖励",
+                    "description": "Random mode maximum reward | 随机模式最大奖励",
                     "type": "integer",
                     "maximum": 1000,
                     "minimum": 1,
                     "example": 20
                 },
                 "random_min": {
-                    "description": "随机模式最小奖励",
+                    "description": "Random mode minimum reward | 随机模式最小奖励",
                     "type": "integer",
                     "maximum": 1000,
                     "minimum": 1,
@@ -10239,47 +11604,47 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "experience_reward": {
-                    "description": "经验值奖励比例",
+                    "description": "Experience reward ratio | 经验值奖励比例",
                     "type": "number",
                     "example": 1
                 },
                 "fixed_reward": {
-                    "description": "固定模式奖励积分",
+                    "description": "Fixed mode reward points | 固定模式奖励积分",
                     "type": "integer",
                     "example": 10
                 },
                 "increment_base": {
-                    "description": "递增模式基础奖励",
+                    "description": "Increment mode base reward | 递增模式基础奖励",
                     "type": "integer",
                     "example": 5
                 },
                 "increment_cycle": {
-                    "description": "递增周期（天数），超过此周期后重新开始递增",
+                    "description": "Increment cycle (days), restart increment after this period | 递增周期（天数），超过此周期后重新开始递增",
                     "type": "integer",
                     "example": 7
                 },
                 "increment_step": {
-                    "description": "递增模式步长",
+                    "description": "Increment mode step | 递增模式步长",
                     "type": "integer",
                     "example": 1
                 },
                 "is_enable": {
-                    "description": "是否启用签到功能",
+                    "description": "Whether to enable sign-in feature | 是否启用签到功能",
                     "type": "boolean",
                     "example": true
                 },
                 "mode": {
-                    "description": "签到模式：fixed、increment、random",
+                    "description": "Sign-in mode: fixed, increment, random | 签到模式：fixed、increment、random",
                     "type": "string",
                     "example": "fixed"
                 },
                 "random_max": {
-                    "description": "随机模式最大奖励",
+                    "description": "Random mode maximum reward | 随机模式最大奖励",
                     "type": "integer",
                     "example": 20
                 },
                 "random_min": {
-                    "description": "随机模式最小奖励",
+                    "description": "Random mode minimum reward | 随机模式最小奖励",
                     "type": "integer",
                     "example": 5
                 }
@@ -10289,22 +11654,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "continuous_days": {
-                    "description": "连续签到天数",
+                    "description": "Continuous sign-in days | 连续签到天数",
                     "type": "integer",
                     "example": 4
                 },
                 "is_today_signed": {
-                    "description": "今日是否已签到",
+                    "description": "Whether signed in today | 今日是否已签到",
                     "type": "boolean",
                     "example": false
                 },
                 "last_signin_date": {
-                    "description": "最近签到日期",
+                    "description": "Last sign-in date | 最近签到日期",
                     "type": "string",
                     "example": "2025-11-13T10:30:00Z"
                 },
                 "total_days": {
-                    "description": "总签到天数",
+                    "description": "Total sign-in days | 总签到天数",
                     "type": "integer",
                     "example": 29
                 }
@@ -10317,71 +11682,51 @@ const docTemplate = `{
             ],
             "properties": {
                 "description": {
-                    "description": "描述",
+                    "description": "Description | 描述",
                     "type": "string",
                     "maxLength": 500,
                     "example": "这是一个友好的社区"
                 },
                 "image_url": {
-                    "description": "图片URL",
+                    "description": "Image URL | 图片URL",
                     "type": "string",
                     "example": "https://example.com/slide1.jpg"
                 },
                 "link_url": {
-                    "description": "链接URL",
+                    "description": "Link URL | 链接URL",
                     "type": "string",
                     "example": "https://example.com/article/1"
                 },
                 "title": {
-                    "description": "标题",
+                    "description": "Title | 标题",
                     "type": "string",
                     "maxLength": 100,
                     "example": "欢迎来到PokeForum"
                 }
             }
         },
-        "schema.SystemMetrics": {
+        "schema.SystemInfo": {
             "type": "object",
             "properties": {
-                "cpu": {
-                    "description": "CPU 指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.CPUMetrics"
-                        }
-                    ]
+                "go_version": {
+                    "description": "Go version | Go版本",
+                    "type": "string"
                 },
-                "disk": {
-                    "description": "磁盘指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.DiskMetrics"
-                        }
-                    ]
+                "mem_alloc": {
+                    "description": "Memory allocation | 内存分配",
+                    "type": "string"
                 },
-                "load": {
-                    "description": "负载指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.LoadMetrics"
-                        }
-                    ]
+                "mem_sys": {
+                    "description": "System memory | 系统内存",
+                    "type": "string"
                 },
-                "memory": {
-                    "description": "内存指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.MemoryMetrics"
-                        }
-                    ]
+                "num_cpu": {
+                    "description": "Number of CPU cores | CPU核心数",
+                    "type": "integer"
                 },
-                "network": {
-                    "description": "网络指标",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/schema.NetworkMetrics"
-                        }
-                    ]
+                "num_goroutine": {
+                    "description": "Number of goroutines | 协程数量",
+                    "type": "integer"
                 }
             }
         },
@@ -10389,27 +11734,27 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "database_size": {
-                    "description": "数据库大小（字节）",
+                    "description": "Database size (bytes) | 数据库大小（字节）",
                     "type": "integer"
                 },
                 "storage_used": {
-                    "description": "存储使用量（字节）",
+                    "description": "Storage used (bytes) | 存储使用量（字节）",
                     "type": "integer"
                 },
                 "today_likes": {
-                    "description": "今日点赞数",
+                    "description": "Today likes | 今日点赞数",
                     "type": "integer"
                 },
                 "today_views": {
-                    "description": "今日浏览量",
+                    "description": "Today views | 今日浏览量",
                     "type": "integer"
                 },
                 "total_likes": {
-                    "description": "总点赞数",
+                    "description": "Total likes | 总点赞数",
                     "type": "integer"
                 },
                 "total_views": {
-                    "description": "总浏览量",
+                    "description": "Total views | 总浏览量",
                     "type": "integer"
                 }
             }
@@ -10418,72 +11763,72 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "after_amount": {
-                    "description": "变动后数量",
+                    "description": "Amount after change | 变动后数量",
                     "type": "integer",
                     "example": 1100
                 },
                 "amount": {
-                    "description": "变动数量",
+                    "description": "Change amount | 变动数量",
                     "type": "integer",
                     "example": 100
                 },
                 "before_amount": {
-                    "description": "变动前数量",
+                    "description": "Amount before change | 变动前数量",
                     "type": "integer",
                     "example": 1000
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "id": {
-                    "description": "记录ID",
+                    "description": "Record ID | 记录ID",
                     "type": "integer",
                     "example": 1
                 },
                 "ip_address": {
-                    "description": "IP地址",
+                    "description": "IP address | IP地址",
                     "type": "string",
                     "example": "192.168.1.1"
                 },
                 "operator_id": {
-                    "description": "操作者ID",
+                    "description": "Operator ID | 操作者ID",
                     "type": "integer",
                     "example": 2
                 },
                 "operator_name": {
-                    "description": "操作者用户名",
+                    "description": "Operator username | 操作者用户名",
                     "type": "string",
                     "example": "admin"
                 },
                 "reason": {
-                    "description": "变动原因",
+                    "description": "Change reason | 变动原因",
                     "type": "string",
                     "example": "发帖奖励"
                 },
                 "related_id": {
-                    "description": "关联业务ID",
+                    "description": "Related business ID | 关联业务ID",
                     "type": "integer",
                     "example": 123
                 },
                 "related_type": {
-                    "description": "关联业务类型",
+                    "description": "Related business type | 关联业务类型",
                     "type": "string",
                     "example": "post"
                 },
                 "type": {
-                    "description": "变动类型",
+                    "description": "Change type | 变动类型",
                     "type": "string",
                     "example": "points"
                 },
                 "user_id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 },
                 "username": {
-                    "description": "用户名",
+                    "description": "Username | 用户名",
                     "type": "string",
                     "example": "testuser"
                 }
@@ -10493,22 +11838,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "list": {
-                    "description": "记录列表",
+                    "description": "Record list | 记录列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.UserBalanceLogItem"
                     }
                 },
                 "page": {
-                    "description": "当前页码",
+                    "description": "Current page number | 当前页码",
                     "type": "integer"
                 },
                 "page_size": {
-                    "description": "每页数量",
+                    "description": "Items per page | 每页数量",
                     "type": "integer"
                 },
                 "total": {
-                    "description": "总数量",
+                    "description": "Total count | 总数量",
                     "type": "integer"
                 }
             }
@@ -10517,42 +11862,42 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "current_currency": {
-                    "description": "当前货币",
+                    "description": "Current currency | 当前货币",
                     "type": "integer",
                     "example": 500
                 },
                 "current_points": {
-                    "description": "当前积分",
+                    "description": "Current points | 当前积分",
                     "type": "integer",
                     "example": 1000
                 },
                 "total_currency_in": {
-                    "description": "总货币收入",
+                    "description": "Total currency income | 总货币收入",
                     "type": "integer",
                     "example": 800
                 },
                 "total_currency_out": {
-                    "description": "总货币支出",
+                    "description": "Total currency expenses | 总货币支出",
                     "type": "integer",
                     "example": 300
                 },
                 "total_points_in": {
-                    "description": "总积分收入",
+                    "description": "Total points income | 总积分收入",
                     "type": "integer",
                     "example": 1500
                 },
                 "total_points_out": {
-                    "description": "总积分支出",
+                    "description": "Total points expenses | 总积分支出",
                     "type": "integer",
                     "example": 500
                 },
                 "user_id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 },
                 "username": {
-                    "description": "用户名",
+                    "description": "Username | 用户名",
                     "type": "string",
                     "example": "testuser"
                 }
@@ -10565,18 +11910,18 @@ const docTemplate = `{
             ],
             "properties": {
                 "duration": {
-                    "description": "封禁时长（秒），0表示永久封禁",
+                    "description": "Ban duration (seconds), 0 for permanent | 封禁时长（秒），0表示永久封禁",
                     "type": "integer",
                     "minimum": 0,
                     "example": 3600
                 },
                 "id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 },
                 "reason": {
-                    "description": "封禁原因",
+                    "description": "Ban reason | 封禁原因",
                     "type": "string",
                     "example": "违反社区规则"
                 }
@@ -10589,7 +11934,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "blocked_user_id": {
-                    "description": "被拉黑用户ID",
+                    "description": "Blocked user ID | 被拉黑用户ID",
                     "type": "integer",
                     "example": 2
                 }
@@ -10599,22 +11944,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "blocked_user_id": {
-                    "description": "被拉黑用户ID",
+                    "description": "Blocked user ID | 被拉黑用户ID",
                     "type": "integer",
                     "example": 2
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "id": {
-                    "description": "黑名单记录ID",
+                    "description": "Blacklist record ID | 黑名单记录ID",
                     "type": "integer",
                     "example": 1
                 },
                 "user_id": {
-                    "description": "执行拉黑的用户ID",
+                    "description": "User ID who performed the block | 执行拉黑的用户ID",
                     "type": "integer",
                     "example": 1
                 }
@@ -10624,27 +11969,27 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "blocked_avatar": {
-                    "description": "被拉黑用户头像",
+                    "description": "Blocked user avatar | 被拉黑用户头像",
                     "type": "string",
                     "example": "https://example.com/avatar.jpg"
                 },
                 "blocked_user_id": {
-                    "description": "被拉黑用户ID",
+                    "description": "Blocked user ID | 被拉黑用户ID",
                     "type": "integer",
                     "example": 2
                 },
                 "blocked_username": {
-                    "description": "被拉黑用户名",
+                    "description": "Blocked username | 被拉黑用户名",
                     "type": "string",
                     "example": "targetuser"
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "id": {
-                    "description": "黑名单记录ID",
+                    "description": "Blacklist record ID | 黑名单记录ID",
                     "type": "integer",
                     "example": 1
                 }
@@ -10654,26 +11999,26 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "list": {
-                    "description": "黑名单列表",
+                    "description": "Blacklist list | 黑名单列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.UserBlacklistItem"
                     }
                 },
                 "page": {
-                    "description": "当前页码",
+                    "description": "Current page number | 当前页码",
                     "type": "integer"
                 },
                 "page_size": {
-                    "description": "每页数量",
+                    "description": "Items per page | 每页数量",
                     "type": "integer"
                 },
                 "total": {
-                    "description": "总数量",
+                    "description": "Total count | 总数量",
                     "type": "integer"
                 },
                 "total_pages": {
-                    "description": "总页数",
+                    "description": "Total pages | 总页数",
                     "type": "integer"
                 }
             }
@@ -10685,7 +12030,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "blocked_user_id": {
-                    "description": "被拉黑用户ID",
+                    "description": "Blocked user ID | 被拉黑用户ID",
                     "type": "integer",
                     "example": 2
                 }
@@ -10695,7 +12040,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "message": {
-                    "description": "操作结果消息",
+                    "description": "Operation result message | 操作结果消息",
                     "type": "string",
                     "example": "移除黑名单成功"
                 }
@@ -10705,37 +12050,37 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "description": {
-                    "description": "版块描述",
+                    "description": "Category description | 版块描述",
                     "type": "string",
                     "example": "技术相关话题讨论区"
                 },
                 "icon": {
-                    "description": "版块图标",
+                    "description": "Category icon | 版块图标",
                     "type": "string",
                     "example": "https://example.com/icon.png"
                 },
                 "id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer",
                     "example": 1
                 },
                 "name": {
-                    "description": "版块名称",
+                    "description": "Category name | 版块名称",
                     "type": "string",
                     "example": "技术讨论"
                 },
                 "slug": {
-                    "description": "版块英文标识",
+                    "description": "Category slug | 版块英文标识",
                     "type": "string",
                     "example": "tech"
                 },
                 "weight": {
-                    "description": "权重排序",
+                    "description": "Sort weight | 权重排序",
                     "type": "integer",
                     "example": 0
                 }
@@ -10745,7 +12090,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "list": {
-                    "description": "版块列表",
+                    "description": "Category list | 版块列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.UserCategoryListItem"
@@ -10760,7 +12105,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "description": "评论ID",
+                    "description": "Comment ID | 评论ID",
                     "type": "integer",
                     "example": 1
                 }
@@ -10770,17 +12115,17 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "dislike_count": {
-                    "description": "点踩数",
+                    "description": "Dislike count | 点踩数",
                     "type": "integer",
                     "example": 1
                 },
                 "id": {
-                    "description": "评论ID",
+                    "description": "Comment ID | 评论ID",
                     "type": "integer",
                     "example": 1
                 },
                 "like_count": {
-                    "description": "点赞数",
+                    "description": "Like count | 点赞数",
                     "type": "integer",
                     "example": 10
                 }
@@ -10794,23 +12139,23 @@ const docTemplate = `{
             ],
             "properties": {
                 "content": {
-                    "description": "评论内容",
+                    "description": "Comment content | 评论内容",
                     "type": "string",
                     "minLength": 1,
                     "example": "很有见地的评论"
                 },
                 "parent_id": {
-                    "description": "父评论ID（回复评论时使用）",
+                    "description": "Parent comment ID (used when replying to comment) | 父评论ID（回复评论时使用）",
                     "type": "integer",
                     "example": 1
                 },
                 "post_id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "reply_to_user_id": {
-                    "description": "回复目标用户ID（回复用户时使用）",
+                    "description": "Reply target user ID (used when replying to user) | 回复目标用户ID（回复用户时使用）",
                     "type": "integer",
                     "example": 2
                 }
@@ -10820,47 +12165,47 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "content": {
-                    "description": "评论内容",
+                    "description": "Comment content | 评论内容",
                     "type": "string",
                     "example": "很有见地的评论"
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "dislike_count": {
-                    "description": "点踩数",
+                    "description": "Dislike count | 点踩数",
                     "type": "integer",
                     "example": 0
                 },
                 "id": {
-                    "description": "评论ID",
+                    "description": "Comment ID | 评论ID",
                     "type": "integer",
                     "example": 1
                 },
                 "like_count": {
-                    "description": "点赞数",
+                    "description": "Like count | 点赞数",
                     "type": "integer",
                     "example": 0
                 },
                 "parent_id": {
-                    "description": "父评论ID",
+                    "description": "Parent comment ID | 父评论ID",
                     "type": "integer",
                     "example": 1
                 },
                 "post_id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "reply_to_user_id": {
-                    "description": "回复目标用户ID",
+                    "description": "Reply target user ID | 回复目标用户ID",
                     "type": "integer",
                     "example": 2
                 },
                 "reply_to_username": {
-                    "description": "回复目标用户名",
+                    "description": "Reply target username | 回复目标用户名",
                     "type": "string",
                     "example": "targetuser"
                 }
@@ -10870,82 +12215,82 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "content": {
-                    "description": "评论内容",
+                    "description": "Comment content | 评论内容",
                     "type": "string",
                     "example": "很有见地的评论"
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "dislike_count": {
-                    "description": "点踩数",
+                    "description": "Dislike count | 点踩数",
                     "type": "integer",
                     "example": 1
                 },
                 "floor_number": {
-                    "description": "楼号",
+                    "description": "Floor number | 楼号",
                     "type": "integer",
                     "example": 1
                 },
                 "id": {
-                    "description": "评论ID",
+                    "description": "Comment ID | 评论ID",
                     "type": "integer",
                     "example": 1
                 },
                 "is_pinned": {
-                    "description": "是否置顶",
+                    "description": "Whether pinned | 是否置顶",
                     "type": "boolean",
                     "example": false
                 },
                 "is_selected": {
-                    "description": "是否精选",
+                    "description": "Whether selected | 是否精选",
                     "type": "boolean",
                     "example": true
                 },
                 "like_count": {
-                    "description": "点赞数",
+                    "description": "Like count | 点赞数",
                     "type": "integer",
                     "example": 10
                 },
                 "parent_id": {
-                    "description": "父评论ID",
+                    "description": "Parent comment ID | 父评论ID",
                     "type": "integer",
                     "example": 1
                 },
                 "reply_to_user_id": {
-                    "description": "回复目标用户ID",
+                    "description": "Reply target user ID | 回复目标用户ID",
                     "type": "integer",
                     "example": 2
                 },
                 "reply_to_username": {
-                    "description": "回复目标用户名",
+                    "description": "Reply target username | 回复目标用户名",
                     "type": "string",
                     "example": "targetuser"
                 },
                 "updated_at": {
-                    "description": "更新时间",
+                    "description": "Update time | 更新时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "user_disliked": {
-                    "description": "当前用户是否已点踩",
+                    "description": "Whether current user has disliked | 当前用户是否已点踩",
                     "type": "boolean",
                     "example": false
                 },
                 "user_id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 },
                 "user_liked": {
-                    "description": "当前用户是否已点赞",
+                    "description": "Whether current user has liked | 当前用户是否已点赞",
                     "type": "boolean",
                     "example": false
                 },
                 "username": {
-                    "description": "用户名",
+                    "description": "Username | 用户名",
                     "type": "string",
                     "example": "testuser"
                 }
@@ -10955,22 +12300,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "list": {
-                    "description": "评论列表",
+                    "description": "Comment list | 评论列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.UserCommentListItem"
                     }
                 },
                 "page": {
-                    "description": "当前页码",
+                    "description": "Current page number | 当前页码",
                     "type": "integer"
                 },
                 "page_size": {
-                    "description": "每页数量",
+                    "description": "Items per page | 每页数量",
                     "type": "integer"
                 },
                 "total": {
-                    "description": "总数量",
+                    "description": "Total count | 总数量",
                     "type": "integer"
                 }
             }
@@ -10983,13 +12328,13 @@ const docTemplate = `{
             ],
             "properties": {
                 "content": {
-                    "description": "评论内容",
+                    "description": "Comment content | 评论内容",
                     "type": "string",
                     "minLength": 1,
                     "example": "更新后的评论内容"
                 },
                 "id": {
-                    "description": "评论ID",
+                    "description": "Comment ID | 评论ID",
                     "type": "integer",
                     "example": 1
                 }
@@ -10999,17 +12344,17 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "content": {
-                    "description": "评论内容",
+                    "description": "Comment content | 评论内容",
                     "type": "string",
                     "example": "更新后的评论内容"
                 },
                 "id": {
-                    "description": "评论ID",
+                    "description": "Comment ID | 评论ID",
                     "type": "integer",
                     "example": 1
                 },
                 "updated_at": {
-                    "description": "更新时间",
+                    "description": "Update time | 更新时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 }
@@ -11025,28 +12370,28 @@ const docTemplate = `{
             ],
             "properties": {
                 "avatar": {
-                    "description": "头像URL",
+                    "description": "Avatar URL | 头像URL",
                     "type": "string",
                     "example": "https://example.com/avatar.jpg"
                 },
                 "email": {
-                    "description": "邮箱",
+                    "description": "Email | 邮箱",
                     "type": "string",
                     "example": "test@example.com"
                 },
                 "password": {
-                    "description": "密码",
+                    "description": "Password | 密码",
                     "type": "string",
                     "minLength": 8,
                     "example": "password123"
                 },
                 "readme": {
-                    "description": "README内容",
+                    "description": "README content | README内容",
                     "type": "string",
                     "example": "## 关于我\n这是我的README内容"
                 },
                 "role": {
-                    "description": "用户身份",
+                    "description": "User role | 用户身份",
                     "type": "string",
                     "enum": [
                         "User",
@@ -11057,12 +12402,12 @@ const docTemplate = `{
                     "example": "User"
                 },
                 "signature": {
-                    "description": "个性签名",
+                    "description": "Signature | 个性签名",
                     "type": "string",
                     "example": "这是我的个性签名"
                 },
                 "username": {
-                    "description": "用户名",
+                    "description": "Username | 用户名",
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 3,
@@ -11078,17 +12423,17 @@ const docTemplate = `{
             ],
             "properties": {
                 "currency": {
-                    "description": "货币变化量（正数为增加，负数为减少）",
+                    "description": "Currency change amount (positive for add, negative for subtract) | 货币变化量（正数为增加，负数为减少）",
                     "type": "integer",
                     "example": 50
                 },
                 "id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 },
                 "reason": {
-                    "description": "操作原因",
+                    "description": "Operation reason | 操作原因",
                     "type": "string",
                     "example": "发帖奖励"
                 }
@@ -11098,86 +12443,331 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "avatar": {
-                    "description": "头像URL",
+                    "description": "Avatar URL | 头像URL",
                     "type": "string",
                     "example": "https://example.com/avatar.jpg"
                 },
                 "comment_count": {
-                    "description": "评论数",
+                    "description": "Comment count | 评论数",
                     "type": "integer",
                     "example": 200
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "currency": {
-                    "description": "货币",
+                    "description": "Currency | 货币",
                     "type": "integer",
                     "example": 500
                 },
                 "email": {
-                    "description": "邮箱",
+                    "description": "Email | 邮箱",
                     "type": "string",
                     "example": "test@example.com"
                 },
                 "email_verified": {
-                    "description": "邮箱是否已验证",
+                    "description": "Whether email verified | 邮箱是否已验证",
                     "type": "boolean",
                     "example": true
                 },
                 "id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 },
                 "managed_categories": {
-                    "description": "管理的版块列表（仅版主显示）",
+                    "description": "Managed categories list (only shown for moderators) | 管理的版块列表（仅版主显示）",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.CategoryBasicInfo"
                     }
                 },
                 "points": {
-                    "description": "积分",
+                    "description": "Points | 积分",
                     "type": "integer",
                     "example": 1000
                 },
                 "post_count": {
-                    "description": "帖子数",
+                    "description": "Post count | 帖子数",
                     "type": "integer",
                     "example": 50
                 },
                 "readme": {
-                    "description": "README内容",
+                    "description": "README content | README内容",
                     "type": "string",
                     "example": "## 关于我\n这是我的README内容"
                 },
                 "role": {
-                    "description": "用户身份",
+                    "description": "User role | 用户身份",
                     "type": "string",
                     "example": "User"
                 },
                 "signature": {
-                    "description": "个性签名",
+                    "description": "Signature | 个性签名",
                     "type": "string",
                     "example": "这是我的个性签名"
                 },
                 "status": {
-                    "description": "用户状态",
+                    "description": "User status | 用户状态",
                     "type": "string",
                     "example": "Normal"
                 },
                 "updated_at": {
-                    "description": "更新时间",
+                    "description": "Update time | 更新时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "username": {
-                    "description": "用户名",
+                    "description": "Username | 用户名",
                     "type": "string",
                     "example": "testuser"
+                }
+            }
+        },
+        "schema.UserDraftDeleteRequest": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "description": "Draft ID | 草稿ID",
+                    "type": "integer"
+                }
+            }
+        },
+        "schema.UserFollowItem": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "type": "string",
+                    "example": "https://example.com/avatar.jpg"
+                },
+                "followed_at": {
+                    "type": "string",
+                    "example": "2024-01-20 12:00:00"
+                },
+                "is_following": {
+                    "description": "当前用户是否关注此人",
+                    "type": "boolean",
+                    "example": true
+                },
+                "is_mutual": {
+                    "description": "是否互相关注",
+                    "type": "boolean",
+                    "example": false
+                },
+                "signature": {
+                    "type": "string",
+                    "example": "这是个性签名"
+                },
+                "user_id": {
+                    "type": "integer",
+                    "example": 123
+                },
+                "username": {
+                    "type": "string",
+                    "example": "username"
+                }
+            }
+        },
+        "schema.UserFollowRequest": {
+            "type": "object",
+            "required": [
+                "following_id"
+            ],
+            "properties": {
+                "following_id": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 123
+                }
+            }
+        },
+        "schema.UserFollowResponse": {
+            "type": "object",
+            "properties": {
+                "following_id": {
+                    "type": "integer",
+                    "example": 123
+                },
+                "message": {
+                    "type": "string",
+                    "example": "关注成功"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "schema.UserFollowStatusResponse": {
+            "type": "object",
+            "properties": {
+                "is_follower": {
+                    "description": "目标用户是否关注当前用户",
+                    "type": "boolean",
+                    "example": false
+                },
+                "is_following": {
+                    "description": "当前用户是否关注目标用户",
+                    "type": "boolean",
+                    "example": true
+                },
+                "is_mutual": {
+                    "description": "是否互相关注",
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
+        "schema.UserFollowersResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.UserFollowItem"
+                    }
+                },
+                "page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "page_size": {
+                    "type": "integer",
+                    "example": 20
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 100
+                }
+            }
+        },
+        "schema.UserFollowingResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.UserFollowItem"
+                    }
+                },
+                "page": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "page_size": {
+                    "type": "integer",
+                    "example": 20
+                },
+                "total": {
+                    "type": "integer",
+                    "example": 50
+                }
+            }
+        },
+        "schema.UserInvitationCodeDetail": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "Invitation code | 邀请码",
+                    "type": "string",
+                    "example": "abc123def456"
+                },
+                "cost_amount": {
+                    "description": "Cost amount | 消耗数量",
+                    "type": "integer",
+                    "example": 0
+                },
+                "created_at": {
+                    "description": "Created at timestamp | 创建时间",
+                    "type": "string",
+                    "example": "2024-01-01 00:00:00"
+                },
+                "generation_mode": {
+                    "description": "Generation mode: direct, points, currency | 生成方式",
+                    "type": "string",
+                    "example": "direct"
+                },
+                "status": {
+                    "description": "Status: unused, used, disabled | 状态",
+                    "type": "string",
+                    "example": "unused"
+                },
+                "used_at": {
+                    "description": "Used at timestamp | 使用时间",
+                    "type": "string",
+                    "example": "2024-01-01 12:00:00"
+                }
+            }
+        },
+        "schema.UserInvitationCodeListData": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "description": "Invitation code list | 邀请码列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.UserInvitationCodeListItem"
+                    }
+                },
+                "page": {
+                    "description": "Current page number | 当前页码",
+                    "type": "integer",
+                    "example": 1
+                },
+                "page_size": {
+                    "description": "Items per page | 每页数量",
+                    "type": "integer",
+                    "example": 20
+                },
+                "total": {
+                    "description": "Total count | 总数量",
+                    "type": "integer",
+                    "example": 10
+                }
+            }
+        },
+        "schema.UserInvitationCodeListItem": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "Invitation code | 邀请码",
+                    "type": "string",
+                    "example": "abc123def456"
+                },
+                "cost_amount": {
+                    "description": "Cost amount | 消耗数量",
+                    "type": "integer",
+                    "example": 0
+                },
+                "created_at": {
+                    "description": "Created at timestamp | 创建时间",
+                    "type": "string",
+                    "example": "2024-01-01 00:00:00"
+                },
+                "generation_mode": {
+                    "description": "Generation mode: direct, points, currency | 生成方式",
+                    "type": "string",
+                    "example": "direct"
+                },
+                "id": {
+                    "description": "Invitation code ID | 邀请码ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "status": {
+                    "description": "Status: unused, used, disabled | 状态",
+                    "type": "string",
+                    "example": "unused"
+                },
+                "used_at": {
+                    "description": "Used at timestamp | 使用时间",
+                    "type": "string",
+                    "example": "2024-01-01 12:00:00"
                 }
             }
         },
@@ -11185,72 +12775,72 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "avatar": {
-                    "description": "头像URL",
+                    "description": "Avatar URL | 头像URL",
                     "type": "string",
                     "example": "https://example.com/avatar.jpg"
                 },
                 "comment_count": {
-                    "description": "评论数",
+                    "description": "Comment count | 评论数",
                     "type": "integer",
                     "example": 200
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "currency": {
-                    "description": "货币",
+                    "description": "Currency | 货币",
                     "type": "integer",
                     "example": 500
                 },
                 "email": {
-                    "description": "邮箱",
+                    "description": "Email | 邮箱",
                     "type": "string",
                     "example": "test@example.com"
                 },
                 "email_verified": {
-                    "description": "邮箱是否已验证",
+                    "description": "Whether email verified | 邮箱是否已验证",
                     "type": "boolean",
                     "example": true
                 },
                 "id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 },
                 "points": {
-                    "description": "积分",
+                    "description": "Points | 积分",
                     "type": "integer",
                     "example": 1000
                 },
                 "post_count": {
-                    "description": "帖子数",
+                    "description": "Post count | 帖子数",
                     "type": "integer",
                     "example": 50
                 },
                 "role": {
-                    "description": "用户身份",
+                    "description": "User role | 用户身份",
                     "type": "string",
                     "example": "User"
                 },
                 "signature": {
-                    "description": "个性签名",
+                    "description": "Signature | 个性签名",
                     "type": "string",
                     "example": "这是我的个性签名"
                 },
                 "status": {
-                    "description": "用户状态",
+                    "description": "User status | 用户状态",
                     "type": "string",
                     "example": "Normal"
                 },
                 "updated_at": {
-                    "description": "更新时间",
+                    "description": "Update time | 更新时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "username": {
-                    "description": "用户名",
+                    "description": "Username | 用户名",
                     "type": "string",
                     "example": "testuser"
                 }
@@ -11260,22 +12850,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "list": {
-                    "description": "用户列表",
+                    "description": "User list | 用户列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.UserListItem"
                     }
                 },
                 "page": {
-                    "description": "当前页码",
+                    "description": "Current page number | 当前页码",
                     "type": "integer"
                 },
                 "page_size": {
-                    "description": "每页数量",
+                    "description": "Items per page | 每页数量",
                     "type": "integer"
                 },
                 "total": {
-                    "description": "总数量",
+                    "description": "Total count | 总数量",
                     "type": "integer"
                 }
             }
@@ -11288,17 +12878,17 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 },
                 "points": {
-                    "description": "积分变化量（正数为增加，负数为减少）",
+                    "description": "Points change amount (positive for add, negative for subtract) | 积分变化量（正数为增加，负数为减少）",
                     "type": "integer",
                     "example": 100
                 },
                 "reason": {
-                    "description": "操作原因",
+                    "description": "Operation reason | 操作原因",
                     "type": "string",
                     "example": "活跃奖励"
                 }
@@ -11311,7 +12901,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer"
                 }
             }
@@ -11320,23 +12910,23 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "action_type": {
-                    "description": "操作类型",
+                    "description": "Action type | 操作类型",
                     "type": "string"
                 },
                 "dislike_count": {
-                    "description": "当前点踩数",
+                    "description": "Current dislike count | 当前点踩数",
                     "type": "integer"
                 },
                 "favorite_count": {
-                    "description": "当前收藏数",
+                    "description": "Current favorite count | 当前收藏数",
                     "type": "integer"
                 },
                 "like_count": {
-                    "description": "当前点赞数",
+                    "description": "Current like count | 当前点赞数",
                     "type": "integer"
                 },
                 "success": {
-                    "description": "操作成功",
+                    "description": "Operation success | 操作成功",
                     "type": "boolean"
                 }
             }
@@ -11350,20 +12940,34 @@ const docTemplate = `{
             ],
             "properties": {
                 "category_id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer"
                 },
                 "content": {
-                    "description": "帖子内容",
+                    "description": "Post content | 帖子内容",
                     "type": "string",
                     "minLength": 1
                 },
-                "read_permission": {
-                    "description": "阅读限制",
-                    "type": "string"
+                "id": {
+                    "description": "Post ID (optional, for updating draft) | 帖子ID（可选，用于更新草稿）",
+                    "type": "integer"
+                },
+                "read_permission_points": {
+                    "description": "Read permission points (required when type is points) | 阅读所需积分（当类型为points时必填）",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "read_permission_type": {
+                    "description": "Read permission type: public, login_required, points | 阅读权限类型：public(公开)、login_required(登录可见)、points(积分可见)",
+                    "type": "string",
+                    "enum": [
+                        "public",
+                        "login_required",
+                        "points"
+                    ]
                 },
                 "title": {
-                    "description": "帖子标题",
+                    "description": "Post title | 帖子标题",
                     "type": "string",
                     "maxLength": 200,
                     "minLength": 1
@@ -11373,76 +12977,92 @@ const docTemplate = `{
         "schema.UserPostCreateResponse": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "description": "Author avatar | 作者头像",
+                    "type": "string"
+                },
                 "category_id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer"
                 },
                 "category_name": {
-                    "description": "版块名称",
+                    "description": "Category name | 版块名称",
                     "type": "string"
                 },
                 "content": {
-                    "description": "帖子内容",
+                    "description": "Post content | 帖子内容",
                     "type": "string"
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string"
                 },
                 "dislike_count": {
-                    "description": "点踩数",
+                    "description": "Dislike count | 点踩数",
                     "type": "integer"
                 },
                 "favorite_count": {
-                    "description": "收藏数",
+                    "description": "Favorite count | 收藏数",
                     "type": "integer"
                 },
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer"
                 },
                 "is_essence": {
-                    "description": "是否精华帖",
+                    "description": "Whether essence post | 是否精华帖",
                     "type": "boolean"
                 },
                 "is_pinned": {
-                    "description": "是否置顶",
+                    "description": "Whether pinned | 是否置顶",
                     "type": "boolean"
                 },
                 "like_count": {
-                    "description": "点赞数",
+                    "description": "Like count | 点赞数",
                     "type": "integer"
                 },
-                "read_permission": {
-                    "description": "阅读限制",
+                "read_permission_points": {
+                    "description": "Read permission points (when type is points) | 阅读所需积分",
+                    "type": "integer"
+                },
+                "read_permission_type": {
+                    "description": "Read permission type: public, login_required, points | 阅读权限类型",
                     "type": "string"
                 },
                 "status": {
-                    "description": "帖子状态",
+                    "description": "Post status | 帖子状态",
                     "type": "string"
                 },
                 "title": {
-                    "description": "帖子标题",
+                    "description": "Post title | 帖子标题",
                     "type": "string"
                 },
                 "updated_at": {
-                    "description": "更新时间",
+                    "description": "Update time | 更新时间",
                     "type": "string"
                 },
                 "user_disliked": {
-                    "description": "当前用户是否已点踩",
+                    "description": "Whether current user has disliked | 当前用户是否已点踩",
                     "type": "boolean"
                 },
+                "user_favorited": {
+                    "description": "Whether current user has favorited | 当前用户是否已收藏",
+                    "type": "boolean"
+                },
+                "user_id": {
+                    "description": "Author ID | 作者 ID",
+                    "type": "integer"
+                },
                 "user_liked": {
-                    "description": "当前用户是否已点赞",
+                    "description": "Whether current user has liked | 当前用户是否已点赞",
                     "type": "boolean"
                 },
                 "username": {
-                    "description": "作者用户名",
+                    "description": "Author username | 作者用户名",
                     "type": "string"
                 },
                 "view_count": {
-                    "description": "浏览数",
+                    "description": "View count | 浏览数",
                     "type": "integer"
                 }
             }
@@ -11450,80 +13070,92 @@ const docTemplate = `{
         "schema.UserPostDetailResponse": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "description": "Author avatar | 作者头像",
+                    "type": "string"
+                },
                 "category_id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer"
                 },
                 "category_name": {
-                    "description": "版块名称",
+                    "description": "Category name | 版块名称",
                     "type": "string"
                 },
                 "content": {
-                    "description": "帖子内容",
+                    "description": "Post content | 帖子内容",
                     "type": "string"
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string"
                 },
                 "dislike_count": {
-                    "description": "点踩数",
+                    "description": "Dislike count | 点踩数",
                     "type": "integer"
                 },
                 "favorite_count": {
-                    "description": "收藏数",
+                    "description": "Favorite count | 收藏数",
                     "type": "integer"
                 },
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer"
                 },
                 "is_essence": {
-                    "description": "是否精华帖",
+                    "description": "Whether essence post | 是否精华帖",
                     "type": "boolean"
                 },
                 "is_pinned": {
-                    "description": "是否置顶",
+                    "description": "Whether pinned | 是否置顶",
                     "type": "boolean"
                 },
                 "like_count": {
-                    "description": "点赞数",
+                    "description": "Like count | 点赞数",
                     "type": "integer"
                 },
-                "read_permission": {
-                    "description": "阅读限制",
+                "read_permission_points": {
+                    "description": "Read permission points (when type is points) | 阅读所需积分",
+                    "type": "integer"
+                },
+                "read_permission_type": {
+                    "description": "Read permission type: public, login_required, points | 阅读权限类型",
                     "type": "string"
                 },
                 "status": {
-                    "description": "帖子状态",
+                    "description": "Post status | 帖子状态",
                     "type": "string"
                 },
                 "title": {
-                    "description": "帖子标题",
+                    "description": "Post title | 帖子标题",
                     "type": "string"
                 },
                 "updated_at": {
-                    "description": "更新时间",
+                    "description": "Update time | 更新时间",
                     "type": "string"
                 },
                 "user_disliked": {
-                    "description": "当前用户是否已点踩",
+                    "description": "Whether current user has disliked | 当前用户是否已点踩",
+                    "type": "boolean"
+                },
+                "user_favorited": {
+                    "description": "Whether current user has favorited | 当前用户是否已收藏",
                     "type": "boolean"
                 },
                 "user_id": {
-                    "description": "作者 ID",
+                    "description": "Author ID | 作者 ID",
                     "type": "integer"
                 },
                 "user_liked": {
-                    "description": "当前用户是否已点赞",
+                    "description": "Whether current user has liked | 当前用户是否已点赞",
                     "type": "boolean"
                 },
                 "username": {
-                    "description": "作者用户名",
+                    "description": "Author username | 作者用户名",
                     "type": "string"
                 },
                 "view_count": {
-                    "description": "浏览数",
+                    "description": "View count | 浏览数",
                     "type": "integer"
                 }
             }
@@ -11532,26 +13164,33 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "page": {
-                    "description": "当前页码",
+                    "description": "Current page number | 当前页码",
                     "type": "integer"
                 },
                 "page_size": {
-                    "description": "每页数量",
+                    "description": "Items per page | 每页数量",
                     "type": "integer"
                 },
+                "pinned_posts": {
+                    "description": "Pinned posts list | 置顶帖子列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.UserPostCreateResponse"
+                    }
+                },
                 "posts": {
-                    "description": "帖子列表",
+                    "description": "Post list | 帖子列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.UserPostCreateResponse"
                     }
                 },
                 "total": {
-                    "description": "总数",
+                    "description": "Total count | 总数",
                     "type": "integer"
                 },
                 "total_pages": {
-                    "description": "总页数",
+                    "description": "Total pages | 总页数",
                     "type": "integer"
                 }
             }
@@ -11565,20 +13204,30 @@ const docTemplate = `{
             ],
             "properties": {
                 "content": {
-                    "description": "帖子内容",
+                    "description": "Post content | 帖子内容",
                     "type": "string",
                     "minLength": 1
                 },
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer"
                 },
-                "read_permission": {
-                    "description": "阅读限制",
-                    "type": "string"
+                "read_permission_points": {
+                    "description": "Read permission points (required when type is points) | 阅读所需积分（当类型为points时必填）",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "read_permission_type": {
+                    "description": "Read permission type: public, login_required, points | 阅读权限类型：public(公开)、login_required(登录可见)、points(积分可见)",
+                    "type": "string",
+                    "enum": [
+                        "public",
+                        "login_required",
+                        "points"
+                    ]
                 },
                 "title": {
-                    "description": "帖子标题",
+                    "description": "Post title | 帖子标题",
                     "type": "string",
                     "maxLength": 200,
                     "minLength": 1
@@ -11588,76 +13237,92 @@ const docTemplate = `{
         "schema.UserPostUpdateResponse": {
             "type": "object",
             "properties": {
+                "avatar": {
+                    "description": "Author avatar | 作者头像",
+                    "type": "string"
+                },
                 "category_id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer"
                 },
                 "category_name": {
-                    "description": "版块名称",
+                    "description": "Category name | 版块名称",
                     "type": "string"
                 },
                 "content": {
-                    "description": "帖子内容",
+                    "description": "Post content | 帖子内容",
                     "type": "string"
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string"
                 },
                 "dislike_count": {
-                    "description": "点踩数",
+                    "description": "Dislike count | 点踩数",
                     "type": "integer"
                 },
                 "favorite_count": {
-                    "description": "收藏数",
+                    "description": "Favorite count | 收藏数",
                     "type": "integer"
                 },
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer"
                 },
                 "is_essence": {
-                    "description": "是否精华帖",
+                    "description": "Whether essence post | 是否精华帖",
                     "type": "boolean"
                 },
                 "is_pinned": {
-                    "description": "是否置顶",
+                    "description": "Whether pinned | 是否置顶",
                     "type": "boolean"
                 },
                 "like_count": {
-                    "description": "点赞数",
+                    "description": "Like count | 点赞数",
                     "type": "integer"
                 },
-                "read_permission": {
-                    "description": "阅读限制",
+                "read_permission_points": {
+                    "description": "Read permission points (when type is points) | 阅读所需积分",
+                    "type": "integer"
+                },
+                "read_permission_type": {
+                    "description": "Read permission type: public, login_required, points | 阅读权限类型",
                     "type": "string"
                 },
                 "status": {
-                    "description": "帖子状态",
+                    "description": "Post status | 帖子状态",
                     "type": "string"
                 },
                 "title": {
-                    "description": "帖子标题",
+                    "description": "Post title | 帖子标题",
                     "type": "string"
                 },
                 "updated_at": {
-                    "description": "更新时间",
+                    "description": "Update time | 更新时间",
                     "type": "string"
                 },
                 "user_disliked": {
-                    "description": "当前用户是否已点踩",
+                    "description": "Whether current user has disliked | 当前用户是否已点踩",
                     "type": "boolean"
                 },
+                "user_favorited": {
+                    "description": "Whether current user has favorited | 当前用户是否已收藏",
+                    "type": "boolean"
+                },
+                "user_id": {
+                    "description": "Author ID | 作者 ID",
+                    "type": "integer"
+                },
                 "user_liked": {
-                    "description": "当前用户是否已点赞",
+                    "description": "Whether current user has liked | 当前用户是否已点赞",
                     "type": "boolean"
                 },
                 "username": {
-                    "description": "作者用户名",
+                    "description": "Author username | 作者用户名",
                     "type": "string"
                 },
                 "view_count": {
-                    "description": "浏览数",
+                    "description": "View count | 浏览数",
                     "type": "integer"
                 }
             }
@@ -11666,37 +13331,37 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "content": {
-                    "description": "评论内容",
+                    "description": "Comment content | 评论内容",
                     "type": "string",
                     "example": "很有见地的评论"
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "dislike_count": {
-                    "description": "点踩数",
+                    "description": "Dislike count | 点踩数",
                     "type": "integer",
                     "example": 1
                 },
                 "id": {
-                    "description": "评论ID",
+                    "description": "Comment ID | 评论ID",
                     "type": "integer",
                     "example": 1
                 },
                 "like_count": {
-                    "description": "点赞数",
+                    "description": "Like count | 点赞数",
                     "type": "integer",
                     "example": 10
                 },
                 "post_id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "post_title": {
-                    "description": "帖子标题",
+                    "description": "Post title | 帖子标题",
                     "type": "string",
                     "example": "我的第一个帖子"
                 }
@@ -11706,22 +13371,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "list": {
-                    "description": "评论列表",
+                    "description": "Comment list | 评论列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.UserProfileCommentItem"
                     }
                 },
                 "page": {
-                    "description": "当前页码",
+                    "description": "Current page number | 当前页码",
                     "type": "integer"
                 },
                 "page_size": {
-                    "description": "每页数量",
+                    "description": "Items per page | 每页数量",
                     "type": "integer"
                 },
                 "total": {
-                    "description": "总数量",
+                    "description": "Total count | 总数量",
                     "type": "integer"
                 }
             }
@@ -11730,52 +13395,52 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "category_id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer",
                     "example": 1
                 },
                 "category_name": {
-                    "description": "版块名称",
+                    "description": "Category name | 版块名称",
                     "type": "string",
                     "example": "技术讨论"
                 },
                 "created_at": {
-                    "description": "帖子创建时间",
+                    "description": "Post creation time | 帖子创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "favorite_count": {
-                    "description": "收藏数",
+                    "description": "Favorite count | 收藏数",
                     "type": "integer",
                     "example": 5
                 },
                 "favorited_at": {
-                    "description": "收藏时间",
+                    "description": "Favorite time | 收藏时间",
                     "type": "string",
                     "example": "2024-01-02 00:00:00"
                 },
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "like_count": {
-                    "description": "点赞数",
+                    "description": "Like count | 点赞数",
                     "type": "integer",
                     "example": 10
                 },
                 "title": {
-                    "description": "帖子标题",
+                    "description": "Post title | 帖子标题",
                     "type": "string",
                     "example": "我的第一个帖子"
                 },
                 "username": {
-                    "description": "作者用户名",
+                    "description": "Author username | 作者用户名",
                     "type": "string",
                     "example": "testuser"
                 },
                 "view_count": {
-                    "description": "浏览数",
+                    "description": "View count | 浏览数",
                     "type": "integer",
                     "example": 100
                 }
@@ -11785,22 +13450,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "list": {
-                    "description": "收藏列表",
+                    "description": "Favorite list | 收藏列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.UserProfileFavoriteItem"
                     }
                 },
                 "page": {
-                    "description": "当前页码",
+                    "description": "Current page number | 当前页码",
                     "type": "integer"
                 },
                 "page_size": {
-                    "description": "每页数量",
+                    "description": "Items per page | 每页数量",
                     "type": "integer"
                 },
                 "total": {
-                    "description": "总数量",
+                    "description": "Total count | 总数量",
                     "type": "integer"
                 }
             }
@@ -11809,72 +13474,82 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "avatar": {
-                    "description": "头像URL",
+                    "description": "Avatar URL | 头像URL",
                     "type": "string",
                     "example": "https://example.com/avatar.jpg"
                 },
                 "comment_count": {
-                    "description": "评论数",
+                    "description": "Comment count | 评论数",
                     "type": "integer",
                     "example": 20
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "currency": {
-                    "description": "货币",
+                    "description": "Currency | 货币",
                     "type": "integer",
                     "example": 50
                 },
                 "email": {
-                    "description": "邮箱",
+                    "description": "Email | 邮箱",
                     "type": "string",
                     "example": "test@example.com"
                 },
                 "email_verified": {
-                    "description": "邮箱是否已验证",
+                    "description": "Whether email verified | 邮箱是否已验证",
                     "type": "boolean",
                     "example": true
                 },
+                "followers_count": {
+                    "description": "Followers count | 粉丝数",
+                    "type": "integer",
+                    "example": 30
+                },
+                "following_count": {
+                    "description": "Following count | 关注数",
+                    "type": "integer",
+                    "example": 25
+                },
                 "id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 },
                 "points": {
-                    "description": "积分",
+                    "description": "Points | 积分",
                     "type": "integer",
                     "example": 100
                 },
                 "post_count": {
-                    "description": "帖子数",
+                    "description": "Post count | 帖子数",
                     "type": "integer",
                     "example": 10
                 },
                 "readme": {
-                    "description": "README",
+                    "description": "README | README",
                     "type": "string",
                     "example": "# 关于我\n这是我的自我介绍"
                 },
                 "role": {
-                    "description": "用户身份",
+                    "description": "User role | 用户身份",
                     "type": "string",
                     "example": "User"
                 },
                 "signature": {
-                    "description": "签名",
+                    "description": "Signature | 签名",
                     "type": "string",
                     "example": "这是我的个性签名"
                 },
                 "status": {
-                    "description": "用户状态",
+                    "description": "User status | 用户状态",
                     "type": "string",
                     "example": "Normal"
                 },
                 "username": {
-                    "description": "用户名",
+                    "description": "Username | 用户名",
                     "type": "string",
                     "example": "testuser"
                 }
@@ -11884,62 +13559,62 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "category_id": {
-                    "description": "版块ID",
+                    "description": "Category ID | 版块ID",
                     "type": "integer",
                     "example": 1
                 },
                 "category_name": {
-                    "description": "版块名称",
+                    "description": "Category name | 版块名称",
                     "type": "string",
                     "example": "技术讨论"
                 },
                 "created_at": {
-                    "description": "创建时间",
+                    "description": "Creation time | 创建时间",
                     "type": "string",
                     "example": "2024-01-01 00:00:00"
                 },
                 "dislike_count": {
-                    "description": "点踩数",
+                    "description": "Dislike count | 点踩数",
                     "type": "integer",
                     "example": 1
                 },
                 "favorite_count": {
-                    "description": "收藏数",
+                    "description": "Favorite count | 收藏数",
                     "type": "integer",
                     "example": 5
                 },
                 "id": {
-                    "description": "帖子ID",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer",
                     "example": 1
                 },
                 "is_essence": {
-                    "description": "是否精华帖",
+                    "description": "Whether essence post | 是否精华帖",
                     "type": "boolean",
                     "example": false
                 },
                 "is_pinned": {
-                    "description": "是否置顶",
+                    "description": "Whether pinned | 是否置顶",
                     "type": "boolean",
                     "example": false
                 },
                 "like_count": {
-                    "description": "点赞数",
+                    "description": "Like count | 点赞数",
                     "type": "integer",
                     "example": 10
                 },
                 "status": {
-                    "description": "帖子状态",
+                    "description": "Post status | 帖子状态",
                     "type": "string",
                     "example": "Normal"
                 },
                 "title": {
-                    "description": "帖子标题",
+                    "description": "Post title | 帖子标题",
                     "type": "string",
                     "example": "我的第一个帖子"
                 },
                 "view_count": {
-                    "description": "浏览数",
+                    "description": "View count | 浏览数",
                     "type": "integer",
                     "example": 100
                 }
@@ -11949,22 +13624,22 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "list": {
-                    "description": "帖子列表",
+                    "description": "Post list | 帖子列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.UserProfilePostItem"
                     }
                 },
                 "page": {
-                    "description": "当前页码",
+                    "description": "Current page number | 当前页码",
                     "type": "integer"
                 },
                 "page_size": {
-                    "description": "每页数量",
+                    "description": "Items per page | 每页数量",
                     "type": "integer"
                 },
                 "total": {
-                    "description": "总数量",
+                    "description": "Total count | 总数量",
                     "type": "integer"
                 }
             }
@@ -11973,34 +13648,34 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "items": {
-                    "description": "排行榜项目列表",
+                    "description": "Ranking item list | 排行榜项目列表",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/schema.RankingItem"
                     }
                 },
                 "page": {
-                    "description": "当前页码",
+                    "description": "Current page number | 当前页码",
                     "type": "integer"
                 },
                 "page_size": {
-                    "description": "每页数量",
+                    "description": "Items per page | 每页数量",
                     "type": "integer"
                 },
                 "time_range": {
-                    "description": "时间范围",
+                    "description": "Time range | 时间范围",
                     "type": "string"
                 },
                 "total": {
-                    "description": "总数量",
+                    "description": "Total count | 总数量",
                     "type": "integer"
                 },
                 "total_pages": {
-                    "description": "总页数",
+                    "description": "Total pages | 总页数",
                     "type": "integer"
                 },
                 "type": {
-                    "description": "排行榜类型",
+                    "description": "Ranking type | 排行榜类型",
                     "type": "string"
                 }
             }
@@ -12009,17 +13684,17 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "email": {
-                    "description": "用户邮箱",
+                    "description": "User email | 用户邮箱",
                     "type": "string",
                     "example": "test@example.com"
                 },
                 "id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 },
                 "username": {
-                    "description": "用户名",
+                    "description": "Username | 用户名",
                     "type": "string",
                     "example": "testuser"
                 }
@@ -12033,17 +13708,17 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 },
                 "reason": {
-                    "description": "操作原因",
+                    "description": "Operation reason | 操作原因",
                     "type": "string",
                     "example": "权限调整"
                 },
                 "role": {
-                    "description": "用户身份",
+                    "description": "User role | 用户身份",
                     "type": "string",
                     "enum": [
                         "User",
@@ -12059,27 +13734,27 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "active_users": {
-                    "description": "活跃用户数（30天内登录）",
+                    "description": "Active users (logged in within 30 days) | 活跃用户数（30天内登录）",
                     "type": "integer"
                 },
                 "banned_users": {
-                    "description": "被封禁用户数",
+                    "description": "Banned users | 被封禁用户数",
                     "type": "integer"
                 },
                 "moderator_count": {
-                    "description": "版主数量",
+                    "description": "Moderator count | 版主数量",
                     "type": "integer"
                 },
                 "new_users": {
-                    "description": "新增用户数（今日）",
+                    "description": "New users (today) | 新增用户数（今日）",
                     "type": "integer"
                 },
                 "online_users": {
-                    "description": "在线用户数",
+                    "description": "Online users | 在线用户数",
                     "type": "integer"
                 },
                 "total_users": {
-                    "description": "总用户数",
+                    "description": "Total users | 总用户数",
                     "type": "integer"
                 }
             }
@@ -12092,23 +13767,22 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 },
                 "reason": {
-                    "description": "操作原因",
+                    "description": "Operation reason | 操作原因",
                     "type": "string",
                     "example": "违反社区规则"
                 },
                 "status": {
-                    "description": "用户状态",
+                    "description": "User status | 用户状态",
                     "type": "string",
                     "enum": [
                         "Normal",
                         "Mute",
-                        "Blocked",
-                        "RiskControl"
+                        "Blocked"
                     ],
                     "example": "Normal"
                 }
@@ -12121,14 +13795,31 @@ const docTemplate = `{
             ],
             "properties": {
                 "id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 },
                 "reason": {
-                    "description": "解封原因",
+                    "description": "Unban reason | 解封原因",
                     "type": "string",
                     "example": "申诉通过"
+                }
+            }
+        },
+        "schema.UserUnfollowResponse": {
+            "type": "object",
+            "properties": {
+                "following_id": {
+                    "type": "integer",
+                    "example": 123
+                },
+                "message": {
+                    "type": "string",
+                    "example": "取消关注成功"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -12139,7 +13830,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "avatar_url": {
-                    "description": "头像URL",
+                    "description": "Avatar URL | 头像URL",
                     "type": "string",
                     "example": "https://example.com/avatar.jpg"
                 }
@@ -12149,12 +13840,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "avatar_url": {
-                    "description": "新的头像URL",
+                    "description": "New avatar URL | 新的头像URL",
                     "type": "string",
                     "example": "https://example.com/avatar.jpg"
                 },
                 "success": {
-                    "description": "是否成功",
+                    "description": "Whether successful | 是否成功",
                     "type": "boolean",
                     "example": true
                 }
@@ -12168,14 +13859,14 @@ const docTemplate = `{
             ],
             "properties": {
                 "new_password": {
-                    "description": "新密码",
+                    "description": "New password | 新密码",
                     "type": "string",
                     "maxLength": 64,
                     "minLength": 6,
                     "example": "newpass123"
                 },
                 "old_password": {
-                    "description": "旧密码",
+                    "description": "Old password | 旧密码",
                     "type": "string",
                     "maxLength": 64,
                     "minLength": 6,
@@ -12187,12 +13878,12 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "message": {
-                    "description": "提示信息",
+                    "description": "Notification message | 提示信息",
                     "type": "string",
                     "example": "密码修改成功，请重新登录"
                 },
                 "success": {
-                    "description": "是否成功",
+                    "description": "Whether successful | 是否成功",
                     "type": "boolean",
                     "example": true
                 }
@@ -12205,32 +13896,32 @@ const docTemplate = `{
             ],
             "properties": {
                 "avatar": {
-                    "description": "头像URL",
+                    "description": "Avatar URL | 头像URL",
                     "type": "string",
                     "example": "https://example.com/avatar.jpg"
                 },
                 "email": {
-                    "description": "邮箱",
+                    "description": "Email | 邮箱",
                     "type": "string",
                     "example": "test@example.com"
                 },
                 "id": {
-                    "description": "用户ID",
+                    "description": "User ID | 用户ID",
                     "type": "integer",
                     "example": 1
                 },
                 "readme": {
-                    "description": "README内容",
+                    "description": "README content | README内容",
                     "type": "string",
                     "example": "## 关于我\n这是我的README内容"
                 },
                 "signature": {
-                    "description": "个性签名",
+                    "description": "Signature | 个性签名",
                     "type": "string",
                     "example": "这是我的个性签名"
                 },
                 "username": {
-                    "description": "用户名",
+                    "description": "Username | 用户名",
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 3,
@@ -12245,7 +13936,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "username": {
-                    "description": "新用户名",
+                    "description": "New username | 新用户名",
                     "type": "string",
                     "maxLength": 20,
                     "minLength": 2,
@@ -12257,26 +13948,16 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "success": {
-                    "description": "是否成功",
+                    "description": "Whether successful | 是否成功",
                     "type": "boolean",
                     "example": true
                 },
                 "username": {
-                    "description": "新用户名",
+                    "description": "New username | 新用户名",
                     "type": "string",
                     "example": "newusername"
                 }
             }
-        }
-    },
-    "securityDefinitions": {
-        "ApiKeyAuth": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
-        },
-        "BasicAuth": {
-            "type": "basic"
         }
     }
 }`
@@ -12288,7 +13969,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api/v1",
 	Schemes:          []string{"http", "https"},
 	Title:            "PokeForum API",
-	Description:      "PokeForum 是一个基于 Gin 框架的论坛应用程序",
+	Description:      "PokeForum is a forum application based on Gin framework | PokeForum 是一个基于 Gin 框架的论坛应用程序",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

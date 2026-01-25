@@ -105,22 +105,37 @@ func (_u *PostUpdate) SetNillableContent(v *string) *PostUpdate {
 }
 
 // SetReadPermission sets the "read_permission" field.
-func (_u *PostUpdate) SetReadPermission(v string) *PostUpdate {
+func (_u *PostUpdate) SetReadPermission(v post.ReadPermission) *PostUpdate {
 	_u.mutation.SetReadPermission(v)
 	return _u
 }
 
 // SetNillableReadPermission sets the "read_permission" field if the given value is not nil.
-func (_u *PostUpdate) SetNillableReadPermission(v *string) *PostUpdate {
+func (_u *PostUpdate) SetNillableReadPermission(v *post.ReadPermission) *PostUpdate {
 	if v != nil {
 		_u.SetReadPermission(*v)
 	}
 	return _u
 }
 
-// ClearReadPermission clears the value of the "read_permission" field.
-func (_u *PostUpdate) ClearReadPermission() *PostUpdate {
-	_u.mutation.ClearReadPermission()
+// SetReadPermissionPoints sets the "read_permission_points" field.
+func (_u *PostUpdate) SetReadPermissionPoints(v int) *PostUpdate {
+	_u.mutation.ResetReadPermissionPoints()
+	_u.mutation.SetReadPermissionPoints(v)
+	return _u
+}
+
+// SetNillableReadPermissionPoints sets the "read_permission_points" field if the given value is not nil.
+func (_u *PostUpdate) SetNillableReadPermissionPoints(v *int) *PostUpdate {
+	if v != nil {
+		_u.SetReadPermissionPoints(*v)
+	}
+	return _u
+}
+
+// AddReadPermissionPoints adds value to the "read_permission_points" field.
+func (_u *PostUpdate) AddReadPermissionPoints(v int) *PostUpdate {
+	_u.mutation.AddReadPermissionPoints(v)
 	return _u
 }
 
@@ -232,6 +247,20 @@ func (_u *PostUpdate) SetIsPinned(v bool) *PostUpdate {
 func (_u *PostUpdate) SetNillableIsPinned(v *bool) *PostUpdate {
 	if v != nil {
 		_u.SetIsPinned(*v)
+	}
+	return _u
+}
+
+// SetPinScope sets the "pin_scope" field.
+func (_u *PostUpdate) SetPinScope(v post.PinScope) *PostUpdate {
+	_u.mutation.SetPinScope(v)
+	return _u
+}
+
+// SetNillablePinScope sets the "pin_scope" field if the given value is not nil.
+func (_u *PostUpdate) SetNillablePinScope(v *post.PinScope) *PostUpdate {
+	if v != nil {
+		_u.SetPinScope(*v)
 	}
 	return _u
 }
@@ -353,6 +382,16 @@ func (_u *PostUpdate) check() error {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Post.content": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ReadPermission(); ok {
+		if err := post.ReadPermissionValidator(v); err != nil {
+			return &ValidationError{Name: "read_permission", err: fmt.Errorf(`ent: validator failed for field "Post.read_permission": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ReadPermissionPoints(); ok {
+		if err := post.ReadPermissionPointsValidator(v); err != nil {
+			return &ValidationError{Name: "read_permission_points", err: fmt.Errorf(`ent: validator failed for field "Post.read_permission_points": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.ViewCount(); ok {
 		if err := post.ViewCountValidator(v); err != nil {
 			return &ValidationError{Name: "view_count", err: fmt.Errorf(`ent: validator failed for field "Post.view_count": %w`, err)}
@@ -371,6 +410,11 @@ func (_u *PostUpdate) check() error {
 	if v, ok := _u.mutation.FavoriteCount(); ok {
 		if err := post.FavoriteCountValidator(v); err != nil {
 			return &ValidationError{Name: "favorite_count", err: fmt.Errorf(`ent: validator failed for field "Post.favorite_count": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.PinScope(); ok {
+		if err := post.PinScopeValidator(v); err != nil {
+			return &ValidationError{Name: "pin_scope", err: fmt.Errorf(`ent: validator failed for field "Post.pin_scope": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.Status(); ok {
@@ -415,10 +459,13 @@ func (_u *PostUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		_spec.SetField(post.FieldContent, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ReadPermission(); ok {
-		_spec.SetField(post.FieldReadPermission, field.TypeString, value)
+		_spec.SetField(post.FieldReadPermission, field.TypeEnum, value)
 	}
-	if _u.mutation.ReadPermissionCleared() {
-		_spec.ClearField(post.FieldReadPermission, field.TypeString)
+	if value, ok := _u.mutation.ReadPermissionPoints(); ok {
+		_spec.SetField(post.FieldReadPermissionPoints, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedReadPermissionPoints(); ok {
+		_spec.AddField(post.FieldReadPermissionPoints, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.ViewCount(); ok {
 		_spec.SetField(post.FieldViewCount, field.TypeInt, value)
@@ -449,6 +496,9 @@ func (_u *PostUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.IsPinned(); ok {
 		_spec.SetField(post.FieldIsPinned, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.PinScope(); ok {
+		_spec.SetField(post.FieldPinScope, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.PublishIP(); ok {
 		_spec.SetField(post.FieldPublishIP, field.TypeString, value)
@@ -562,22 +612,37 @@ func (_u *PostUpdateOne) SetNillableContent(v *string) *PostUpdateOne {
 }
 
 // SetReadPermission sets the "read_permission" field.
-func (_u *PostUpdateOne) SetReadPermission(v string) *PostUpdateOne {
+func (_u *PostUpdateOne) SetReadPermission(v post.ReadPermission) *PostUpdateOne {
 	_u.mutation.SetReadPermission(v)
 	return _u
 }
 
 // SetNillableReadPermission sets the "read_permission" field if the given value is not nil.
-func (_u *PostUpdateOne) SetNillableReadPermission(v *string) *PostUpdateOne {
+func (_u *PostUpdateOne) SetNillableReadPermission(v *post.ReadPermission) *PostUpdateOne {
 	if v != nil {
 		_u.SetReadPermission(*v)
 	}
 	return _u
 }
 
-// ClearReadPermission clears the value of the "read_permission" field.
-func (_u *PostUpdateOne) ClearReadPermission() *PostUpdateOne {
-	_u.mutation.ClearReadPermission()
+// SetReadPermissionPoints sets the "read_permission_points" field.
+func (_u *PostUpdateOne) SetReadPermissionPoints(v int) *PostUpdateOne {
+	_u.mutation.ResetReadPermissionPoints()
+	_u.mutation.SetReadPermissionPoints(v)
+	return _u
+}
+
+// SetNillableReadPermissionPoints sets the "read_permission_points" field if the given value is not nil.
+func (_u *PostUpdateOne) SetNillableReadPermissionPoints(v *int) *PostUpdateOne {
+	if v != nil {
+		_u.SetReadPermissionPoints(*v)
+	}
+	return _u
+}
+
+// AddReadPermissionPoints adds value to the "read_permission_points" field.
+func (_u *PostUpdateOne) AddReadPermissionPoints(v int) *PostUpdateOne {
+	_u.mutation.AddReadPermissionPoints(v)
 	return _u
 }
 
@@ -689,6 +754,20 @@ func (_u *PostUpdateOne) SetIsPinned(v bool) *PostUpdateOne {
 func (_u *PostUpdateOne) SetNillableIsPinned(v *bool) *PostUpdateOne {
 	if v != nil {
 		_u.SetIsPinned(*v)
+	}
+	return _u
+}
+
+// SetPinScope sets the "pin_scope" field.
+func (_u *PostUpdateOne) SetPinScope(v post.PinScope) *PostUpdateOne {
+	_u.mutation.SetPinScope(v)
+	return _u
+}
+
+// SetNillablePinScope sets the "pin_scope" field if the given value is not nil.
+func (_u *PostUpdateOne) SetNillablePinScope(v *post.PinScope) *PostUpdateOne {
+	if v != nil {
+		_u.SetPinScope(*v)
 	}
 	return _u
 }
@@ -823,6 +902,16 @@ func (_u *PostUpdateOne) check() error {
 			return &ValidationError{Name: "content", err: fmt.Errorf(`ent: validator failed for field "Post.content": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ReadPermission(); ok {
+		if err := post.ReadPermissionValidator(v); err != nil {
+			return &ValidationError{Name: "read_permission", err: fmt.Errorf(`ent: validator failed for field "Post.read_permission": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.ReadPermissionPoints(); ok {
+		if err := post.ReadPermissionPointsValidator(v); err != nil {
+			return &ValidationError{Name: "read_permission_points", err: fmt.Errorf(`ent: validator failed for field "Post.read_permission_points": %w`, err)}
+		}
+	}
 	if v, ok := _u.mutation.ViewCount(); ok {
 		if err := post.ViewCountValidator(v); err != nil {
 			return &ValidationError{Name: "view_count", err: fmt.Errorf(`ent: validator failed for field "Post.view_count": %w`, err)}
@@ -841,6 +930,11 @@ func (_u *PostUpdateOne) check() error {
 	if v, ok := _u.mutation.FavoriteCount(); ok {
 		if err := post.FavoriteCountValidator(v); err != nil {
 			return &ValidationError{Name: "favorite_count", err: fmt.Errorf(`ent: validator failed for field "Post.favorite_count": %w`, err)}
+		}
+	}
+	if v, ok := _u.mutation.PinScope(); ok {
+		if err := post.PinScopeValidator(v); err != nil {
+			return &ValidationError{Name: "pin_scope", err: fmt.Errorf(`ent: validator failed for field "Post.pin_scope": %w`, err)}
 		}
 	}
 	if v, ok := _u.mutation.Status(); ok {
@@ -902,10 +996,13 @@ func (_u *PostUpdateOne) sqlSave(ctx context.Context) (_node *Post, err error) {
 		_spec.SetField(post.FieldContent, field.TypeString, value)
 	}
 	if value, ok := _u.mutation.ReadPermission(); ok {
-		_spec.SetField(post.FieldReadPermission, field.TypeString, value)
+		_spec.SetField(post.FieldReadPermission, field.TypeEnum, value)
 	}
-	if _u.mutation.ReadPermissionCleared() {
-		_spec.ClearField(post.FieldReadPermission, field.TypeString)
+	if value, ok := _u.mutation.ReadPermissionPoints(); ok {
+		_spec.SetField(post.FieldReadPermissionPoints, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedReadPermissionPoints(); ok {
+		_spec.AddField(post.FieldReadPermissionPoints, field.TypeInt, value)
 	}
 	if value, ok := _u.mutation.ViewCount(); ok {
 		_spec.SetField(post.FieldViewCount, field.TypeInt, value)
@@ -936,6 +1033,9 @@ func (_u *PostUpdateOne) sqlSave(ctx context.Context) (_node *Post, err error) {
 	}
 	if value, ok := _u.mutation.IsPinned(); ok {
 		_spec.SetField(post.FieldIsPinned, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.PinScope(); ok {
+		_spec.SetField(post.FieldPinScope, field.TypeEnum, value)
 	}
 	if value, ok := _u.mutation.PublishIP(); ok {
 		_spec.SetField(post.FieldPublishIP, field.TypeString, value)

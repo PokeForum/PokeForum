@@ -11,41 +11,49 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/PokeForum/PokeForum/ent"
-	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
-	"github.com/PokeForum/PokeForum/ent/usersigninstatus"
 	_const "github.com/PokeForum/PokeForum/internal/consts"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
+	"github.com/PokeForum/PokeForum/internal/repository"
 
 	"github.com/PokeForum/PokeForum/internal/schema"
 )
 
-// SigninService 签到服务实现
+const (
+	balanceLogTypePoints     = "points"
+	balanceLogTypeExperience = "experience"
+)
+
+// SigninService Sign-in service implementation | 签到服务实现
 type SigninService struct {
-	db              *ent.Client
-	cache           cache.ICacheService
-	redisLock       *cache.RedisLock
-	logger          *zap.Logger
-	settingsService ISettingsService
-	asyncTask       *SigninAsyncTask
+	db                   *ent.Client
+	userRepo             repository.IUserRepository
+	userSigninStatusRepo repository.IUserSigninStatusRepository
+	userBalanceLogRepo   repository.IUserBalanceLogRepository
+	cache                cache.ICacheService
+	redisLock            *cache.RedisLock
+	logger               *zap.Logger
+	settingsService      ISettingsService
+	asyncTask            *SigninAsyncTask
 }
 
-// ISigninService 签到服务接口
+// ISigninService Sign-in service interface | 签到服务接口
 type ISigninService interface {
-	// Signin 执行签到
+	// Signin Execute sign-in | 执行签到
 	Signin(ctx context.Context, userID int64) (*schema.SigninResult, error)
-	// GetSigninStatus 获取签到状态
+	// GetSigninStatus Get sign-in status | 获取签到状态
 	GetSigninStatus(ctx context.Context, userID int64) (*schema.SigninStatus, error)
-	// GetDailyRanking 获取每日排行榜
+	// GetDailyRanking Get daily ranking | 获取每日排行榜
 	GetDailyRanking(ctx context.Context, date string, limit int, userID int64) (*schema.SigninRankingResponse, error)
-	// GetContinuousRanking 获取连续签到排行榜
+	// GetContinuousRanking Get continuous sign-in ranking | 获取连续签到排行榜
 	GetContinuousRanking(ctx context.Context, limit int, userID int64) (*schema.SigninRankingResponse, error)
 }
 
-// NewSigninService 创建签到服务实例
+// NewSigninService Create sign-in service instance | 创建签到服务实例
 func NewSigninService(
 	db *ent.Client,
+	repos *repository.Repositories,
 	cacheService cache.ICacheService,
 	redisLock *cache.RedisLock,
 	logger *zap.Logger,
@@ -53,16 +61,19 @@ func NewSigninService(
 	asyncTask *SigninAsyncTask,
 ) ISigninService {
 	return &SigninService{
-		db:              db,
-		cache:           cacheService,
-		redisLock:       redisLock,
-		logger:          logger,
-		settingsService: settingsService,
-		asyncTask:       asyncTask,
+		db:                   db,
+		userRepo:             repos.User,
+		userSigninStatusRepo: repos.UserSigninStatus,
+		userBalanceLogRepo:   repos.UserBalanceLog,
+		cache:                cacheService,
+		redisLock:            redisLock,
+		logger:               logger,
+		settingsService:      settingsService,
+		asyncTask:            asyncTask,
 	}
 }
 
-// Signin 执行签到
+// Signin Execute sign-in | 执行签到
 func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.SigninResult, error) {
 	traceID := tracing.GetTraceID(ctx)
 	s.logger.Info("开始处理签到请求",
@@ -87,7 +98,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 	}
 
 	// 检查用户是否存在
-	userExists, err := s.db.User.Query().Where(user.ID(int(userID))).Exist(ctx)
+	userExists, err := s.userRepo.ExistsByID(ctx, int(userID))
 	if err != nil {
 		s.logger.Error("检查用户存在性失败",
 			zap.Int64("user_id", userID),
@@ -103,7 +114,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 		return nil, errors.New("用户不存在")
 	}
 
-	// 获取分布式锁，防止重复签到
+	// 获取锁，防止重复签到
 	lockKey := fmt.Sprintf("signin:lock:%d", userID)
 	lockValue := fmt.Sprintf("%s:%d", traceID, time.Now().Unix())
 
@@ -250,7 +261,7 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 	return result, nil
 }
 
-// isSigninEnabled 检查签到功能是否启用
+// isSigninEnabled Check if sign-in feature is enabled | 检查签到功能是否启用
 func (s *SigninService) isSigninEnabled(ctx context.Context) (bool, error) {
 	value, err := s.settingsService.GetSettingByKey(ctx, _const.SigninIsEnable, "false")
 	if err != nil {
@@ -259,7 +270,7 @@ func (s *SigninService) isSigninEnabled(ctx context.Context) (bool, error) {
 	return value == _const.SettingBoolTrue.String(), nil
 }
 
-// isTodaySigned 检查今日是否已签到
+// isTodaySigned Check if signed in today | 检查今日是否已签到
 func (s *SigninService) isTodaySigned(ctx context.Context, userID int64, today string) (bool, error) {
 	statusKey := fmt.Sprintf("signin:status:%d", userID)
 	lastSign, err := s.cache.HGet(ctx, statusKey, "last_sign")
@@ -269,7 +280,7 @@ func (s *SigninService) isTodaySigned(ctx context.Context, userID int64, today s
 	return lastSign == today, nil
 }
 
-// getUserSigninStatus 获取用户签到状态
+// getUserSigninStatus Get user sign-in status | 获取用户签到状态
 func (s *SigninService) getUserSigninStatus(ctx context.Context, userID int64) (*schema.SigninStatus, error) {
 	statusKey := fmt.Sprintf("signin:status:%d", userID)
 
@@ -311,14 +322,12 @@ func (s *SigninService) getUserSigninStatus(ctx context.Context, userID int64) (
 	}, nil
 }
 
-// getSigninStatusFromDB 从数据库获取签到状态
+// getSigninStatusFromDB Get sign-in status from database | 从数据库获取签到状态
 func (s *SigninService) getSigninStatusFromDB(ctx context.Context, userID int64) (*schema.SigninStatus, error) {
-	status, err := s.db.UserSigninStatus.Query().
-		Where(usersigninstatus.UserID(userID)).
-		Only(ctx)
+	status, err := s.userSigninStatusRepo.GetByUserID(ctx, userID)
 
 	if err != nil {
-		if ent.IsNotFound(err) {
+		if errors.Is(err, repository.ErrSigninStatusNotFound) {
 			// 用户首次签到，返回默认状态
 			return &schema.SigninStatus{
 				IsTodaySigned:  false,
@@ -348,7 +357,7 @@ func (s *SigninService) getSigninStatusFromDB(ctx context.Context, userID int64)
 	}, nil
 }
 
-// calculateContinuousDays 计算连续签到天数
+// calculateContinuousDays Calculate continuous sign-in days | 计算连续签到天数
 func (s *SigninService) calculateContinuousDays(status *schema.SigninStatus) (continuousDays, totalDays int) {
 	if status.LastSigninDate == nil {
 		// 首次签到
@@ -367,7 +376,7 @@ func (s *SigninService) calculateContinuousDays(status *schema.SigninStatus) (co
 	return 1, status.TotalDays + 1
 }
 
-// calculateReward 计算签到奖励
+// calculateReward Calculate sign-in reward | 计算签到奖励
 func (s *SigninService) calculateReward(ctx context.Context, continuousDays int) (points, experience int, err error) {
 	// 获取签到模式
 	mode, err := s.settingsService.GetSettingByKey(ctx, _const.SigninMode, "fixed")
@@ -387,7 +396,7 @@ func (s *SigninService) calculateReward(ctx context.Context, continuousDays int)
 	}
 }
 
-// calculateFixedReward 计算固定奖励
+// calculateFixedReward Calculate fixed reward | 计算固定奖励
 func (s *SigninService) calculateFixedReward(ctx context.Context) (points, experience int, err error) {
 	pointsStr, err := s.settingsService.GetSettingByKey(ctx, _const.SigninFixedReward, "10")
 	if err != nil {
@@ -415,7 +424,7 @@ func (s *SigninService) calculateFixedReward(ctx context.Context) (points, exper
 	return points, experience, nil
 }
 
-// calculateIncrementReward 计算递增奖励
+// calculateIncrementReward Calculate increment reward | 计算递增奖励
 func (s *SigninService) calculateIncrementReward(ctx context.Context, continuousDays int) (points, experience int, err error) {
 	baseStr, err := s.settingsService.GetSettingByKey(ctx, _const.SigninIncrementBase, "5")
 	if err != nil {
@@ -473,7 +482,7 @@ func (s *SigninService) calculateIncrementReward(ctx context.Context, continuous
 	return points, experience, nil
 }
 
-// calculateRandomReward 计算随机奖励
+// calculateRandomReward Calculate random reward | 计算随机奖励
 func (s *SigninService) calculateRandomReward(ctx context.Context) (points, experience int, err error) {
 	minStr, err := s.settingsService.GetSettingByKey(ctx, _const.SigninRandomMin, "5")
 	if err != nil {
@@ -516,7 +525,7 @@ func (s *SigninService) calculateRandomReward(ctx context.Context) (points, expe
 	return points, experience, nil
 }
 
-// updateRedisSigninStatus 更新Redis中的签到状态
+// updateRedisSigninStatus Update sign-in status in Redis | 更新Redis中的签到状态
 func (s *SigninService) updateRedisSigninStatus(ctx context.Context, userID int64, today string, continuousDays, totalDays int) error {
 	statusKey := fmt.Sprintf("signin:status:%d", userID)
 
@@ -530,7 +539,7 @@ func (s *SigninService) updateRedisSigninStatus(ctx context.Context, userID int6
 	return s.cache.HMSet(ctx, statusKey, fieldValues)
 }
 
-// updateRanking 更新排行榜
+// updateRanking Update ranking | 更新排行榜
 func (s *SigninService) updateRanking(ctx context.Context, userID int64, today string, rewardPoints int, continuousDays int) error {
 	// 更新每日奖励排行榜（按奖励积分排序）
 	dailyRankingKey := fmt.Sprintf("signin:daily:%s", today)
@@ -555,7 +564,7 @@ func (s *SigninService) updateRanking(ctx context.Context, userID int64, today s
 	return nil
 }
 
-// getUserDailyRank 获取用户在每日奖励排行榜中的排名
+// getUserDailyRank Get user's rank in daily reward ranking | 获取用户在每日奖励排行榜中的排名
 func (s *SigninService) getUserDailyRank(ctx context.Context, userID int64, today string) int {
 	dailyRankingKey := fmt.Sprintf("signin:daily:%s", today)
 	rank, err := s.cache.ZRevRank(ctx, dailyRankingKey, fmt.Sprintf("%d", userID))
@@ -566,25 +575,23 @@ func (s *SigninService) getUserDailyRank(ctx context.Context, userID int64, toda
 	return int(rank) + 1
 }
 
-// updateUserBalance 更新用户积分和经验
+// updateUserBalance Update user points and experience | 更新用户积分和经验
 func (s *SigninService) updateUserBalance(ctx context.Context, userID int64, points, experience int) error {
 	// 这里需要调用用户服务来更新积分
 	// 由于项目结构限制，暂时直接操作数据库
 	// 实际项目中应该通过UserService来处理
 
 	// 更新用户积分
-	_, err := s.db.User.Update().
-		Where(user.ID(int(userID))).
-		AddPoints(points).
-		AddExperience(experience).
-		Save(ctx)
+	err := s.userRepo.UpdateFields(ctx, int(userID), func(u *ent.UserUpdateOne) *ent.UserUpdateOne {
+		return u.AddPoints(points).AddExperience(experience)
+	})
 
 	if err != nil {
 		return err
 	}
 
 	// 记录积分变动日志
-	err = s.createBalanceLog(ctx, userID, "points", points, "签到奖励")
+	err = s.createBalanceLog(ctx, userID, balanceLogTypePoints, points, "签到奖励")
 	if err != nil {
 		s.logger.Error("记录积分变动日志失败",
 			zap.Int64("user_id", userID),
@@ -594,7 +601,7 @@ func (s *SigninService) updateUserBalance(ctx context.Context, userID int64, poi
 	}
 
 	// 记录经验变动日志
-	err = s.createBalanceLog(ctx, userID, "experience", experience, "签到奖励")
+	err = s.createBalanceLog(ctx, userID, balanceLogTypeExperience, experience, "签到奖励")
 	if err != nil {
 		s.logger.Error("记录经验变动日志失败",
 			zap.Int64("user_id", userID),
@@ -606,10 +613,10 @@ func (s *SigninService) updateUserBalance(ctx context.Context, userID int64, poi
 	return nil
 }
 
-// createBalanceLog 创建余额变动日志
+// createBalanceLog Create balance change log | 创建余额变动日志
 func (s *SigninService) createBalanceLog(ctx context.Context, userID int64, logType string, amount int, reason string) error {
 	// 获取用户当前余额
-	u, err := s.db.User.Get(ctx, int(userID))
+	u, err := s.userRepo.GetByID(ctx, int(userID))
 	if err != nil {
 		return err
 	}
@@ -617,11 +624,11 @@ func (s *SigninService) createBalanceLog(ctx context.Context, userID int64, logT
 	var beforeAmount, afterAmount int
 	var enumType userbalancelog.Type
 	switch logType {
-	case "points":
+	case balanceLogTypePoints:
 		beforeAmount = u.Points
 		afterAmount = u.Points + amount
 		enumType = userbalancelog.TypePoints
-	case "experience":
+	case balanceLogTypeExperience:
 		beforeAmount = u.Experience
 		afterAmount = u.Experience + amount
 		enumType = userbalancelog.TypeExperience
@@ -630,18 +637,19 @@ func (s *SigninService) createBalanceLog(ctx context.Context, userID int64, logT
 	}
 
 	// 创建变动日志
-	return s.db.UserBalanceLog.Create().
-		SetUserID(int(userID)).
-		SetType(enumType).
-		SetAmount(amount).
-		SetBeforeAmount(beforeAmount).
-		SetAfterAmount(afterAmount).
-		SetReason(reason).
-		SetRelatedType("signin").
-		Exec(ctx)
+	_, err = s.userBalanceLogRepo.Create(ctx, func(c *ent.UserBalanceLogCreate) *ent.UserBalanceLogCreate {
+		return c.SetUserID(int(userID)).
+			SetType(enumType).
+			SetAmount(amount).
+			SetBeforeAmount(beforeAmount).
+			SetAfterAmount(afterAmount).
+			SetReason(reason).
+			SetRelatedType("signin")
+	})
+	return err
 }
 
-// buildSigninMessage 构建签到提示信息
+// buildSigninMessage Build sign-in message | 构建签到提示信息
 func (s *SigninService) buildSigninMessage(continuousDays, rewardPoints int) string {
 	switch {
 	case continuousDays == 1:
@@ -704,7 +712,7 @@ func (s *SigninService) GetDailyRanking(ctx context.Context, date string, limit 
 	// 批量查询用户信息
 	userMap := make(map[int]*ent.User)
 	if len(userIDs) > 0 {
-		users, err := s.db.User.Query().Where(user.IDIn(userIDs...)).All(ctx)
+		users, err := s.userRepo.GetByIDs(ctx, userIDs)
 		if err != nil {
 			s.logger.Error("查询用户信息失败",
 				zap.Error(err),
@@ -749,7 +757,7 @@ func (s *SigninService) GetDailyRanking(ctx context.Context, date string, limit 
 	}, nil
 }
 
-// GetContinuousRanking 获取连续签到排行榜（按连续天数排序）
+// GetContinuousRanking Get continuous sign-in ranking | 获取连续签到排行榜（按连续天数排序）
 func (s *SigninService) GetContinuousRanking(ctx context.Context, limit int, userID int64) (*schema.SigninRankingResponse, error) {
 	s.logger.Info("获取连续签到排行榜",
 		zap.Int("limit", limit),
@@ -782,7 +790,7 @@ func (s *SigninService) GetContinuousRanking(ctx context.Context, limit int, use
 	// 批量查询用户信息
 	userMap := make(map[int]*ent.User)
 	if len(userIDs) > 0 {
-		users, err := s.db.User.Query().Where(user.IDIn(userIDs...)).All(ctx)
+		users, err := s.userRepo.GetByIDs(ctx, userIDs)
 		if err != nil {
 			s.logger.Error("查询用户信息失败",
 				zap.Error(err),
