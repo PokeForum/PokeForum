@@ -15,9 +15,9 @@ type OAuthProvider struct {
 // Fields of the OAuthProvider.
 func (OAuthProvider) Fields() []ent.Field {
 	return []ent.Field{
-		// Provider name: QQ, GitHub, Google, FIDO2 | 提供商名称：QQ、GitHub、Google、FIDO2
+		// Provider name: QQ, GitHub, Google | 提供商名称：QQ、GitHub、Google
 		field.Enum("provider").
-			Values("QQ", "GitHub", "Google", "FIDO2"),
+			Values("QQ", "GitHub", "Google"),
 		// Client ID | 客户端ID（Client ID）
 		field.String("client_id").
 			Optional(),

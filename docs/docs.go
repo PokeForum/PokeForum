@@ -9914,8 +9914,7 @@ const docTemplate = `{
                     "enum": [
                         "QQ",
                         "GitHub",
-                        "Google",
-                        "FIDO2"
+                        "Google"
                     ],
                     "example": "GitHub"
                 },

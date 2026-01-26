@@ -50,7 +50,7 @@ PokeForum
     - 用户等级系统（经验值、积分、货币）
 2. 认证授权
     - 邮箱密码登录
-    - OAuth 第三方登录（QQ、GitHub、Google、FIDO2）
+    - OAuth 第三方登录（QQ、GitHub、Google）
     - 登录日志记录
 3. 帖子系统
     - 发布主题帖（Markdown 格式）

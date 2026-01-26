@@ -56,8 +56,6 @@ func (c *Client) RegisterProvider(provider Provider, config *Config) error {
 		p, err = NewQQProvider(config)
 	case ProviderGoogle:
 		p, err = NewGoogleProvider(config)
-	case ProviderFIDO2:
-		p, err = NewFIDO2Provider(config)
 	default:
 		return ErrProviderNotFound
 	}
@@ -106,16 +104,15 @@ func validateConfig(config *Config) error {
 		return ErrMissingRequiredField
 	}
 
-	if config.ClientSecret == "" && config.Provider != ProviderFIDO2 {
-		// FIDO2 doesn't need ClientSecret | FIDO2不需要ClientSecret
+	if config.ClientSecret == "" {
 		return ErrMissingRequiredField
 	}
 
-	if config.AuthURL == "" && config.Provider != ProviderFIDO2 {
+	if config.AuthURL == "" {
 		return ErrMissingRequiredField
 	}
 
-	if config.TokenURL == "" && config.Provider != ProviderFIDO2 {
+	if config.TokenURL == "" {
 		return ErrMissingRequiredField
 	}
 
