@@ -71,7 +71,7 @@ func (ctrl *InvitationCodeController) GenerateInvitationCode(c *gin.Context) {
 	}
 
 	// Call service to generate invitation code | 调用服务生成邀请码
-	invCode, err := ctrl.invitationCodeService.GenerateCode(c.Request.Context(), userID, userInfo.Username)
+	invCode, err := ctrl.invitationCodeService.GenerateCode(c.Request.Context(), userID)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return

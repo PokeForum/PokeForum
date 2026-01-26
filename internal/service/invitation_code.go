@@ -30,7 +30,7 @@ type IInvitationCodeService interface {
 	// UseCode Use invitation code (mark as used) | 使用邀请码（标记为已使用）
 	UseCode(ctx context.Context, code string, userID int, ip, ua string) error
 	// GenerateCode Generate invitation code for user | 为用户生成邀请码
-	GenerateCode(ctx context.Context, userID int, username string) (*ent.InvitationCode, error)
+	GenerateCode(ctx context.Context, userID int) (*ent.InvitationCode, error)
 	// GetUserCodes Get user's invitation codes | 获取用户的邀请码列表
 	GetUserCodes(ctx context.Context, userID int, page, pageSize int) ([]*ent.InvitationCode, int, error)
 }
@@ -129,7 +129,7 @@ func (s *InvitationCodeService) UseCode(ctx context.Context, code string, userID
 }
 
 // GenerateCode Generate invitation code for user | 为用户生成邀请码
-func (s *InvitationCodeService) GenerateCode(ctx context.Context, userID int, username string) (*ent.InvitationCode, error) {
+func (s *InvitationCodeService) GenerateCode(ctx context.Context, userID int) (*ent.InvitationCode, error) {
 	// Check if invitation code is enabled | 检查是否启用邀请码
 	enabled, err := s.IsInvitationCodeEnabled(ctx)
 	if err != nil {
