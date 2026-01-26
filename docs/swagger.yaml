@@ -1863,63 +1863,6 @@ definitions:
     required:
     - id
     type: object
-  schema.PostCreateRequest:
-    properties:
-      category_id:
-        description: Category ID | 版块ID
-        example: 1
-        type: integer
-      content:
-        description: Post content | 帖子内容
-        example: |-
-          ## 技术分享
-          这是内容
-        minLength: 10
-        type: string
-      publish_ip:
-        description: Publish IP | 发布IP
-        example: 192.168.1.1
-        type: string
-      read_permission_points:
-        description: Read permission points | 阅读所需积分
-        example: 0
-        minimum: 0
-        type: integer
-      read_permission_type:
-        description: Read permission type | 阅读权限类型
-        enum:
-        - public
-        - login_required
-        - points
-        example: public
-        type: string
-      status:
-        description: Post status | 帖子状态
-        enum:
-        - Normal
-        - Locked
-        - Draft
-        - Private
-        - Ban
-        example: Normal
-        type: string
-      title:
-        description: Post title | 帖子标题
-        example: 技术分享帖
-        maxLength: 200
-        minLength: 2
-        type: string
-      user_id:
-        description: User ID | 用户ID
-        example: 1
-        type: integer
-    required:
-    - category_id
-    - content
-    - status
-    - title
-    - user_id
-    type: object
   schema.PostDetailResponse:
     properties:
       category_id:
@@ -2281,51 +2224,6 @@ definitions:
     required:
     - id
     - status
-    type: object
-  schema.PostUpdateRequest:
-    properties:
-      content:
-        description: Post content | 帖子内容
-        example: |-
-          ## 技术分享
-          这是内容
-        minLength: 10
-        type: string
-      id:
-        description: Post ID | 帖子ID
-        example: 1
-        type: integer
-      read_permission_points:
-        description: Read permission points | 阅读所需积分
-        example: 0
-        minimum: 0
-        type: integer
-      read_permission_type:
-        description: Read permission type | 阅读权限类型
-        enum:
-        - public
-        - login_required
-        - points
-        example: public
-        type: string
-      status:
-        description: Post status | 帖子状态
-        enum:
-        - Normal
-        - Locked
-        - Draft
-        - Private
-        - Ban
-        example: Normal
-        type: string
-      title:
-        description: Post title | 帖子标题
-        example: 技术分享帖
-        maxLength: 200
-        minLength: 2
-        type: string
-    required:
-    - id
     type: object
   schema.PublicConfigResponse:
     properties:
@@ -6165,40 +6063,6 @@ paths:
       summary: Get post list | 获取帖子列表
       tags:
       - '[Admin]Post Management | [管理员]主题贴管理'
-    post:
-      consumes:
-      - application/json
-      description: Admin creates new post | 管理员创建新帖子
-      parameters:
-      - description: Post information | 帖子信息
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/schema.PostCreateRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Created successfully | 创建成功
-          schema:
-            allOf:
-            - $ref: '#/definitions/response.Data'
-            - properties:
-                data:
-                  $ref: '#/definitions/schema.PostDetailResponse'
-              type: object
-        "400":
-          description: Invalid request parameters | 请求参数错误
-          schema:
-            $ref: '#/definitions/response.Data'
-        "500":
-          description: Server error | 服务器错误
-          schema:
-            $ref: '#/definitions/response.Data'
-      summary: Create post | 创建帖子
-      tags:
-      - '[Admin]Post Management | [管理员]主题贴管理'
     put:
       consumes:
       - application/json
@@ -6209,7 +6073,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/schema.PostUpdateRequest'
+          $ref: '#/definitions/schema.UserPostCreateRequest'
       produces:
       - application/json
       responses:
@@ -6220,7 +6084,7 @@ paths:
             - $ref: '#/definitions/response.Data'
             - properties:
                 data:
-                  $ref: '#/definitions/schema.PostDetailResponse'
+                  $ref: '#/definitions/schema.UserPostUpdateResponse'
               type: object
         "400":
           description: Invalid request parameters | 请求参数错误

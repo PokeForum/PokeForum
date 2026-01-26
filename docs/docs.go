@@ -2567,7 +2567,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/schema.PostUpdateRequest"
+                            "$ref": "#/definitions/schema.UserPostCreateRequest"
                         }
                     }
                 ],
@@ -2583,63 +2583,7 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/schema.PostDetailResponse"
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request parameters | 请求参数错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    },
-                    "500": {
-                        "description": "Server error | 服务器错误",
-                        "schema": {
-                            "$ref": "#/definitions/response.Data"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "Admin creates new post | 管理员创建新帖子",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "[Admin]Post Management | [管理员]主题贴管理"
-                ],
-                "summary": "Create post | 创建帖子",
-                "parameters": [
-                    {
-                        "description": "Post information | 帖子信息",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/schema.PostCreateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Created successfully | 创建成功",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/response.Data"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "$ref": "#/definitions/schema.PostDetailResponse"
+                                            "$ref": "#/definitions/schema.UserPostUpdateResponse"
                                         }
                                     }
                                 }
@@ -10422,74 +10366,6 @@ const docTemplate = `{
                 }
             }
         },
-        "schema.PostCreateRequest": {
-            "type": "object",
-            "required": [
-                "category_id",
-                "content",
-                "status",
-                "title",
-                "user_id"
-            ],
-            "properties": {
-                "category_id": {
-                    "description": "Category ID | 版块ID",
-                    "type": "integer",
-                    "example": 1
-                },
-                "content": {
-                    "description": "Post content | 帖子内容",
-                    "type": "string",
-                    "minLength": 10,
-                    "example": "## 技术分享\n这是内容"
-                },
-                "publish_ip": {
-                    "description": "Publish IP | 发布IP",
-                    "type": "string",
-                    "example": "192.168.1.1"
-                },
-                "read_permission_points": {
-                    "description": "Read permission points | 阅读所需积分",
-                    "type": "integer",
-                    "minimum": 0,
-                    "example": 0
-                },
-                "read_permission_type": {
-                    "description": "Read permission type | 阅读权限类型",
-                    "type": "string",
-                    "enum": [
-                        "public",
-                        "login_required",
-                        "points"
-                    ],
-                    "example": "public"
-                },
-                "status": {
-                    "description": "Post status | 帖子状态",
-                    "type": "string",
-                    "enum": [
-                        "Normal",
-                        "Locked",
-                        "Draft",
-                        "Private",
-                        "Ban"
-                    ],
-                    "example": "Normal"
-                },
-                "title": {
-                    "description": "Post title | 帖子标题",
-                    "type": "string",
-                    "maxLength": 200,
-                    "minLength": 2,
-                    "example": "技术分享帖"
-                },
-                "user_id": {
-                    "description": "User ID | 用户ID",
-                    "type": "integer",
-                    "example": 1
-                }
-            }
-        },
         "schema.PostDetailResponse": {
             "type": "object",
             "properties": {
@@ -10954,60 +10830,6 @@ const docTemplate = `{
                         "Ban"
                     ],
                     "example": "Normal"
-                }
-            }
-        },
-        "schema.PostUpdateRequest": {
-            "type": "object",
-            "required": [
-                "id"
-            ],
-            "properties": {
-                "content": {
-                    "description": "Post content | 帖子内容",
-                    "type": "string",
-                    "minLength": 10,
-                    "example": "## 技术分享\n这是内容"
-                },
-                "id": {
-                    "description": "Post ID | 帖子ID",
-                    "type": "integer",
-                    "example": 1
-                },
-                "read_permission_points": {
-                    "description": "Read permission points | 阅读所需积分",
-                    "type": "integer",
-                    "minimum": 0,
-                    "example": 0
-                },
-                "read_permission_type": {
-                    "description": "Read permission type | 阅读权限类型",
-                    "type": "string",
-                    "enum": [
-                        "public",
-                        "login_required",
-                        "points"
-                    ],
-                    "example": "public"
-                },
-                "status": {
-                    "description": "Post status | 帖子状态",
-                    "type": "string",
-                    "enum": [
-                        "Normal",
-                        "Locked",
-                        "Draft",
-                        "Private",
-                        "Ban"
-                    ],
-                    "example": "Normal"
-                },
-                "title": {
-                    "description": "Post title | 帖子标题",
-                    "type": "string",
-                    "maxLength": 200,
-                    "minLength": 2,
-                    "example": "技术分享帖"
                 }
             }
         },

@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
-	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 )
@@ -25,8 +24,6 @@ func NewPostManageController(postManageService service.IPostManageService) *Post
 func (ctrl *PostManageController) PostManageRouter(router *gin.RouterGroup) {
 	// Post list | 帖子列表
 	router.GET("", ctrl.GetPostList)
-	// Create post | 创建帖子
-	router.POST("", ctrl.CreatePost)
 	// Update post information | 更新帖子信息
 	router.PUT("", ctrl.UpdatePost)
 	// Get post detail | 获取帖子详情
@@ -86,103 +83,29 @@ func (ctrl *PostManageController) GetPostList(c *gin.Context) {
 	response.ResSuccess(c, result)
 }
 
-// CreatePost Create post | 创建帖子
-// @Summary Create post | 创建帖子
-// @Description Admin creates new post | 管理员创建新帖子
-// @Tags [Admin]Post Management | [管理员]主题贴管理
-// @Accept json
-// @Produce json
-// @Param request body schema.PostCreateRequest true "Post information | 帖子信息"
-// @Success 200 {object} response.Data{data=schema.PostDetailResponse} "Created successfully | 创建成功"
-// @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
-// @Failure 500 {object} response.Data "Server error | 服务器错误"
-// @Router /manage/posts [post]
-func (ctrl *PostManageController) CreatePost(c *gin.Context) {
-	var req schema.PostCreateRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.ResErrorWithMsg(c, response.CodeInvalidParam, err.Error())
-		return
-	}
-
-	// Call service | 调用服务
-	post, err := ctrl.postManageService.CreatePost(c.Request.Context(), req)
-	if err != nil {
-		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
-		return
-	}
-
-	// Convert to response format | 转换为响应格式
-	result := &schema.PostDetailResponse{
-		ID:                   post.ID,
-		UserID:               post.UserID,
-		Username:             "", // Need to query user info, simplified here | 需要查询用户信息,这里简化处理
-		CategoryID:           post.CategoryID,
-		CategoryName:         "", // Need to query category info, simplified here | 需要查询版块信息,这里简化处理
-		Title:                post.Title,
-		Content:              post.Content,
-		ReadPermissionType:   string(post.ReadPermission),
-		ReadPermissionPoints: post.ReadPermissionPoints,
-		ViewCount:            post.ViewCount,
-		LikeCount:            post.LikeCount,
-		DislikeCount:         post.DislikeCount,
-		FavoriteCount:        post.FavoriteCount,
-		IsEssence:            post.IsEssence,
-		IsPinned:             post.IsPinned,
-		Status:               post.Status.String(),
-		PublishIP:            post.PublishIP,
-		CreatedAt:            post.CreatedAt.Format(time_tools.DateTimeFormat),
-		UpdatedAt:            post.UpdatedAt.Format(time_tools.DateTimeFormat),
-	}
-
-	response.ResSuccess(c, result)
-}
-
 // UpdatePost Update post information | 更新帖子信息
 // @Summary Update post information | 更新帖子信息
 // @Description Update basic information of a post | 更新帖子的基本信息
 // @Tags [Admin]Post Management | [管理员]主题贴管理
 // @Accept json
 // @Produce json
-// @Param request body schema.PostUpdateRequest true "Post information | 帖子信息"
-// @Success 200 {object} response.Data{data=schema.PostDetailResponse} "Updated successfully | 更新成功"
+// @Param request body schema.UserPostCreateRequest true "Post information | 帖子信息"
+// @Success 200 {object} response.Data{data=schema.UserPostUpdateResponse} "Updated successfully | 更新成功"
 // @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
 // @Failure 500 {object} response.Data "Server error | 服务器错误"
 // @Router /manage/posts [put]
 func (ctrl *PostManageController) UpdatePost(c *gin.Context) {
-	var req schema.PostUpdateRequest
+	var req schema.UserPostCreateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.ResErrorWithMsg(c, response.CodeInvalidParam, err.Error())
 		return
 	}
 
 	// Call service | 调用服务
-	post, err := ctrl.postManageService.UpdatePost(c.Request.Context(), req)
+	result, err := ctrl.postManageService.UpdatePost(c.Request.Context(), req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
-	}
-
-	// Convert to response format | 转换为响应格式
-	result := &schema.PostDetailResponse{
-		ID:                   post.ID,
-		UserID:               post.UserID,
-		Username:             "", // Need to query user info, simplified here | 需要查询用户信息,这里简化处理
-		CategoryID:           post.CategoryID,
-		CategoryName:         "", // Need to query category info, simplified here | 需要查询版块信息,这里简化处理
-		Title:                post.Title,
-		Content:              post.Content,
-		ReadPermissionType:   string(post.ReadPermission),
-		ReadPermissionPoints: post.ReadPermissionPoints,
-		ViewCount:            post.ViewCount,
-		LikeCount:            post.LikeCount,
-		DislikeCount:         post.DislikeCount,
-		FavoriteCount:        post.FavoriteCount,
-		IsEssence:            post.IsEssence,
-		IsPinned:             post.IsPinned,
-		Status:               post.Status.String(),
-		PublishIP:            post.PublishIP,
-		CreatedAt:            post.CreatedAt.Format(time_tools.DateTimeFormat),
-		UpdatedAt:            post.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
 	response.ResSuccess(c, result)

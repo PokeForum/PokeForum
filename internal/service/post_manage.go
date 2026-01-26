@@ -22,10 +22,8 @@ import (
 type IPostManageService interface {
 	// GetPostList Get post list | 获取帖子列表
 	GetPostList(ctx context.Context, req schema.PostListRequest) (*schema.PostListResponse, error)
-	// CreatePost Create a post | 创建帖子
-	CreatePost(ctx context.Context, req schema.PostCreateRequest) (*ent.Post, error)
 	// UpdatePost Update post information | 更新帖子信息
-	UpdatePost(ctx context.Context, req schema.PostUpdateRequest) (*ent.Post, error)
+	UpdatePost(ctx context.Context, req schema.UserPostCreateRequest) (*schema.UserPostUpdateResponse, error)
 	// UpdatePostStatus Update post status | 更新帖子状态
 	UpdatePostStatus(ctx context.Context, req schema.PostStatusUpdateRequest) error
 	// GetPostDetail Get post detail | 获取帖子详情
@@ -206,82 +204,75 @@ func (s *PostManageService) GetPostList(ctx context.Context, req schema.PostList
 	}, nil
 }
 
-// CreatePost Create a post | 创建帖子
-func (s *PostManageService) CreatePost(ctx context.Context, req schema.PostCreateRequest) (*ent.Post, error) {
-	s.logger.Info("创建帖子", zap.String("title", req.Title), zap.Int("user_id", req.UserID), tracing.WithTraceIDField(ctx))
+// UpdatePost Update post information | 更新帖子信息
+func (s *PostManageService) UpdatePost(ctx context.Context, req schema.UserPostCreateRequest) (*schema.UserPostUpdateResponse, error) {
+	s.logger.Info("更新帖子信息", zap.Int("id", req.ID), tracing.WithTraceIDField(ctx))
 
-	// Check if user exists | 检查用户是否存在
-	userExists, err := s.userRepo.ExistsByID(ctx, req.UserID)
-	if err != nil {
-		s.logger.Error("检查用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("检查用户失败: %w", err)
-	}
-	if !userExists {
-		return nil, errors.New("用户不存在")
-	}
-
-	// Check if category exists | 检查版块是否存在
-	categoryExists, err := s.categoryRepo.ExistsByID(ctx, req.CategoryID)
-	if err != nil {
-		s.logger.Error("检查版块失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, fmt.Errorf("检查版块失败: %w", err)
-	}
-	if !categoryExists {
-		return nil, errors.New("版块不存在")
+	// Check if post ID is provided | 检查是否提供了帖子ID
+	if req.ID == 0 {
+		return nil, errors.New("帖子ID不能为空")
 	}
 
 	// Convert read permission type to enum | 转换阅读权限类型为枚举
 	readPermission := s.parseReadPermissionType(req.ReadPermissionType)
 
-	// Create post | 创建帖子
-	p, err := s.postRepo.Create(ctx, req.UserID, req.CategoryID, req.Title, req.Content, readPermission, req.ReadPermissionPoints, post.Status(req.Status))
-	if err != nil {
-		s.logger.Error("创建帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, err
-	}
-
-	// Update PublishIP if needed | 如果需要更新发布IP
-	if req.PublishIP != "" {
-		p, err = s.postRepo.Update(ctx, p.ID, func(u *ent.PostUpdateOne) *ent.PostUpdateOne {
-			return u.SetPublishIP(req.PublishIP)
-		})
-		if err != nil {
-			s.logger.Warn("更新发布IP失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		}
-	}
-
-	s.logger.Info("帖子创建成功", zap.Int("id", p.ID), tracing.WithTraceIDField(ctx))
-	return p, nil
-}
-
-// UpdatePost Update post information | 更新帖子信息
-func (s *PostManageService) UpdatePost(ctx context.Context, req schema.PostUpdateRequest) (*ent.Post, error) {
-	s.logger.Info("更新帖子信息", zap.Int("id", req.ID), tracing.WithTraceIDField(ctx))
-
 	// Update post | 更新帖子
 	updatedPost, err := s.postRepo.Update(ctx, req.ID, func(u *ent.PostUpdateOne) *ent.PostUpdateOne {
-		if req.Title != "" {
-			u = u.SetTitle(req.Title)
-		}
-		if req.Content != "" {
-			u = u.SetContent(req.Content)
-		}
-		if req.ReadPermissionType != "" {
-			readPermission := s.parseReadPermissionType(req.ReadPermissionType)
-			u = u.SetReadPermission(readPermission).SetReadPermissionPoints(req.ReadPermissionPoints)
-		}
-		if req.Status != "" {
-			u = u.SetStatus(post.Status(req.Status))
-		}
-		return u
+		return u.
+			SetTitle(req.Title).
+			SetContent(req.Content).
+			SetReadPermission(readPermission).
+			SetReadPermissionPoints(req.ReadPermissionPoints)
 	})
 	if err != nil {
 		s.logger.Error("更新帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, err
 	}
 
+	// Query author information | 查询作者信息
+	username := ""
+	avatar := ""
+	users, err := s.userRepo.GetByIDsWithFields(ctx, []int{updatedPost.UserID}, []string{user.FieldID, user.FieldUsername, user.FieldAvatar})
+	if err == nil && len(users) > 0 {
+		username = users[0].Username
+		avatar = users[0].Avatar
+	}
+
+	// Query category information | 查询版块信息
+	categoryName := ""
+	categories, err := s.categoryRepo.GetByIDsWithFields(ctx, []int{updatedPost.CategoryID}, []string{category.FieldID, category.FieldName})
+	if err == nil && len(categories) > 0 {
+		categoryName = categories[0].Name
+	}
+
+	// Convert to response format | 转换为响应格式
+	result := &schema.UserPostUpdateResponse{
+		ID:                   updatedPost.ID,
+		CategoryID:           updatedPost.CategoryID,
+		CategoryName:         categoryName,
+		Title:                updatedPost.Title,
+		Content:              updatedPost.Content,
+		UserID:               updatedPost.UserID,
+		Username:             username,
+		Avatar:               avatar,
+		ReadPermissionType:   string(updatedPost.ReadPermission),
+		ReadPermissionPoints: updatedPost.ReadPermissionPoints,
+		ViewCount:            updatedPost.ViewCount,
+		LikeCount:            updatedPost.LikeCount,
+		DislikeCount:         updatedPost.DislikeCount,
+		FavoriteCount:        updatedPost.FavoriteCount,
+		UserLiked:            false,
+		UserDisliked:         false,
+		UserFavorited:        false,
+		IsEssence:            updatedPost.IsEssence,
+		IsPinned:             updatedPost.IsPinned,
+		Status:               updatedPost.Status.String(),
+		CreatedAt:            updatedPost.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:            updatedPost.UpdatedAt.Format(time_tools.DateTimeFormat),
+	}
+
 	s.logger.Info("帖子更新成功", zap.Int("id", updatedPost.ID), tracing.WithTraceIDField(ctx))
-	return updatedPost, nil
+	return result, nil
 }
 
 // UpdatePostStatus Update post status | 更新帖子状态
