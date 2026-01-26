@@ -234,11 +234,11 @@ func (h *Helper) DeleteStatsCache(ctx context.Context, key string) error {
 
 // setStatsKeyTTL Set stats key TTL | 设置统计类键过期时间
 func (h *Helper) setStatsKeyTTL(ctx context.Context, key string) error {
-	_, err := h.cache.Expire(ctx, key, StatsKeyTTLSeconds)
+	_, err := h.cache.Expire(ctx, key, KeyTTLSeconds)
 	if err != nil {
 		h.logger.Warn("设置统计键过期时间失败",
 			zap.String("key", key),
-			zap.Int("ttl_seconds", StatsKeyTTLSeconds),
+			zap.Int("ttl_seconds", KeyTTLSeconds),
 			zap.Error(err))
 		return err
 	}
