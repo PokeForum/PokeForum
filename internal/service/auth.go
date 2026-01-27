@@ -14,6 +14,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/ent/user"
 	_const "github.com/PokeForum/PokeForum/internal/consts"
+	"github.com/PokeForum/PokeForum/internal/pkg/asynq"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	smtp "github.com/PokeForum/PokeForum/internal/pkg/email"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
@@ -47,10 +48,11 @@ type AuthService struct {
 	logger            *zap.Logger
 	settings          ISettingsService
 	invitationCodeSvc IInvitationCodeService
+	taskManager       *asynq.TaskManager
 }
 
 // NewAuthService Create authentication service instance | 创建认证服务实例
-func NewAuthService(userRepo repository.IUserRepository, loginLogRepo repository.IUserLoginLogRepository, cacheService cache.ICacheService, logger *zap.Logger, settings ISettingsService, invitationCodeSvc IInvitationCodeService) IAuthService {
+func NewAuthService(userRepo repository.IUserRepository, loginLogRepo repository.IUserLoginLogRepository, cacheService cache.ICacheService, logger *zap.Logger, settings ISettingsService, invitationCodeSvc IInvitationCodeService, taskManager *asynq.TaskManager) IAuthService {
 	return &AuthService{
 		userRepo:          userRepo,
 		loginLogRepo:      loginLogRepo,
@@ -58,6 +60,7 @@ func NewAuthService(userRepo repository.IUserRepository, loginLogRepo repository
 		logger:            logger,
 		settings:          settings,
 		invitationCodeSvc: invitationCodeSvc,
+		taskManager:       taskManager,
 	}
 }
 
@@ -249,14 +252,54 @@ func (s *AuthService) SendForgotPasswordCode(ctx context.Context, req schema.For
 		return nil, errors.New("该邮箱未注册")
 	}
 
-	// Check sending frequency limit | 检查发送频率限制
+	// Check and update sending frequency limit atomically | 原子性地检查和更新发送频率限制
 	limitKey := fmt.Sprintf("password:reset:limit:%s", req.Email)
-	limitValue, err := s.cache.Get(ctx, limitKey)
-	if err == nil && limitValue != "" {
-		sendCount := 0
-		if _, parseErr := fmt.Sscanf(limitValue, "%d", &sendCount); parseErr == nil && sendCount >= 3 {
-			return nil, errors.New("发送次数过多，请1小时后再试")
-		}
+
+	luaScript := `
+		local key = KEYS[1]
+		local max_count = tonumber(ARGV[1])
+		local ttl = tonumber(ARGV[2])
+		
+		local new_count = redis.call('INCR', key)
+		
+		if new_count == 1 then
+			redis.call('EXPIRE', key, ttl)
+		end
+		
+		if new_count > max_count then
+			return {0, new_count}
+		end
+		
+		return {1, new_count}
+	`
+
+	result, err := s.cache.Eval(ctx, luaScript, []string{limitKey}, 3, 3600)
+	if err != nil {
+		s.logger.Error("Failed to check frequency limit | 检查频率限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, fmt.Errorf("检查频率限制失败: %w", err)
+	}
+
+	resultSlice, ok := result.([]interface{})
+	if !ok || len(resultSlice) < 2 {
+		s.logger.Error("Invalid result from Lua script | Lua 脚本返回结果无效", zap.Any("result", result), tracing.WithTraceIDField(ctx))
+		return nil, errors.New("系统错误，请稍后重试")
+	}
+
+	allowed, ok := resultSlice[0].(int64)
+	if !ok {
+		s.logger.Error("Invalid allowed value from Lua script | Lua 脚本返回的 allowed 值无效", zap.Any("result", result), tracing.WithTraceIDField(ctx))
+		return nil, errors.New("系统错误，请稍后重试")
+	}
+
+	if allowed == 0 {
+		s.logger.Warn("Password reset request exceeds frequency limit | 找回密码请求超过频率限制", zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
+		return nil, errors.New("发送次数过多，请1小时后再试")
+	}
+
+	sendCount, ok := resultSlice[1].(int64)
+	if !ok {
+		s.logger.Error("Invalid sendCount value from Lua script | Lua 脚本返回的 sendCount 值无效", zap.Any("result", result), tracing.WithTraceIDField(ctx))
+		return nil, errors.New("系统错误，请稍后重试")
 	}
 
 	// Generate 6-digit random verification code | 生成6位随机验证码
@@ -274,17 +317,7 @@ func (s *AuthService) SendForgotPasswordCode(ctx context.Context, req schema.For
 		return nil, fmt.Errorf("存储验证码失败: %w", err)
 	}
 
-	// Update sending frequency limit | 更新发送频率限制
-	newCount := 1
-	if limitValue != "" {
-		var val int
-		if _, parseErr := fmt.Sscanf(limitValue, "%d", &val); parseErr == nil {
-			newCount = val + 1
-		}
-	}
-	if err := s.cache.SetEx(ctx, limitKey, fmt.Sprintf("%d", newCount), 3600); err != nil {
-		s.logger.Warn("Failed to update sending frequency limit | 更新发送频率限制失败", zap.String("key", limitKey), zap.Error(err), tracing.WithTraceIDField(ctx))
-	}
+	s.logger.Info("Password reset frequency limit updated | 找回密码频率限制已更新", zap.String("email", req.Email), zap.Int64("count", sendCount), tracing.WithTraceIDField(ctx))
 
 	// Send password reset email | 发送重置密码邮件
 	err = s.sendPasswordResetEmail(ctx, userData.Email, code)
@@ -414,19 +447,28 @@ func (s *AuthService) sendPasswordResetEmail(ctx context.Context, email, code st
 
 // RecordLoginLog Record login log | 记录登录日志
 func (s *AuthService) RecordLoginLog(ctx context.Context, userID int, ip, ua string) {
-	go func() {
-		// Device information | 设备信息
-		deviceInfo := ua
-		if deviceInfo == "" {
-			deviceInfo = "Unknown"
-		}
+	payload := &LoginLogPayload{
+		UserID:  userID,
+		IP:      ip,
+		TraceID: tracing.GetTraceID(ctx),
+	}
 
-		_, err := s.loginLogRepo.Create(context.Background(), userID, ip, deviceInfo, true)
-		if err != nil {
-			s.logger.Error("Failed to save login log | 保存登录日志失败",
-				zap.Int("user_id", userID),
-				zap.String("ip_address", ip),
-				zap.Error(err))
-		}
-	}()
+	task, err := NewLoginLogTask(payload)
+	if err != nil {
+		s.logger.Error("创建登录日志任务失败",
+			zap.Int("user_id", userID),
+			zap.String("ip_address", ip),
+			tracing.WithTraceIDField(ctx),
+			zap.Error(err))
+		return
+	}
+
+	_, err = s.taskManager.EnqueueContext(ctx, task)
+	if err != nil {
+		s.logger.Error("提交登录日志任务失败",
+			zap.Int("user_id", userID),
+			zap.String("ip_address", ip),
+			tracing.WithTraceIDField(ctx),
+			zap.Error(err))
+	}
 }

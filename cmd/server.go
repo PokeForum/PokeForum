@@ -164,6 +164,10 @@ func initializeTaskManager(repos *repository.Repositories, cacheService cache.IC
 	signinAsyncTask := service.NewSigninAsyncTask(configs.DB, repos, taskManager, configs.Log)
 	signinAsyncTask.RegisterHandler()
 
+	// Register login log async task handler | 注册登录日志异步任务处理器
+	loginLogAsyncTask := service.NewLoginLogAsyncTask(repos.UserLoginLog, configs.Log, taskManager)
+	loginLogAsyncTask.RegisterHandler()
+
 	// Register stats sync task handler and scheduled task (sync every 5 minutes) | 注册统计数据同步任务处理器和定时任务(每5分钟同步一次)
 	syncTask := service.NewStatsSyncTask(configs.DB, repos, cacheService, taskManager, configs.Log)
 	syncTask.RegisterHandler()

@@ -245,4 +245,12 @@ type ICacheService interface {
 	// ctx: context | ctx: 上下文
 	// Returns: status command | 返回: 状态命令
 	Ping(ctx context.Context) *redis.StatusCmd
+
+	// Eval Execute Lua script | 执行 Lua 脚本
+	// ctx: 上下文
+	// script: Lua 脚本
+	// keys: 脚本中使用的键列表
+	// args: 脚本中使用的参数列表
+	// 返回: 执行结果和错误信息
+	Eval(ctx context.Context, script string, keys []string, args ...interface{}) (interface{}, error)
 }

@@ -461,3 +461,13 @@ func (r *RedisCacheService) XLen(ctx context.Context, stream string) (int64, err
 func (r *RedisCacheService) Ping(ctx context.Context) *redis.StatusCmd {
 	return r.client.Ping(ctx)
 }
+
+// Eval Execute Lua script | 执行 Lua 脚本
+func (r *RedisCacheService) Eval(ctx context.Context, script string, keys []string, args ...interface{}) (interface{}, error) {
+	result, err := r.client.Eval(ctx, script, keys, args...).Result()
+	if err != nil {
+		r.logger.Error("执行 Lua 脚本失败", zap.Error(err), zap.String("script", script))
+		return nil, fmt.Errorf("执行 Lua 脚本失败: %w", err)
+	}
+	return result, nil
+}

@@ -10,6 +10,9 @@ const (
 
 	// TypeRankingRefresh 排行榜缓存刷新任务
 	TypeRankingRefresh = "ranking:refresh"
+
+	// TypeLoginLog Login log recording task | 登录日志记录任务
+	TypeLoginLog = "login:log"
 )
 
 // 队列名称常量 | Queue name constants

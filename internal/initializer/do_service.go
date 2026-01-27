@@ -8,6 +8,7 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent"
 	"github.com/PokeForum/PokeForum/internal/configs"
+	"github.com/PokeForum/PokeForum/internal/pkg/asynq"
 	"github.com/PokeForum/PokeForum/internal/pkg/cache"
 	"github.com/PokeForum/PokeForum/internal/repository"
 	"github.com/PokeForum/PokeForum/internal/service"
@@ -58,7 +59,8 @@ func InjectorSrv(injector *do.Injector) {
 		cacheService := do.MustInvoke[cache.ICacheService](i)
 		settingsService := do.MustInvoke[service.ISettingsService](i)
 		invitationCodeService := do.MustInvoke[service.IInvitationCodeService](i)
-		return service.NewAuthService(repos.User, repos.UserLoginLog, cacheService, logger, settingsService, invitationCodeService), nil
+		taskManager := do.MustInvoke[*asynq.TaskManager](i)
+		return service.NewAuthService(repos.User, repos.UserLoginLog, cacheService, logger, settingsService, invitationCodeService, taskManager), nil
 	})
 	// Register UserManageService | 注册 UserManageService
 	do.Provide(injector, func(i *do.Injector) (service.IUserManageService, error) {
