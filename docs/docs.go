@@ -893,6 +893,129 @@ const docTemplate = `{
                 }
             }
         },
+        "/discovery/comments": {
+            "get": {
+                "description": "Get the latest comments | 获取最新的评论",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]Discovery | [用户]发现"
+                ],
+                "summary": "Get interactive comments | 获取互动评论",
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.DiscoveryCommentsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Server internal error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/discovery/discussions": {
+            "get": {
+                "description": "Get posts sorted by latest reply time | 获取按最近回复时间排序的帖子",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]Discovery | [用户]发现"
+                ],
+                "summary": "Get latest discussions | 获取最新讨论",
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.DiscoveryLatestDiscussionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Server internal error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/discovery/fresh": {
+            "get": {
+                "description": "Get the latest published posts, sorted by creation time descending | 获取最新发布的帖子，按创建时间降序排列",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]Discovery | [用户]发现"
+                ],
+                "summary": "Get fresh posts | 获取新鲜发布的帖子",
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.DiscoveryFreshResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Server internal error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Check health status of all dependent services | 检查所有依赖服务的健康状态",
@@ -8865,6 +8988,189 @@ const docTemplate = `{
                             "$ref": "#/definitions/schema.UserStats"
                         }
                     ]
+                }
+            }
+        },
+        "schema.DiscoveryCommentItem": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "Avatar | 头像",
+                    "type": "string"
+                },
+                "content": {
+                    "description": "Comment content | 评论内容",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "Creation time | 创建时间",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Comment ID | 评论ID",
+                    "type": "integer"
+                },
+                "like_count": {
+                    "description": "Like count | 点赞数",
+                    "type": "integer"
+                },
+                "post_id": {
+                    "description": "Post ID | 帖子ID",
+                    "type": "integer"
+                },
+                "post_title": {
+                    "description": "Post title | 帖子标题",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "User ID | 用户ID",
+                    "type": "integer"
+                },
+                "username": {
+                    "description": "Username | 用户名",
+                    "type": "string"
+                }
+            }
+        },
+        "schema.DiscoveryCommentsResponse": {
+            "type": "object",
+            "properties": {
+                "comments": {
+                    "description": "Comment list | 评论列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.DiscoveryCommentItem"
+                    }
+                }
+            }
+        },
+        "schema.DiscoveryFreshResponse": {
+            "type": "object",
+            "properties": {
+                "posts": {
+                    "description": "Post list | 帖子列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.DiscoveryPostItem"
+                    }
+                }
+            }
+        },
+        "schema.DiscoveryLatestDiscussionItem": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "Author avatar | 作者头像",
+                    "type": "string"
+                },
+                "category_id": {
+                    "description": "Category ID | 版块ID",
+                    "type": "integer"
+                },
+                "category_name": {
+                    "description": "Category name | 版块名称",
+                    "type": "string"
+                },
+                "comment_count": {
+                    "description": "Comment count | 评论数",
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "Post ID | 帖子ID",
+                    "type": "integer"
+                },
+                "last_reply_at": {
+                    "description": "Last reply time | 最后回复时间",
+                    "type": "string"
+                },
+                "last_reply_user_id": {
+                    "description": "Last reply user ID | 最后回复用户ID",
+                    "type": "integer"
+                },
+                "last_reply_username": {
+                    "description": "Last reply username | 最后回复用户名",
+                    "type": "string"
+                },
+                "title": {
+                    "description": "Post title | 帖子标题",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "Author ID | 作者ID",
+                    "type": "integer"
+                },
+                "username": {
+                    "description": "Author username | 作者用户名",
+                    "type": "string"
+                }
+            }
+        },
+        "schema.DiscoveryLatestDiscussionResponse": {
+            "type": "object",
+            "properties": {
+                "posts": {
+                    "description": "Post list | 帖子列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.DiscoveryLatestDiscussionItem"
+                    }
+                }
+            }
+        },
+        "schema.DiscoveryPostItem": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "Author avatar | 作者头像",
+                    "type": "string"
+                },
+                "category_id": {
+                    "description": "Category ID | 版块ID",
+                    "type": "integer"
+                },
+                "category_name": {
+                    "description": "Category name | 版块名称",
+                    "type": "string"
+                },
+                "comment_count": {
+                    "description": "Comment count | 评论数",
+                    "type": "integer"
+                },
+                "created_at": {
+                    "description": "Creation time | 创建时间",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "Post ID | 帖子ID",
+                    "type": "integer"
+                },
+                "is_essence": {
+                    "description": "Whether essence post | 是否精华帖",
+                    "type": "boolean"
+                },
+                "like_count": {
+                    "description": "Like count | 点赞数",
+                    "type": "integer"
+                },
+                "title": {
+                    "description": "Post title | 帖子标题",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "Update time | 更新时间",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "Author ID | 作者ID",
+                    "type": "integer"
+                },
+                "username": {
+                    "description": "Author username | 作者用户名",
+                    "type": "string"
+                },
+                "view_count": {
+                    "description": "View count | 浏览数",
+                    "type": "integer"
                 }
             }
         },

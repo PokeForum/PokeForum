@@ -59,6 +59,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 	blacklistService := do.MustInvoke[service.IBlacklistService](injector)
 	userFollowService := do.MustInvoke[service.IUserFollowService](injector)
 	rankingService := do.MustInvoke[service.IRankingService](injector)
+	discoveryService := do.MustInvoke[service.IDiscoveryService](injector)
 	categoryService := do.MustInvoke[service.ICategoryService](injector)
 	postService := do.MustInvoke[service.IPostService](injector)
 	commentService := do.MustInvoke[service.ICommentService](injector)
@@ -149,9 +150,10 @@ func Routers(injector *do.Injector) *gin.Engine {
 				InvitationCodeCon.InvitationCodeRouter(InvitationCodeGroup)
 			}
 
-			// TODO Discovery | 发现
-			{
-			}
+			// Discovery | 发现
+			DiscoveryGroup := ForumGroup.Group("/discovery")
+			DiscoveryCon := controller.NewDiscoveryController(discoveryService)
+			DiscoveryCon.DiscoveryRouter(DiscoveryGroup)
 
 			// Ranking | 排行榜
 			RankingGroup := ForumGroup.Group("/ranking")

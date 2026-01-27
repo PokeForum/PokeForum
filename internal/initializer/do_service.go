@@ -171,6 +171,13 @@ func InjectorSrv(injector *do.Injector) {
 		cacheService := do.MustInvoke[cache.ICacheService](i)
 		return service.NewRankingService(db, repos, cacheService, logger), nil
 	})
+	// Register DiscoveryService | 注册 DiscoveryService
+	do.Provide(injector, func(i *do.Injector) (service.IDiscoveryService, error) {
+		db := do.MustInvoke[*ent.Client](i)
+		repos := do.MustInvoke[*repository.Repositories](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		return service.NewDiscoveryService(db, repos, logger), nil
+	})
 	// Register OAuthProviderService | 注册 OAuthProviderService
 	do.Provide(injector, func(i *do.Injector) (service.IOAuthProviderService, error) {
 		db := do.MustInvoke[*ent.Client](i)
