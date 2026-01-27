@@ -7,6 +7,9 @@ const (
 
 	// TypeStatsSync Statistics data synchronization task | 统计数据同步任务
 	TypeStatsSync = "stats:sync"
+
+	// TypeRankingRefresh 排行榜缓存刷新任务
+	TypeRankingRefresh = "ranking:refresh"
 )
 
 // 队列名称常量 | Queue name constants

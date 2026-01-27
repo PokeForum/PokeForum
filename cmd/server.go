@@ -100,31 +100,14 @@ func RunServer() {
 	// Initialize repositories | 初始化仓储层
 	repos := repository.NewRepositories(configs.DB)
 
-	// Initialize asynq task manager | 初始化asynq任务管理器
-	taskManager := asynq.NewTaskManagerFromRedis(configs.Cache, 10, configs.Log)
-
-	// Register sign-in async task handler | 注册签到异步任务处理器
-	signinAsyncTask := service.NewSigninAsyncTask(configs.DB, repos, taskManager, configs.Log)
-	signinAsyncTask.RegisterHandler()
-
-	// Register stats sync task handler and scheduled task (sync every 5 minutes) | 注册统计数据同步任务处理器和定时任务(每5分钟同步一次)
-	syncTask := service.NewStatsSyncTask(configs.DB, repos, cacheService, taskManager, configs.Log)
-	syncTask.RegisterHandler()
-	if err := syncTask.RegisterSchedule(5 * time.Minute); err != nil {
-		configs.Log.Error("Failed to register stats sync scheduled task | 注册统计同步定时任务失败", zap.Error(err))
-	}
-
-	// Start asynq task server | 启动asynq任务服务器
-	if err := taskManager.Start(); err != nil {
-		configs.Log.Error("Failed to start asynq task server | 启动asynq任务服务器失败", zap.Error(err))
+	// Initialize and start task manager with all handlers | 初始化并启动任务管理器及所有处理器
+	taskManager := initializeTaskManager(repos, cacheService)
+	if taskManager == nil {
+		configs.Log.Error("Failed to initialize task manager | 任务管理器初始化失败")
 		return
 	}
 
-	// Execute stats sync immediately on startup | 启动时立即执行一次统计同步
-	syncTask.SyncNow(context.Background())
-
-	// Inject SigninAsyncTask into injector for SigninService to use | 将SigninAsyncTask注入到injector供SigninService使用
-	do.ProvideValue(injector, signinAsyncTask)
+	// Inject TaskManager into injector | 将TaskManager注入到injector
 	do.ProvideValue(injector, taskManager)
 
 	// Register routes | 注册路由
@@ -169,4 +152,41 @@ func RunServer() {
 	}
 
 	configs.Log.Info("Service has been shut down")
+}
+
+// initializeTaskManager initializes and starts the asynq task manager with all task handlers | 初始化并启动asynq任务管理器及所有任务处理器
+func initializeTaskManager(repos *repository.Repositories, cacheService cache.ICacheService) *asynq.TaskManager {
+	// Initialize asynq task manager | 初始化asynq任务管理器
+	taskManager := asynq.NewTaskManagerFromRedis(configs.Cache, 10, configs.Log)
+
+	// Register sign-in async task handler | 注册签到异步任务处理器
+	signinAsyncTask := service.NewSigninAsyncTask(configs.DB, repos, taskManager, configs.Log)
+	signinAsyncTask.RegisterHandler()
+
+	// Register stats sync task handler and scheduled task (sync every 5 minutes) | 注册统计数据同步任务处理器和定时任务(每5分钟同步一次)
+	syncTask := service.NewStatsSyncTask(configs.DB, repos, cacheService, taskManager, configs.Log)
+	syncTask.RegisterHandler()
+	if err := syncTask.RegisterSchedule(5 * time.Minute); err != nil {
+		configs.Log.Error("Failed to register stats sync scheduled task | 注册统计同步定时任务失败", zap.Error(err))
+	}
+
+	// Register ranking cache refresh task handler and scheduled task (refresh every 15 minutes) | 注册排行榜缓存刷新任务处理器和定时任务(每15分钟刷新一次)
+	rankingSyncTask := service.NewRankingSyncTask(configs.DB, repos, cacheService, taskManager, configs.Log)
+	rankingSyncTask.RegisterHandler()
+	if err := rankingSyncTask.RegisterSchedule(); err != nil {
+		configs.Log.Error("注册排行榜缓存刷新定时任务失败", zap.Error(err))
+	}
+	// Execute ranking cache refresh immediately on startup | 启动时立即执行一次排行榜缓存刷新
+	rankingSyncTask.SyncNow(context.Background())
+
+	// Start asynq task server | 启动asynq任务服务器
+	if err := taskManager.Start(); err != nil {
+		configs.Log.Error("Failed to start asynq task server | 启动asynq任务服务器失败", zap.Error(err))
+		return nil
+	}
+
+	// Execute stats sync immediately on startup | 启动时立即执行一次统计同步
+	syncTask.SyncNow(context.Background())
+
+	return taskManager
 }

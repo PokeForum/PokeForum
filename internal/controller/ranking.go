@@ -8,70 +8,186 @@ import (
 	"github.com/PokeForum/PokeForum/internal/service"
 )
 
-// RankingController Ranking controller | 排行榜控制器
+// RankingController 排行榜控制器
 type RankingController struct {
 	rankingService service.IRankingService
 }
 
-// NewRankingController Create ranking controller instance | 创建排行榜控制器实例
+// NewRankingController 创建排行榜控制器实例
 func NewRankingController(rankingService service.IRankingService) *RankingController {
 	return &RankingController{
 		rankingService: rankingService,
 	}
 }
 
-// RankingRouter Ranking related route registration | 排行榜相关路由注册
+// RankingRouter 排行榜相关路由注册
 func (ctrl *RankingController) RankingRouter(router *gin.RouterGroup) {
-	// Get ranking list | 获取排行榜列表
-	router.GET("", ctrl.GetRankingList)
+	router.GET("/reading", ctrl.GetReadingRanking)
+	router.GET("/post-count", ctrl.GetPostCountRanking)
+	router.GET("/comment-count", ctrl.GetCommentCountRanking)
+	router.GET("/follower", ctrl.GetFollowerRanking)
+	router.GET("/points", ctrl.GetPointsRanking)
+	router.GET("/currency", ctrl.GetCurrencyRanking)
 }
 
-// GetRankingList Get ranking list | 获取排行榜列表
-// @Summary Get ranking list | 获取排行榜列表
-// @Description Get ranking data by ranking type and time range, supports reading and comment rankings | 根据排行榜类型和时间范围获取排行榜数据，支持阅读榜和评论榜
+// GetReadingRanking 获取阅读排行榜
+// @Summary 获取阅读排行榜
+// @Description 根据时间范围获取阅读量最高的帖子列表（固定返回前100条）
 // @Tags [User]Ranking | [用户]排行榜
 // @Accept json
 // @Produce json
-// @Param type query string true "Ranking type: reading(reading ranking), comment(comment ranking) | 排行榜类型：reading(阅读榜), comment(评论榜)" example("reading")
-// @Param time_range query string true "Time range: all(all-time), month(monthly), week(weekly) | 时间范围：all(总榜), month(月榜), week(周榜)" example("all")
-// @Param page query int true "Page number | 页码" example("1")
-// @Param page_size query int true "Items per page | 每页数量" example("20")
-// @Success 200 {object} response.Data{data=schema.UserRankingListResponse} "Success | 获取成功"
-// @Failure 400 {object} response.Data "Invalid request parameters | 请求参数错误"
-// @Failure 500 {object} response.Data "Server internal error | 服务器内部错误"
-// @Router /ranking [get]
-func (ctrl *RankingController) GetRankingList(c *gin.Context) {
-	// Parse request parameters | 解析请求参数
-	var req schema.UserRankingListRequest
+// @Param time_range query string true "时间范围：all(总榜), month(月榜), week(周榜)" example("all")
+// @Success 200 {object} response.Data{data=schema.ReadingRankingResponse} "获取成功"
+// @Failure 400 {object} response.Data "请求参数错误"
+// @Failure 500 {object} response.Data "服务器内部错误"
+// @Router /ranking/reading [get]
+func (ctrl *RankingController) GetReadingRanking(c *gin.Context) {
+	var req schema.RankingRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
 		return
 	}
 
-	// Call different service methods based on ranking type | 根据排行榜类型调用不同的服务方法
-	var result *schema.UserRankingListResponse
-	var err error
-
-	switch req.Type {
-	case "reading":
-		// Get reading ranking | 获取阅读排行榜
-		result, err = ctrl.rankingService.GetReadingRanking(c.Request.Context(), req)
-		if err != nil {
-			response.ResErrorWithMsg(c, 500, "Failed to get reading ranking | 获取阅读排行榜失败", err.Error())
-			return
-		}
-	case "comment":
-		// Get comment ranking | 获取评论排行榜
-		result, err = ctrl.rankingService.GetCommentRanking(c.Request.Context(), req)
-		if err != nil {
-			response.ResErrorWithMsg(c, 500, "Failed to get comment ranking | 获取评论排行榜失败", err.Error())
-			return
-		}
-	default:
-		response.ResErrorWithMsg(c, 400, "Unsupported ranking type | 不支持的排行榜类型", "Only supports reading and comment rankings | 仅支持 reading(阅读榜) 和 comment(评论榜)")
+	result, err := ctrl.rankingService.GetReadingRanking(c.Request.Context(), req)
+	if err != nil {
+		response.ResErrorWithMsg(c, 500, "获取阅读排行榜失败", err.Error())
 		return
 	}
 
-	// Return success response | 返回成功响应
+	response.ResSuccess(c, result)
+}
+
+// GetPostCountRanking 获取帖子数排行榜
+// @Summary 获取帖子数排行榜
+// @Description 根据时间范围获取发帖数最多的用户列表（固定返回前100条）
+// @Tags [User]Ranking | [用户]排行榜
+// @Accept json
+// @Produce json
+// @Param time_range query string true "时间范围：all(总榜), month(月榜), week(周榜)" example("all")
+// @Success 200 {object} response.Data{data=schema.PostCountRankingResponse} "获取成功"
+// @Failure 400 {object} response.Data "请求参数错误"
+// @Failure 500 {object} response.Data "服务器内部错误"
+// @Router /ranking/post-count [get]
+func (ctrl *RankingController) GetPostCountRanking(c *gin.Context) {
+	var req schema.RankingRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		return
+	}
+
+	result, err := ctrl.rankingService.GetPostCountRanking(c.Request.Context(), req)
+	if err != nil {
+		response.ResErrorWithMsg(c, 500, "获取帖子数排行榜失败", err.Error())
+		return
+	}
+
+	response.ResSuccess(c, result)
+}
+
+// GetCommentCountRanking 获取评论数排行榜
+// @Summary 获取评论数排行榜
+// @Description 根据时间范围获取评论数最多的用户列表（固定返回前100条）
+// @Tags [User]Ranking | [用户]排行榜
+// @Accept json
+// @Produce json
+// @Param time_range query string true "时间范围：all(总榜), month(月榜), week(周榜)" example("all")
+// @Success 200 {object} response.Data{data=schema.CommentCountRankingResponse} "获取成功"
+// @Failure 400 {object} response.Data "请求参数错误"
+// @Failure 500 {object} response.Data "服务器内部错误"
+// @Router /ranking/comment-count [get]
+func (ctrl *RankingController) GetCommentCountRanking(c *gin.Context) {
+	var req schema.RankingRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		return
+	}
+
+	result, err := ctrl.rankingService.GetCommentCountRanking(c.Request.Context(), req)
+	if err != nil {
+		response.ResErrorWithMsg(c, 500, "获取评论数排行榜失败", err.Error())
+		return
+	}
+
+	response.ResSuccess(c, result)
+}
+
+// GetFollowerRanking 获取名人榜（被关注数）
+// @Summary 获取名人榜
+// @Description 获取粉丝数最多的用户列表（固定返回前100条）
+// @Tags [User]Ranking | [用户]排行榜
+// @Accept json
+// @Produce json
+// @Param time_range query string true "时间范围：all(总榜), month(月榜), week(周榜)" example("all")
+// @Success 200 {object} response.Data{data=schema.FollowerRankingResponse} "获取成功"
+// @Failure 400 {object} response.Data "请求参数错误"
+// @Failure 500 {object} response.Data "服务器内部错误"
+// @Router /ranking/follower [get]
+func (ctrl *RankingController) GetFollowerRanking(c *gin.Context) {
+	var req schema.RankingRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		return
+	}
+
+	result, err := ctrl.rankingService.GetFollowerRanking(c.Request.Context(), req)
+	if err != nil {
+		response.ResErrorWithMsg(c, 500, "获取名人榜失败", err.Error())
+		return
+	}
+
+	response.ResSuccess(c, result)
+}
+
+// GetPointsRanking 获取积分榜
+// @Summary 获取积分榜
+// @Description 获取积分最高的用户列表（固定返回前100条）
+// @Tags [User]Ranking | [用户]排行榜
+// @Accept json
+// @Produce json
+// @Param time_range query string true "时间范围：all(总榜), month(月榜), week(周榜)" example("all")
+// @Success 200 {object} response.Data{data=schema.PointsRankingResponse} "获取成功"
+// @Failure 400 {object} response.Data "请求参数错误"
+// @Failure 500 {object} response.Data "服务器内部错误"
+// @Router /ranking/points [get]
+func (ctrl *RankingController) GetPointsRanking(c *gin.Context) {
+	var req schema.RankingRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		return
+	}
+
+	result, err := ctrl.rankingService.GetPointsRanking(c.Request.Context(), req)
+	if err != nil {
+		response.ResErrorWithMsg(c, 500, "获取积分榜失败", err.Error())
+		return
+	}
+
+	response.ResSuccess(c, result)
+}
+
+// GetCurrencyRanking 获取财富榜（货币）
+// @Summary 获取财富榜
+// @Description 获取货币最多的用户列表（固定返回前100条）
+// @Tags [User]Ranking | [用户]排行榜
+// @Accept json
+// @Produce json
+// @Param time_range query string true "时间范围：all(总榜), month(月榜), week(周榜)" example("all")
+// @Success 200 {object} response.Data{data=schema.CurrencyRankingResponse} "获取成功"
+// @Failure 400 {object} response.Data "请求参数错误"
+// @Failure 500 {object} response.Data "服务器内部错误"
+// @Router /ranking/currency [get]
+func (ctrl *RankingController) GetCurrencyRanking(c *gin.Context) {
+	var req schema.RankingRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		return
+	}
+
+	result, err := ctrl.rankingService.GetCurrencyRanking(c.Request.Context(), req)
+	if err != nil {
+		response.ResErrorWithMsg(c, 500, "获取财富榜失败", err.Error())
+		return
+	}
+
 	response.ResSuccess(c, result)
 }

@@ -397,6 +397,53 @@ definitions:
         example: <script>console.log('header');</script>
         type: string
     type: object
+  schema.CommentCountRankingItem:
+    properties:
+      avatar:
+        description: Avatar | 头像
+        type: string
+      rank:
+        description: Rank | 排名
+        type: integer
+      registered_at:
+        description: Registration time | 注册时间
+        type: string
+      total_comments:
+        description: Total comments | 评论总数
+        type: integer
+      total_likes:
+        description: Total likes | 获赞总数
+        type: integer
+      user_id:
+        description: User ID | 用户ID
+        type: integer
+      username:
+        description: Username | 用户名
+        type: string
+    type: object
+  schema.CommentCountRankingResponse:
+    properties:
+      items:
+        description: Ranking item list | 排行榜项目列表
+        items:
+          $ref: '#/definitions/schema.CommentCountRankingItem'
+        type: array
+      page:
+        description: Current page number | 当前页码
+        type: integer
+      page_size:
+        description: Items per page | 每页数量
+        type: integer
+      time_range:
+        description: Time range | 时间范围
+        type: string
+      total:
+        description: Total count | 总数量
+        type: integer
+      total_pages:
+        description: Total pages | 总页数
+        type: integer
+    type: object
   schema.CommentCreateRequest:
     properties:
       commenter_ip:
@@ -696,6 +743,53 @@ definitions:
     required:
     - content
     - id
+    type: object
+  schema.CurrencyRankingItem:
+    properties:
+      avatar:
+        description: Avatar | 头像
+        type: string
+      currency:
+        description: Currency | 货币
+        type: integer
+      points:
+        description: Points | 积分
+        type: integer
+      rank:
+        description: Rank | 排名
+        type: integer
+      registered_at:
+        description: Registration time | 注册时间
+        type: string
+      user_id:
+        description: User ID | 用户ID
+        type: integer
+      username:
+        description: Username | 用户名
+        type: string
+    type: object
+  schema.CurrencyRankingResponse:
+    properties:
+      items:
+        description: Ranking item list | 排行榜项目列表
+        items:
+          $ref: '#/definitions/schema.CurrencyRankingItem'
+        type: array
+      page:
+        description: Current page number | 当前页码
+        type: integer
+      page_size:
+        description: Items per page | 每页数量
+        type: integer
+      time_range:
+        description: Time range | 时间范围
+        type: string
+      total:
+        description: Total count | 总数量
+        type: integer
+      total_pages:
+        description: Total pages | 总页数
+        type: integer
     type: object
   schema.DashboardStatsResponse:
     properties:
@@ -1003,6 +1097,53 @@ definitions:
         description: Verification status | 验证状态
         example: true
         type: boolean
+    type: object
+  schema.FollowerRankingItem:
+    properties:
+      avatar:
+        description: Avatar | 头像
+        type: string
+      rank:
+        description: Rank | 排名
+        type: integer
+      registered_at:
+        description: Registration time | 注册时间
+        type: string
+      total_followers:
+        description: Total followers | 粉丝总数
+        type: integer
+      total_posts:
+        description: Total posts | 帖子总数
+        type: integer
+      user_id:
+        description: User ID | 用户ID
+        type: integer
+      username:
+        description: Username | 用户名
+        type: string
+    type: object
+  schema.FollowerRankingResponse:
+    properties:
+      items:
+        description: Ranking item list | 排行榜项目列表
+        items:
+          $ref: '#/definitions/schema.FollowerRankingItem'
+        type: array
+      page:
+        description: Current page number | 当前页码
+        type: integer
+      page_size:
+        description: Items per page | 每页数量
+        type: integer
+      time_range:
+        description: Time range | 时间范围
+        type: string
+      total:
+        description: Total count | 总数量
+        type: integer
+      total_pages:
+        description: Total pages | 总页数
+        type: integer
     type: object
   schema.ForgotPasswordRequest:
     properties:
@@ -1903,6 +2044,53 @@ definitions:
           $ref: '#/definitions/schema.OAuthUserBindItem'
         type: array
     type: object
+  schema.PointsRankingItem:
+    properties:
+      avatar:
+        description: Avatar | 头像
+        type: string
+      experience:
+        description: Experience | 经验值
+        type: integer
+      points:
+        description: Points | 积分
+        type: integer
+      rank:
+        description: Rank | 排名
+        type: integer
+      registered_at:
+        description: Registration time | 注册时间
+        type: string
+      user_id:
+        description: User ID | 用户ID
+        type: integer
+      username:
+        description: Username | 用户名
+        type: string
+    type: object
+  schema.PointsRankingResponse:
+    properties:
+      items:
+        description: Ranking item list | 排行榜项目列表
+        items:
+          $ref: '#/definitions/schema.PointsRankingItem'
+        type: array
+      page:
+        description: Current page number | 当前页码
+        type: integer
+      page_size:
+        description: Items per page | 每页数量
+        type: integer
+      time_range:
+        description: Time range | 时间范围
+        type: string
+      total:
+        description: Total count | 总数量
+        type: integer
+      total_pages:
+        description: Total pages | 总页数
+        type: integer
+    type: object
   schema.PopularCategoriesResponse:
     properties:
       categories:
@@ -1993,6 +2181,53 @@ definitions:
         type: string
     required:
     - id
+    type: object
+  schema.PostCountRankingItem:
+    properties:
+      avatar:
+        description: Avatar | 头像
+        type: string
+      rank:
+        description: Rank | 排名
+        type: integer
+      registered_at:
+        description: Registration time | 注册时间
+        type: string
+      total_posts:
+        description: Total posts | 帖子总数
+        type: integer
+      total_views:
+        description: Total views | 总阅读数
+        type: integer
+      user_id:
+        description: User ID | 用户ID
+        type: integer
+      username:
+        description: Username | 用户名
+        type: string
+    type: object
+  schema.PostCountRankingResponse:
+    properties:
+      items:
+        description: Ranking item list | 排行榜项目列表
+        items:
+          $ref: '#/definitions/schema.PostCountRankingItem'
+        type: array
+      page:
+        description: Current page number | 当前页码
+        type: integer
+      page_size:
+        description: Items per page | 每页数量
+        type: integer
+      time_range:
+        description: Time range | 时间范围
+        type: string
+      total:
+        description: Total count | 总数量
+        type: integer
+      total_pages:
+        description: Total pages | 总页数
+        type: integer
     type: object
   schema.PostDetailResponse:
     properties:
@@ -2375,29 +2610,58 @@ definitions:
       signin:
         $ref: '#/definitions/schema.SigninSettingsResponse'
     type: object
-  schema.RankingItem:
+  schema.ReadingRankingItem:
     properties:
-      count:
-        description: Statistical value | 统计数值
+      author_username:
+        description: Author username | 作者用户名
+        type: string
+      category_id:
+        description: Category ID | 版块ID
         type: integer
+      category_name:
+        description: Category name | 版块名称
+        type: string
       created_at:
         description: Created time | 创建时间
         type: string
+      like_count:
+        description: Like count | 点赞数
+        type: integer
       post_id:
-        description: Post ID (reading ranking) | 帖子ID（阅读榜）
+        description: Post ID | 帖子ID
         type: integer
       post_title:
-        description: Post title (reading ranking) | 帖子标题（阅读榜）
+        description: Post title | 帖子标题
         type: string
       rank:
         description: Rank | 排名
         type: integer
-      user_id:
-        description: User ID (comment ranking) | 用户ID（评论榜）
+      view_count:
+        description: View count | 阅读数
         type: integer
-      username:
-        description: Username (comment ranking) | 用户名（评论榜）
+    type: object
+  schema.ReadingRankingResponse:
+    properties:
+      items:
+        description: Ranking item list | 排行榜项目列表
+        items:
+          $ref: '#/definitions/schema.ReadingRankingItem'
+        type: array
+      page:
+        description: Current page number | 当前页码
+        type: integer
+      page_size:
+        description: Items per page | 每页数量
+        type: integer
+      time_range:
+        description: Time range | 时间范围
         type: string
+      total:
+        description: Total count | 总数量
+        type: integer
+      total_pages:
+        description: Total pages | 总页数
+        type: integer
     type: object
   schema.RecentActivityResponse:
     properties:
@@ -4356,32 +4620,6 @@ definitions:
       total:
         description: Total count | 总数量
         type: integer
-    type: object
-  schema.UserRankingListResponse:
-    properties:
-      items:
-        description: Ranking item list | 排行榜项目列表
-        items:
-          $ref: '#/definitions/schema.RankingItem'
-        type: array
-      page:
-        description: Current page number | 当前页码
-        type: integer
-      page_size:
-        description: Items per page | 每页数量
-        type: integer
-      time_range:
-        description: Time range | 时间范围
-        type: string
-      total:
-        description: Total count | 总数量
-        type: integer
-      total_pages:
-        description: Total pages | 总页数
-        type: integer
-      type:
-        description: Ranking type | 排行榜类型
-        type: string
     type: object
   schema.UserResponse:
     properties:
@@ -8568,58 +8806,214 @@ paths:
       summary: Update username | 修改用户名
       tags:
       - '[User]Profile | [用户]个人中心'
-  /ranking:
+  /ranking/comment-count:
     get:
       consumes:
       - application/json
-      description: Get ranking data by ranking type and time range, supports reading
-        and comment rankings | 根据排行榜类型和时间范围获取排行榜数据，支持阅读榜和评论榜
+      description: 根据时间范围获取评论数最多的用户列表（固定返回前100条）
       parameters:
-      - description: 'Ranking type: reading(reading ranking), comment(comment ranking)
-          | 排行榜类型：reading(阅读榜), comment(评论榜)'
-        example: '"reading"'
-        in: query
-        name: type
-        required: true
-        type: string
-      - description: 'Time range: all(all-time), month(monthly), week(weekly) | 时间范围：all(总榜),
-          month(月榜), week(周榜)'
+      - description: 时间范围：all(总榜), month(月榜), week(周榜)
         example: '"all"'
         in: query
         name: time_range
         required: true
         type: string
-      - description: Page number | 页码
-        in: query
-        name: page
-        required: true
-        type: integer
-      - description: Items per page | 每页数量
-        in: query
-        name: page_size
-        required: true
-        type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: Success | 获取成功
+          description: 获取成功
           schema:
             allOf:
             - $ref: '#/definitions/response.Data'
             - properties:
                 data:
-                  $ref: '#/definitions/schema.UserRankingListResponse'
+                  $ref: '#/definitions/schema.CommentCountRankingResponse'
               type: object
         "400":
-          description: Invalid request parameters | 请求参数错误
+          description: 请求参数错误
           schema:
             $ref: '#/definitions/response.Data'
         "500":
-          description: Server internal error | 服务器内部错误
+          description: 服务器内部错误
           schema:
             $ref: '#/definitions/response.Data'
-      summary: Get ranking list | 获取排行榜列表
+      summary: 获取评论数排行榜
+      tags:
+      - '[User]Ranking | [用户]排行榜'
+  /ranking/currency:
+    get:
+      consumes:
+      - application/json
+      description: 获取货币最多的用户列表（固定返回前100条）
+      parameters:
+      - description: 时间范围：all(总榜), month(月榜), week(周榜)
+        example: '"all"'
+        in: query
+        name: time_range
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.CurrencyRankingResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取财富榜
+      tags:
+      - '[User]Ranking | [用户]排行榜'
+  /ranking/follower:
+    get:
+      consumes:
+      - application/json
+      description: 获取粉丝数最多的用户列表（固定返回前100条）
+      parameters:
+      - description: 时间范围：all(总榜), month(月榜), week(周榜)
+        example: '"all"'
+        in: query
+        name: time_range
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.FollowerRankingResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取名人榜
+      tags:
+      - '[User]Ranking | [用户]排行榜'
+  /ranking/points:
+    get:
+      consumes:
+      - application/json
+      description: 获取积分最高的用户列表（固定返回前100条）
+      parameters:
+      - description: 时间范围：all(总榜), month(月榜), week(周榜)
+        example: '"all"'
+        in: query
+        name: time_range
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.PointsRankingResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取积分榜
+      tags:
+      - '[User]Ranking | [用户]排行榜'
+  /ranking/post-count:
+    get:
+      consumes:
+      - application/json
+      description: 根据时间范围获取发帖数最多的用户列表（固定返回前100条）
+      parameters:
+      - description: 时间范围：all(总榜), month(月榜), week(周榜)
+        example: '"all"'
+        in: query
+        name: time_range
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.PostCountRankingResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取帖子数排行榜
+      tags:
+      - '[User]Ranking | [用户]排行榜'
+  /ranking/reading:
+    get:
+      consumes:
+      - application/json
+      description: 根据时间范围获取阅读量最高的帖子列表（固定返回前100条）
+      parameters:
+      - description: 时间范围：all(总榜), month(月榜), week(周榜)
+        example: '"all"'
+        in: query
+        name: time_range
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 获取成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Data'
+            - properties:
+                data:
+                  $ref: '#/definitions/schema.ReadingRankingResponse'
+              type: object
+        "400":
+          description: 请求参数错误
+          schema:
+            $ref: '#/definitions/response.Data'
+        "500":
+          description: 服务器内部错误
+          schema:
+            $ref: '#/definitions/response.Data'
+      summary: 获取阅读排行榜
       tags:
       - '[User]Ranking | [用户]排行榜'
   /ready:

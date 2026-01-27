@@ -1,21 +1,13 @@
 package schema
 
-// UserRankingListRequest Get ranking list request | 获取排行榜列表请求
-type UserRankingListRequest struct {
-	// Ranking type: reading (reading ranking), comment (comment ranking) | 排行榜类型：reading(阅读榜), comment(评论榜)
-	Type string `json:"type" binding:"required,oneof=reading comment"`
+// RankingRequest 排行榜通用请求参数
+type RankingRequest struct {
 	// Time range: all (overall ranking), month (monthly ranking), week (weekly ranking) | 时间范围：all(总榜), month(月榜), week(周榜)
-	TimeRange string `json:"time_range" binding:"required,oneof=all month week"`
-	// Page number | 页码
-	Page int `json:"page" binding:"required,min=1" example:"1"`
-	// Items per page | 每页数量
-	PageSize int `json:"page_size" binding:"required,min=1,max=100" example:"20"`
+	TimeRange string `json:"time_range" form:"time_range" binding:"required,oneof=all month week"`
 }
 
-// UserRankingListResponse Get ranking list response | 获取排行榜列表响应
-type UserRankingListResponse struct {
-	// Ranking type | 排行榜类型
-	Type string `json:"type"`
+// ReadingRankingResponse 阅读榜响应
+type ReadingRankingResponse struct {
 	// Time range | 时间范围
 	TimeRange string `json:"time_range"`
 	// Total count | 总数量
@@ -27,28 +19,10 @@ type UserRankingListResponse struct {
 	// Total pages | 总页数
 	TotalPages int `json:"total_pages"`
 	// Ranking item list | 排行榜项目列表
-	Items []RankingItem `json:"items"`
+	Items []ReadingRankingItem `json:"items"`
 }
 
-// RankingItem Ranking item | 排行榜项目
-type RankingItem struct {
-	// Rank | 排名
-	Rank int `json:"rank"`
-	// Post ID (reading ranking) | 帖子ID（阅读榜）
-	PostID *int `json:"post_id,omitempty"`
-	// Post title (reading ranking) | 帖子标题（阅读榜）
-	PostTitle *string `json:"post_title,omitempty"`
-	// User ID (comment ranking) | 用户ID（评论榜）
-	UserID *int `json:"user_id,omitempty"`
-	// Username (comment ranking) | 用户名（评论榜）
-	Username *string `json:"username,omitempty"`
-	// Statistical value | 统计数值
-	Count int `json:"count"`
-	// Created time | 创建时间
-	CreatedAt string `json:"created_at"`
-}
-
-// ReadingRankingItem Reading ranking item | 阅读榜项目
+// ReadingRankingItem 阅读榜项目
 type ReadingRankingItem struct {
 	// Rank | 排名
 	Rank int `json:"rank"`
@@ -66,13 +40,27 @@ type ReadingRankingItem struct {
 	ViewCount int `json:"view_count"`
 	// Like count | 点赞数
 	LikeCount int `json:"like_count"`
-	// Comment count | 评论数
-	CommentCount int `json:"comment_count"`
 	// Created time | 创建时间
 	CreatedAt string `json:"created_at"`
 }
 
-// CommentRankingItem Comment ranking item | 评论榜项目
+// CommentRankingResponse 评论榜响应
+type CommentRankingResponse struct {
+	// Time range | 时间范围
+	TimeRange string `json:"time_range"`
+	// Total count | 总数量
+	Total int `json:"total"`
+	// Current page number | 当前页码
+	Page int `json:"page"`
+	// Items per page | 每页数量
+	PageSize int `json:"page_size"`
+	// Total pages | 总页数
+	TotalPages int `json:"total_pages"`
+	// Ranking item list | 排行榜项目列表
+	Items []CommentRankingItem `json:"items"`
+}
+
+// CommentRankingItem 评论榜项目
 type CommentRankingItem struct {
 	// Rank | 排名
 	Rank int `json:"rank"`
@@ -86,6 +74,176 @@ type CommentRankingItem struct {
 	TotalComments int `json:"total_comments"`
 	// Total likes | 获赞总数
 	TotalLikes int `json:"total_likes"`
+	// Registration time | 注册时间
+	RegisteredAt string `json:"registered_at"`
+}
+
+// PostCountRankingResponse 帖子数排行榜响应
+type PostCountRankingResponse struct {
+	// Time range | 时间范围
+	TimeRange string `json:"time_range"`
+	// Total count | 总数量
+	Total int `json:"total"`
+	// Current page number | 当前页码
+	Page int `json:"page"`
+	// Items per page | 每页数量
+	PageSize int `json:"page_size"`
+	// Total pages | 总页数
+	TotalPages int `json:"total_pages"`
+	// Ranking item list | 排行榜项目列表
+	Items []PostCountRankingItem `json:"items"`
+}
+
+// PostCountRankingItem 帖子数排行榜项目
+type PostCountRankingItem struct {
+	// Rank | 排名
+	Rank int `json:"rank"`
+	// User ID | 用户ID
+	UserID int `json:"user_id"`
+	// Username | 用户名
+	Username string `json:"username"`
+	// Avatar | 头像
+	Avatar string `json:"avatar"`
+	// Total posts | 帖子总数
+	TotalPosts int `json:"total_posts"`
+	// Total views | 总阅读数
+	TotalViews int `json:"total_views"`
+	// Registration time | 注册时间
+	RegisteredAt string `json:"registered_at"`
+}
+
+// CommentCountRankingResponse 评论数排行榜响应
+type CommentCountRankingResponse struct {
+	// Time range | 时间范围
+	TimeRange string `json:"time_range"`
+	// Total count | 总数量
+	Total int `json:"total"`
+	// Current page number | 当前页码
+	Page int `json:"page"`
+	// Items per page | 每页数量
+	PageSize int `json:"page_size"`
+	// Total pages | 总页数
+	TotalPages int `json:"total_pages"`
+	// Ranking item list | 排行榜项目列表
+	Items []CommentCountRankingItem `json:"items"`
+}
+
+// CommentCountRankingItem 评论数排行榜项目
+type CommentCountRankingItem struct {
+	// Rank | 排名
+	Rank int `json:"rank"`
+	// User ID | 用户ID
+	UserID int `json:"user_id"`
+	// Username | 用户名
+	Username string `json:"username"`
+	// Avatar | 头像
+	Avatar string `json:"avatar"`
+	// Total comments | 评论总数
+	TotalComments int `json:"total_comments"`
+	// Total likes | 获赞总数
+	TotalLikes int `json:"total_likes"`
+	// Registration time | 注册时间
+	RegisteredAt string `json:"registered_at"`
+}
+
+// FollowerRankingResponse 名人榜（被关注数）响应
+type FollowerRankingResponse struct {
+	// Time range | 时间范围
+	TimeRange string `json:"time_range"`
+	// Total count | 总数量
+	Total int `json:"total"`
+	// Current page number | 当前页码
+	Page int `json:"page"`
+	// Items per page | 每页数量
+	PageSize int `json:"page_size"`
+	// Total pages | 总页数
+	TotalPages int `json:"total_pages"`
+	// Ranking item list | 排行榜项目列表
+	Items []FollowerRankingItem `json:"items"`
+}
+
+// FollowerRankingItem 名人榜项目
+type FollowerRankingItem struct {
+	// Rank | 排名
+	Rank int `json:"rank"`
+	// User ID | 用户ID
+	UserID int `json:"user_id"`
+	// Username | 用户名
+	Username string `json:"username"`
+	// Avatar | 头像
+	Avatar string `json:"avatar"`
+	// Total followers | 粉丝总数
+	TotalFollowers int `json:"total_followers"`
+	// Total posts | 帖子总数
+	TotalPosts int `json:"total_posts"`
+	// Registration time | 注册时间
+	RegisteredAt string `json:"registered_at"`
+}
+
+// PointsRankingResponse 积分榜响应
+type PointsRankingResponse struct {
+	// Time range | 时间范围
+	TimeRange string `json:"time_range"`
+	// Total count | 总数量
+	Total int `json:"total"`
+	// Current page number | 当前页码
+	Page int `json:"page"`
+	// Items per page | 每页数量
+	PageSize int `json:"page_size"`
+	// Total pages | 总页数
+	TotalPages int `json:"total_pages"`
+	// Ranking item list | 排行榜项目列表
+	Items []PointsRankingItem `json:"items"`
+}
+
+// PointsRankingItem 积分榜项目
+type PointsRankingItem struct {
+	// Rank | 排名
+	Rank int `json:"rank"`
+	// User ID | 用户ID
+	UserID int `json:"user_id"`
+	// Username | 用户名
+	Username string `json:"username"`
+	// Avatar | 头像
+	Avatar string `json:"avatar"`
+	// Points | 积分
+	Points int `json:"points"`
+	// Experience | 经验值
+	Experience int `json:"experience"`
+	// Registration time | 注册时间
+	RegisteredAt string `json:"registered_at"`
+}
+
+// CurrencyRankingResponse 财富榜（货币）响应
+type CurrencyRankingResponse struct {
+	// Time range | 时间范围
+	TimeRange string `json:"time_range"`
+	// Total count | 总数量
+	Total int `json:"total"`
+	// Current page number | 当前页码
+	Page int `json:"page"`
+	// Items per page | 每页数量
+	PageSize int `json:"page_size"`
+	// Total pages | 总页数
+	TotalPages int `json:"total_pages"`
+	// Ranking item list | 排行榜项目列表
+	Items []CurrencyRankingItem `json:"items"`
+}
+
+// CurrencyRankingItem 财富榜项目
+type CurrencyRankingItem struct {
+	// Rank | 排名
+	Rank int `json:"rank"`
+	// User ID | 用户ID
+	UserID int `json:"user_id"`
+	// Username | 用户名
+	Username string `json:"username"`
+	// Avatar | 头像
+	Avatar string `json:"avatar"`
+	// Currency | 货币
+	Currency int `json:"currency"`
+	// Points | 积分
+	Points int `json:"points"`
 	// Registration time | 注册时间
 	RegisteredAt string `json:"registered_at"`
 }

@@ -6291,9 +6291,9 @@
                 }
             }
         },
-        "/ranking": {
+        "/ranking/comment-count": {
             "get": {
-                "description": "Get ranking data by ranking type and time range, supports reading and comment rankings | 根据排行榜类型和时间范围获取排行榜数据，支持阅读榜和评论榜",
+                "description": "根据时间范围获取评论数最多的用户列表（固定返回前100条）",
                 "consumes": [
                     "application/json"
                 ],
@@ -6303,42 +6303,20 @@
                 "tags": [
                     "[User]Ranking | [用户]排行榜"
                 ],
-                "summary": "Get ranking list | 获取排行榜列表",
+                "summary": "获取评论数排行榜",
                 "parameters": [
                     {
                         "type": "string",
-                        "example": "\"reading\"",
-                        "description": "Ranking type: reading(reading ranking), comment(comment ranking) | 排行榜类型：reading(阅读榜), comment(评论榜)",
-                        "name": "type",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
                         "example": "\"all\"",
-                        "description": "Time range: all(all-time), month(monthly), week(weekly) | 时间范围：all(总榜), month(月榜), week(周榜)",
+                        "description": "时间范围：all(总榜), month(月榜), week(周榜)",
                         "name": "time_range",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Page number | 页码",
-                        "name": "page",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Items per page | 每页数量",
-                        "name": "page_size",
                         "in": "query",
                         "required": true
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "Success | 获取成功",
+                        "description": "获取成功",
                         "schema": {
                             "allOf": [
                                 {
@@ -6348,7 +6326,7 @@
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/schema.UserRankingListResponse"
+                                            "$ref": "#/definitions/schema.CommentCountRankingResponse"
                                         }
                                     }
                                 }
@@ -6356,13 +6334,298 @@
                         }
                     },
                     "400": {
-                        "description": "Invalid request parameters | 请求参数错误",
+                        "description": "请求参数错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
                     },
                     "500": {
-                        "description": "Server internal error | 服务器内部错误",
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking/currency": {
+            "get": {
+                "description": "获取货币最多的用户列表（固定返回前100条）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]Ranking | [用户]排行榜"
+                ],
+                "summary": "获取财富榜",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"all\"",
+                        "description": "时间范围：all(总榜), month(月榜), week(周榜)",
+                        "name": "time_range",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.CurrencyRankingResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking/follower": {
+            "get": {
+                "description": "获取粉丝数最多的用户列表（固定返回前100条）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]Ranking | [用户]排行榜"
+                ],
+                "summary": "获取名人榜",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"all\"",
+                        "description": "时间范围：all(总榜), month(月榜), week(周榜)",
+                        "name": "time_range",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.FollowerRankingResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking/points": {
+            "get": {
+                "description": "获取积分最高的用户列表（固定返回前100条）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]Ranking | [用户]排行榜"
+                ],
+                "summary": "获取积分榜",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"all\"",
+                        "description": "时间范围：all(总榜), month(月榜), week(周榜)",
+                        "name": "time_range",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.PointsRankingResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking/post-count": {
+            "get": {
+                "description": "根据时间范围获取发帖数最多的用户列表（固定返回前100条）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]Ranking | [用户]排行榜"
+                ],
+                "summary": "获取帖子数排行榜",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"all\"",
+                        "description": "时间范围：all(总榜), month(月榜), week(周榜)",
+                        "name": "time_range",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.PostCountRankingResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking/reading": {
+            "get": {
+                "description": "根据时间范围获取阅读量最高的帖子列表（固定返回前100条）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]Ranking | [用户]排行榜"
+                ],
+                "summary": "获取阅读排行榜",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "example": "\"all\"",
+                        "description": "时间范围：all(总榜), month(月榜), week(周榜)",
+                        "name": "time_range",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.ReadingRankingResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器内部错误",
                         "schema": {
                             "$ref": "#/definitions/response.Data"
                         }
@@ -8554,6 +8817,71 @@
                 }
             }
         },
+        "schema.CommentCountRankingItem": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "Avatar | 头像",
+                    "type": "string"
+                },
+                "rank": {
+                    "description": "Rank | 排名",
+                    "type": "integer"
+                },
+                "registered_at": {
+                    "description": "Registration time | 注册时间",
+                    "type": "string"
+                },
+                "total_comments": {
+                    "description": "Total comments | 评论总数",
+                    "type": "integer"
+                },
+                "total_likes": {
+                    "description": "Total likes | 获赞总数",
+                    "type": "integer"
+                },
+                "user_id": {
+                    "description": "User ID | 用户ID",
+                    "type": "integer"
+                },
+                "username": {
+                    "description": "Username | 用户名",
+                    "type": "string"
+                }
+            }
+        },
+        "schema.CommentCountRankingResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "description": "Ranking item list | 排行榜项目列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.CommentCountRankingItem"
+                    }
+                },
+                "page": {
+                    "description": "Current page number | 当前页码",
+                    "type": "integer"
+                },
+                "page_size": {
+                    "description": "Items per page | 每页数量",
+                    "type": "integer"
+                },
+                "time_range": {
+                    "description": "Time range | 时间范围",
+                    "type": "string"
+                },
+                "total": {
+                    "description": "Total count | 总数量",
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "description": "Total pages | 总页数",
+                    "type": "integer"
+                }
+            }
+        },
         "schema.CommentCreateRequest": {
             "type": "object",
             "required": [
@@ -8941,6 +9269,71 @@
                     "description": "Comment ID | 评论ID",
                     "type": "integer",
                     "example": 1
+                }
+            }
+        },
+        "schema.CurrencyRankingItem": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "Avatar | 头像",
+                    "type": "string"
+                },
+                "currency": {
+                    "description": "Currency | 货币",
+                    "type": "integer"
+                },
+                "points": {
+                    "description": "Points | 积分",
+                    "type": "integer"
+                },
+                "rank": {
+                    "description": "Rank | 排名",
+                    "type": "integer"
+                },
+                "registered_at": {
+                    "description": "Registration time | 注册时间",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "User ID | 用户ID",
+                    "type": "integer"
+                },
+                "username": {
+                    "description": "Username | 用户名",
+                    "type": "string"
+                }
+            }
+        },
+        "schema.CurrencyRankingResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "description": "Ranking item list | 排行榜项目列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.CurrencyRankingItem"
+                    }
+                },
+                "page": {
+                    "description": "Current page number | 当前页码",
+                    "type": "integer"
+                },
+                "page_size": {
+                    "description": "Items per page | 每页数量",
+                    "type": "integer"
+                },
+                "time_range": {
+                    "description": "Time range | 时间范围",
+                    "type": "string"
+                },
+                "total": {
+                    "description": "Total count | 总数量",
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "description": "Total pages | 总页数",
+                    "type": "integer"
                 }
             }
         },
@@ -9356,6 +9749,71 @@
                     "description": "Verification status | 验证状态",
                     "type": "boolean",
                     "example": true
+                }
+            }
+        },
+        "schema.FollowerRankingItem": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "Avatar | 头像",
+                    "type": "string"
+                },
+                "rank": {
+                    "description": "Rank | 排名",
+                    "type": "integer"
+                },
+                "registered_at": {
+                    "description": "Registration time | 注册时间",
+                    "type": "string"
+                },
+                "total_followers": {
+                    "description": "Total followers | 粉丝总数",
+                    "type": "integer"
+                },
+                "total_posts": {
+                    "description": "Total posts | 帖子总数",
+                    "type": "integer"
+                },
+                "user_id": {
+                    "description": "User ID | 用户ID",
+                    "type": "integer"
+                },
+                "username": {
+                    "description": "Username | 用户名",
+                    "type": "string"
+                }
+            }
+        },
+        "schema.FollowerRankingResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "description": "Ranking item list | 排行榜项目列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.FollowerRankingItem"
+                    }
+                },
+                "page": {
+                    "description": "Current page number | 当前页码",
+                    "type": "integer"
+                },
+                "page_size": {
+                    "description": "Items per page | 每页数量",
+                    "type": "integer"
+                },
+                "time_range": {
+                    "description": "Time range | 时间范围",
+                    "type": "string"
+                },
+                "total": {
+                    "description": "Total count | 总数量",
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "description": "Total pages | 总页数",
+                    "type": "integer"
                 }
             }
         },
@@ -10547,6 +11005,71 @@
                 }
             }
         },
+        "schema.PointsRankingItem": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "Avatar | 头像",
+                    "type": "string"
+                },
+                "experience": {
+                    "description": "Experience | 经验值",
+                    "type": "integer"
+                },
+                "points": {
+                    "description": "Points | 积分",
+                    "type": "integer"
+                },
+                "rank": {
+                    "description": "Rank | 排名",
+                    "type": "integer"
+                },
+                "registered_at": {
+                    "description": "Registration time | 注册时间",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "User ID | 用户ID",
+                    "type": "integer"
+                },
+                "username": {
+                    "description": "Username | 用户名",
+                    "type": "string"
+                }
+            }
+        },
+        "schema.PointsRankingResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "description": "Ranking item list | 排行榜项目列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.PointsRankingItem"
+                    }
+                },
+                "page": {
+                    "description": "Current page number | 当前页码",
+                    "type": "integer"
+                },
+                "page_size": {
+                    "description": "Items per page | 每页数量",
+                    "type": "integer"
+                },
+                "time_range": {
+                    "description": "Time range | 时间范围",
+                    "type": "string"
+                },
+                "total": {
+                    "description": "Total count | 总数量",
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "description": "Total pages | 总页数",
+                    "type": "integer"
+                }
+            }
+        },
         "schema.PopularCategoriesResponse": {
             "type": "object",
             "properties": {
@@ -10666,6 +11189,71 @@
                     "description": "Ban reason | 封禁原因",
                     "type": "string",
                     "example": "违规内容"
+                }
+            }
+        },
+        "schema.PostCountRankingItem": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "Avatar | 头像",
+                    "type": "string"
+                },
+                "rank": {
+                    "description": "Rank | 排名",
+                    "type": "integer"
+                },
+                "registered_at": {
+                    "description": "Registration time | 注册时间",
+                    "type": "string"
+                },
+                "total_posts": {
+                    "description": "Total posts | 帖子总数",
+                    "type": "integer"
+                },
+                "total_views": {
+                    "description": "Total views | 总阅读数",
+                    "type": "integer"
+                },
+                "user_id": {
+                    "description": "User ID | 用户ID",
+                    "type": "integer"
+                },
+                "username": {
+                    "description": "Username | 用户名",
+                    "type": "string"
+                }
+            }
+        },
+        "schema.PostCountRankingResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "description": "Ranking item list | 排行榜项目列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.PostCountRankingItem"
+                    }
+                },
+                "page": {
+                    "description": "Current page number | 当前页码",
+                    "type": "integer"
+                },
+                "page_size": {
+                    "description": "Items per page | 每页数量",
+                    "type": "integer"
+                },
+                "time_range": {
+                    "description": "Time range | 时间范围",
+                    "type": "string"
+                },
+                "total": {
+                    "description": "Total count | 总数量",
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "description": "Total pages | 总页数",
+                    "type": "integer"
                 }
             }
         },
@@ -11165,36 +11753,76 @@
                 }
             }
         },
-        "schema.RankingItem": {
+        "schema.ReadingRankingItem": {
             "type": "object",
             "properties": {
-                "count": {
-                    "description": "Statistical value | 统计数值",
+                "author_username": {
+                    "description": "Author username | 作者用户名",
+                    "type": "string"
+                },
+                "category_id": {
+                    "description": "Category ID | 版块ID",
                     "type": "integer"
+                },
+                "category_name": {
+                    "description": "Category name | 版块名称",
+                    "type": "string"
                 },
                 "created_at": {
                     "description": "Created time | 创建时间",
                     "type": "string"
                 },
+                "like_count": {
+                    "description": "Like count | 点赞数",
+                    "type": "integer"
+                },
                 "post_id": {
-                    "description": "Post ID (reading ranking) | 帖子ID（阅读榜）",
+                    "description": "Post ID | 帖子ID",
                     "type": "integer"
                 },
                 "post_title": {
-                    "description": "Post title (reading ranking) | 帖子标题（阅读榜）",
+                    "description": "Post title | 帖子标题",
                     "type": "string"
                 },
                 "rank": {
                     "description": "Rank | 排名",
                     "type": "integer"
                 },
-                "user_id": {
-                    "description": "User ID (comment ranking) | 用户ID（评论榜）",
+                "view_count": {
+                    "description": "View count | 阅读数",
+                    "type": "integer"
+                }
+            }
+        },
+        "schema.ReadingRankingResponse": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "description": "Ranking item list | 排行榜项目列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.ReadingRankingItem"
+                    }
+                },
+                "page": {
+                    "description": "Current page number | 当前页码",
                     "type": "integer"
                 },
-                "username": {
-                    "description": "Username (comment ranking) | 用户名（评论榜）",
+                "page_size": {
+                    "description": "Items per page | 每页数量",
+                    "type": "integer"
+                },
+                "time_range": {
+                    "description": "Time range | 时间范围",
                     "type": "string"
+                },
+                "total": {
+                    "description": "Total count | 总数量",
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "description": "Total pages | 总页数",
+                    "type": "integer"
                 }
             }
         },
@@ -13766,42 +14394,6 @@
                 "total": {
                     "description": "Total count | 总数量",
                     "type": "integer"
-                }
-            }
-        },
-        "schema.UserRankingListResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "description": "Ranking item list | 排行榜项目列表",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/schema.RankingItem"
-                    }
-                },
-                "page": {
-                    "description": "Current page number | 当前页码",
-                    "type": "integer"
-                },
-                "page_size": {
-                    "description": "Items per page | 每页数量",
-                    "type": "integer"
-                },
-                "time_range": {
-                    "description": "Time range | 时间范围",
-                    "type": "string"
-                },
-                "total": {
-                    "description": "Total count | 总数量",
-                    "type": "integer"
-                },
-                "total_pages": {
-                    "description": "Total pages | 总页数",
-                    "type": "integer"
-                },
-                "type": {
-                    "description": "Ranking type | 排行榜类型",
-                    "type": "string"
                 }
             }
         },
