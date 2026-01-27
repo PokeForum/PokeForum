@@ -98,12 +98,8 @@ func (s *RankingService) GetReadingRanking(ctx context.Context, req schema.Ranki
 
 	// 缓存未命中，返回空数据（等待定时任务更新）
 	return &schema.ReadingRankingResponse{
-		TimeRange:  req.TimeRange,
-		Total:      0,
-		Page:       rankingPage,
-		PageSize:   rankingPageSize,
-		TotalPages: 0,
-		Items:      []schema.ReadingRankingItem{},
+		TimeRange: req.TimeRange,
+		Items:     []schema.ReadingRankingItem{},
 	}, nil
 }
 
@@ -122,11 +118,6 @@ func (s *RankingService) refreshReadingRanking(ctx context.Context, timeRange st
 
 	if timeRange != timeRangeAll {
 		query = query.Where(post.CreatedAtGTE(startTime))
-	}
-
-	total, err := query.Count(ctx)
-	if err != nil {
-		return fmt.Errorf("查询总数失败: %w", err)
 	}
 
 	posts, err := query.Offset(offset).Limit(rankingPageSize).All(ctx)
@@ -184,15 +175,9 @@ func (s *RankingService) refreshReadingRanking(ctx context.Context, timeRange st
 		})
 	}
 
-	totalPages := (total + rankingPageSize - 1) / rankingPageSize
-
 	response := &schema.ReadingRankingResponse{
-		TimeRange:  timeRange,
-		Total:      total,
-		Page:       rankingPage,
-		PageSize:   rankingPageSize,
-		TotalPages: totalPages,
-		Items:      items,
+		TimeRange: timeRange,
+		Items:     items,
 	}
 
 	data, err := json.Marshal(response)
@@ -217,12 +202,8 @@ func (s *RankingService) GetCommentRanking(ctx context.Context, req schema.Ranki
 	}
 
 	response := &schema.CommentRankingResponse{
-		TimeRange:  result.TimeRange,
-		Total:      result.Total,
-		Page:       result.Page,
-		PageSize:   result.PageSize,
-		TotalPages: result.TotalPages,
-		Items:      items,
+		TimeRange: result.TimeRange,
+		Items:     items,
 	}
 	return response, nil
 }
@@ -240,12 +221,8 @@ func (s *RankingService) GetPostCountRanking(ctx context.Context, req schema.Ran
 	}
 
 	return &schema.PostCountRankingResponse{
-		TimeRange:  req.TimeRange,
-		Total:      0,
-		Page:       rankingPage,
-		PageSize:   rankingPageSize,
-		TotalPages: 0,
-		Items:      []schema.PostCountRankingItem{},
+		TimeRange: req.TimeRange,
+		Items:     []schema.PostCountRankingItem{},
 	}, nil
 }
 
@@ -325,15 +302,9 @@ func (s *RankingService) refreshPostCountRanking(ctx context.Context, timeRange 
 		resultItems = append(resultItems, items[i])
 	}
 
-	totalPages := (total + rankingPageSize - 1) / rankingPageSize
-
 	response := &schema.PostCountRankingResponse{
-		TimeRange:  timeRange,
-		Total:      total,
-		Page:       rankingPage,
-		PageSize:   rankingPageSize,
-		TotalPages: totalPages,
-		Items:      resultItems,
+		TimeRange: timeRange,
+		Items:     resultItems,
 	}
 
 	data, err := json.Marshal(response)
@@ -358,12 +329,8 @@ func (s *RankingService) GetCommentCountRanking(ctx context.Context, req schema.
 	}
 
 	return &schema.CommentCountRankingResponse{
-		TimeRange:  req.TimeRange,
-		Total:      0,
-		Page:       rankingPage,
-		PageSize:   rankingPageSize,
-		TotalPages: 0,
-		Items:      []schema.CommentCountRankingItem{},
+		TimeRange: req.TimeRange,
+		Items:     []schema.CommentCountRankingItem{},
 	}, nil
 }
 
@@ -443,15 +410,9 @@ func (s *RankingService) refreshCommentCountRanking(ctx context.Context, timeRan
 		resultItems = append(resultItems, items[i])
 	}
 
-	totalPages := (total + rankingPageSize - 1) / rankingPageSize
-
 	response := &schema.CommentCountRankingResponse{
-		TimeRange:  timeRange,
-		Total:      total,
-		Page:       rankingPage,
-		PageSize:   rankingPageSize,
-		TotalPages: totalPages,
-		Items:      resultItems,
+		TimeRange: timeRange,
+		Items:     resultItems,
 	}
 
 	data, err := json.Marshal(response)
@@ -476,12 +437,8 @@ func (s *RankingService) GetFollowerRanking(ctx context.Context, req schema.Rank
 	}
 
 	return &schema.FollowerRankingResponse{
-		TimeRange:  req.TimeRange,
-		Total:      0,
-		Page:       rankingPage,
-		PageSize:   rankingPageSize,
-		TotalPages: 0,
-		Items:      []schema.FollowerRankingItem{},
+		TimeRange: req.TimeRange,
+		Items:     []schema.FollowerRankingItem{},
 	}, nil
 }
 
@@ -551,15 +508,9 @@ func (s *RankingService) refreshFollowerRanking(ctx context.Context, timeRange s
 		resultItems = append(resultItems, items[i])
 	}
 
-	totalPages := (total + rankingPageSize - 1) / rankingPageSize
-
 	response := &schema.FollowerRankingResponse{
-		TimeRange:  timeRange,
-		Total:      total,
-		Page:       rankingPage,
-		PageSize:   rankingPageSize,
-		TotalPages: totalPages,
-		Items:      resultItems,
+		TimeRange: timeRange,
+		Items:     resultItems,
 	}
 
 	data, err := json.Marshal(response)
@@ -584,23 +535,14 @@ func (s *RankingService) GetPointsRanking(ctx context.Context, req schema.Rankin
 	}
 
 	return &schema.PointsRankingResponse{
-		TimeRange:  req.TimeRange,
-		Total:      0,
-		Page:       rankingPage,
-		PageSize:   rankingPageSize,
-		TotalPages: 0,
-		Items:      []schema.PointsRankingItem{},
+		TimeRange: req.TimeRange,
+		Items:     []schema.PointsRankingItem{},
 	}, nil
 }
 
 // refreshPointsRanking 刷新积分榜缓存
 func (s *RankingService) refreshPointsRanking(ctx context.Context, timeRange string) error {
 	query := s.db.User.Query().Order(ent.Desc(user.FieldPoints))
-
-	total, err := query.Count(ctx)
-	if err != nil {
-		return fmt.Errorf("查询积分榜总数失败: %w", err)
-	}
 
 	users, err := query.Limit(rankingPageSize).All(ctx)
 	if err != nil {
@@ -620,15 +562,9 @@ func (s *RankingService) refreshPointsRanking(ctx context.Context, timeRange str
 		})
 	}
 
-	totalPages := (total + rankingPageSize - 1) / rankingPageSize
-
 	response := &schema.PointsRankingResponse{
-		TimeRange:  timeRange,
-		Total:      total,
-		Page:       rankingPage,
-		PageSize:   rankingPageSize,
-		TotalPages: totalPages,
-		Items:      items,
+		TimeRange: timeRange,
+		Items:     items,
 	}
 
 	data, err := json.Marshal(response)
@@ -653,23 +589,14 @@ func (s *RankingService) GetCurrencyRanking(ctx context.Context, req schema.Rank
 	}
 
 	return &schema.CurrencyRankingResponse{
-		TimeRange:  req.TimeRange,
-		Total:      0,
-		Page:       rankingPage,
-		PageSize:   rankingPageSize,
-		TotalPages: 0,
-		Items:      []schema.CurrencyRankingItem{},
+		TimeRange: req.TimeRange,
+		Items:     []schema.CurrencyRankingItem{},
 	}, nil
 }
 
 // refreshCurrencyRanking 刷新财富榜缓存
 func (s *RankingService) refreshCurrencyRanking(ctx context.Context, timeRange string) error {
 	query := s.db.User.Query().Order(ent.Desc(user.FieldCurrency))
-
-	total, err := query.Count(ctx)
-	if err != nil {
-		return fmt.Errorf("查询财富榜总数失败: %w", err)
-	}
 
 	users, err := query.Limit(rankingPageSize).All(ctx)
 	if err != nil {
@@ -689,15 +616,9 @@ func (s *RankingService) refreshCurrencyRanking(ctx context.Context, timeRange s
 		})
 	}
 
-	totalPages := (total + rankingPageSize - 1) / rankingPageSize
-
 	response := &schema.CurrencyRankingResponse{
-		TimeRange:  timeRange,
-		Total:      total,
-		Page:       rankingPage,
-		PageSize:   rankingPageSize,
-		TotalPages: totalPages,
-		Items:      items,
+		TimeRange: timeRange,
+		Items:     items,
 	}
 
 	data, err := json.Marshal(response)

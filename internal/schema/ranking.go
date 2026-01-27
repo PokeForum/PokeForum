@@ -10,14 +10,6 @@ type RankingRequest struct {
 type ReadingRankingResponse struct {
 	// Time range | 时间范围
 	TimeRange string `json:"time_range"`
-	// Total count | 总数量
-	Total int `json:"total"`
-	// Current page number | 当前页码
-	Page int `json:"page"`
-	// Items per page | 每页数量
-	PageSize int `json:"page_size"`
-	// Total pages | 总页数
-	TotalPages int `json:"total_pages"`
 	// Ranking item list | 排行榜项目列表
 	Items []ReadingRankingItem `json:"items"`
 }
@@ -48,14 +40,6 @@ type ReadingRankingItem struct {
 type CommentRankingResponse struct {
 	// Time range | 时间范围
 	TimeRange string `json:"time_range"`
-	// Total count | 总数量
-	Total int `json:"total"`
-	// Current page number | 当前页码
-	Page int `json:"page"`
-	// Items per page | 每页数量
-	PageSize int `json:"page_size"`
-	// Total pages | 总页数
-	TotalPages int `json:"total_pages"`
 	// Ranking item list | 排行榜项目列表
 	Items []CommentRankingItem `json:"items"`
 }
@@ -82,14 +66,6 @@ type CommentRankingItem struct {
 type PostCountRankingResponse struct {
 	// Time range | 时间范围
 	TimeRange string `json:"time_range"`
-	// Total count | 总数量
-	Total int `json:"total"`
-	// Current page number | 当前页码
-	Page int `json:"page"`
-	// Items per page | 每页数量
-	PageSize int `json:"page_size"`
-	// Total pages | 总页数
-	TotalPages int `json:"total_pages"`
 	// Ranking item list | 排行榜项目列表
 	Items []PostCountRankingItem `json:"items"`
 }
@@ -116,14 +92,6 @@ type PostCountRankingItem struct {
 type CommentCountRankingResponse struct {
 	// Time range | 时间范围
 	TimeRange string `json:"time_range"`
-	// Total count | 总数量
-	Total int `json:"total"`
-	// Current page number | 当前页码
-	Page int `json:"page"`
-	// Items per page | 每页数量
-	PageSize int `json:"page_size"`
-	// Total pages | 总页数
-	TotalPages int `json:"total_pages"`
 	// Ranking item list | 排行榜项目列表
 	Items []CommentCountRankingItem `json:"items"`
 }
@@ -150,14 +118,6 @@ type CommentCountRankingItem struct {
 type FollowerRankingResponse struct {
 	// Time range | 时间范围
 	TimeRange string `json:"time_range"`
-	// Total count | 总数量
-	Total int `json:"total"`
-	// Current page number | 当前页码
-	Page int `json:"page"`
-	// Items per page | 每页数量
-	PageSize int `json:"page_size"`
-	// Total pages | 总页数
-	TotalPages int `json:"total_pages"`
 	// Ranking item list | 排行榜项目列表
 	Items []FollowerRankingItem `json:"items"`
 }
@@ -184,14 +144,6 @@ type FollowerRankingItem struct {
 type PointsRankingResponse struct {
 	// Time range | 时间范围
 	TimeRange string `json:"time_range"`
-	// Total count | 总数量
-	Total int `json:"total"`
-	// Current page number | 当前页码
-	Page int `json:"page"`
-	// Items per page | 每页数量
-	PageSize int `json:"page_size"`
-	// Total pages | 总页数
-	TotalPages int `json:"total_pages"`
 	// Ranking item list | 排行榜项目列表
 	Items []PointsRankingItem `json:"items"`
 }
@@ -218,14 +170,6 @@ type PointsRankingItem struct {
 type CurrencyRankingResponse struct {
 	// Time range | 时间范围
 	TimeRange string `json:"time_range"`
-	// Total count | 总数量
-	Total int `json:"total"`
-	// Current page number | 当前页码
-	Page int `json:"page"`
-	// Items per page | 每页数量
-	PageSize int `json:"page_size"`
-	// Total pages | 总页数
-	TotalPages int `json:"total_pages"`
 	// Ranking item list | 排行榜项目列表
 	Items []CurrencyRankingItem `json:"items"`
 }

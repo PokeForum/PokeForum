@@ -8862,25 +8862,9 @@ const docTemplate = `{
                         "$ref": "#/definitions/schema.CommentCountRankingItem"
                     }
                 },
-                "page": {
-                    "description": "Current page number | 当前页码",
-                    "type": "integer"
-                },
-                "page_size": {
-                    "description": "Items per page | 每页数量",
-                    "type": "integer"
-                },
                 "time_range": {
                     "description": "Time range | 时间范围",
                     "type": "string"
-                },
-                "total": {
-                    "description": "Total count | 总数量",
-                    "type": "integer"
-                },
-                "total_pages": {
-                    "description": "Total pages | 总页数",
-                    "type": "integer"
                 }
             }
         },
@@ -9317,25 +9301,9 @@ const docTemplate = `{
                         "$ref": "#/definitions/schema.CurrencyRankingItem"
                     }
                 },
-                "page": {
-                    "description": "Current page number | 当前页码",
-                    "type": "integer"
-                },
-                "page_size": {
-                    "description": "Items per page | 每页数量",
-                    "type": "integer"
-                },
                 "time_range": {
                     "description": "Time range | 时间范围",
                     "type": "string"
-                },
-                "total": {
-                    "description": "Total count | 总数量",
-                    "type": "integer"
-                },
-                "total_pages": {
-                    "description": "Total pages | 总页数",
-                    "type": "integer"
                 }
             }
         },
@@ -9797,25 +9765,9 @@ const docTemplate = `{
                         "$ref": "#/definitions/schema.FollowerRankingItem"
                     }
                 },
-                "page": {
-                    "description": "Current page number | 当前页码",
-                    "type": "integer"
-                },
-                "page_size": {
-                    "description": "Items per page | 每页数量",
-                    "type": "integer"
-                },
                 "time_range": {
                     "description": "Time range | 时间范围",
                     "type": "string"
-                },
-                "total": {
-                    "description": "Total count | 总数量",
-                    "type": "integer"
-                },
-                "total_pages": {
-                    "description": "Total pages | 总页数",
-                    "type": "integer"
                 }
             }
         },
@@ -11050,25 +11002,9 @@ const docTemplate = `{
                         "$ref": "#/definitions/schema.PointsRankingItem"
                     }
                 },
-                "page": {
-                    "description": "Current page number | 当前页码",
-                    "type": "integer"
-                },
-                "page_size": {
-                    "description": "Items per page | 每页数量",
-                    "type": "integer"
-                },
                 "time_range": {
                     "description": "Time range | 时间范围",
                     "type": "string"
-                },
-                "total": {
-                    "description": "Total count | 总数量",
-                    "type": "integer"
-                },
-                "total_pages": {
-                    "description": "Total pages | 总页数",
-                    "type": "integer"
                 }
             }
         },
@@ -11237,25 +11173,9 @@ const docTemplate = `{
                         "$ref": "#/definitions/schema.PostCountRankingItem"
                     }
                 },
-                "page": {
-                    "description": "Current page number | 当前页码",
-                    "type": "integer"
-                },
-                "page_size": {
-                    "description": "Items per page | 每页数量",
-                    "type": "integer"
-                },
                 "time_range": {
                     "description": "Time range | 时间范围",
                     "type": "string"
-                },
-                "total": {
-                    "description": "Total count | 总数量",
-                    "type": "integer"
-                },
-                "total_pages": {
-                    "description": "Total pages | 总页数",
-                    "type": "integer"
                 }
             }
         },
@@ -11806,25 +11726,9 @@ const docTemplate = `{
                         "$ref": "#/definitions/schema.ReadingRankingItem"
                     }
                 },
-                "page": {
-                    "description": "Current page number | 当前页码",
-                    "type": "integer"
-                },
-                "page_size": {
-                    "description": "Items per page | 每页数量",
-                    "type": "integer"
-                },
                 "time_range": {
                     "description": "Time range | 时间范围",
                     "type": "string"
-                },
-                "total": {
-                    "description": "Total count | 总数量",
-                    "type": "integer"
-                },
-                "total_pages": {
-                    "description": "Total pages | 总页数",
-                    "type": "integer"
                 }
             }
         },

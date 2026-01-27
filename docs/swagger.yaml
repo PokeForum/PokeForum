@@ -428,21 +428,9 @@ definitions:
         items:
           $ref: '#/definitions/schema.CommentCountRankingItem'
         type: array
-      page:
-        description: Current page number | 当前页码
-        type: integer
-      page_size:
-        description: Items per page | 每页数量
-        type: integer
       time_range:
         description: Time range | 时间范围
         type: string
-      total:
-        description: Total count | 总数量
-        type: integer
-      total_pages:
-        description: Total pages | 总页数
-        type: integer
     type: object
   schema.CommentCreateRequest:
     properties:
@@ -775,21 +763,9 @@ definitions:
         items:
           $ref: '#/definitions/schema.CurrencyRankingItem'
         type: array
-      page:
-        description: Current page number | 当前页码
-        type: integer
-      page_size:
-        description: Items per page | 每页数量
-        type: integer
       time_range:
         description: Time range | 时间范围
         type: string
-      total:
-        description: Total count | 总数量
-        type: integer
-      total_pages:
-        description: Total pages | 总页数
-        type: integer
     type: object
   schema.DashboardStatsResponse:
     properties:
@@ -1129,21 +1105,9 @@ definitions:
         items:
           $ref: '#/definitions/schema.FollowerRankingItem'
         type: array
-      page:
-        description: Current page number | 当前页码
-        type: integer
-      page_size:
-        description: Items per page | 每页数量
-        type: integer
       time_range:
         description: Time range | 时间范围
         type: string
-      total:
-        description: Total count | 总数量
-        type: integer
-      total_pages:
-        description: Total pages | 总页数
-        type: integer
     type: object
   schema.ForgotPasswordRequest:
     properties:
@@ -2075,21 +2039,9 @@ definitions:
         items:
           $ref: '#/definitions/schema.PointsRankingItem'
         type: array
-      page:
-        description: Current page number | 当前页码
-        type: integer
-      page_size:
-        description: Items per page | 每页数量
-        type: integer
       time_range:
         description: Time range | 时间范围
         type: string
-      total:
-        description: Total count | 总数量
-        type: integer
-      total_pages:
-        description: Total pages | 总页数
-        type: integer
     type: object
   schema.PopularCategoriesResponse:
     properties:
@@ -2213,21 +2165,9 @@ definitions:
         items:
           $ref: '#/definitions/schema.PostCountRankingItem'
         type: array
-      page:
-        description: Current page number | 当前页码
-        type: integer
-      page_size:
-        description: Items per page | 每页数量
-        type: integer
       time_range:
         description: Time range | 时间范围
         type: string
-      total:
-        description: Total count | 总数量
-        type: integer
-      total_pages:
-        description: Total pages | 总页数
-        type: integer
     type: object
   schema.PostDetailResponse:
     properties:
@@ -2647,21 +2587,9 @@ definitions:
         items:
           $ref: '#/definitions/schema.ReadingRankingItem'
         type: array
-      page:
-        description: Current page number | 当前页码
-        type: integer
-      page_size:
-        description: Items per page | 每页数量
-        type: integer
       time_range:
         description: Time range | 时间范围
         type: string
-      total:
-        description: Total count | 总数量
-        type: integer
-      total_pages:
-        description: Total pages | 总页数
-        type: integer
     type: object
   schema.RecentActivityResponse:
     properties:
