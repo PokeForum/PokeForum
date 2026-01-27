@@ -2,10 +2,27 @@ package time_tools
 
 import (
 	"time"
+
+	"github.com/PokeForum/PokeForum/internal/configs"
 )
 
 // DateTimeFormat Standard time format for API return | API返回的标准时间格式
 const DateTimeFormat = "2006-01-02 15:04:05"
+
+// GetConfiguredLocation Get the configured timezone location | 获取配置的时区位置
+func GetConfiguredLocation() *time.Location {
+	if configs.Timezone != "" {
+		if loc, err := time.LoadLocation(configs.Timezone); err == nil {
+			return loc
+		}
+	}
+	return time.Local
+}
+
+// Now Get current time in configured timezone | 获取当前时间（使用配置的时区）
+func Now() time.Time {
+	return time.Now().In(GetConfiguredLocation())
+}
 
 // FormatDateTime Format time.Time to API standard time format | 将time.Time格式化为API标准时间格式
 func FormatDateTime(t time.Time) string {
@@ -17,7 +34,7 @@ func FormatDateTime(t time.Time) string {
 // Returns: standard time format string (e.g., 2025-10-29 12:23:31) | 返回值: 标准时间格式字符串 (例如: 2025-10-29 12:23:31)
 func CalculateRemainingTime(seconds int64) string {
 	// Get current timestamp (seconds) | 获取当前时间戳（秒）
-	currentTimestamp := time.Now().Unix()
+	currentTimestamp := Now().Unix()
 
 	// Calculate remaining timestamp | 计算剩余时间戳
 	remainingTimestamp := currentTimestamp + seconds

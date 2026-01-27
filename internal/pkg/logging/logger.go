@@ -18,11 +18,28 @@ var FileRotateLogs = new(fileRotateLogs)
 
 type fileRotateLogs struct{}
 
+// timezoneClock implements rotatelogs.Clock interface with configurable timezone
+type timezoneClock struct {
+	loc *time.Location
+}
+
+func (c *timezoneClock) Now() time.Time {
+	return time.Now().In(c.loc)
+}
+
 // GetWriteSyncer Get zapcore.WriteSyncer | 获取 zapcore.WriteSyncer
 func (r *fileRotateLogs) GetWriteSyncer(level string) (zapcore.WriteSyncer, error) {
+	// Get configured timezone | 获取配置的时区
+	loc := time.Local
+	if configs.Timezone != "" {
+		if tz, err := time.LoadLocation(configs.Timezone); err == nil {
+			loc = tz
+		}
+	}
+
 	fileWriter, err := rotatelogs.New(
 		path.Join("logs", "%Y-%m-%d", level+".log"),
-		rotatelogs.WithClock(rotatelogs.Local),
+		rotatelogs.WithClock(&timezoneClock{loc: loc}),
 		rotatelogs.WithMaxAge(time.Duration(30)*24*time.Hour), // Log retention time | 日志留存时间
 		rotatelogs.WithRotationTime(time.Hour*24),
 	)
@@ -66,6 +83,14 @@ func (z *_zap) GetEncoderCore(l zapcore.Level, level zap.LevelEnablerFunc) zapco
 
 // CustomTimeEncoder Custom log output time format | 自定义日志输出时间格式
 func (z *_zap) CustomTimeEncoder(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
+	// Convert time to configured timezone | 将时间转换为配置的时区
+	loc := time.Local
+	if configs.Timezone != "" {
+		if tz, err := time.LoadLocation(configs.Timezone); err == nil {
+			loc = tz
+		}
+	}
+	t = t.In(loc)
 	encoder.AppendString(t.Format("2006-01-02 15:04:05.000"))
 }
 

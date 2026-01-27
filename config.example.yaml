@@ -9,6 +9,9 @@ app:
   prometheus: false
   # Cookie域名，用于子域名共享，如 ".example.com"
   cookie-domain: ".example.com"
+  # 系统时区，默认使用 Asia/Shanghai (UTC+8)
+  # 可选值：如 "Asia/Shanghai", "America/New_York", "Europe/London", "UTC" 等
+  timezone: "Asia/Shanghai"
 
 # PostgreSQL
 db:
@@ -23,7 +26,7 @@ db:
   # 数据库密码
   password:    "<PASSWORD>"
   # 数据库连接配置（PostgreSQL DSN）
-  config: 'sslmode=disable'
+  config: 'sslmode=disable TimeZone=Asia/Shanghai'
 
 # Redis
 cache:

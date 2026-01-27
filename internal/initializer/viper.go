@@ -3,6 +3,7 @@ package initializer
 import (
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
@@ -32,6 +33,8 @@ func Viper(configPath string) *viper.Viper {
 		if err = v.Unmarshal(&configs.Config); err != nil {
 			slog.Error(err.Error())
 		}
+		// Apply timezone when config changes | 配置变更时应用时区
+		applyTimezone()
 	})
 	if err = v.Unmarshal(&configs.Config); err != nil {
 		slog.Error(err.Error())
@@ -40,6 +43,9 @@ func Viper(configPath string) *viper.Viper {
 	// 应用配置文件中的 APP 配置到全局变量（命令行参数优先级更高）
 	// Apply APP config from file to global variables (CLI args have higher priority)
 	applyAppConfig()
+
+	// Apply timezone configuration | 应用时区配置
+	applyTimezone()
 
 	return v
 }
@@ -73,4 +79,31 @@ func applyAppConfig() {
 	if configs.CookieDomain == "" && app.CookieDomain != "" {
 		configs.CookieDomain = app.CookieDomain
 	}
+
+	// Timezone: 命令行默认值为 ""，如果未修改则使用配置文件
+	if configs.Timezone == "" && app.Timezone != "" {
+		configs.Timezone = app.Timezone
+	}
+}
+
+// applyTimezone applies the configured timezone to the system | 应用时区配置到系统
+func applyTimezone() {
+	timezone := configs.Timezone
+	if timezone == "" {
+		timezone = "Asia/Shanghai" // Default timezone | 默认时区
+		configs.Timezone = timezone
+	}
+
+	// Load timezone location | 加载时区位置
+	loc, err := time.LoadLocation(timezone)
+	if err != nil {
+		fmt.Printf("Failed to load timezone %s: %v. Using UTC as fallback.\n", timezone, err)
+		timezone = "UTC"
+		loc = time.UTC
+		configs.Timezone = timezone
+	}
+
+	// Set system local time to the configured timezone | 将系统本地时间设置为配置的时区
+	time.Local = loc
+	fmt.Printf("System timezone set to: %s (UTC offset: %s)\n", timezone, loc.String())
 }

@@ -16,6 +16,7 @@ var (
 	Debug        bool
 	Prometheus   bool   // Monitoring switch | 监控开关
 	CookieDomain string // Cookie 域名，如 ".example.com" | Cookie domain, e.g. ".example.com"
+	Timezone     string // System timezone | 系统时区
 )
 
 type Configuration struct {

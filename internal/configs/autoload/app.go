@@ -6,4 +6,5 @@ type APP struct {
 	Debug        bool   `mapstructure:"debug" json:"debug" yaml:"debug"`
 	Prometheus   bool   `mapstructure:"prometheus" json:"prometheus" yaml:"prometheus"`
 	CookieDomain string `mapstructure:"cookie-domain" json:"cookie-domain" yaml:"cookie-domain"`
+	Timezone     string `mapstructure:"timezone" json:"timezone" yaml:"timezone"`
 }
