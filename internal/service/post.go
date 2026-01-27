@@ -499,142 +499,173 @@ func (s *PostService) FavoritePost(ctx context.Context, userID int, req schema.U
 func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRequest) (*schema.UserPostListResponse, error) {
 	s.logger.Info("获取帖子列表", zap.Int("category_id", req.CategoryID), zap.String("slug", req.Slug), zap.String("keyword", req.Keyword), zap.Int("page", req.Page), zap.Int("page_size", req.PageSize), tracing.WithTraceIDField(ctx))
 
-	// Set default values | 设置默认值
+	s.validateAndSetDefaults(&req) // Validate and set default values | 验证并设置默认值
+
+	currentUserID := tracing.GetUserID(ctx) // Get current user ID | 获取当前用户ID
+	isLoggedIn := currentUserID > 0         // Check if user is logged in | 检查用户是否登录
+
+	excludeLoginRequiredCatIDs := s.getLoginRequiredCategoryIDs(ctx, isLoggedIn) // Get login required category IDs | 获取需要登录的版块ID列表
+
+	categoryID, err := s.resolveCategoryID(ctx, req.Slug, req.CategoryID, isLoggedIn) // Resolve category ID | 解析版块ID
+	if err != nil {
+		return s.buildEmptyPostListResponse(req), nil // Return empty response on error | 错误时返回空响应
+	}
+
+	pinnedPosts := s.queryPinnedPosts(ctx, categoryID, req.Page, req.Keyword, excludeLoginRequiredCatIDs) // Query pinned posts | 查询置顶帖子
+
+	posts, total, err := s.queryNormalPosts(ctx, categoryID, req, excludeLoginRequiredCatIDs) // Query normal posts | 查询普通帖子
+	if err != nil {
+		s.logger.Error("获取帖子列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil, err
+	}
+
+	allPosts := append([]*ent.Post{}, pinnedPosts...) // Merge pinned and normal posts | 合并置顶帖和普通帖
+	allPosts = append(allPosts, posts...)
+
+	userMap := s.batchGetUserInfo(ctx, allPosts)         // Batch get user info | 批量获取用户信息
+	categoryMap := s.batchGetCategoryInfo(ctx, allPosts) // Batch get category info | 批量获取版块信息
+
+	postIDs := s.extractPostIDs(allPosts)                              // Extract post IDs | 提取帖子ID列表
+	userLikeStatus := s.getUserLikeStatus(ctx, currentUserID, postIDs) // Get user like status | 获取用户点赞状态
+	statsMap := s.batchGetStats(ctx, postIDs)                          // Get post stats | 获取帖子统计数据
+
+	pinnedResult := s.convertPostsToResponse(pinnedPosts, userMap, categoryMap, userLikeStatus, statsMap) // Convert pinned posts to response | 转换置顶帖为响应格式
+	result := s.convertPostsToResponse(posts, userMap, categoryMap, userLikeStatus, statsMap)             // Convert normal posts to response | 转换普通帖为响应格式
+
+	totalPages := s.calculateTotalPages(total, req.PageSize) // Calculate total pages | 计算总页数
+
+	return &schema.UserPostListResponse{
+		PinnedPosts: pinnedResult,
+		Posts:       result,
+		Total:       total,
+		Page:        req.Page,
+		PageSize:    req.PageSize,
+		TotalPages:  totalPages,
+	}, nil
+}
+
+// validateAndSetDefaults Validate and set default values for request | 验证并设置请求默认值
+func (s *PostService) validateAndSetDefaults(req *schema.UserPostListRequest) {
 	if req.Page <= 0 {
-		req.Page = 1
+		req.Page = _const.DefaultPage // Set default page | 设置默认页码
 	}
 	if req.PageSize <= 0 {
-		req.PageSize = 20
+		req.PageSize = _const.DefaultPageSize // Set default page size | 设置默认每页数量
 	}
 	if req.Sort == "" {
-		req.Sort = "latest"
+		req.Sort = _const.DefaultSort // Set default sort order | 设置默认排序方式
 	}
+}
 
-	// 获取当前用户登录状态
-	currentUserID := tracing.GetUserID(ctx)
-	isLoggedIn := currentUserID > 0
-
-	// 未登录用户需要排除登录可见版块的帖子
-	var excludeLoginRequiredCatIDs []int
-	if !isLoggedIn {
-		var err error
-		excludeLoginRequiredCatIDs, err = s.categoryRepo.GetLoginRequiredCategoryIDs(ctx)
-		if err != nil {
-			s.logger.Warn("获取登录可见版块ID列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		}
+// getLoginRequiredCategoryIDs Get login required category IDs | 获取登录可见版块ID列表
+func (s *PostService) getLoginRequiredCategoryIDs(ctx context.Context, isLoggedIn bool) []int {
+	if isLoggedIn {
+		return nil // Return nil if user is logged in | 用户已登录返回nil
 	}
+	catIDs, err := s.categoryRepo.GetLoginRequiredCategoryIDs(ctx)
+	if err != nil {
+		s.logger.Warn("获取登录可见版块ID列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil
+	}
+	return catIDs
+}
 
-	// Resolve category ID from slug if provided | 如果提供了slug则解析为category_id
-	categoryID := req.CategoryID
-	if req.Slug != "" && categoryID == 0 {
-		categoryData, err := s.categoryRepo.GetBySlug(ctx, req.Slug)
+// resolveCategoryID Resolve category ID from slug or category ID | 从slug或category ID解析版块ID
+func (s *PostService) resolveCategoryID(ctx context.Context, slug string, categoryID int, isLoggedIn bool) (int, error) {
+	if slug != "" && categoryID == 0 {
+		categoryData, err := s.categoryRepo.GetBySlug(ctx, slug) // Get category by slug | 通过slug获取版块
 		if err != nil {
-			s.logger.Warn("通过slug获取版块失败", zap.String("slug", req.Slug), zap.Error(err), tracing.WithTraceIDField(ctx))
-			// slug不存在时返回空列表 | Return empty list when slug not found
-			return &schema.UserPostListResponse{
-				PinnedPosts: []schema.UserPostCreateResponse{},
-				Posts:       []schema.UserPostCreateResponse{},
-				Total:       0,
-				Page:        req.Page,
-				PageSize:    req.PageSize,
-				TotalPages:  0,
-			}, nil
+			s.logger.Warn("通过slug获取版块失败", zap.String("slug", slug), zap.Error(err), tracing.WithTraceIDField(ctx))
+			return 0, err
 		}
 		categoryID = categoryData.ID
 
-		// 未登录用户访问登录可见版块时返回空列表
 		if !isLoggedIn && categoryData.Status == category.StatusLoginRequired {
-			s.logger.Warn("未登录用户尝试访问登录可见版块", zap.String("slug", req.Slug), tracing.WithTraceIDField(ctx))
-			return &schema.UserPostListResponse{
-				PinnedPosts: []schema.UserPostCreateResponse{},
-				Posts:       []schema.UserPostCreateResponse{},
-				Total:       0,
-				Page:        req.Page,
-				PageSize:    req.PageSize,
-				TotalPages:  0,
-			}, nil
+			s.logger.Warn("未登录用户尝试访问登录可见版块", zap.String("slug", slug), tracing.WithTraceIDField(ctx))
+			return 0, errors.New("login required") // Return error if not logged in | 未登录返回错误
 		}
 	}
 
-	// 如果指定了 categoryID，也需要检查登录可见版块
 	if categoryID > 0 && !isLoggedIn {
-		categoryData, err := s.categoryRepo.GetByID(ctx, categoryID)
+		categoryData, err := s.categoryRepo.GetByID(ctx, categoryID) // Get category by ID | 通过ID获取版块
 		if err == nil && categoryData.Status == category.StatusLoginRequired {
 			s.logger.Warn("未登录用户尝试访问登录可见版块", zap.Int("category_id", categoryID), tracing.WithTraceIDField(ctx))
-			return &schema.UserPostListResponse{
-				PinnedPosts: []schema.UserPostCreateResponse{},
-				Posts:       []schema.UserPostCreateResponse{},
-				Total:       0,
-				Page:        req.Page,
-				PageSize:    req.PageSize,
-				TotalPages:  0,
-			}, nil
+			return 0, errors.New("login required") // Return error if not logged in | 未登录返回错误
 		}
 	}
 
-	// Determine pin scopes based on category | 根据版块确定置顶范围
+	return categoryID, nil
+}
+
+// queryPinnedPosts Query pinned posts | 查询置顶帖子
+func (s *PostService) queryPinnedPosts(ctx context.Context, categoryID int, page int, keyword string, excludeLoginRequiredCatIDs []int) []*ent.Post {
+	if page > 1 || keyword != "" {
+		return nil // Return nil if not first page or has keyword | 非第一页或有搜索关键词时不查询置顶帖
+	}
+
 	var pinScopes []post.PinScope
-	var pinnedPosts []*ent.Post
 	if categoryID == 0 {
-		// No category filter: query Home and Global pinned posts | 无版块筛选：查询首页置顶和全局置顶
-		pinScopes = []post.PinScope{post.PinScopeHome, post.PinScopeGlobal}
+		pinScopes = []post.PinScope{post.PinScopeHome, post.PinScopeGlobal} // Query home and global pinned | 查询首页和全局置顶
 	} else {
-		// Has category filter: query Category and Global pinned posts | 有版块筛选：查询板块置顶和全局置顶
-		pinScopes = []post.PinScope{post.PinScopeCategory, post.PinScopeGlobal}
+		pinScopes = []post.PinScope{post.PinScopeCategory, post.PinScopeGlobal} // Query category and global pinned | 查询版块和全局置顶
 	}
 
-	// Query pinned posts only on first page and without keyword search | 仅在第一页且无关键词搜索时查询置顶帖子
-	if req.Page <= 1 && req.Keyword == "" {
-		var pinnedErr error
-		pinnedPosts, _, pinnedErr = s.postRepo.List(ctx, repository.ListPostOptions{
-			CategoryID:                 categoryID,
-			Keyword:                    req.Keyword,
-			Statuses:                   []post.Status{post.StatusNormal, post.StatusLocked},
-			PinScopes:                  pinScopes,
-			SortBy:                     "latest",
-			ExcludeLoginRequiredCatIDs: excludeLoginRequiredCatIDs,
-		})
-		if pinnedErr != nil {
-			s.logger.Error("获取置顶帖子列表失败", zap.Error(pinnedErr), tracing.WithTraceIDField(ctx))
-			return nil, pinnedErr
-		}
+	pinnedPosts, _, err := s.postRepo.List(ctx, repository.ListPostOptions{
+		CategoryID:                 categoryID,
+		Keyword:                    keyword,
+		Statuses:                   []post.Status{post.StatusNormal, post.StatusLocked},
+		PinScopes:                  pinScopes,
+		SortBy:                     "latest",
+		ExcludeLoginRequiredCatIDs: excludeLoginRequiredCatIDs,
+	})
+	if err != nil {
+		s.logger.Error("获取置顶帖子列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return nil
 	}
 
-	// Use repository to query posts (exclude pinned) | 使用 Repository 查询帖子列表（排除置顶）
-	posts, total, err := s.postRepo.List(ctx, repository.ListPostOptions{
+	return pinnedPosts
+}
+
+// queryNormalPosts Query normal posts | 查询普通帖子
+func (s *PostService) queryNormalPosts(ctx context.Context, categoryID int, req schema.UserPostListRequest, excludeLoginRequiredCatIDs []int) ([]*ent.Post, int, error) {
+	return s.postRepo.List(ctx, repository.ListPostOptions{
 		CategoryID:                 categoryID,
 		Keyword:                    req.Keyword,
 		Statuses:                   []post.Status{post.StatusNormal, post.StatusLocked},
 		SortBy:                     req.Sort,
 		Page:                       req.Page,
 		PageSize:                   req.PageSize,
-		ExcludePinned:              true,
+		ExcludePinned:              true, // Exclude pinned posts | 排除置顶帖子
 		ExcludeLoginRequiredCatIDs: excludeLoginRequiredCatIDs,
 	})
-	if err != nil {
-		s.logger.Error("获取帖子列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-		return nil, err
-	}
+}
 
-	// Collect user IDs and category IDs | 收集用户ID和版块ID
+// batchGetUserInfo Batch get user information | 批量获取用户信息
+func (s *PostService) batchGetUserInfo(ctx context.Context, posts []*ent.Post) map[int]struct {
+	ID       int
+	Username string
+	Avatar   string
+} {
 	userIDs := make(map[int]bool)
-	categoryIDs := make(map[int]bool)
-	allPosts := make([]*ent.Post, 0, len(pinnedPosts)+len(posts))
-	allPosts = append(allPosts, pinnedPosts...)
-	allPosts = append(allPosts, posts...)
-	for _, p := range allPosts {
-		userIDs[p.UserID] = true
-		categoryIDs[p.CategoryID] = true
+	for _, p := range posts {
+		userIDs[p.UserID] = true // Collect user IDs | 收集用户ID
 	}
 
 	userIDList := make([]int, 0, len(userIDs))
 	for id := range userIDs {
-		userIDList = append(userIDList, id)
+		userIDList = append(userIDList, id) // Convert to slice | 转换为切片
 	}
-	users, err := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername, user.FieldAvatar})
+
+	users, err := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername, user.FieldAvatar}) // Batch query users | 批量查询用户
 	if err != nil {
 		s.logger.Warn("批量查询用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return make(map[int]struct {
+			ID       int
+			Username string
+			Avatar   string
+		})
 	}
+
 	userMap := make(map[int]struct {
 		ID       int
 		Username string
@@ -649,132 +680,168 @@ func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRe
 			ID:       u.ID,
 			Username: u.Username,
 			Avatar:   u.Avatar,
-		}
+		} // Build user map | 构建用户映射
+	}
+
+	return userMap
+}
+
+// batchGetCategoryInfo Batch get category information | 批量获取版块信息
+func (s *PostService) batchGetCategoryInfo(ctx context.Context, posts []*ent.Post) map[int]string {
+	categoryIDs := make(map[int]bool)
+	for _, p := range posts {
+		categoryIDs[p.CategoryID] = true // Collect category IDs | 收集版块ID
 	}
 
 	categoryIDList := make([]int, 0, len(categoryIDs))
 	for id := range categoryIDs {
-		categoryIDList = append(categoryIDList, id)
+		categoryIDList = append(categoryIDList, id) // Convert to slice | 转换为切片
 	}
-	categories, err := s.categoryRepo.GetByIDsWithFields(ctx, categoryIDList, []string{category.FieldID, category.FieldName})
+
+	categories, err := s.categoryRepo.GetByIDsWithFields(ctx, categoryIDList, []string{category.FieldID, category.FieldName}) // Batch query categories | 批量查询版块
 	if err != nil {
 		s.logger.Warn("批量查询版块信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return make(map[int]string)
 	}
+
 	categoryMap := make(map[int]string)
 	for _, c := range categories {
-		categoryMap[c.ID] = c.Name
+		categoryMap[c.ID] = c.Name // Build category map | 构建版块映射
 	}
 
-	// Get post ID list | 获取帖子ID列表
-	postIDs := make([]int, len(allPosts))
-	for i, p := range allPosts {
-		postIDs[i] = p.ID
+	return categoryMap
+}
+
+// extractPostIDs Extract post IDs from posts | 从帖子中提取ID列表
+func (s *PostService) extractPostIDs(posts []*ent.Post) []int {
+	postIDs := make([]int, len(posts))
+	for i, p := range posts {
+		postIDs[i] = p.ID // Extract post ID | 提取帖子ID
+	}
+	return postIDs
+}
+
+// getUserLikeStatus Get user like status for posts | 获取用户对帖子的点赞状态
+func (s *PostService) getUserLikeStatus(ctx context.Context, currentUserID int, postIDs []int) map[int]map[string]bool {
+	if currentUserID == 0 {
+		return make(map[int]map[string]bool) // Return empty map if not logged in | 未登录返回空映射
 	}
 
-	var userLikeStatus map[int]map[string]bool
-	if currentUserID != 0 {
-		actions, err := s.postActionRepo.GetUserActionsForPosts(ctx, currentUserID, postIDs)
-		if err != nil {
-			s.logger.Warn("查询用户点赞状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
-			userLikeStatus = make(map[int]map[string]bool)
-		} else {
-			userLikeStatus = make(map[int]map[string]bool)
-			for _, action := range actions {
-				if _, exists := userLikeStatus[action.PostID]; !exists {
-					userLikeStatus[action.PostID] = map[string]bool{"like": false, "dislike": false}
-				}
-				switch action.ActionType {
-				case postaction.ActionTypeLike:
-					userLikeStatus[action.PostID]["like"] = true
-				case postaction.ActionTypeDislike:
-					userLikeStatus[action.PostID]["dislike"] = true
-				}
-			}
+	actions, err := s.postActionRepo.GetUserActionsForPosts(ctx, currentUserID, postIDs) // Get user actions | 获取用户操作记录
+	if err != nil {
+		s.logger.Warn("查询用户点赞状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		return make(map[int]map[string]bool)
+	}
+
+	userLikeStatus := make(map[int]map[string]bool)
+	for _, action := range actions {
+		if _, exists := userLikeStatus[action.PostID]; !exists {
+			userLikeStatus[action.PostID] = map[string]bool{"like": false, "dislike": false} // Initialize status | 初始化状态
 		}
-	} else {
-		userLikeStatus = make(map[int]map[string]bool)
+		switch action.ActionType {
+		case postaction.ActionTypeLike:
+			userLikeStatus[action.PostID]["like"] = true
+		case postaction.ActionTypeDislike:
+			userLikeStatus[action.PostID]["dislike"] = true
+		}
 	}
 
-	// Batch get real-time stats data | 批量获取实时统计数据
-	statsMap, err := s.postStatsService.GetStatsMap(ctx, postIDs)
+	return userLikeStatus
+}
+
+// batchGetStats Batch get stats data | 批量获取统计数据
+func (s *PostService) batchGetStats(ctx context.Context, postIDs []int) map[int]*stats.Stats {
+	statsMap, err := s.postStatsService.GetStatsMap(ctx, postIDs) // Get real-time stats | 获取实时统计数据
 	if err != nil {
 		s.logger.Warn("获取实时统计数据失败，将使用数据库中的旧数据", zap.Error(err), tracing.WithTraceIDField(ctx))
-		// On failure, don't block the process, fallback to database data | 失败时不阻断流程，降级使用数据库数据
-		statsMap = make(map[int]*stats.Stats)
+		return make(map[int]*stats.Stats)
 	}
+	return statsMap
+}
 
-	// Helper function to convert post to response | 帖子转响应的辅助函数
-	convertPost := func(p *ent.Post) schema.UserPostCreateResponse {
-		userInfo := userMap[p.UserID]
-		categoryName := categoryMap[p.CategoryID]
-
-		// Prefer real-time stats data | 优先使用实时统计数据
-		likeCount := p.LikeCount
-		dislikeCount := p.DislikeCount
-		favoriteCount := p.FavoriteCount
-		viewCount := p.ViewCount
-		if statsData, ok := statsMap[p.ID]; ok {
-			likeCount = statsData.LikeCount
-			dislikeCount = statsData.DislikeCount
-			favoriteCount = statsData.FavoriteCount
-			viewCount = statsData.ViewCount
-		}
-
-		// Get user like status | 获取用户点赞状态
-		userLiked := false
-		userDisliked := false
-		if status, exists := userLikeStatus[p.ID]; exists {
-			userLiked = status["like"]
-			userDisliked = status["dislike"]
-		}
-
-		return schema.UserPostCreateResponse{
-			ID:                   p.ID,
-			CategoryID:           p.CategoryID,
-			CategoryName:         categoryName,
-			Title:                p.Title,
-			Content:              "[内容已隐藏]", // Hide content in list | 列表中隐藏内容
-			UserID:               userInfo.ID,
-			Username:             userInfo.Username,
-			Avatar:               userInfo.Avatar,
-			ReadPermissionType:   string(p.ReadPermission),
-			ReadPermissionPoints: p.ReadPermissionPoints,
-			ViewCount:            viewCount,
-			LikeCount:            likeCount,
-			DislikeCount:         dislikeCount,
-			FavoriteCount:        favoriteCount,
-			UserLiked:            userLiked,
-			UserDisliked:         userDisliked,
-			IsEssence:            p.IsEssence,
-			IsPinned:             p.IsPinned,
-			Status:               string(p.Status),
-			CreatedAt:            p.CreatedAt.Format(time_tools.DateTimeFormat),
-			UpdatedAt:            p.UpdatedAt.Format(time_tools.DateTimeFormat),
-		}
-	}
-
-	// Convert pinned posts to response format | 转换置顶帖子为响应格式
-	pinnedResult := make([]schema.UserPostCreateResponse, len(pinnedPosts))
-	for i, p := range pinnedPosts {
-		pinnedResult[i] = convertPost(p)
-	}
-
-	// Convert normal posts to response format | 转换普通帖子为响应格式
+// convertPostsToResponse Convert posts to response format | 将帖子转换为响应格式
+func (s *PostService) convertPostsToResponse(posts []*ent.Post, userMap map[int]struct {
+	ID       int
+	Username string
+	Avatar   string
+}, categoryMap map[int]string, userLikeStatus map[int]map[string]bool, statsMap map[int]*stats.Stats) []schema.UserPostCreateResponse {
 	result := make([]schema.UserPostCreateResponse, len(posts))
 	for i, p := range posts {
-		result[i] = convertPost(p)
+		result[i] = s.convertPostToResponse(p, userMap, categoryMap, userLikeStatus, statsMap) // Convert each post | 转换每个帖子
+	}
+	return result
+}
+
+// convertPostToResponse Convert single post to response format | 将单个帖子转换为响应格式
+func (s *PostService) convertPostToResponse(p *ent.Post, userMap map[int]struct {
+	ID       int
+	Username string
+	Avatar   string
+}, categoryMap map[int]string, userLikeStatus map[int]map[string]bool, statsMap map[int]*stats.Stats) schema.UserPostCreateResponse {
+	userInfo := userMap[p.UserID]             // Get user info | 获取用户信息
+	categoryName := categoryMap[p.CategoryID] // Get category name | 获取版块名称
+
+	likeCount := p.LikeCount
+	dislikeCount := p.DislikeCount
+	favoriteCount := p.FavoriteCount
+	viewCount := p.ViewCount
+	if statsData, ok := statsMap[p.ID]; ok { // Prefer real-time stats | 优先使用实时统计数据
+		likeCount = statsData.LikeCount
+		dislikeCount = statsData.DislikeCount
+		favoriteCount = statsData.FavoriteCount
+		viewCount = statsData.ViewCount
 	}
 
-	totalPages := (total + req.PageSize - 1) / req.PageSize
+	userLiked := false
+	userDisliked := false
+	if status, exists := userLikeStatus[p.ID]; exists { // Get user like status | 获取用户点赞状态
+		userLiked = status["like"]
+		userDisliked = status["dislike"]
+	}
 
+	return schema.UserPostCreateResponse{
+		ID:                   p.ID,
+		CategoryID:           p.CategoryID,
+		CategoryName:         categoryName,
+		Title:                p.Title,
+		Content:              "[内容已隐藏]", // Hide content in list | 列表中隐藏内容
+		UserID:               userInfo.ID,
+		Username:             userInfo.Username,
+		Avatar:               userInfo.Avatar,
+		ReadPermissionType:   string(p.ReadPermission),
+		ReadPermissionPoints: p.ReadPermissionPoints,
+		ViewCount:            viewCount,
+		LikeCount:            likeCount,
+		DislikeCount:         dislikeCount,
+		FavoriteCount:        favoriteCount,
+		UserLiked:            userLiked,
+		UserDisliked:         userDisliked,
+		IsEssence:            p.IsEssence,
+		IsPinned:             p.IsPinned,
+		Status:               string(p.Status),
+		CreatedAt:            p.CreatedAt.Format(time_tools.DateTimeFormat),
+		UpdatedAt:            p.UpdatedAt.Format(time_tools.DateTimeFormat),
+	}
+}
+
+// calculateTotalPages Calculate total pages | 计算总页数
+func (s *PostService) calculateTotalPages(total int, pageSize int) int {
+	if pageSize <= 0 {
+		return 0 // Return 0 if page size is invalid | 页面大小无效时返回0
+	}
+	return (total + pageSize - 1) / pageSize // Calculate total pages | 计算总页数
+}
+
+// buildEmptyPostListResponse Build empty post list response | 构建空的帖子列表响应
+func (s *PostService) buildEmptyPostListResponse(req schema.UserPostListRequest) *schema.UserPostListResponse {
 	return &schema.UserPostListResponse{
-		PinnedPosts: pinnedResult,
-		Posts:       result,
-		Total:       total,
+		PinnedPosts: []schema.UserPostCreateResponse{},
+		Posts:       []schema.UserPostCreateResponse{},
+		Total:       0,
 		Page:        req.Page,
 		PageSize:    req.PageSize,
-		TotalPages:  totalPages,
-	}, nil
+		TotalPages:  0,
+	}
 }
 
 // GetPostDetail Get post detail | 获取帖子详情

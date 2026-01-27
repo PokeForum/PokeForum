@@ -8310,6 +8310,9 @@ const docTemplate = `{
                     "$ref": "#/definitions/response.ResCode"
                 },
                 "data": {},
+                "err_code": {
+                    "type": "string"
+                },
                 "msg": {}
             }
         },

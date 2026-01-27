@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/PokeForum/PokeForum/internal/configs"
+	_const "github.com/PokeForum/PokeForum/internal/consts"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 )
@@ -26,22 +27,22 @@ type RateLimitConfig struct {
 
 // DefaultRateLimitConfig Default configuration: 100 requests per second | 默认配置：每秒100个请求
 var DefaultRateLimitConfig = RateLimitConfig{
-	WindowSize:  1,
-	MaxRequests: 100,
+	WindowSize:  _const.DefaultTimeWindowSeconds,
+	MaxRequests: _const.DefaultMaxRequests,
 	KeyPrefix:   "ratelimit:global",
 }
 
 // APIRateLimitConfig API interface rate limit configuration: 60 requests per minute | API接口限流配置：每分钟60个请求
 var APIRateLimitConfig = RateLimitConfig{
-	WindowSize:  60,
-	MaxRequests: 60,
+	WindowSize:  _const.APITimeWindowSeconds,
+	MaxRequests: _const.APIMaxRequests,
 	KeyPrefix:   "ratelimit:api",
 }
 
 // AuthRateLimitConfig Authentication interface rate limit configuration: 10 times per minute (prevent brute force) | 认证接口限流配置：每分钟10次（防止暴力破解）
 var AuthRateLimitConfig = RateLimitConfig{
-	WindowSize:  60,
-	MaxRequests: 10,
+	WindowSize:  _const.AuthTimeWindowSeconds,
+	MaxRequests: _const.AuthMaxRequests,
 	KeyPrefix:   "ratelimit:auth",
 }
 
@@ -55,14 +56,22 @@ func RateLimit(config RateLimitConfig) gin.HandlerFunc {
 		// Check if rate limit is exceeded | 检查是否超过速率限制
 		allowed, remaining, resetTime, err := checkRateLimit(c.Request.Context(), key, config)
 		if err != nil {
-			// Log Redis error but don't block requests (degraded handling) | Redis错误时记录日志，但不阻断请求（降级处理）
-			configs.Log.Warn("速率限制检查失败，降级放行",
+			// Fallback to memory-based rate limit when Redis fails | Redis失败时降级到内存限流
+			configs.Log.Warn("Redis速率限制检查失败，降级到内存限流",
 				zap.String("trace_id", tracing.GetTraceID(c.Request.Context())),
 				zap.String("client_ip", clientIP),
 				zap.Error(err),
 			)
-			c.Next()
-			return
+			allowed, remaining, resetTime, err = checkMemoryRateLimit(c.Request.Context(), key, config)
+			if err != nil {
+				configs.Log.Error("内存速率限制检查失败，放行请求",
+					zap.String("trace_id", tracing.GetTraceID(c.Request.Context())),
+					zap.String("client_ip", clientIP),
+					zap.Error(err),
+				)
+				c.Next()
+				return
+			}
 		}
 
 		// Set rate limit related response headers | 设置速率限制相关响应头
@@ -148,13 +157,22 @@ func RateLimitByKey(config RateLimitConfig, keyFunc func(*gin.Context) string) g
 		// Check if rate limit is exceeded | 检查是否超过速率限制
 		allowed, remaining, resetTime, err := checkRateLimit(c.Request.Context(), key, config)
 		if err != nil {
-			configs.Log.Warn("速率限制检查失败，降级放行",
+			// Fallback to memory-based rate limit when Redis fails | Redis失败时降级到内存限流
+			configs.Log.Warn("Redis速率限制检查失败，降级到内存限流",
 				zap.String("trace_id", tracing.GetTraceID(c.Request.Context())),
 				zap.String("key", key),
 				zap.Error(err),
 			)
-			c.Next()
-			return
+			allowed, remaining, resetTime, err = checkMemoryRateLimit(c.Request.Context(), key, config)
+			if err != nil {
+				configs.Log.Error("内存速率限制检查失败，放行请求",
+					zap.String("trace_id", tracing.GetTraceID(c.Request.Context())),
+					zap.String("key", key),
+					zap.Error(err),
+				)
+				c.Next()
+				return
+			}
 		}
 
 		// Set rate limit related response headers | 设置速率限制相关响应头

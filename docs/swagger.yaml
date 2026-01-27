@@ -5,6 +5,8 @@ definitions:
       code:
         $ref: '#/definitions/response.ResCode'
       data: {}
+      err_code:
+        type: string
       msg: {}
     type: object
   response.ResCode:

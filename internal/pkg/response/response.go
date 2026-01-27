@@ -4,39 +4,85 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/PokeForum/PokeForum/internal/pkg/errcode"
 )
 
 /*
 {
 	"code": 200, 		// Error code in the program | 程序中的错误码
+	"err_code": "SUCCESS", // Business error code | 业务错误码
 	"msg": "xxx", 		// Prompt message | 提示信息
 	"data": {}			// Data | 数据
 }
 */
 
+var resCodeToErrCode = map[ResCode]string{
+	CodeSuccess:         string(errcode.Success),
+	CodeInvalidParam:    string(errcode.InvalidParam),
+	CodeNoPermission:    string(errcode.NoPermission),
+	CodeGenericError:    string(errcode.GenericError),
+	CodeServerBusy:      string(errcode.ServerBusy),
+	CodeTooManyRequests: string(errcode.TooManyRequests),
+	CodeNeedLogin:       string(errcode.NeedLogin),
+}
+
 type Data struct {
-	Code ResCode `json:"code"`
-	Msg  any     `json:"msg"`
-	Data any     `json:"data"`
+	Code    ResCode `json:"code"`
+	ErrCode string  `json:"err_code"`
+	Msg     any     `json:"msg"`
+	Data    any     `json:"data"`
 }
 
 // ResError Return error information | 返回错误信息
 func ResError(c *gin.Context, code ResCode) {
+	errCode, ok := resCodeToErrCode[code]
+	if !ok {
+		errCode = string(errcode.GenericError)
+	}
 	c.JSON(http.StatusOK,
 		&Data{
-			Code: code,
-			Msg:  code.Msg(),
-			Data: nil,
+			Code:    code,
+			ErrCode: errCode,
+			Msg:     code.Msg(),
+			Data:    nil,
 		})
 }
 
 // ResErrorWithMsg Custom error return | 自定义错误返回
 func ResErrorWithMsg(c *gin.Context, code ResCode, msg any, data ...any) {
+	errCode, ok := resCodeToErrCode[code]
+	if !ok {
+		errCode = string(errcode.GenericError)
+	}
 	c.JSON(http.StatusOK,
 		&Data{
-			Code: code,
-			Msg:  msg,
-			Data: data,
+			Code:    code,
+			ErrCode: errCode,
+			Msg:     msg,
+			Data:    data,
+		})
+}
+
+// ResErrorWithErrCode Custom error return with specific error code | 自定义错误返回，指定错误码
+func ResErrorWithErrCode(c *gin.Context, code ResCode, businessErrCode errcode.ErrCode) {
+	c.JSON(http.StatusOK,
+		&Data{
+			Code:    code,
+			ErrCode: string(businessErrCode),
+			Msg:     businessErrCode.Msg(),
+			Data:    nil,
+		})
+}
+
+// ResErrorWithErrCodeAndMsg Custom error return with specific error code and message | 自定义错误返回，指定错误码和消息
+func ResErrorWithErrCodeAndMsg(c *gin.Context, code ResCode, businessErrCode errcode.ErrCode, msg any) {
+	c.JSON(http.StatusOK,
+		&Data{
+			Code:    code,
+			ErrCode: string(businessErrCode),
+			Msg:     msg,
+			Data:    nil,
 		})
 }
 
@@ -44,8 +90,9 @@ func ResErrorWithMsg(c *gin.Context, code ResCode, msg any, data ...any) {
 func ResSuccess(c *gin.Context, data any) {
 	c.JSON(http.StatusOK,
 		&Data{
-			Code: CodeSuccess,
-			Msg:  CodeSuccess.Msg(),
-			Data: data,
+			Code:    CodeSuccess,
+			ErrCode: string(errcode.Success),
+			Msg:     CodeSuccess.Msg(),
+			Data:    data,
 		})
 }
