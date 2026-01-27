@@ -101,13 +101,14 @@ func RunServer() {
 	repos := repository.NewRepositories(configs.DB)
 
 	// Initialize and start task manager with all handlers | 初始化并启动任务管理器及所有处理器
-	taskManager := initializeTaskManager(repos, cacheService)
+	signinAsyncTask, taskManager := initializeTaskManager(repos, cacheService)
 	if taskManager == nil {
 		configs.Log.Error("Failed to initialize task manager | 任务管理器初始化失败")
 		return
 	}
 
-	// Inject TaskManager into injector | 将TaskManager注入到injector
+	// Inject SigninAsyncTask and TaskManager into injector | 将SigninAsyncTask和TaskManager注入到injector
+	do.ProvideValue(injector, signinAsyncTask)
 	do.ProvideValue(injector, taskManager)
 
 	// Register routes | 注册路由
@@ -155,7 +156,7 @@ func RunServer() {
 }
 
 // initializeTaskManager initializes and starts the asynq task manager with all task handlers | 初始化并启动asynq任务管理器及所有任务处理器
-func initializeTaskManager(repos *repository.Repositories, cacheService cache.ICacheService) *asynq.TaskManager {
+func initializeTaskManager(repos *repository.Repositories, cacheService cache.ICacheService) (*service.SigninAsyncTask, *asynq.TaskManager) {
 	// Initialize asynq task manager | 初始化asynq任务管理器
 	taskManager := asynq.NewTaskManagerFromRedis(configs.Cache, 10, configs.Log)
 
@@ -182,11 +183,11 @@ func initializeTaskManager(repos *repository.Repositories, cacheService cache.IC
 	// Start asynq task server | 启动asynq任务服务器
 	if err := taskManager.Start(); err != nil {
 		configs.Log.Error("Failed to start asynq task server | 启动asynq任务服务器失败", zap.Error(err))
-		return nil
+		return nil, nil
 	}
 
 	// Execute stats sync immediately on startup | 启动时立即执行一次统计同步
 	syncTask.SyncNow(context.Background())
 
-	return taskManager
+	return signinAsyncTask, taskManager
 }
