@@ -6,13 +6,13 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
-	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 )
 
 // CommentController Comment controller | 评论控制器
 type CommentController struct {
+	BaseController
 	commentService service.ICommentService
 }
 
@@ -37,11 +37,6 @@ func (ctrl *CommentController) CommentRouter(router *gin.RouterGroup) {
 	router.POST("/dislike", saGin.CheckRole(user.RoleUser.String()), ctrl.DislikeComment)
 }
 
-// getUserID Get user ID from Cookie | 从 Cookie 获取用户ID
-func (ctrl *CommentController) getUserID(c *gin.Context) (int, error) {
-	return satoken.GetUserIDFromCookie(c)
-}
-
 // CreateComment Create comment | 创建评论
 // @Summary Create comment | 创建评论
 // @Description User creates new comment, supports replying to comments and users | 用户创建新评论,支持回复评论和回复用户
@@ -56,7 +51,7 @@ func (ctrl *CommentController) getUserID(c *gin.Context) (int, error) {
 // @Router /comments [post]
 func (ctrl *CommentController) CreateComment(c *gin.Context) {
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
@@ -102,7 +97,7 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 // @Router /comments [put]
 func (ctrl *CommentController) UpdateComment(c *gin.Context) {
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
@@ -140,7 +135,7 @@ func (ctrl *CommentController) UpdateComment(c *gin.Context) {
 // @Router /comments/like [post]
 func (ctrl *CommentController) LikeComment(c *gin.Context) {
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
@@ -178,7 +173,7 @@ func (ctrl *CommentController) LikeComment(c *gin.Context) {
 // @Router /comments/dislike [post]
 func (ctrl *CommentController) DislikeComment(c *gin.Context) {
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
@@ -233,8 +228,11 @@ func (ctrl *CommentController) GetCommentList(c *gin.Context) {
 		req.PageSize = 20
 	}
 
+	// Get current user ID (0 for guest) | 获取当前用户ID（0表示游客）
+	currentUserID := ctrl.GetUserIDOrZero(c)
+
 	// Call service to get comment list | 调用服务获取评论列表
-	result, err := ctrl.commentService.GetCommentList(c.Request.Context(), req)
+	result, err := ctrl.commentService.GetCommentList(c.Request.Context(), currentUserID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, 500, "Failed to get comment list | 获取评论列表失败", err.Error())
 		return

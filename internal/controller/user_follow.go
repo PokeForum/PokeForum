@@ -8,13 +8,13 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
-	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 )
 
 // UserFollowController User follow controller | 用户关注控制器
 type UserFollowController struct {
+	BaseController
 	followService service.IUserFollowService
 }
 
@@ -41,11 +41,6 @@ func (ctrl *UserFollowController) UserFollowRouter(router *gin.RouterGroup) {
 	router.GET("/status/:user_id", ctrl.GetFollowStatus)
 }
 
-// getCurrentUserID Get current user ID from Cookie, return 0 if not logged in | 从 Cookie 获取当前用户ID，未登录返回0
-func (ctrl *UserFollowController) getCurrentUserID(c *gin.Context) int {
-	return satoken.GetUserIDFromCookieOrZero(c)
-}
-
 // FollowUser Follow user | 关注用户
 // @Summary Follow user | 关注用户
 // @Description Follow a specified user | 关注指定用户
@@ -60,7 +55,7 @@ func (ctrl *UserFollowController) getCurrentUserID(c *gin.Context) int {
 // @Router /profile/follow [post]
 func (ctrl *UserFollowController) FollowUser(c *gin.Context) {
 	// Get current user ID | 获取当前用户ID
-	userID := ctrl.getCurrentUserID(c)
+	userID := ctrl.GetUserIDOrZero(c)
 	if userID == 0 {
 		response.ResErrorWithMsg(c, response.CodeNeedLogin, "Please login first | 请先登录", "")
 		return
@@ -95,7 +90,7 @@ func (ctrl *UserFollowController) FollowUser(c *gin.Context) {
 // @Router /profile/follow/{user_id} [delete]
 func (ctrl *UserFollowController) UnfollowUser(c *gin.Context) {
 	// Get current user ID | 获取当前用户ID
-	userID := ctrl.getCurrentUserID(c)
+	userID := ctrl.GetUserIDOrZero(c)
 	if userID == 0 {
 		response.ResErrorWithMsg(c, response.CodeNeedLogin, "Please login first | 请先登录", "")
 		return
@@ -144,7 +139,7 @@ func (ctrl *UserFollowController) GetFollowers(c *gin.Context) {
 	}
 
 	// Get current user ID | 获取当前用户ID
-	currentUserID := ctrl.getCurrentUserID(c)
+	currentUserID := ctrl.GetUserIDOrZero(c)
 	if currentUserID == 0 {
 		response.ResErrorWithMsg(c, response.CodeNeedLogin, "Please login first | 请先登录", "")
 		return
@@ -193,7 +188,7 @@ func (ctrl *UserFollowController) GetFollowing(c *gin.Context) {
 	}
 
 	// Get current user ID | 获取当前用户ID
-	currentUserID := ctrl.getCurrentUserID(c)
+	currentUserID := ctrl.GetUserIDOrZero(c)
 	if currentUserID == 0 {
 		response.ResErrorWithMsg(c, response.CodeNeedLogin, "Please login first | 请先登录", "")
 		return
@@ -234,7 +229,7 @@ func (ctrl *UserFollowController) GetFollowing(c *gin.Context) {
 // @Router /profile/follow/status/{user_id} [get]
 func (ctrl *UserFollowController) GetFollowStatus(c *gin.Context) {
 	// Get current user ID | 获取当前用户ID
-	userID := ctrl.getCurrentUserID(c)
+	userID := ctrl.GetUserIDOrZero(c)
 	if userID == 0 {
 		response.ResErrorWithMsg(c, response.CodeNeedLogin, "Please login first | 请先登录", "")
 		return

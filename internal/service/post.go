@@ -47,9 +47,9 @@ type IPostService interface {
 	// FavoritePost Favorite a post | 收藏帖子
 	FavoritePost(ctx context.Context, userID int, req schema.UserPostActionRequest) (*schema.UserPostActionResponse, error)
 	// GetPostList Get post list | 获取帖子列表
-	GetPostList(ctx context.Context, req schema.UserPostListRequest) (*schema.UserPostListResponse, error)
+	GetPostList(ctx context.Context, currentUserID int, req schema.UserPostListRequest) (*schema.UserPostListResponse, error)
 	// GetPostDetail Get post detail | 获取帖子详情
-	GetPostDetail(ctx context.Context, req schema.UserPostDetailRequest) (*schema.UserPostDetailResponse, error)
+	GetPostDetail(ctx context.Context, currentUserID int, req schema.UserPostDetailRequest) (*schema.UserPostDetailResponse, error)
 	// GetDraftList Get draft list | 获取草稿列表
 	GetDraftList(ctx context.Context, userID int, req schema.UserDraftListRequest) (*schema.UserPostListResponse, error)
 	// SaveDraft Save a draft | 保存草稿
@@ -496,13 +496,12 @@ func (s *PostService) FavoritePost(ctx context.Context, userID int, req schema.U
 }
 
 // GetPostList Get post list | 获取帖子列表
-func (s *PostService) GetPostList(ctx context.Context, req schema.UserPostListRequest) (*schema.UserPostListResponse, error) {
+func (s *PostService) GetPostList(ctx context.Context, currentUserID int, req schema.UserPostListRequest) (*schema.UserPostListResponse, error) {
 	s.logger.Info("获取帖子列表", zap.Int("category_id", req.CategoryID), zap.String("slug", req.Slug), zap.String("keyword", req.Keyword), zap.Int("page", req.Page), zap.Int("page_size", req.PageSize), tracing.WithTraceIDField(ctx))
 
 	s.validateAndSetDefaults(&req) // Validate and set default values | 验证并设置默认值
 
-	currentUserID := tracing.GetUserID(ctx) // Get current user ID | 获取当前用户ID
-	isLoggedIn := currentUserID > 0         // Check if user is logged in | 检查用户是否登录
+	isLoggedIn := currentUserID > 0 // Check if user is logged in | 检查用户是否登录
 
 	excludeLoginRequiredCatIDs := s.getLoginRequiredCategoryIDs(ctx, isLoggedIn) // Get login required category IDs | 获取需要登录的版块ID列表
 
@@ -845,7 +844,7 @@ func (s *PostService) buildEmptyPostListResponse(req schema.UserPostListRequest)
 }
 
 // GetPostDetail Get post detail | 获取帖子详情
-func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDetailRequest) (*schema.UserPostDetailResponse, error) {
+func (s *PostService) GetPostDetail(ctx context.Context, currentUserID int, req schema.UserPostDetailRequest) (*schema.UserPostDetailResponse, error) {
 	s.logger.Info("获取帖子详情", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
 
 	postData, err := s.postRepo.GetByID(ctx, req.ID)
@@ -853,9 +852,6 @@ func (s *PostService) GetPostDetail(ctx context.Context, req schema.UserPostDeta
 		s.logger.Error("获取帖子详情失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, err
 	}
-
-	// Get current user ID, 0 if not logged in | 获取当前用户ID，如果未登录则为0
-	currentUserID := tracing.GetUserID(ctx)
 
 	// Check if current user is the author | 检查当前用户是否为作者
 	isAuthor := currentUserID > 0 && postData.UserID == currentUserID

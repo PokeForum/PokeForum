@@ -20,11 +20,15 @@ import (
 var resCodeToErrCode = map[ResCode]string{
 	CodeSuccess:         string(errcode.Success),
 	CodeInvalidParam:    string(errcode.InvalidParam),
+	CodeUnauthorized:    string(errcode.NeedLogin),
+	CodeForbidden:       string(errcode.NoPermission),
+	CodeNotFound:        string(errcode.GenericError),
 	CodeNoPermission:    string(errcode.NoPermission),
 	CodeGenericError:    string(errcode.GenericError),
 	CodeServerBusy:      string(errcode.ServerBusy),
 	CodeTooManyRequests: string(errcode.TooManyRequests),
 	CodeNeedLogin:       string(errcode.NeedLogin),
+	CodeTimeout:         string(errcode.ServerBusy),
 }
 
 type Data struct {
@@ -94,5 +98,44 @@ func ResSuccess(c *gin.Context, data any) {
 			ErrCode: string(errcode.Success),
 			Msg:     CodeSuccess.Msg(),
 			Data:    data,
+		})
+}
+
+// ResCodeToHTTPStatus 将业务码转换为 HTTP 状态码
+func ResCodeToHTTPStatus(code ResCode) int {
+	switch code {
+	case CodeSuccess:
+		return http.StatusOK
+	case CodeInvalidParam:
+		return http.StatusBadRequest
+	case CodeUnauthorized, CodeNeedLogin:
+		return http.StatusUnauthorized
+	case CodeForbidden, CodeNoPermission:
+		return http.StatusForbidden
+	case CodeNotFound:
+		return http.StatusNotFound
+	case CodeTooManyRequests:
+		return http.StatusTooManyRequests
+	case CodeTimeout:
+		return http.StatusGatewayTimeout
+	case CodeGenericError, CodeServerBusy:
+		return http.StatusInternalServerError
+	default:
+		return http.StatusInternalServerError
+	}
+}
+
+// ResErrorWithHTTPStatus 返回错误信息，并指定 HTTP 状态码
+func ResErrorWithHTTPStatus(c *gin.Context, httpStatus int, code ResCode, msg any) {
+	errCode, ok := resCodeToErrCode[code]
+	if !ok {
+		errCode = string(errcode.GenericError)
+	}
+	c.JSON(httpStatus,
+		&Data{
+			Code:    code,
+			ErrCode: errCode,
+			Msg:     msg,
+			Data:    nil,
 		})
 }

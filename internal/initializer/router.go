@@ -1,6 +1,8 @@
 package initializer
 
 import (
+	"time"
+
 	saGin "github.com/click33/sa-token-go/integrations/gin"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -35,6 +37,7 @@ func Routers(injector *do.Injector) *gin.Engine {
 	Router := gin.New()
 	Router.Use(middleware.Logger())
 	Router.Use(middleware.Recovery())
+	Router.Use(middleware.Timeout(30 * time.Second))
 
 	// CORS configuration | 跨域配置
 	Router.Use(cors.New(middleware.CorsConfig))

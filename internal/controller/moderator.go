@@ -4,13 +4,13 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
-	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 )
 
 // ModeratorController Moderator controller | 版主控制器
 type ModeratorController struct {
+	BaseController
 	moderatorService service.IModeratorService
 }
 
@@ -19,11 +19,6 @@ func NewModeratorController(moderatorService service.IModeratorService) *Moderat
 	return &ModeratorController{
 		moderatorService: moderatorService,
 	}
-}
-
-// getUserID Get user ID from Cookie | 从 Cookie 获取用户ID
-func (ctrl *ModeratorController) getUserID(c *gin.Context) (int, error) {
-	return satoken.GetUserIDFromCookie(c)
 }
 
 // ModeratorRouter Moderator related route registration | 版主相关路由注册
@@ -72,7 +67,7 @@ func (ctrl *ModeratorController) ModeratorRouter(router *gin.RouterGroup) {
 // @Router /moderator/categories [get]
 func (ctrl *ModeratorController) GetModeratorCategories(c *gin.Context) {
 	// Get user ID (moderator identity verified by other middleware) | 获取用户ID（通过其他中间件验证版主身份）
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
@@ -109,7 +104,7 @@ func (ctrl *ModeratorController) BanPost(c *gin.Context) {
 	}
 
 	// Get user ID (moderator identity verified by other middleware) | 获取用户ID（通过其他中间件验证版主身份）
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
@@ -146,7 +141,7 @@ func (ctrl *ModeratorController) EditPost(c *gin.Context) {
 	}
 
 	// Get user ID (moderator identity verified by other middleware) | 获取用户ID（通过其他中间件验证版主身份）
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
@@ -183,7 +178,7 @@ func (ctrl *ModeratorController) MovePost(c *gin.Context) {
 	}
 
 	// Get user ID (moderator identity verified by other middleware) | 获取用户ID（通过其他中间件验证版主身份）
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
@@ -220,7 +215,7 @@ func (ctrl *ModeratorController) SetPostEssence(c *gin.Context) {
 	}
 
 	// Get user ID (moderator identity verified by other middleware) | 获取用户ID（通过其他中间件验证版主身份）
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
@@ -257,7 +252,7 @@ func (ctrl *ModeratorController) LockPost(c *gin.Context) {
 	}
 
 	// Get user ID (moderator identity verified by other middleware) | 获取用户ID（通过其他中间件验证版主身份）
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
@@ -294,7 +289,7 @@ func (ctrl *ModeratorController) PinPost(c *gin.Context) {
 	}
 
 	// Get user ID (moderator identity verified by other middleware) | 获取用户ID（通过其他中间件验证版主身份）
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
@@ -331,7 +326,7 @@ func (ctrl *ModeratorController) EditCategory(c *gin.Context) {
 	}
 
 	// Get user ID (moderator identity verified by other middleware) | 获取用户ID（通过其他中间件验证版主身份）
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
@@ -368,7 +363,7 @@ func (ctrl *ModeratorController) CreateCategoryAnnouncement(c *gin.Context) {
 	}
 
 	// Get user ID (moderator identity verified by other middleware) | 获取用户ID（通过其他中间件验证版主身份）
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
@@ -407,7 +402,7 @@ func (ctrl *ModeratorController) GetCategoryAnnouncements(c *gin.Context) {
 	}
 
 	// Get user ID (moderator identity verified by other middleware) | 获取用户ID（通过其他中间件验证版主身份）
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return

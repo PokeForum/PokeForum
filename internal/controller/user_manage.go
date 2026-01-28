@@ -6,7 +6,6 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
-	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 	"github.com/PokeForum/PokeForum/internal/pkg/time_tools"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
@@ -14,6 +13,7 @@ import (
 
 // UserManageController User management controller | 用户管理控制器
 type UserManageController struct {
+	BaseController
 	userManageService service.IUserManageService
 }
 
@@ -22,11 +22,6 @@ func NewUserManageController(userManageService service.IUserManageService) *User
 	return &UserManageController{
 		userManageService: userManageService,
 	}
-}
-
-// getUserID Get user ID from Cookie | 从 Cookie 获取用户ID
-func (ctrl *UserManageController) getUserID(c *gin.Context) (int, error) {
-	return satoken.GetUserIDFromCookie(c)
 }
 
 // UserManageRouter User management related route registration | 用户管理相关路由注册
@@ -273,7 +268,7 @@ func (ctrl *UserManageController) UpdateUserStatus(c *gin.Context) {
 	}
 
 	// Get operator ID | 获取操作者ID
-	operatorID, err := ctrl.getUserID(c)
+	operatorID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeNeedLogin, err.Error())
 		return
@@ -494,7 +489,7 @@ func (ctrl *UserManageController) BanUser(c *gin.Context) {
 	}
 
 	// Get operator ID | 获取操作者ID
-	operatorID, err := ctrl.getUserID(c)
+	operatorID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeNeedLogin, err.Error())
 		return
@@ -529,7 +524,7 @@ func (ctrl *UserManageController) UnbanUser(c *gin.Context) {
 	}
 
 	// Get operator ID | 获取操作者ID
-	operatorID, err := ctrl.getUserID(c)
+	operatorID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeNeedLogin, err.Error())
 		return

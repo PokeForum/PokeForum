@@ -6,13 +6,13 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
-	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 )
 
 // UserProfileController User profile controller | 用户个人中心控制器
 type UserProfileController struct {
+	BaseController
 	userProfileService service.IUserProfileService
 }
 
@@ -49,12 +49,6 @@ func (ctrl *UserProfileController) UserProfileRouter(router *gin.RouterGroup) {
 	router.POST("/email/verify", ctrl.VerifyEmail)
 }
 
-// getUserID Get user ID from Cookie | 从 Cookie 获取用户ID
-// Returns 0 if not logged in (guest mode) | 未登录时返回0（游客模式）
-func (ctrl *UserProfileController) getUserID(c *gin.Context) int {
-	return satoken.GetUserIDFromCookieOrZero(c)
-}
-
 // GetProfileOverview Get user profile overview | 获取用户个人中心概览
 // @Summary Get user profile overview | 获取用户个人中心概览
 // @Description Get personal information and statistics for specified user, retrieves current logged-in user if user_id not provided | 获取指定用户的个人信息和统计数据，不传user_id则获取当前登录用户信息
@@ -68,7 +62,7 @@ func (ctrl *UserProfileController) getUserID(c *gin.Context) int {
 // @Router /profile/overview [get]
 func (ctrl *UserProfileController) GetProfileOverview(c *gin.Context) {
 	// Get current logged-in user ID (0 for guest) | 获取当前登录用户ID（0表示游客）
-	currentUserID := ctrl.getUserID(c)
+	currentUserID := ctrl.GetUserIDOrZero(c)
 
 	// Parse user ID from query parameters | 解析查询参数中的用户ID
 	var req schema.UserProfileOverviewRequest
@@ -126,7 +120,7 @@ func (ctrl *UserProfileController) GetProfileOverview(c *gin.Context) {
 // @Router /profile/posts [get]
 func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
 	// Get current logged-in user ID (0 for guest) | 获取当前登录用户ID（0表示游客）
-	currentUserID := ctrl.getUserID(c)
+	currentUserID := ctrl.GetUserIDOrZero(c)
 
 	// Parse request parameters | 解析请求参数
 	var req schema.UserProfilePostsRequest
@@ -191,7 +185,7 @@ func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
 // @Router /profile/comments [get]
 func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
 	// Get current logged-in user ID (0 for guest) | 获取当前登录用户ID（0表示游客）
-	currentUserID := ctrl.getUserID(c)
+	currentUserID := ctrl.GetUserIDOrZero(c)
 
 	// Parse request parameters | 解析请求参数
 	var req schema.UserProfileCommentsRequest
@@ -256,7 +250,7 @@ func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
 // @Router /profile/favorites [get]
 func (ctrl *UserProfileController) GetUserFavorites(c *gin.Context) {
 	// Get current logged-in user ID (0 for guest) | 获取当前登录用户ID（0表示游客）
-	currentUserID := ctrl.getUserID(c)
+	currentUserID := ctrl.GetUserIDOrZero(c)
 
 	// Parse request parameters | 解析请求参数
 	var req schema.UserProfileFavoritesRequest
@@ -319,7 +313,7 @@ func (ctrl *UserProfileController) GetUserFavorites(c *gin.Context) {
 // @Router /profile/password [put]
 func (ctrl *UserProfileController) UpdatePassword(c *gin.Context) {
 	// Get user ID | 获取用户ID
-	userID := ctrl.getUserID(c)
+	userID := ctrl.GetUserIDOrZero(c)
 	if userID == 0 {
 		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", "")
 		return
@@ -357,7 +351,7 @@ func (ctrl *UserProfileController) UpdatePassword(c *gin.Context) {
 // @Router /profile/avatar [put]
 func (ctrl *UserProfileController) UpdateAvatar(c *gin.Context) {
 	// Get user ID | 获取用户ID
-	userID := ctrl.getUserID(c)
+	userID := ctrl.GetUserIDOrZero(c)
 	if userID == 0 {
 		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", "")
 		return
@@ -396,7 +390,7 @@ func (ctrl *UserProfileController) UpdateAvatar(c *gin.Context) {
 // @Router /profile/username [put]
 func (ctrl *UserProfileController) UpdateUsername(c *gin.Context) {
 	// Get user ID | 获取用户ID
-	userID := ctrl.getUserID(c)
+	userID := ctrl.GetUserIDOrZero(c)
 	if userID == 0 {
 		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", "")
 		return
@@ -433,7 +427,7 @@ func (ctrl *UserProfileController) UpdateUsername(c *gin.Context) {
 // @Router /profile/email/verify-code [post]
 func (ctrl *UserProfileController) SendEmailVerifyCode(c *gin.Context) {
 	// Get current user ID | 获取当前用户ID
-	userID := ctrl.getUserID(c)
+	userID := ctrl.GetUserIDOrZero(c)
 	if userID == 0 {
 		response.ResErrorWithMsg(c, response.CodeNeedLogin, "获取用户信息失败", "")
 		return
@@ -468,7 +462,7 @@ func (ctrl *UserProfileController) SendEmailVerifyCode(c *gin.Context) {
 // @Router /profile/email/verify [post]
 func (ctrl *UserProfileController) VerifyEmail(c *gin.Context) {
 	// Get current user ID | 获取当前用户ID
-	userID := ctrl.getUserID(c)
+	userID := ctrl.GetUserIDOrZero(c)
 	if userID == 0 {
 		response.ResErrorWithMsg(c, response.CodeNeedLogin, "获取用户信息失败", "")
 		return

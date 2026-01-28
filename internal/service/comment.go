@@ -31,7 +31,7 @@ type ICommentService interface {
 	// DislikeComment Dislike a comment | 点踩评论
 	DislikeComment(ctx context.Context, userID int, req schema.UserCommentActionRequest) (*schema.UserCommentActionResponse, error)
 	// GetCommentList Get comment list | 获取评论列表
-	GetCommentList(ctx context.Context, req schema.UserCommentListRequest) (*schema.UserCommentListResponse, error)
+	GetCommentList(ctx context.Context, currentUserID int, req schema.UserCommentListRequest) (*schema.UserCommentListResponse, error)
 }
 
 // CommentService Comment service implementation | 评论服务实现
@@ -263,7 +263,7 @@ func (s *CommentService) DislikeComment(ctx context.Context, userID int, req sch
 }
 
 // GetCommentList Get comment list | 获取评论列表
-func (s *CommentService) GetCommentList(ctx context.Context, req schema.UserCommentListRequest) (*schema.UserCommentListResponse, error) {
+func (s *CommentService) GetCommentList(ctx context.Context, currentUserID int, req schema.UserCommentListRequest) (*schema.UserCommentListResponse, error) {
 	s.logger.Info("获取评论列表", zap.Int("post_id", req.PostID), zap.Int("page", req.Page), tracing.WithTraceIDField(ctx))
 
 	comments, total, err := s.commentRepo.List(ctx, req.PostID, req.Page, req.PageSize)
@@ -291,9 +291,6 @@ func (s *CommentService) GetCommentList(ctx context.Context, req schema.UserComm
 		s.logger.Error("批量获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
 		return nil, err
 	}
-
-	// Get current user ID, 0 if not logged in | 获取当前用户ID，如果未登录则为0
-	currentUserID := tracing.GetUserID(ctx)
 
 	// Get comment ID list | 获取评论ID列表
 	commentIDs := make([]int, len(comments))

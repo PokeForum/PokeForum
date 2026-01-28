@@ -8,13 +8,13 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
-	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 )
 
-// BlacklistController Blacklist controller | 黑名单控制器
+// BlacklistController User blacklist controller | 用户黑名单控制器
 type BlacklistController struct {
+	BaseController
 	blacklistService service.IBlacklistService
 }
 
@@ -37,11 +37,6 @@ func (ctrl *BlacklistController) BlacklistRouter(router *gin.RouterGroup) {
 	router.DELETE("/remove", ctrl.RemoveFromBlacklist)
 }
 
-// getUserID Get user ID from Cookie | 从 Cookie 获取用户ID
-func (ctrl *BlacklistController) getUserID(c *gin.Context) (int, error) {
-	return satoken.GetUserIDFromCookie(c)
-}
-
 // GetBlacklistList Get user blacklist list | 获取用户黑名单列表
 // @Summary Get user blacklist list | 获取用户黑名单列表
 // @Description Get the current user's blacklist, supports pagination | 获取当前用户的黑名单列表,支持分页
@@ -57,9 +52,9 @@ func (ctrl *BlacklistController) getUserID(c *gin.Context) (int, error) {
 // @Router /profile/blacklist/list [get]
 func (ctrl *BlacklistController) GetBlacklistList(c *gin.Context) {
 	// Get current user ID | 获取当前用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
-		response.ResErrorWithMsg(c, response.CodeNeedLogin, "Failed to get user information | 获取用户信息失败", err.Error())
+		response.ResErrorWithHTTPStatus(c, response.ResCodeToHTTPStatus(response.CodeNeedLogin), response.CodeNeedLogin, "Failed to get user information | 获取用户信息失败")
 		return
 	}
 
@@ -105,9 +100,9 @@ func (ctrl *BlacklistController) GetBlacklistList(c *gin.Context) {
 // @Router /profile/blacklist/add [post]
 func (ctrl *BlacklistController) AddToBlacklist(c *gin.Context) {
 	// Get current user ID | 获取当前用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
-		response.ResErrorWithMsg(c, response.CodeNeedLogin, "Failed to get user information | 获取用户信息失败", err.Error())
+		response.ResErrorWithHTTPStatus(c, response.ResCodeToHTTPStatus(response.CodeNeedLogin), response.CodeNeedLogin, "Failed to get user information | 获取用户信息失败")
 		return
 	}
 
@@ -149,9 +144,9 @@ func (ctrl *BlacklistController) AddToBlacklist(c *gin.Context) {
 // @Router /profile/blacklist/remove [delete]
 func (ctrl *BlacklistController) RemoveFromBlacklist(c *gin.Context) {
 	// Get current user ID | 获取当前用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
-		response.ResErrorWithMsg(c, response.CodeNeedLogin, "Failed to get user information | 获取用户信息失败", err.Error())
+		response.ResErrorWithHTTPStatus(c, response.ResCodeToHTTPStatus(response.CodeNeedLogin), response.CodeNeedLogin, "Failed to get user information | 获取用户信息失败")
 		return
 	}
 

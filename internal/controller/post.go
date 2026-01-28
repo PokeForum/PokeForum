@@ -6,13 +6,13 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
-	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
 )
 
 // PostController Post Controller | 帖子控制器
 type PostController struct {
+	BaseController
 	postService service.IPostService
 }
 
@@ -21,11 +21,6 @@ func NewPostController(postService service.IPostService) *PostController {
 	return &PostController{
 		postService: postService,
 	}
-}
-
-// getUserID Get user ID from Cookie | 从 Cookie 获取用户ID
-func (ctrl *PostController) getUserID(c *gin.Context) (int, error) {
-	return satoken.GetUserIDFromCookie(c)
 }
 
 // PostRouter Post-related route registration | 帖子相关路由注册
@@ -76,7 +71,7 @@ func (ctrl *PostController) CreatePost(c *gin.Context) {
 	}
 
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
@@ -113,7 +108,7 @@ func (ctrl *PostController) SaveDraft(c *gin.Context) {
 	}
 
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
@@ -158,7 +153,7 @@ func (ctrl *PostController) GetDraftList(c *gin.Context) {
 	}
 
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
@@ -195,7 +190,7 @@ func (ctrl *PostController) DeleteDraft(c *gin.Context) {
 	}
 
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
@@ -232,7 +227,7 @@ func (ctrl *PostController) UpdatePost(c *gin.Context) {
 	}
 
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
@@ -269,7 +264,7 @@ func (ctrl *PostController) SetPostPrivate(c *gin.Context) {
 	}
 
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
@@ -306,7 +301,7 @@ func (ctrl *PostController) LikePost(c *gin.Context) {
 	}
 
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
@@ -343,7 +338,7 @@ func (ctrl *PostController) DislikePost(c *gin.Context) {
 	}
 
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
@@ -379,7 +374,7 @@ func (ctrl *PostController) FavoritePost(c *gin.Context) {
 	}
 
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResError(c, response.CodeNeedLogin)
 		return
@@ -426,8 +421,11 @@ func (ctrl *PostController) GetPostList(c *gin.Context) {
 		req.PageSize = 20
 	}
 
+	// Get current user ID (0 for guest) | 获取当前用户ID（0表示游客）
+	currentUserID := ctrl.GetUserIDOrZero(c)
+
 	// Call service | 调用服务
-	result, err := ctrl.postService.GetPostList(c.Request.Context(), req)
+	result, err := ctrl.postService.GetPostList(c.Request.Context(), currentUserID, req)
 	if err != nil {
 		response.ResErrorWithMsg(c, response.CodeGenericError, err.Error())
 		return
@@ -456,8 +454,11 @@ func (ctrl *PostController) GetPostDetail(c *gin.Context) {
 		return
 	}
 
+	// Get current user ID (0 for guest) | 获取当前用户ID（0表示游客）
+	currentUserID := ctrl.GetUserIDOrZero(c)
+
 	// Call service | 调用服务
-	result, err := ctrl.postService.GetPostDetail(c.Request.Context(), req)
+	result, err := ctrl.postService.GetPostDetail(c.Request.Context(), currentUserID, req)
 	if err != nil {
 		// Check if error is NoPermissionError | 检查是否为无权限错误
 		if noPermErr, ok := err.(*service.NoPermissionError); ok {

@@ -6,7 +6,6 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
-	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 	"github.com/PokeForum/PokeForum/internal/repository"
 	"github.com/PokeForum/PokeForum/internal/schema"
 	"github.com/PokeForum/PokeForum/internal/service"
@@ -14,6 +13,7 @@ import (
 
 // InvitationCodeController Invitation code controller | 邀请码控制器
 type InvitationCodeController struct {
+	BaseController
 	invitationCodeService service.IInvitationCodeService
 	userRepo              repository.IUserRepository
 }
@@ -37,11 +37,6 @@ func (ctrl *InvitationCodeController) InvitationCodeRouter(router *gin.RouterGro
 	router.GET("/my", saGin.CheckRole(user.RoleUser.String()), ctrl.GetMyInvitationCodes)
 }
 
-// getUserID Get user ID from Cookie | 从 Cookie 获取用户ID
-func (ctrl *InvitationCodeController) getUserID(c *gin.Context) (int, error) {
-	return satoken.GetUserIDFromCookie(c)
-}
-
 // GenerateInvitationCode Generate invitation code | 生成邀请码
 // @Summary Generate invitation code | 生成邀请码
 // @Description Generate an invitation code for the current user. May cost points or currency depending on system settings | 为当前用户生成邀请码。根据系统设置可能需要消耗积分或货币
@@ -57,7 +52,7 @@ func (ctrl *InvitationCodeController) getUserID(c *gin.Context) (int, error) {
 // @Router /invitation-codes [post]
 func (ctrl *InvitationCodeController) GenerateInvitationCode(c *gin.Context) {
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
@@ -105,7 +100,7 @@ func (ctrl *InvitationCodeController) GenerateInvitationCode(c *gin.Context) {
 // @Router /invitation-codes/my [get]
 func (ctrl *InvitationCodeController) GetMyInvitationCodes(c *gin.Context) {
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
 		return

@@ -8,12 +8,12 @@ import (
 
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/internal/pkg/response"
-	satoken "github.com/PokeForum/PokeForum/internal/pkg/sa-token"
 	"github.com/PokeForum/PokeForum/internal/service"
 )
 
 // SigninController Sign-in controller | 签到控制器
 type SigninController struct {
+	BaseController
 	signinService service.ISigninService
 }
 
@@ -36,11 +36,6 @@ func (ctrl *SigninController) SigninRouter(router *gin.RouterGroup) {
 	router.GET("/ranking/continuous", ctrl.GetContinuousRanking)
 }
 
-// getUserID Get user ID from Cookie | 从 Cookie 获取用户ID
-func (ctrl *SigninController) getUserID(c *gin.Context) (int, error) {
-	return satoken.GetUserIDFromCookie(c)
-}
-
 // Signin Perform sign-in | 执行签到
 // @Summary Perform sign-in | 执行签到
 // @Description User performs daily sign-in and receives points and experience rewards | 用户执行每日签到，获得积分和经验值奖励
@@ -56,7 +51,7 @@ func (ctrl *SigninController) getUserID(c *gin.Context) (int, error) {
 // @Router /signin [post]
 func (ctrl *SigninController) Signin(c *gin.Context) {
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
@@ -85,7 +80,7 @@ func (ctrl *SigninController) Signin(c *gin.Context) {
 // @Router /signin/status [get]
 func (ctrl *SigninController) GetSigninStatus(c *gin.Context) {
 	// Get user ID | 获取用户ID
-	userID, err := ctrl.getUserID(c)
+	userID, err := ctrl.GetUserID(c)
 	if err != nil {
 		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
@@ -129,7 +124,7 @@ func (ctrl *SigninController) GetDailyRanking(c *gin.Context) {
 	}
 
 	// Try to get user ID (optional, for getting current user's rank) | 尝试获取用户ID（可选，用于获取当前用户排名）
-	userID, _ := ctrl.getUserID(c) //nolint:errcheck // User ID is optional | 用户ID是可选的
+	userID, _ := ctrl.GetUserID(c) //nolint:errcheck // User ID is optional | 用户ID是可选的
 
 	// Call sign-in service to get ranking | 调用签到服务获取排行榜
 	ranking, err := ctrl.signinService.GetDailyRanking(c.Request.Context(), date, limit, int64(userID))
@@ -167,7 +162,7 @@ func (ctrl *SigninController) GetContinuousRanking(c *gin.Context) {
 	}
 
 	// Try to get user ID (optional, for getting current user's rank) | 尝试获取用户ID（可选，用于获取当前用户排名）
-	userID, _ := ctrl.getUserID(c) //nolint:errcheck // User ID is optional | 用户ID是可选的
+	userID, _ := ctrl.GetUserID(c) //nolint:errcheck // User ID is optional | 用户ID是可选的
 
 	// Call sign-in service to get ranking | 调用签到服务获取排行榜
 	ranking, err := ctrl.signinService.GetContinuousRanking(c.Request.Context(), limit, int64(userID))
