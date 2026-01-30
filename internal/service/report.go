@@ -167,8 +167,8 @@ func (s *ReportService) GetUserReports(ctx context.Context, reporterID, page, pa
 		items = append(items, item)
 	}
 
-	totalPages := int(total) / pageSize
-	if int(total)%pageSize > 0 {
+	totalPages := total / pageSize
+	if total%pageSize > 0 {
 		totalPages++
 	}
 

@@ -129,8 +129,8 @@ func (s *ReportManageService) GetReportList(ctx context.Context, query *schema.R
 	if pageSize <= 0 {
 		pageSize = 20
 	}
-	totalPages := int(total) / pageSize
-	if int(total)%pageSize > 0 {
+	totalPages := total / pageSize
+	if total%pageSize > 0 {
 		totalPages++
 	}
 
@@ -188,8 +188,15 @@ func (s *ReportManageService) HandleReport(ctx context.Context, handlerID int, r
 				}
 			}
 			if len(relatedIDs) > 0 {
-				_, _ = s.reportRepo.BatchUpdateStatus(ctx, relatedIDs, status, handlerID,
+				_, err := s.reportRepo.BatchUpdateStatus(ctx, relatedIDs, status, handlerID,
 					"Handled together with related report", req.Action, &now)
+				if err != nil {
+					s.logger.Warn("failed to update related reports",
+						tracing.WithTraceIDField(ctx),
+						zap.Error(err),
+						zap.Ints("related_ids", relatedIDs),
+					)
+				}
 			}
 		}
 	}
