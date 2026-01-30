@@ -3008,6 +3008,309 @@
                 }
             }
         },
+        "/manage/reports/batch-handle": {
+            "post": {
+                "description": "Batch handle multiple reports at once | 一次性批量处理多个举报",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[Admin]Report Management | [管理员]举报管理"
+                ],
+                "summary": "Batch handle reports | 批量处理举报",
+                "parameters": [
+                    {
+                        "description": "Batch handle request | 批量处理请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.ReportBatchHandleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 处理成功",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden | 无权限",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/reports/handle": {
+            "post": {
+                "description": "Handle a specific report (delete/warn/ban/ignore) | 处理指定举报（删除/警告/封禁/忽略）",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[Admin]Report Management | [管理员]举报管理"
+                ],
+                "summary": "Handle report | 处理举报",
+                "parameters": [
+                    {
+                        "description": "Handle report request | 处理举报请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.ReportHandleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 处理成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.ReportHandleResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden | 无权限",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "404": {
+                        "description": "Report not found | 举报不存在",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "409": {
+                        "description": "Already handled | 已被处理",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/reports/list": {
+            "get": {
+                "description": "Get report list with filters for administrators | 管理员获取带筛选的举报列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[Admin]Report Management | [管理员]举报管理"
+                ],
+                "summary": "Get report list | 获取举报列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number | 页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Items per page | 每页数量",
+                        "name": "page_size",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "pending",
+                            "processing",
+                            "resolved",
+                            "ignored"
+                        ],
+                        "type": "string",
+                        "description": "Status filter | 状态筛选",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "enum": [
+                            "post",
+                            "comment",
+                            "user"
+                        ],
+                        "type": "string",
+                        "description": "Target type filter | 目标类型筛选",
+                        "name": "target_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Report type filter | 举报类型筛选",
+                        "name": "report_type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Reporter ID filter | 举报者ID筛选",
+                        "name": "reporter_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Target author ID filter | 被举报作者ID筛选",
+                        "name": "target_author_id",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.ReportListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden | 无权限",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/manage/reports/stats": {
+            "get": {
+                "description": "Get report statistics for dashboard | 获取举报统计数据用于仪表盘",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[Admin]Report Management | [管理员]举报管理"
+                ],
+                "summary": "Get report statistics | 获取举报统计",
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.ReportStatsResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden | 无权限",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
         "/manage/users": {
             "get": {
                 "description": "Get paginated user list with keyword search and status filtering support | 分页获取用户列表，支持关键词搜索和状态筛选",
@@ -6660,6 +6963,157 @@
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/reports": {
+            "post": {
+                "description": "Report a post, comment or user | 举报帖子、评论或用户",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]Report | [用户]举报"
+                ],
+                "summary": "Create report | 创建举报",
+                "parameters": [
+                    {
+                        "description": "Create report request | 创建举报请求",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/schema.ReportCreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Created successfully | 创建成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.ReportCreateResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden operation | 禁止操作",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "404": {
+                        "description": "Target not found | 目标不存在",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "409": {
+                        "description": "Already reported | 已举报过",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/my": {
+            "get": {
+                "description": "Get the current user's report history | 获取当前用户的举报历史",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "[User]Report | [用户]举报"
+                ],
+                "summary": "Get my reports | 获取我的举报列表",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number | 页码",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Items per page | 每页数量",
+                        "name": "page_size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success | 获取成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/response.Data"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/schema.UserReportListResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters | 请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized | 未授权",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error | 服务器内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/response.Data"
                         }
                     }
                 }
@@ -11867,6 +12321,301 @@
                 }
             }
         },
+        "schema.ReportBatchHandleRequest": {
+            "type": "object"
+        },
+        "schema.ReportCreateRequest": {
+            "type": "object",
+            "required": [
+                "report_type",
+                "target_id",
+                "target_type"
+            ],
+            "properties": {
+                "reason": {
+                    "description": "Detailed reason (supports Markdown) | 详细原因（支持 Markdown）",
+                    "type": "string",
+                    "maxLength": 5000,
+                    "example": "This post contains spam content. See details: [link](url)"
+                },
+                "report_type": {
+                    "description": "Report type: spam/harassment/inappropriate/illegal/plagiarism/other | 举报类型",
+                    "type": "string",
+                    "enum": [
+                        "spam",
+                        "harassment",
+                        "inappropriate",
+                        "illegal",
+                        "plagiarism",
+                        "other"
+                    ],
+                    "example": "spam"
+                },
+                "target_id": {
+                    "description": "Target ID | 被举报目标ID",
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
+                },
+                "target_type": {
+                    "description": "Target type: post/comment/user | 目标类型",
+                    "type": "string",
+                    "enum": [
+                        "post",
+                        "comment",
+                        "user"
+                    ],
+                    "example": "post"
+                }
+            }
+        },
+        "schema.ReportCreateResponse": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "Created time | 创建时间",
+                    "type": "string",
+                    "example": "2024-01-01 12:00:00"
+                },
+                "id": {
+                    "description": "Report ID | 举报ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "status": {
+                    "description": "Report status | 举报状态",
+                    "type": "string",
+                    "example": "pending"
+                }
+            }
+        },
+        "schema.ReportHandleRequest": {
+            "type": "object",
+            "required": [
+                "action",
+                "handle_result",
+                "id"
+            ],
+            "properties": {
+                "action": {
+                    "description": "Action: delete/warn/ban/ignore | 动作",
+                    "type": "string",
+                    "enum": [
+                        "delete",
+                        "warn",
+                        "ban",
+                        "ignore"
+                    ],
+                    "example": "delete"
+                },
+                "handle_result": {
+                    "description": "Handle result description | 处理结果说明",
+                    "type": "string",
+                    "maxLength": 500,
+                    "example": "Content violates community guidelines"
+                },
+                "id": {
+                    "description": "Report ID | 举报ID",
+                    "type": "integer",
+                    "minimum": 1,
+                    "example": 1
+                },
+                "notify_reporter": {
+                    "description": "Whether to notify the reporter | 是否通知举报者",
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "schema.ReportHandleResponse": {
+            "type": "object",
+            "properties": {
+                "handled_at": {
+                    "description": "Handled time | 处理时间",
+                    "type": "string",
+                    "example": "2024-01-01 14:00:00"
+                },
+                "id": {
+                    "description": "Report ID | 举报ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "status": {
+                    "description": "Status | 状态",
+                    "type": "string",
+                    "example": "resolved"
+                }
+            }
+        },
+        "schema.ReportListItem": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "Created time | 创建时间",
+                    "type": "string",
+                    "example": "2024-01-01 12:00:00"
+                },
+                "handle_action": {
+                    "description": "Handle action | 处理动作",
+                    "type": "string"
+                },
+                "handle_result": {
+                    "description": "Handle result | 处理结果",
+                    "type": "string"
+                },
+                "handled_at": {
+                    "description": "Handled time | 处理时间",
+                    "type": "string"
+                },
+                "handler_id": {
+                    "description": "Handler ID | 处理人ID",
+                    "type": "integer",
+                    "example": 5
+                },
+                "handler_name": {
+                    "description": "Handler name | 处理人名称",
+                    "type": "string",
+                    "example": "admin"
+                },
+                "id": {
+                    "description": "Report ID | 举报ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "reason": {
+                    "description": "Reason (supports Markdown) | 原因（支持 Markdown）",
+                    "type": "string",
+                    "example": "Spam content with [evidence](url)"
+                },
+                "report_type": {
+                    "description": "Report type | 举报类型",
+                    "type": "string",
+                    "example": "spam"
+                },
+                "reporter_id": {
+                    "description": "Reporter ID | 举报者ID",
+                    "type": "integer",
+                    "example": 10
+                },
+                "reporter_name": {
+                    "description": "Reporter name | 举报者名称",
+                    "type": "string",
+                    "example": "user123"
+                },
+                "status": {
+                    "description": "Status | 状态",
+                    "type": "string",
+                    "example": "pending"
+                },
+                "target_author_id": {
+                    "description": "Target author ID | 目标作者ID",
+                    "type": "integer",
+                    "example": 20
+                },
+                "target_author_name": {
+                    "description": "Target author name | 目标作者名称",
+                    "type": "string",
+                    "example": "author456"
+                },
+                "target_content": {
+                    "description": "Target content preview | 目标内容预览",
+                    "type": "string",
+                    "example": "Content preview..."
+                },
+                "target_id": {
+                    "description": "Target ID | 目标ID",
+                    "type": "integer",
+                    "example": 100
+                },
+                "target_title": {
+                    "description": "Target title | 目标标题",
+                    "type": "string",
+                    "example": "Post title"
+                },
+                "target_type": {
+                    "description": "Target type | 目标类型",
+                    "type": "string",
+                    "example": "post"
+                }
+            }
+        },
+        "schema.ReportListResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "description": "Report list | 举报列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.ReportListItem"
+                    }
+                },
+                "page": {
+                    "description": "Page number | 页码",
+                    "type": "integer"
+                },
+                "page_size": {
+                    "description": "Page size | 每页数量",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "Total count | 总数",
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "description": "Total pages | 总页数",
+                    "type": "integer"
+                }
+            }
+        },
+        "schema.ReportStatsItem": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "description": "Count | 数量",
+                    "type": "integer"
+                },
+                "type": {
+                    "description": "Type | 类型",
+                    "type": "string"
+                }
+            }
+        },
+        "schema.ReportStatsResponse": {
+            "type": "object",
+            "properties": {
+                "by_type_stats": {
+                    "description": "Statistics by type | 按类型统计",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.ReportStatsItem"
+                    }
+                },
+                "ignored_count": {
+                    "description": "Ignored count | 已忽略数",
+                    "type": "integer"
+                },
+                "pending_count": {
+                    "description": "Pending count | 待处理数",
+                    "type": "integer"
+                },
+                "processing_count": {
+                    "description": "Processing count | 处理中数",
+                    "type": "integer"
+                },
+                "resolved_count": {
+                    "description": "Resolved count | 已处理数",
+                    "type": "integer"
+                },
+                "today_count": {
+                    "description": "Today count | 今日举报数",
+                    "type": "integer"
+                },
+                "total_reports": {
+                    "description": "Total reports | 总举报数",
+                    "type": "integer"
+                }
+            }
+        },
         "schema.ResetPasswordRequest": {
             "type": "object",
             "required": [
@@ -14300,6 +15049,89 @@
                 },
                 "total": {
                     "description": "Total count | 总数量",
+                    "type": "integer"
+                }
+            }
+        },
+        "schema.UserReportItem": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "Created time | 创建时间",
+                    "type": "string",
+                    "example": "2024-01-01 12:00:00"
+                },
+                "handle_result": {
+                    "description": "Handle result | 处理结果",
+                    "type": "string",
+                    "example": "Content deleted"
+                },
+                "handled_at": {
+                    "description": "Handled time | 处理时间",
+                    "type": "string",
+                    "example": "2024-01-02 10:00:00"
+                },
+                "id": {
+                    "description": "Report ID | 举报ID",
+                    "type": "integer",
+                    "example": 1
+                },
+                "reason": {
+                    "description": "Reason | 原因",
+                    "type": "string",
+                    "example": "Spam content"
+                },
+                "report_type": {
+                    "description": "Report type | 举报类型",
+                    "type": "string",
+                    "example": "spam"
+                },
+                "status": {
+                    "description": "Status | 状态",
+                    "type": "string",
+                    "example": "resolved"
+                },
+                "target_id": {
+                    "description": "Target ID | 目标ID",
+                    "type": "integer",
+                    "example": 100
+                },
+                "target_title": {
+                    "description": "Target title (post title or comment preview) | 目标标题（帖子标题或评论摘要）",
+                    "type": "string",
+                    "example": "Post title"
+                },
+                "target_type": {
+                    "description": "Target type | 目标类型",
+                    "type": "string",
+                    "example": "post"
+                }
+            }
+        },
+        "schema.UserReportListResponse": {
+            "type": "object",
+            "properties": {
+                "list": {
+                    "description": "Report list | 举报列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schema.UserReportItem"
+                    }
+                },
+                "page": {
+                    "description": "Page number | 页码",
+                    "type": "integer"
+                },
+                "page_size": {
+                    "description": "Page size | 每页数量",
+                    "type": "integer"
+                },
+                "total": {
+                    "description": "Total count | 总数",
+                    "type": "integer"
+                },
+                "total_pages": {
+                    "description": "Total pages | 总页数",
                     "type": "integer"
                 }
             }

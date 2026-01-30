@@ -375,6 +375,61 @@ var (
 			},
 		},
 	}
+	// ReportsColumns holds the columns for the "reports" table.
+	ReportsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "reporter_id", Type: field.TypeInt},
+		{Name: "target_id", Type: field.TypeInt},
+		{Name: "target_type", Type: field.TypeString, Default: "post"},
+		{Name: "target_author_id", Type: field.TypeInt},
+		{Name: "report_type", Type: field.TypeString, Default: "other"},
+		{Name: "reason", Type: field.TypeString, Nullable: true, Size: 5000},
+		{Name: "status", Type: field.TypeString, Default: "pending"},
+		{Name: "handler_id", Type: field.TypeInt, Nullable: true},
+		{Name: "handle_result", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "handle_action", Type: field.TypeString, Nullable: true, Size: 50},
+		{Name: "handled_at", Type: field.TypeTime, Nullable: true},
+	}
+	// ReportsTable holds the schema information for the "reports" table.
+	ReportsTable = &schema.Table{
+		Name:       "reports",
+		Columns:    ReportsColumns,
+		PrimaryKey: []*schema.Column{ReportsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "report_status",
+				Unique:  false,
+				Columns: []*schema.Column{ReportsColumns[9]},
+			},
+			{
+				Name:    "report_reporter_id_target_id_target_type",
+				Unique:  true,
+				Columns: []*schema.Column{ReportsColumns[3], ReportsColumns[4], ReportsColumns[5]},
+			},
+			{
+				Name:    "report_target_id_target_type",
+				Unique:  false,
+				Columns: []*schema.Column{ReportsColumns[4], ReportsColumns[5]},
+			},
+			{
+				Name:    "report_target_author_id",
+				Unique:  false,
+				Columns: []*schema.Column{ReportsColumns[6]},
+			},
+			{
+				Name:    "report_handler_id_status",
+				Unique:  false,
+				Columns: []*schema.Column{ReportsColumns[10], ReportsColumns[9]},
+			},
+			{
+				Name:    "report_status_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{ReportsColumns[9], ReportsColumns[1]},
+			},
+		},
+	}
 	// SettingsColumns holds the columns for the "settings" table.
 	SettingsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -667,6 +722,7 @@ var (
 		OauthProvidersTable,
 		PostsTable,
 		PostActionsTable,
+		ReportsTable,
 		SettingsTable,
 		UsersTable,
 		UserBalanceLogsTable,

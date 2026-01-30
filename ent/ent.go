@@ -21,6 +21,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/oauthprovider"
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
+	"github.com/PokeForum/PokeForum/ent/report"
 	"github.com/PokeForum/PokeForum/ent/settings"
 	"github.com/PokeForum/PokeForum/ent/user"
 	"github.com/PokeForum/PokeForum/ent/userbalancelog"
@@ -98,6 +99,7 @@ func checkColumn(t, c string) error {
 			oauthprovider.Table:     oauthprovider.ValidColumn,
 			post.Table:              post.ValidColumn,
 			postaction.Table:        postaction.ValidColumn,
+			report.Table:            report.ValidColumn,
 			settings.Table:          settings.ValidColumn,
 			user.Table:              user.ValidColumn,
 			userbalancelog.Table:    userbalancelog.ValidColumn,

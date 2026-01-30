@@ -33,6 +33,9 @@ type Post func(*sql.Selector)
 // PostAction is the predicate function for postaction builders.
 type PostAction func(*sql.Selector)
 
+// Report is the predicate function for report builders.
+type Report func(*sql.Selector)
+
 // Settings is the predicate function for settings builders.
 type Settings func(*sql.Selector)
 

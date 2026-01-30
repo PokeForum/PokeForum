@@ -23,6 +23,7 @@ type Repositories struct {
 	UserBalanceLog    IUserBalanceLogRepository
 	UserFollow        IUserFollowRepository
 	InvitationCode    IInvitationCodeRepository
+	Report            IReportRepository
 }
 
 // NewRepositories Create repository collection instance | 创建仓储集合实例
@@ -45,5 +46,6 @@ func NewRepositories(db *ent.Client) *Repositories {
 		UserBalanceLog:    NewUserBalanceLogRepository(db),
 		UserFollow:        NewUserFollowRepository(db),
 		InvitationCode:    NewInvitationCodeRepository(db),
+		Report:            NewReportRepository(db),
 	}
 }

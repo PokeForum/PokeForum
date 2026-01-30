@@ -239,6 +239,18 @@ func InjectorSrv(injector *do.Injector) {
 		cacheService := do.MustInvoke[cache.ICacheService](i)
 		return service.NewHealthService(db, repos, cacheService), nil
 	})
+	// Register ReportService | 注册 ReportService
+	do.Provide(injector, func(i *do.Injector) (service.IReportService, error) {
+		repos := do.MustInvoke[*repository.Repositories](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		return service.NewReportService(repos.Report, repos.User, repos.Post, repos.Comment, logger), nil
+	})
+	// Register ReportManageService | 注册 ReportManageService
+	do.Provide(injector, func(i *do.Injector) (service.IReportManageService, error) {
+		repos := do.MustInvoke[*repository.Repositories](i)
+		logger := do.MustInvoke[*zap.Logger](i)
+		return service.NewReportManageService(repos.Report, repos.User, repos.Post, repos.Comment, logger), nil
+	})
 
 	// Register PgDB | 注册 PgDB
 	do.Provide(injector, func(i *do.Injector) (*sql.DB, error) {

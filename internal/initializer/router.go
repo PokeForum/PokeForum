@@ -77,6 +77,8 @@ func Routers(injector *do.Injector) *gin.Engine {
 	oauthService := do.MustInvoke[service.IOAuthService](injector)
 	invitationCodeService := do.MustInvoke[service.IInvitationCodeService](injector)
 	invitationCodeManageService := do.MustInvoke[service.IInvitationCodeManageService](injector)
+	reportService := do.MustInvoke[service.IReportService](injector)
+	reportManageService := do.MustInvoke[service.IReportManageService](injector)
 
 	// Health check route | 健康检查路由
 	healthCon := controller.NewHealthController(healthService)
@@ -139,13 +141,10 @@ func Routers(injector *do.Injector) *gin.Engine {
 				OAuthUserGroup := AuthAPIGroup.Group("/user/oauth")
 				OAuthCon.OAuthUserRouter(OAuthUserGroup)
 
-				// TODO Report | 举报
-
-				/*
-					- Invitation code registration | 邀请码注册
-					- Toggle configuration for invitation code mechanism | 开关配置是否开启邀请码机制
-					- Number of invitation codes a user can create (limited/unlimited) | 用户可创建邀请码数量（有限/无限）
-				*/
+				// Report | 举报
+				ReportGroup := ForumGroup.Group("/reports")
+				reportCon := controller.NewReportController(reportService, reportManageService)
+				reportCon.ReportRouter(ReportGroup)
 
 				// Invitation Code | 邀请码
 				InvitationCodeGroup := ForumGroup.Group("/invitation-codes")
@@ -235,7 +234,10 @@ func Routers(injector *do.Injector) *gin.Engine {
 		InvitationCodeManageCon := controller.NewInvitationCodeManageController(invitationCodeManageService)
 		InvitationCodeManageCon.InvitationCodeManageRouter(InvitationCodeManageGroup)
 
-		// TODO Report Management | 举报管理
+		// Report Management | 举报管理
+		ReportManageGroup := ManageGroup.Group("/reports")
+		reportManageCon := controller.NewReportController(reportService, reportManageService)
+		reportManageCon.ReportManageRouter(ReportManageGroup)
 	}
 
 	// Super Administrator Interface | 超级管理接口

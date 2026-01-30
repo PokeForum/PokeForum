@@ -30,6 +30,8 @@ type Tx struct {
 	Post *PostClient
 	// PostAction is the client for interacting with the PostAction builders.
 	PostAction *PostActionClient
+	// Report is the client for interacting with the Report builders.
+	Report *ReportClient
 	// Settings is the client for interacting with the Settings builders.
 	Settings *SettingsClient
 	// User is the client for interacting with the User builders.
@@ -186,6 +188,7 @@ func (tx *Tx) init() {
 	tx.OAuthProvider = NewOAuthProviderClient(tx.config)
 	tx.Post = NewPostClient(tx.config)
 	tx.PostAction = NewPostActionClient(tx.config)
+	tx.Report = NewReportClient(tx.config)
 	tx.Settings = NewSettingsClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 	tx.UserBalanceLog = NewUserBalanceLogClient(tx.config)

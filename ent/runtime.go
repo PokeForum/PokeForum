@@ -14,6 +14,7 @@ import (
 	"github.com/PokeForum/PokeForum/ent/oauthprovider"
 	"github.com/PokeForum/PokeForum/ent/post"
 	"github.com/PokeForum/PokeForum/ent/postaction"
+	"github.com/PokeForum/PokeForum/ent/report"
 	"github.com/PokeForum/PokeForum/ent/schema"
 	"github.com/PokeForum/PokeForum/ent/settings"
 	"github.com/PokeForum/PokeForum/ent/user"
@@ -318,6 +319,61 @@ func init() {
 	postactionDescPostID := postactionFields[1].Descriptor()
 	// postaction.PostIDValidator is a validator for the "post_id" field. It is called by the builders before save.
 	postaction.PostIDValidator = postactionDescPostID.Validators[0].(func(int) error)
+	reportMixin := schema.Report{}.Mixin()
+	reportMixinFields0 := reportMixin[0].Fields()
+	_ = reportMixinFields0
+	reportFields := schema.Report{}.Fields()
+	_ = reportFields
+	// reportDescCreatedAt is the schema descriptor for created_at field.
+	reportDescCreatedAt := reportMixinFields0[0].Descriptor()
+	// report.DefaultCreatedAt holds the default value on creation for the created_at field.
+	report.DefaultCreatedAt = reportDescCreatedAt.Default.(func() time.Time)
+	// reportDescUpdatedAt is the schema descriptor for updated_at field.
+	reportDescUpdatedAt := reportMixinFields0[1].Descriptor()
+	// report.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	report.DefaultUpdatedAt = reportDescUpdatedAt.Default.(func() time.Time)
+	// report.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	report.UpdateDefaultUpdatedAt = reportDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// reportDescReporterID is the schema descriptor for reporter_id field.
+	reportDescReporterID := reportFields[0].Descriptor()
+	// report.ReporterIDValidator is a validator for the "reporter_id" field. It is called by the builders before save.
+	report.ReporterIDValidator = reportDescReporterID.Validators[0].(func(int) error)
+	// reportDescTargetID is the schema descriptor for target_id field.
+	reportDescTargetID := reportFields[1].Descriptor()
+	// report.TargetIDValidator is a validator for the "target_id" field. It is called by the builders before save.
+	report.TargetIDValidator = reportDescTargetID.Validators[0].(func(int) error)
+	// reportDescTargetType is the schema descriptor for target_type field.
+	reportDescTargetType := reportFields[2].Descriptor()
+	// report.DefaultTargetType holds the default value on creation for the target_type field.
+	report.DefaultTargetType = schema.ReportTargetType(reportDescTargetType.Default.(string))
+	// reportDescTargetAuthorID is the schema descriptor for target_author_id field.
+	reportDescTargetAuthorID := reportFields[3].Descriptor()
+	// report.TargetAuthorIDValidator is a validator for the "target_author_id" field. It is called by the builders before save.
+	report.TargetAuthorIDValidator = reportDescTargetAuthorID.Validators[0].(func(int) error)
+	// reportDescReportType is the schema descriptor for report_type field.
+	reportDescReportType := reportFields[4].Descriptor()
+	// report.DefaultReportType holds the default value on creation for the report_type field.
+	report.DefaultReportType = schema.ReportType(reportDescReportType.Default.(string))
+	// reportDescReason is the schema descriptor for reason field.
+	reportDescReason := reportFields[5].Descriptor()
+	// report.ReasonValidator is a validator for the "reason" field. It is called by the builders before save.
+	report.ReasonValidator = reportDescReason.Validators[0].(func(string) error)
+	// reportDescStatus is the schema descriptor for status field.
+	reportDescStatus := reportFields[6].Descriptor()
+	// report.DefaultStatus holds the default value on creation for the status field.
+	report.DefaultStatus = schema.ReportStatus(reportDescStatus.Default.(string))
+	// reportDescHandlerID is the schema descriptor for handler_id field.
+	reportDescHandlerID := reportFields[7].Descriptor()
+	// report.HandlerIDValidator is a validator for the "handler_id" field. It is called by the builders before save.
+	report.HandlerIDValidator = reportDescHandlerID.Validators[0].(func(int) error)
+	// reportDescHandleResult is the schema descriptor for handle_result field.
+	reportDescHandleResult := reportFields[8].Descriptor()
+	// report.HandleResultValidator is a validator for the "handle_result" field. It is called by the builders before save.
+	report.HandleResultValidator = reportDescHandleResult.Validators[0].(func(string) error)
+	// reportDescHandleAction is the schema descriptor for handle_action field.
+	reportDescHandleAction := reportFields[9].Descriptor()
+	// report.HandleActionValidator is a validator for the "handle_action" field. It is called by the builders before save.
+	report.HandleActionValidator = reportDescHandleAction.Validators[0].(func(string) error)
 	settingsMixin := schema.Settings{}.Mixin()
 	settingsMixinFields0 := settingsMixin[0].Fields()
 	_ = settingsMixinFields0
