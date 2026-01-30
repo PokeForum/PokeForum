@@ -25,11 +25,6 @@ func DB() *ent.Client {
 	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s %s",
 		m.Host, m.Port, m.UserName, m.Password, m.Name, m.Config)
 
-	// Print DSN in debug mode | 调试模式下打印DSN
-	if configs.Debug {
-		configs.Log.Debug("DSN: ", zap.String("dsn", dsn))
-	}
-
 	// Establish database connection | 建立数据库连接
 	client, err := ent.Open("postgres", dsn)
 	if err != nil {
