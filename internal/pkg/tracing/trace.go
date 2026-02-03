@@ -3,6 +3,7 @@ package tracing
 import (
 	"context"
 	"strconv"
+	"strings"
 
 	"github.com/click33/sa-token-go/stputil"
 	"github.com/google/uuid"
@@ -72,6 +73,11 @@ func ContextWithUserID(ginCtx interface{}, ctx context.Context) context.Context 
 
 	if token == "" {
 		return ctx
+	}
+
+	token = strings.TrimSpace(token)
+	if strings.HasPrefix(strings.ToLower(token), "bearer ") {
+		token = strings.TrimSpace(token[len("bearer "):])
 	}
 
 	// Use stputil to get logged in user ID | 使用stputil获取登录用户ID

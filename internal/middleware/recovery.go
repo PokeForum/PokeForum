@@ -22,10 +22,16 @@ func Recovery() gin.HandlerFunc {
 		traceID := tracing.GetTraceID(c.Request.Context())
 
 		// Try to convert to validator.ValidationErrors | 尝试转换为validator.ValidationErrors
-		var errs validator.ValidationErrors
-		if errors.As(&errs, &recovered) {
+		switch v := recovered.(type) {
+		case validator.ValidationErrors:
 			response.ResError(c, response.CodeInvalidParam)
 			return
+		case error:
+			var errs validator.ValidationErrors
+			if errors.As(v, &errs) {
+				response.ResError(c, response.CodeInvalidParam)
+				return
+			}
 		}
 
 		// Log detailed error information (including stack) to logs, but don't return to client | 记录详细错误信息到日志（包含堆栈），但不返回给客户端

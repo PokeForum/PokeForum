@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"bytes"
-	"io"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -12,53 +10,36 @@ import (
 	"github.com/PokeForum/PokeForum/internal/pkg/tracing"
 )
 
-type bodyLogWriter struct {
-	gin.ResponseWriter
-	body *bytes.Buffer
-}
-
-func (w bodyLogWriter) Write(b []byte) (int, error) {
-	w.body.Write(b)
-	return w.ResponseWriter.Write(b)
-}
-func (w bodyLogWriter) WriteString(s string) (int, error) {
-	w.body.WriteString(s)
-	return w.ResponseWriter.WriteString(s)
-}
-
 func Logger() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		// Generate trace ID | 生成链路ID
-		traceID := tracing.GenerateTraceID()
+		// Get trace ID from upstream if present, otherwise generate a new one | 获取上游trace_id，否则生成新的trace_id
+		traceID := ctx.GetHeader(tracing.TraceIDHeader)
+		if traceID == "" {
+			traceID = tracing.GenerateTraceID()
+		}
 
-		// Store trace ID in context for subsequent use | 将链路ID存储到context中，方便后续使用
-		ctx.Request = ctx.Request.WithContext(tracing.WithTraceID(ctx.Request.Context(), traceID))
+		// Store trace_id/user_id in context for subsequent use | 将trace_id/user_id存储在context中，供后续使用
+		reqCtx := tracing.WithTraceID(ctx.Request.Context(), traceID)
+		reqCtx = tracing.ContextWithUserID(ctx, reqCtx)
+		ctx.Request = ctx.Request.WithContext(reqCtx)
 
-		// Set trace ID in response header to return to client | 在响应header中设置链路ID，返回给客户端
+		// Set trace ID in response header to return to client | 将trace_id设置在response header中，返回给客户端
 		ctx.Header(tracing.TraceIDHeader, traceID)
-
-		bodyLogWriter := &bodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: ctx.Writer}
-		ctx.Writer = bodyLogWriter
 
 		// Start time | 开始时间
 		startTime := time.Now()
-
-		b, err := ctx.Copy().GetRawData()
-		if err != nil {
-			b = []byte{}
-		}
-
-		ctx.Request.Body = io.NopCloser(bytes.NewReader(b))
 
 		// Process request | 处理请求
 		ctx.Next()
 
 		// End time | 结束时间
 		endTime := time.Now()
+		userID := tracing.GetUserID(ctx.Request.Context())
 
-		// Include trace ID in logs for request tracking | 在日志中包含链路ID，方便追踪请求
+		// Include trace ID in logs for request tracking | 将trace_id/user_id包含在日志中，用于请求跟踪
 		configs.Log.Info("Request",
 			zap.String("trace_id", traceID),
+			zap.Int("user_id", userID),
 			zap.Int("status", ctx.Writer.Status()),
 			zap.String("method", ctx.Request.Method),
 			zap.String("url", ctx.Request.URL.String()),

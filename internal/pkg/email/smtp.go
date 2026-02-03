@@ -168,22 +168,22 @@ func (client *SMTPPool) Init() {
 					if errors.As(err, &sendErr) && sendErr.Reason == mail.ErrSMTPReset {
 						open = false
 						client.logger.Debug("SMTP RESET错误，关闭连接...",
-							zap.String("traceId", m.traceID))
+							zap.String("trace_id", m.traceID))
 						continue
 					}
 
 					client.logger.Warn("邮件发送失败",
 						zap.String("to", m.to),
 						zap.String("subject", m.subject),
-						zap.String("traceId", m.traceID),
-						zap.Int("userId", m.userID),
+						zap.String("trace_id", m.traceID),
+						zap.Int("user_id", m.userID),
 						zap.Error(err))
 				} else {
 					client.logger.Info("邮件发送成功",
 						zap.String("to", m.to),
 						zap.String("subject", m.subject),
-						zap.String("traceId", m.traceID),
-						zap.Int("userId", m.userID))
+						zap.String("trace_id", m.traceID),
+						zap.Int("user_id", m.userID))
 				}
 
 			// Close SMTP connection after a long time without new emails | 长时间没有新邮件，则关闭SMTP连接
