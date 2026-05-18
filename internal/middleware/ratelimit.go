@@ -3,10 +3,11 @@ package middleware
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"sync/atomic"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 
 	"github.com/PokeForum/PokeForum/internal/configs"
@@ -45,6 +46,8 @@ var AuthRateLimitConfig = RateLimitConfig{
 	MaxRequests: _const.AuthMaxRequests,
 	KeyPrefix:   "ratelimit:auth",
 }
+
+var rateLimitMemberSeq uint64
 
 // RateLimit Redis-based sliding window rate limit middleware | 基于Redis的滑动窗口速率限制中间件
 func RateLimit(config RateLimitConfig) gin.HandlerFunc {
@@ -105,45 +108,60 @@ func checkRateLimit(ctx context.Context, key string, config RateLimitConfig) (bo
 	now := time.Now()
 	windowStart := now.Add(-time.Duration(config.WindowSize) * time.Second)
 	resetTime := now.Add(time.Duration(config.WindowSize) * time.Second).Unix()
+	member := fmt.Sprintf("%d:%d", now.UnixNano(), atomic.AddUint64(&rateLimitMemberSeq, 1))
 
-	// Use Redis Pipeline for atomic operations | 使用Redis Pipeline执行原子操作
-	pipe := configs.Cache.Pipeline()
+	luaScript := `
+redis.call("ZREMRANGEBYSCORE", KEYS[1], "0", ARGV[1])
+local count = redis.call("ZCARD", KEYS[1])
+local max_requests = tonumber(ARGV[3])
+local reset_time = tonumber(ARGV[5])
+if count >= max_requests then
+	redis.call("EXPIRE", KEYS[1], ARGV[4])
+	return {0, 0, reset_time}
+end
+redis.call("ZADD", KEYS[1], ARGV[2], ARGV[6])
+redis.call("EXPIRE", KEYS[1], ARGV[4])
+return {1, max_requests - count - 1, reset_time}
+`
 
-	// Remove old records outside the window | 移除窗口外的旧记录
-	pipe.ZRemRangeByScore(ctx, key, "0", fmt.Sprintf("%d", windowStart.UnixNano()))
-
-	// Get current request count within window | 获取当前窗口内的请求数
-	countCmd := pipe.ZCard(ctx, key)
-
-	// Add current request record (use nanosecond timestamp as score and member to ensure uniqueness) | 添加当前请求记录（使用纳秒时间戳作为score和member保证唯一性）
-	member := fmt.Sprintf("%d", now.UnixNano())
-	pipe.ZAdd(ctx, key, redis.Z{
-		Score:  float64(now.UnixNano()),
-		Member: member,
-	})
-
-	// Set key expiration time (twice the window size to ensure automatic data cleanup) | 设置键的过期时间（窗口大小的2倍，确保数据自动清理）
-	pipe.Expire(ctx, key, time.Duration(config.WindowSize*2)*time.Second)
-
-	// Execute Pipeline | 执行Pipeline
-	_, err := pipe.Exec(ctx)
+	result, err := configs.Cache.Eval(ctx, luaScript, []string{key},
+		windowStart.UnixNano(),
+		now.UnixNano(),
+		config.MaxRequests,
+		config.WindowSize*2,
+		resetTime,
+		member,
+	).Result()
 	if err != nil {
 		return false, 0, resetTime, err
 	}
 
-	// Get current request count (count before adding new request) | 获取当前请求数（在添加新请求之前的数量）
-	currentCount := int(countCmd.Val())
-	remaining := config.MaxRequests - currentCount - 1
+	values, ok := result.([]interface{})
+	if !ok || len(values) != 3 {
+		return false, 0, resetTime, fmt.Errorf("invalid rate limit script result: %v", result)
+	}
+
+	allowed := toInt64(values[0]) == 1
+	remaining := int(toInt64(values[1]))
+	resetTime = toInt64(values[2])
 	if remaining < 0 {
 		remaining = 0
 	}
+	return allowed, remaining, resetTime, nil
+}
 
-	// Check if limit is exceeded | 判断是否超过限制
-	if currentCount >= config.MaxRequests {
-		return false, 0, resetTime, nil
+func toInt64(value interface{}) int64 {
+	switch v := value.(type) {
+	case int64:
+		return v
+	case int:
+		return int64(v)
+	case string:
+		result, _ := strconv.ParseInt(v, 10, 64) //nolint:errcheck // 解析失败按0处理
+		return result
+	default:
+		return 0
 	}
-
-	return true, remaining, resetTime, nil
 }
 
 // RateLimitByKey Custom key rate limit (for more fine-grained control) | 自定义键的速率限制（用于更细粒度的控制）

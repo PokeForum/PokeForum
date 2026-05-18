@@ -89,7 +89,7 @@ func (s *UserManageService) checkOperatorPermission(ctx context.Context, operato
 	// 获取操作者信息
 	operator, err := s.userRepo.GetByID(ctx, operatorID)
 	if err != nil {
-		s.logger.Error("获取操作者信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取操作者信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("获取操作者信息失败: %w", err)
 	}
 
@@ -175,14 +175,14 @@ func (s *UserManageService) GetUserList(ctx context.Context, req schema.UserList
 
 	total, err = s.userRepo.CountWithCondition(ctx, totalCountFunc)
 	if err != nil {
-		s.logger.Error("获取用户总数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户总数失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取用户总数失败: %w", err)
 	}
 
 	// 分页查询
 	users, err = s.userRepo.ListWithCondition(ctx, conditionFunc, 0)
 	if err != nil {
-		s.logger.Error("获取用户列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户列表失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取用户列表失败: %w", err)
 	}
 
@@ -237,12 +237,12 @@ func (s *UserManageService) GetUserList(ctx context.Context, req schema.UserList
 
 // CreateUser Create user | 创建用户
 func (s *UserManageService) CreateUser(ctx context.Context, req schema.UserCreateRequest) (*ent.User, error) {
-	s.logger.Info("创建用户", zap.String("username", req.Username), tracing.WithTraceIDField(ctx))
+	s.logger.Info("创建用户", tracing.WithTraceIDField(ctx), zap.String("username", req.Username))
 
 	// 检查用户名是否已存在
 	usernameExists, err := s.userRepo.ExistsByUsername(ctx, req.Username)
 	if err != nil {
-		s.logger.Error("检查用户名是否存在失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("检查用户名是否存在失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("检查用户名是否存在失败: %w", err)
 	}
 	if usernameExists {
@@ -251,7 +251,7 @@ func (s *UserManageService) CreateUser(ctx context.Context, req schema.UserCreat
 
 	emailExists, err := s.userRepo.ExistsByEmail(ctx, req.Email)
 	if err != nil {
-		s.logger.Error("检查邮箱是否存在失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("检查邮箱是否存在失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("检查邮箱是否存在失败: %w", err)
 	}
 	if emailExists {
@@ -261,7 +261,7 @@ func (s *UserManageService) CreateUser(ctx context.Context, req schema.UserCreat
 	// 加密密码
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
-		s.logger.Error("密码加密失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("密码加密失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("密码加密失败: %w", err)
 	}
 
@@ -276,22 +276,22 @@ func (s *UserManageService) CreateUser(ctx context.Context, req schema.UserCreat
 			SetReadme(req.Readme)
 	})
 	if err != nil {
-		s.logger.Error("创建用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("创建用户失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("创建用户失败: %w", err)
 	}
 
-	s.logger.Info("用户创建成功", zap.Int("user_id", u.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("用户创建成功", tracing.WithTraceIDField(ctx), zap.Int("user_id", u.ID))
 	return u, nil
 }
 
 // UpdateUser Update user information | 更新用户信息
 func (s *UserManageService) UpdateUser(ctx context.Context, req schema.UserUpdateRequest) (*ent.User, error) {
-	s.logger.Info("更新用户信息", zap.Int("user_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("更新用户信息", tracing.WithTraceIDField(ctx), zap.Int("user_id", req.ID))
 
 	// 检查用户是否存在
 	_, err := s.userRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取用户信息失败: %w", err)
 	}
 
@@ -301,7 +301,7 @@ func (s *UserManageService) UpdateUser(ctx context.Context, req schema.UserUpdat
 			return q.Where(user.And(user.IDNEQ(req.ID), user.UsernameEQ(req.Username)))
 		})
 		if err != nil {
-			s.logger.Error("检查用户名冲突失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("检查用户名冲突失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return nil, fmt.Errorf("检查用户名冲突失败: %w", err)
 		}
 		if usernameExists > 0 {
@@ -314,7 +314,7 @@ func (s *UserManageService) UpdateUser(ctx context.Context, req schema.UserUpdat
 			return q.Where(user.And(user.IDNEQ(req.ID), user.EmailEQ(req.Email)))
 		})
 		if err != nil {
-			s.logger.Error("检查邮箱冲突失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("检查邮箱冲突失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return nil, fmt.Errorf("检查邮箱冲突失败: %w", err)
 		}
 		if emailExists > 0 {
@@ -342,22 +342,22 @@ func (s *UserManageService) UpdateUser(ctx context.Context, req schema.UserUpdat
 		return u
 	})
 	if err != nil {
-		s.logger.Error("更新用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("更新用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("更新用户信息失败: %w", err)
 	}
 
-	s.logger.Info("用户信息更新成功", zap.Int("user_id", u.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("用户信息更新成功", tracing.WithTraceIDField(ctx), zap.Int("user_id", u.ID))
 	return u, nil
 }
 
 // UpdateUserStatus Update user status | 更新用户状态
 func (s *UserManageService) UpdateUserStatus(ctx context.Context, req schema.UserStatusUpdateRequest) error {
-	s.logger.Info("更新用户状态", zap.Int("user_id", req.ID), zap.String("status", req.Status), tracing.WithTraceIDField(ctx))
+	s.logger.Info("更新用户状态", tracing.WithTraceIDField(ctx), zap.Int("user_id", req.ID), zap.String("status", req.Status))
 
 	// 检查用户是否存在
 	u, err := s.userRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("获取用户信息失败: %w", err)
 	}
 
@@ -371,22 +371,22 @@ func (s *UserManageService) UpdateUserStatus(ctx context.Context, req schema.Use
 		return u.SetStatus(user.Status(req.Status))
 	})
 	if err != nil {
-		s.logger.Error("更新用户状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("更新用户状态失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("更新用户状态失败: %w", err)
 	}
 
-	s.logger.Info("用户状态更新成功", zap.Int("user_id", req.ID), zap.String("reason", req.Reason), tracing.WithTraceIDField(ctx))
+	s.logger.Info("用户状态更新成功", tracing.WithTraceIDField(ctx), zap.Int("user_id", req.ID), zap.String("reason", req.Reason))
 	return nil
 }
 
 // UpdateUserRole Update user role | 更新用户身份
 func (s *UserManageService) UpdateUserRole(ctx context.Context, req schema.UserRoleUpdateRequest) error {
-	s.logger.Info("更新用户身份", zap.Int("user_id", req.ID), zap.String("role", req.Role), tracing.WithTraceIDField(ctx))
+	s.logger.Info("更新用户身份", tracing.WithTraceIDField(ctx), zap.Int("user_id", req.ID), zap.String("role", req.Role))
 
 	// 检查用户是否存在
 	_, err := s.userRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("获取用户信息失败: %w", err)
 	}
 
@@ -395,7 +395,7 @@ func (s *UserManageService) UpdateUserRole(ctx context.Context, req schema.UserR
 		return u.SetRole(user.Role(req.Role))
 	})
 	if err != nil {
-		s.logger.Error("更新用户身份失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("更新用户身份失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("更新用户身份失败: %w", err)
 	}
 
@@ -403,23 +403,23 @@ func (s *UserManageService) UpdateUserRole(ctx context.Context, req schema.UserR
 	if user.Role(req.Role) != user.RoleModerator {
 		err = s.categoryModeratorRepo.DeleteByUserID(ctx, req.ID)
 		if err != nil {
-			s.logger.Error("清除用户管理版块失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("清除用户管理版块失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return fmt.Errorf("清除用户管理版块失败: %w", err)
 		}
 	}
 
-	s.logger.Info("用户身份更新成功", zap.Int("user_id", req.ID), zap.String("reason", req.Reason), tracing.WithTraceIDField(ctx))
+	s.logger.Info("用户身份更新成功", tracing.WithTraceIDField(ctx), zap.Int("user_id", req.ID), zap.String("reason", req.Reason))
 	return nil
 }
 
 // UpdateUserPoints Update user points | 更新用户积分
 func (s *UserManageService) UpdateUserPoints(ctx context.Context, req schema.UserPointsUpdateRequest) error {
-	s.logger.Info("更新用户积分", zap.Int("user_id", req.ID), zap.Int("points", req.Points), tracing.WithTraceIDField(ctx))
+	s.logger.Info("更新用户积分", tracing.WithTraceIDField(ctx), zap.Int("user_id", req.ID), zap.Int("points", req.Points))
 
 	// 获取用户当前积分
 	u, err := s.userRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("获取用户信息失败: %w", err)
 	}
 
@@ -434,7 +434,7 @@ func (s *UserManageService) UpdateUserPoints(ctx context.Context, req schema.Use
 		return u.SetPoints(newPoints)
 	})
 	if err != nil {
-		s.logger.Error("更新用户积分失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("更新用户积分失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("更新用户积分失败: %w", err)
 	}
 
@@ -455,22 +455,22 @@ func (s *UserManageService) UpdateUserPoints(ctx context.Context, req schema.Use
 		"",  // 用户代理
 	)
 	if err != nil {
-		s.logger.Error("创建积分变动记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("创建积分变动记录失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		// 不影响主流程，只记录错误
 	}
 
-	s.logger.Info("用户积分更新成功", zap.Int("old_points", u.Points), zap.Int("new_points", newPoints), tracing.WithTraceIDField(ctx))
+	s.logger.Info("用户积分更新成功", tracing.WithTraceIDField(ctx), zap.Int("old_points", u.Points), zap.Int("new_points", newPoints))
 	return nil
 }
 
 // UpdateUserCurrency Update user currency | 更新用户货币
 func (s *UserManageService) UpdateUserCurrency(ctx context.Context, req schema.UserCurrencyUpdateRequest) error {
-	s.logger.Info("更新用户货币", zap.Int("user_id", req.ID), zap.Int("currency", req.Currency), tracing.WithTraceIDField(ctx))
+	s.logger.Info("更新用户货币", tracing.WithTraceIDField(ctx), zap.Int("user_id", req.ID), zap.Int("currency", req.Currency))
 
 	// 获取用户当前货币
 	u, err := s.userRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("获取用户信息失败: %w", err)
 	}
 
@@ -485,7 +485,7 @@ func (s *UserManageService) UpdateUserCurrency(ctx context.Context, req schema.U
 		return u.SetCurrency(newCurrency)
 	})
 	if err != nil {
-		s.logger.Error("更新用户货币失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("更新用户货币失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("更新用户货币失败: %w", err)
 	}
 
@@ -506,22 +506,22 @@ func (s *UserManageService) UpdateUserCurrency(ctx context.Context, req schema.U
 		"",  // 用户代理
 	)
 	if err != nil {
-		s.logger.Error("创建货币变动记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("创建货币变动记录失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		// 不影响主流程，只记录错误
 	}
 
-	s.logger.Info("用户货币更新成功", zap.Int("old_currency", u.Currency), zap.Int("new_currency", newCurrency), tracing.WithTraceIDField(ctx))
+	s.logger.Info("用户货币更新成功", tracing.WithTraceIDField(ctx), zap.Int("old_currency", u.Currency), zap.Int("new_currency", newCurrency))
 	return nil
 }
 
 // SetModeratorCategories Set moderator categories | 设置版主管理版块
 func (s *UserManageService) SetModeratorCategories(ctx context.Context, req schema.ModeratorCategoryRequest) error {
-	s.logger.Info("设置版主管理版块", zap.Int("user_id", req.UserID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("设置版主管理版块", tracing.WithTraceIDField(ctx), zap.Int("user_id", req.UserID))
 
 	// 检查用户是否存在且是版主
 	existingUser, err := s.userRepo.GetByID(ctx, req.UserID)
 	if err != nil {
-		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("获取用户信息失败: %w", err)
 	}
 
@@ -532,7 +532,7 @@ func (s *UserManageService) SetModeratorCategories(ctx context.Context, req sche
 	// 检查版块是否存在
 	categories, err := s.categoryRepo.GetByIDs(ctx, req.CategoryIDs)
 	if err != nil {
-		s.logger.Error("获取版块信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取版块信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("获取版块信息失败: %w", err)
 	}
 
@@ -543,7 +543,7 @@ func (s *UserManageService) SetModeratorCategories(ctx context.Context, req sche
 	// 使用事务更新版主管理的版块（通过中间表）
 	tx, err := s.db.Tx(ctx)
 	if err != nil {
-		s.logger.Error("开启事务失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("开启事务失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("开启事务失败: %w", err)
 	}
 
@@ -552,11 +552,10 @@ func (s *UserManageService) SetModeratorCategories(ctx context.Context, req sche
 		Where(categorymoderator.UserIDEQ(req.UserID)).
 		Exec(ctx)
 	if err != nil {
-		err = tx.Rollback()
-		if err != nil {
-			return err
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			s.logger.Error("回滚事务失败", tracing.WithTraceIDField(ctx), zap.Error(rollbackErr))
 		}
-		s.logger.Error("删除旧版主关联记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("删除旧版主关联记录失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("删除旧版主关联记录失败: %w", err)
 	}
 
@@ -571,33 +570,32 @@ func (s *UserManageService) SetModeratorCategories(ctx context.Context, req sche
 
 		_, err = tx.CategoryModerator.CreateBulk(bulk...).Save(ctx)
 		if err != nil {
-			err = tx.Rollback()
-			if err != nil {
-				return err
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				s.logger.Error("回滚事务失败", tracing.WithTraceIDField(ctx), zap.Error(rollbackErr))
 			}
-			s.logger.Error("批量插入版主关联记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("批量插入版主关联记录失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return fmt.Errorf("批量插入版主关联记录失败: %w", err)
 		}
 	}
 
 	// 提交事务
 	if err = tx.Commit(); err != nil {
-		s.logger.Error("提交事务失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("提交事务失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("提交事务失败: %w", err)
 	}
 
-	s.logger.Info("版主管理版块设置成功", zap.Int("user_id", req.UserID), zap.String("reason", req.Reason), tracing.WithTraceIDField(ctx))
+	s.logger.Info("版主管理版块设置成功", tracing.WithTraceIDField(ctx), zap.Int("user_id", req.UserID), zap.String("reason", req.Reason))
 	return nil
 }
 
 // GetUserDetail Get user details | 获取用户详情
 func (s *UserManageService) GetUserDetail(ctx context.Context, id int) (*schema.UserDetailResponse, error) {
-	s.logger.Info("获取用户详情", zap.Int("user_id", id), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取用户详情", tracing.WithTraceIDField(ctx), zap.Int("user_id", id))
 
 	// 获取用户信息
 	u, err := s.userRepo.GetByID(ctx, id)
 	if err != nil {
-		s.logger.Error("获取用户详情失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户详情失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取用户详情失败: %w", err)
 	}
 
@@ -630,13 +628,13 @@ func (s *UserManageService) GetUserDetail(ctx context.Context, id int) (*schema.
 	// 实时查询用户的发帖数和评论数
 	postCount, err := s.GetUserPostCount(ctx, u.ID)
 	if err != nil {
-		s.logger.Error("查询用户发帖数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("查询用户发帖数失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		postCount = 0
 	}
 
 	commentCount, err := s.GetUserCommentCount(ctx, u.ID)
 	if err != nil {
-		s.logger.Error("查询用户评论数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("查询用户评论数失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		commentCount = 0
 	}
 
@@ -690,7 +688,7 @@ func (s *UserManageService) createBalanceLog(ctx context.Context, userID int, lo
 		return c
 	})
 	if err != nil {
-		s.logger.Error("创建余额变动记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("创建余额变动记录失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("创建余额变动记录失败: %w", err)
 	}
 
@@ -699,7 +697,7 @@ func (s *UserManageService) createBalanceLog(ctx context.Context, userID int, lo
 
 // GetUserBalanceLog Get user balance change log | 获取用户余额变动记录
 func (s *UserManageService) GetUserBalanceLog(ctx context.Context, req schema.UserBalanceLogRequest) (*schema.UserBalanceLogResponse, error) {
-	s.logger.Info("获取用户余额变动记录", zap.Int("user_id", req.UserID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取用户余额变动记录", tracing.WithTraceIDField(ctx), zap.Int("user_id", req.UserID))
 
 	// 构建查询条件函数
 	conditionFunc := func(q *ent.UserBalanceLogQuery) *ent.UserBalanceLogQuery {
@@ -743,7 +741,7 @@ func (s *UserManageService) GetUserBalanceLog(ctx context.Context, req schema.Us
 	// 获取总数
 	total, err := s.userBalanceLogRepo.Count(ctx, conditionFunc)
 	if err != nil {
-		s.logger.Error("获取余额变动记录总数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取余额变动记录总数失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取余额变动记录总数失败: %w", err)
 	}
 
@@ -755,7 +753,7 @@ func (s *UserManageService) GetUserBalanceLog(ctx context.Context, req schema.Us
 			Limit(req.PageSize)
 	})
 	if err != nil {
-		s.logger.Error("获取余额变动记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取余额变动记录失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取余额变动记录失败: %w", err)
 	}
 
@@ -772,7 +770,7 @@ func (s *UserManageService) GetUserBalanceLog(ctx context.Context, req schema.Us
 	}
 	users, err := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername})
 	if err != nil {
-		s.logger.Warn("批量查询用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("批量查询用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 	}
 	userMap := make(map[int]string)
 	for _, u := range users {
@@ -812,12 +810,12 @@ func (s *UserManageService) GetUserBalanceLog(ctx context.Context, req schema.Us
 
 // GetUserBalanceSummary Get user balance summary | 获取用户余额汇总信息
 func (s *UserManageService) GetUserBalanceSummary(ctx context.Context, userID int) (*schema.UserBalanceSummary, error) {
-	s.logger.Info("获取用户余额汇总信息", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取用户余额汇总信息", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID))
 
 	// 获取用户信息
 	u, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
-		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取用户信息失败: %w", err)
 	}
 
@@ -901,7 +899,7 @@ func (s *UserManageService) getUserPostCounts(ctx context.Context, userIDs []int
 	for _, userID := range userIDs {
 		count, err := s.postRepo.CountByUserID(ctx, userID)
 		if err != nil {
-			s.logger.Error("查询用户发帖数失败", zap.Int("user_id", userID), zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("查询用户发帖数失败", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Error(err))
 			// 失败时使用默认值0，继续处理其他用户
 			result[userID] = 0
 			continue
@@ -923,7 +921,7 @@ func (s *UserManageService) getUserCommentCounts(ctx context.Context, userIDs []
 	for _, userID := range userIDs {
 		count, err := s.commentRepo.CountByUserID(ctx, userID)
 		if err != nil {
-			s.logger.Error("查询用户评论数失败", zap.Int("user_id", userID), zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("查询用户评论数失败", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Error(err))
 			// 失败时使用默认值0，继续处理其他用户
 			result[userID] = 0
 			continue
@@ -954,12 +952,12 @@ func (s *UserManageService) GetUserCommentCount(ctx context.Context, userID int)
 
 // BanUser Ban user | 封禁用户
 func (s *UserManageService) BanUser(ctx context.Context, req schema.UserBanRequest) error {
-	s.logger.Info("封禁用户", zap.Int("user_id", req.ID), zap.Int64("duration", req.Duration), tracing.WithTraceIDField(ctx))
+	s.logger.Info("封禁用户", tracing.WithTraceIDField(ctx), zap.Int("user_id", req.ID), zap.Int64("duration", req.Duration))
 
 	// 检查用户是否存在
 	u, err := s.userRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("获取用户信息失败: %w", err)
 	}
 
@@ -979,37 +977,37 @@ func (s *UserManageService) BanUser(ctx context.Context, req schema.UserBanReque
 			return u.SetStatus(user.StatusBlocked)
 		})
 		if err != nil {
-			s.logger.Error("永久封禁用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("永久封禁用户失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return fmt.Errorf("永久封禁用户失败: %w", err)
 		}
 		// 同时调用sa-token进行封禁
 		if err = stputil.Disable(req.ID, 0); err != nil {
-			s.logger.Warn("stputil 永久封禁失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Warn("stputil 永久封禁失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		}
 	} else {
 		// 短期封禁：使用sa-token
 		if err = stputil.Disable(req.ID, time.Duration(req.Duration)*time.Second); err != nil {
-			s.logger.Warn("stputil 临时封禁失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Warn("stputil 临时封禁失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		}
 	}
 
 	// 踢出用户所有已登录设备
 	if err = stputil.Kickout(req.ID); err != nil {
-		s.logger.Warn("stputil 踢出设备下线失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("stputil 踢出设备下线失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 	}
 
-	s.logger.Info("用户封禁成功", zap.Int("user_id", req.ID), zap.String("reason", req.Reason), tracing.WithTraceIDField(ctx))
+	s.logger.Info("用户封禁成功", tracing.WithTraceIDField(ctx), zap.Int("user_id", req.ID), zap.String("reason", req.Reason))
 	return nil
 }
 
 // UnbanUser Unban user | 解封用户
 func (s *UserManageService) UnbanUser(ctx context.Context, req schema.UserUnbanRequest) error {
-	s.logger.Info("解封用户", zap.Int("user_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("解封用户", tracing.WithTraceIDField(ctx), zap.Int("user_id", req.ID))
 
 	// 检查用户是否存在
 	u, err := s.userRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("获取用户信息失败: %w", err)
 	}
 
@@ -1024,17 +1022,17 @@ func (s *UserManageService) UnbanUser(ctx context.Context, req schema.UserUnbanR
 			return u.SetStatus(user.StatusNormal)
 		})
 		if err != nil {
-			s.logger.Error("解封用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("解封用户失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return fmt.Errorf("解封用户失败: %w", err)
 		}
 	}
 
 	// 解除sa-token封禁
 	if err = stputil.Untie(req.ID); err != nil {
-		s.logger.Warn("stputil 移除封禁失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("stputil 移除封禁失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("解封用户失败: %w", err)
 	}
 
-	s.logger.Info("用户解封成功", zap.Int("user_id", req.ID), zap.String("reason", req.Reason), tracing.WithTraceIDField(ctx))
+	s.logger.Info("用户解封成功", tracing.WithTraceIDField(ctx), zap.Int("user_id", req.ID), zap.String("reason", req.Reason))
 	return nil
 }

@@ -66,7 +66,7 @@ func NewCommentService(db *ent.Client, repos *repository.Repositories, cacheServ
 
 // CreateComment Create a comment | 创建评论
 func (s *CommentService) CreateComment(ctx context.Context, userID int, clientIP, deviceInfo string, req schema.UserCommentCreateRequest) (*schema.UserCommentCreateResponse, error) {
-	s.logger.Info("创建评论", zap.Int("user_id", userID), zap.Int("post_id", req.PostID), zap.String("client_ip", clientIP), zap.String("device_info", deviceInfo), tracing.WithTraceIDField(ctx))
+	s.logger.Info("创建评论", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("post_id", req.PostID), zap.String("client_ip", clientIP), zap.String("device_info", deviceInfo))
 
 	// Check user status | 检查用户状态
 	if err := s.checkUserStatus(ctx, userID); err != nil {
@@ -81,14 +81,14 @@ func (s *CommentService) CreateComment(ctx context.Context, userID int, clientIP
 	// Check if post exists and status is normal | 检查帖子是否存在且状态正常
 	postData, err := s.postRepo.GetByIDWithStatus(ctx, req.PostID, post.StatusNormal)
 	if err != nil {
-		s.logger.Error("获取帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
 	// Check if blocked by post author | 检查是否被楼主拉黑
 	isBlockedByAuthor, err := s.blacklistService.IsUserBlocked(ctx, postData.UserID, userID)
 	if err != nil {
-		s.logger.Error("检查是否被楼主拉黑失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("检查是否被楼主拉黑失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("检查拉黑状态失败: %w", err)
 	}
 	if isBlockedByAuthor {
@@ -100,7 +100,7 @@ func (s *CommentService) CreateComment(ctx context.Context, userID int, clientIP
 	if req.ParentID != nil {
 		parentComment, err := s.commentRepo.GetByID(ctx, *req.ParentID)
 		if err != nil {
-			s.logger.Error("获取父评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("获取父评论失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return nil, err
 		}
 		if parentComment.PostID != req.PostID {
@@ -115,7 +115,7 @@ func (s *CommentService) CreateComment(ctx context.Context, userID int, clientIP
 		// Check if blocked by reply target user | 检查是否被回复目标用户拉黑
 		isBlockedByTarget, err := s.blacklistService.IsUserBlocked(ctx, *req.ReplyToUserID, userID)
 		if err != nil {
-			s.logger.Error("检查是否被回复目标用户拉黑失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("检查是否被回复目标用户拉黑失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return nil, fmt.Errorf("检查拉黑状态失败: %w", err)
 		}
 		if isBlockedByTarget {
@@ -124,7 +124,7 @@ func (s *CommentService) CreateComment(ctx context.Context, userID int, clientIP
 
 		replyToUser, err := s.userRepo.GetByID(ctx, *req.ReplyToUserID)
 		if err != nil {
-			s.logger.Error("获取回复目标用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("获取回复目标用户失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return nil, err
 		}
 		replyToUsername = replyToUser.Username
@@ -133,7 +133,7 @@ func (s *CommentService) CreateComment(ctx context.Context, userID int, clientIP
 	// Create comment | 创建评论
 	newComment, err := s.commentRepo.Create(ctx, userID, req.PostID, req.Content, clientIP, deviceInfo, req.ParentID, req.ReplyToUserID)
 	if err != nil {
-		s.logger.Error("创建评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("创建评论失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -158,13 +158,13 @@ func (s *CommentService) CreateComment(ctx context.Context, userID int, clientIP
 		result.ReplyToUserID = &newComment.ReplyToUserID
 	}
 
-	s.logger.Info("创建评论成功", zap.Int("comment_id", result.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("创建评论成功", tracing.WithTraceIDField(ctx), zap.Int("comment_id", result.ID))
 	return result, nil
 }
 
 // UpdateComment Update a comment | 更新评论
 func (s *CommentService) UpdateComment(ctx context.Context, userID int, req schema.UserCommentUpdateRequest) (*schema.UserCommentUpdateResponse, error) {
-	s.logger.Info("更新评论", zap.Int("user_id", userID), zap.Int("comment_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("更新评论", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("comment_id", req.ID))
 
 	// Check user status | 检查用户状态
 	if err := s.checkUserStatus(ctx, userID); err != nil {
@@ -179,21 +179,21 @@ func (s *CommentService) UpdateComment(ctx context.Context, userID int, req sche
 	// Check if comment exists and belongs to current user | 检查评论是否存在且属于当前用户
 	commentData, err := s.commentRepo.GetByIDAndUserID(ctx, req.ID, userID)
 	if err != nil {
-		s.logger.Error("获取评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取评论失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
 	// Get post information that the comment belongs to | 获取评论所属帖子信息
 	postData, err := s.postRepo.GetByID(ctx, commentData.PostID)
 	if err != nil {
-		s.logger.Error("获取评论所属帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取评论所属帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
 	// Check if blocked by post author | 检查是否被楼主拉黑
 	isBlockedByAuthor, err := s.blacklistService.IsUserBlocked(ctx, postData.UserID, userID)
 	if err != nil {
-		s.logger.Error("检查是否被楼主拉黑失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("检查是否被楼主拉黑失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("检查拉黑状态失败: %w", err)
 	}
 	if isBlockedByAuthor {
@@ -203,7 +203,7 @@ func (s *CommentService) UpdateComment(ctx context.Context, userID int, req sche
 	// Update comment | 更新评论
 	updatedComment, err := s.commentRepo.UpdateContent(ctx, commentData.ID, req.Content)
 	if err != nil {
-		s.logger.Error("更新评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("更新评论失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -214,18 +214,18 @@ func (s *CommentService) UpdateComment(ctx context.Context, userID int, req sche
 		UpdatedAt: updatedComment.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
-	s.logger.Info("更新评论成功", zap.Int("comment_id", result.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("更新评论成功", tracing.WithTraceIDField(ctx), zap.Int("comment_id", result.ID))
 	return result, nil
 }
 
 // LikeComment Like a comment | 点赞评论
 func (s *CommentService) LikeComment(ctx context.Context, userID int, req schema.UserCommentActionRequest) (*schema.UserCommentActionResponse, error) {
-	s.logger.Info("点赞评论", zap.Int("user_id", userID), zap.Int("comment_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("点赞评论", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("comment_id", req.ID))
 
 	// Use stats service to perform like action | 使用统计服务执行点赞操作
 	action, err := s.commentStatsService.PerformAction(ctx, userID, req.ID, "Like")
 	if err != nil {
-		s.logger.Error("点赞评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("点赞评论失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -236,18 +236,18 @@ func (s *CommentService) LikeComment(ctx context.Context, userID int, req schema
 		DislikeCount: action.DislikeCount,
 	}
 
-	s.logger.Info("点赞评论成功", zap.Int("comment_id", result.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("点赞评论成功", tracing.WithTraceIDField(ctx), zap.Int("comment_id", result.ID))
 	return result, nil
 }
 
 // DislikeComment Dislike a comment | 点踩评论
 func (s *CommentService) DislikeComment(ctx context.Context, userID int, req schema.UserCommentActionRequest) (*schema.UserCommentActionResponse, error) {
-	s.logger.Info("点踩评论", zap.Int("user_id", userID), zap.Int("comment_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("点踩评论", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("comment_id", req.ID))
 
 	// Use stats service to perform dislike action | 使用统计服务执行点踩操作
 	action, err := s.commentStatsService.PerformAction(ctx, userID, req.ID, "Dislike")
 	if err != nil {
-		s.logger.Error("点踩评论失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("点踩评论失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -258,17 +258,17 @@ func (s *CommentService) DislikeComment(ctx context.Context, userID int, req sch
 		DislikeCount: action.DislikeCount,
 	}
 
-	s.logger.Info("点踩评论成功", zap.Int("comment_id", result.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("点踩评论成功", tracing.WithTraceIDField(ctx), zap.Int("comment_id", result.ID))
 	return result, nil
 }
 
 // GetCommentList Get comment list | 获取评论列表
 func (s *CommentService) GetCommentList(ctx context.Context, currentUserID int, req schema.UserCommentListRequest) (*schema.UserCommentListResponse, error) {
-	s.logger.Info("获取评论列表", zap.Int("post_id", req.PostID), zap.Int("page", req.Page), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取评论列表", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.PostID), zap.Int("page", req.Page))
 
 	comments, total, err := s.commentRepo.List(ctx, req.PostID, req.Page, req.PageSize)
 	if err != nil {
-		s.logger.Error("获取评论列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取评论列表失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -288,7 +288,7 @@ func (s *CommentService) GetCommentList(ctx context.Context, currentUserID int, 
 	}
 	users, err := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername})
 	if err != nil {
-		s.logger.Error("批量获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("批量获取用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -303,7 +303,7 @@ func (s *CommentService) GetCommentList(ctx context.Context, currentUserID int, 
 	if currentUserID > 0 {
 		actions, err = s.commentActionRepo.GetUserActionsForComments(ctx, currentUserID, commentIDs)
 		if err != nil {
-			s.logger.Error("批量获取用户评论操作记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("批量获取用户评论操作记录失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return nil, err
 		}
 	}
@@ -311,7 +311,7 @@ func (s *CommentService) GetCommentList(ctx context.Context, currentUserID int, 
 	// Batch get real-time stats data | 批量获取实时统计数据
 	statsMap, err := s.commentStatsService.GetStatsMap(ctx, commentIDs)
 	if err != nil {
-		s.logger.Warn("获取实时统计数据失败，将使用数据库中的旧数据", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("获取实时统计数据失败，将使用数据库中的旧数据", tracing.WithTraceIDField(ctx), zap.Error(err))
 		// On failure, don't block the process, fallback to database data | 失败时不阻断流程，降级使用数据库数据
 		statsMap = make(map[int]*stats.Stats)
 	}
@@ -396,7 +396,7 @@ func (s *CommentService) GetCommentList(ctx context.Context, currentUserID int, 
 		PageSize: req.PageSize,
 	}
 
-	s.logger.Info("获取评论列表成功", zap.Int("total", total), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取评论列表成功", tracing.WithTraceIDField(ctx), zap.Int("total", total))
 	return result, nil
 }
 
@@ -404,7 +404,7 @@ func (s *CommentService) GetCommentList(ctx context.Context, currentUserID int, 
 func (s *CommentService) checkUserStatus(ctx context.Context, userID int) error {
 	userData, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
-		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
@@ -430,7 +430,7 @@ func (s *CommentService) checkContentSafety(ctx context.Context, content string)
 	// Get comment settings | 获取评论设置
 	settings, err := s.settingsService.GetCommentSettings(ctx)
 	if err != nil {
-		s.logger.Error("获取评论设置失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取评论设置失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("检查内容安全失败: %w", err)
 	}
 

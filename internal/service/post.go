@@ -92,7 +92,7 @@ func NewPostService(db *ent.Client, repos *repository.Repositories, cacheService
 
 // CreatePost Create a post | 创建帖子
 func (s *PostService) CreatePost(ctx context.Context, userID int, req schema.UserPostCreateRequest) (*schema.UserPostCreateResponse, error) {
-	s.logger.Info("创建帖子", zap.Int("user_id", userID), zap.Int("category_id", req.CategoryID), zap.String("title", req.Title), tracing.WithTraceIDField(ctx))
+	s.logger.Info("创建帖子", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("category_id", req.CategoryID), zap.String("title", req.Title))
 
 	// Check user status | 检查用户状态
 	if err := s.checkUserStatus(ctx, userID); err != nil {
@@ -101,19 +101,19 @@ func (s *PostService) CreatePost(ctx context.Context, userID int, req schema.Use
 
 	categoryData, err := s.categoryRepo.GetByID(ctx, req.CategoryID)
 	if err != nil {
-		s.logger.Error("获取版块失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取版块失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
 	// 检查版块是否为锁定状态，锁定状态不允许发帖
 	if categoryData.Status == category.StatusLocked {
-		s.logger.Warn("版块已锁定，不允许发帖", zap.Int("category_id", req.CategoryID), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("版块已锁定，不允许发帖", tracing.WithTraceIDField(ctx), zap.Int("category_id", req.CategoryID))
 		return nil, errors.New("该版块已锁定，不允许发布新帖子")
 	}
 
 	userData, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
-		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -123,12 +123,12 @@ func (s *PostService) CreatePost(ctx context.Context, userID int, req schema.Use
 	// 如果版块是登录可见，且帖子阅读权限是 public，则自动变更为 login_required
 	if categoryData.Status == category.StatusLoginRequired && readPermission == post.ReadPermissionPublic {
 		readPermission = post.ReadPermissionLoginRequired
-		s.logger.Info("版块为登录可见，自动将帖子阅读权限调整为login_required", zap.Int("category_id", req.CategoryID), tracing.WithTraceIDField(ctx))
+		s.logger.Info("版块为登录可见，自动将帖子阅读权限调整为login_required", tracing.WithTraceIDField(ctx), zap.Int("category_id", req.CategoryID))
 	}
 
 	newPost, err := s.postRepo.Create(ctx, userID, req.CategoryID, req.Title, req.Content, readPermission, req.ReadPermissionPoints, post.StatusNormal)
 	if err != nil {
-		s.logger.Error("创建帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("创建帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -153,22 +153,22 @@ func (s *PostService) CreatePost(ctx context.Context, userID int, req schema.Use
 		UpdatedAt:            newPost.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
-	s.logger.Info("帖子创建成功", zap.Int("post_id", newPost.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("帖子创建成功", tracing.WithTraceIDField(ctx), zap.Int("post_id", newPost.ID))
 	return result, nil
 }
 
 // SaveDraft Save a draft | 保存草稿
 func (s *PostService) SaveDraft(ctx context.Context, userID int, req schema.UserPostCreateRequest) (*schema.UserPostCreateResponse, error) {
-	s.logger.Info("保存草稿", zap.Int("user_id", userID), zap.Int("draft_id", req.ID), zap.Int("category_id", req.CategoryID), zap.String("title", req.Title), tracing.WithTraceIDField(ctx))
+	s.logger.Info("保存草稿", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("draft_id", req.ID), zap.Int("category_id", req.CategoryID), zap.String("title", req.Title))
 
 	// 检查版块是否为锁定状态，锁定状态不允许保存草稿
 	categoryData, err := s.categoryRepo.GetByID(ctx, req.CategoryID)
 	if err != nil {
-		s.logger.Error("获取版块失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取版块失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 	if categoryData.Status == category.StatusLocked {
-		s.logger.Warn("版块已锁定，不允许保存草稿", zap.Int("category_id", req.CategoryID), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("版块已锁定，不允许保存草稿", tracing.WithTraceIDField(ctx), zap.Int("category_id", req.CategoryID))
 		return nil, errors.New("该版块已锁定，不允许保存草稿")
 	}
 
@@ -180,7 +180,7 @@ func (s *PostService) SaveDraft(ctx context.Context, userID int, req schema.User
 	// 如果版块是登录可见，且帖子阅读权限是 public，则自动变更为 login_required
 	if categoryData.Status == category.StatusLoginRequired && readPermission == post.ReadPermissionPublic {
 		readPermission = post.ReadPermissionLoginRequired
-		s.logger.Info("版块为登录可见，自动将草稿阅读权限调整为login_required", zap.Int("category_id", req.CategoryID), tracing.WithTraceIDField(ctx))
+		s.logger.Info("版块为登录可见，自动将草稿阅读权限调整为login_required", tracing.WithTraceIDField(ctx), zap.Int("category_id", req.CategoryID))
 	}
 
 	// If ID exists, update existing draft | 如果ID存在，更新现有草稿
@@ -188,7 +188,7 @@ func (s *PostService) SaveDraft(ctx context.Context, userID int, req schema.User
 		// Get draft post | 获取草稿帖子
 		draftPost, err := s.postRepo.GetByIDWithStatus(ctx, req.ID, post.StatusDraft)
 		if err != nil {
-			s.logger.Error("获取草稿失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("获取草稿失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return nil, err
 		}
 
@@ -206,16 +206,16 @@ func (s *PostService) SaveDraft(ctx context.Context, userID int, req schema.User
 				SetReadPermissionPoints(req.ReadPermissionPoints)
 		})
 		if err != nil {
-			s.logger.Error("更新草稿失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("更新草稿失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return nil, err
 		}
-		s.logger.Info("草稿更新成功", zap.Int("draft_id", req.ID), tracing.WithTraceIDField(ctx))
+		s.logger.Info("草稿更新成功", tracing.WithTraceIDField(ctx), zap.Int("draft_id", req.ID))
 	} else {
 		// Create new draft | 创建新草稿
 		// Check draft count limit (max 10 drafts per user) | 检查草稿数量限制（每个用户最多10篇草稿）
 		draftCount, err := s.postRepo.CountByUserIDWithStatus(ctx, userID, post.StatusDraft)
 		if err != nil {
-			s.logger.Error("获取用户草稿数量失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("获取用户草稿数量失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return nil, err
 		}
 		if draftCount >= 10 {
@@ -224,16 +224,16 @@ func (s *PostService) SaveDraft(ctx context.Context, userID int, req schema.User
 
 		resultPost, err = s.postRepo.Create(ctx, userID, req.CategoryID, req.Title, req.Content, readPermission, req.ReadPermissionPoints, post.StatusDraft)
 		if err != nil {
-			s.logger.Error("保存草稿失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("保存草稿失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return nil, err
 		}
-		s.logger.Info("草稿创建成功", zap.Int("draft_id", resultPost.ID), tracing.WithTraceIDField(ctx))
+		s.logger.Info("草稿创建成功", tracing.WithTraceIDField(ctx), zap.Int("draft_id", resultPost.ID))
 	}
 
 	// Get user info | 获取用户信息
 	userData, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
-		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -258,13 +258,13 @@ func (s *PostService) SaveDraft(ctx context.Context, userID int, req schema.User
 		UpdatedAt:            resultPost.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
-	s.logger.Info("草稿保存成功", zap.Int("post_id", resultPost.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("草稿保存成功", tracing.WithTraceIDField(ctx), zap.Int("post_id", resultPost.ID))
 	return result, nil
 }
 
 // UpdatePost Update a post | 更新帖子
 func (s *PostService) UpdatePost(ctx context.Context, userID int, req schema.UserPostUpdateRequest) (*schema.UserPostUpdateResponse, error) {
-	s.logger.Info("更新帖子", zap.Int("user_id", userID), zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("更新帖子", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("post_id", req.ID))
 
 	// Check user status | 检查用户状态
 	if err := s.checkUserStatus(ctx, userID); err != nil {
@@ -273,7 +273,7 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int, req schema.Use
 
 	postData, err := s.postRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		s.logger.Error("获取帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -283,7 +283,7 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int, req schema.Use
 
 	// Check post status (Locked and Ban posts cannot be edited) | 检查帖子状态（锁定和封禁的帖子不允许编辑）
 	if postData.Status == post.StatusLocked || postData.Status == post.StatusBan {
-		s.logger.Warn("帖子状态不允许编辑", zap.Int("post_id", req.ID), zap.String("status", string(postData.Status)), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("帖子状态不允许编辑", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID), zap.String("status", string(postData.Status)))
 		return nil, errors.New("该帖子已被锁定或封禁，无法编辑")
 	}
 
@@ -297,7 +297,7 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int, req schema.Use
 
 	userData, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
-		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -307,14 +307,14 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int, req schema.Use
 	// 获取版块信息，检查是否需要自动调整阅读权限
 	categoryData, err := s.categoryRepo.GetByID(ctx, postData.CategoryID)
 	if err != nil {
-		s.logger.Error("获取版块失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取版块失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
 	// 如果版块是登录可见，且帖子阅读权限是 public，则自动变更为 login_required
 	if categoryData.Status == category.StatusLoginRequired && readPermission == post.ReadPermissionPublic {
 		readPermission = post.ReadPermissionLoginRequired
-		s.logger.Info("版块为登录可见，自动将帖子阅读权限调整为login_required", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+		s.logger.Info("版块为登录可见，自动将帖子阅读权限调整为login_required", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID))
 	}
 
 	updatedPost, err := s.postRepo.Update(ctx, req.ID, func(u *ent.PostUpdateOne) *ent.PostUpdateOne {
@@ -324,7 +324,7 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int, req schema.Use
 			SetReadPermissionPoints(req.ReadPermissionPoints)
 	})
 	if err != nil {
-		s.logger.Error("更新帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("更新帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -351,17 +351,17 @@ func (s *PostService) UpdatePost(ctx context.Context, userID int, req schema.Use
 		UpdatedAt:            updatedPost.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
-	s.logger.Info("帖子更新成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("帖子更新成功", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID))
 	return result, nil
 }
 
 // SetPostPrivate Set post as private | 设置帖子私有
 func (s *PostService) SetPostPrivate(ctx context.Context, userID int, req schema.UserPostActionRequest) (*schema.UserPostActionResponse, error) {
-	s.logger.Info("设置帖子私有", zap.Int("user_id", userID), zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("设置帖子私有", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("post_id", req.ID))
 
 	postData, err := s.postRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		s.logger.Error("获取帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -384,7 +384,7 @@ func (s *PostService) SetPostPrivate(ctx context.Context, userID int, req schema
 
 	err = s.postRepo.UpdateStatus(ctx, req.ID, targetStatus)
 	if err != nil {
-		s.logger.Error("设置帖子私有失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("设置帖子私有失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -397,18 +397,18 @@ func (s *PostService) SetPostPrivate(ctx context.Context, userID int, req schema
 		ActionType:    "private",
 	}
 
-	s.logger.Info("帖子私有设置成功", zap.Int("post_id", req.ID), zap.String("status", string(targetStatus)), tracing.WithTraceIDField(ctx))
+	s.logger.Info("帖子私有设置成功", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID), zap.String("status", string(targetStatus)))
 	return result, nil
 }
 
 // LikePost Like a post | 点赞帖子
 func (s *PostService) LikePost(ctx context.Context, userID int, req schema.UserPostActionRequest) (*schema.UserPostActionResponse, error) {
-	s.logger.Info("点赞帖子", zap.Int("user_id", userID), zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("点赞帖子", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("post_id", req.ID))
 
 	// Use stats service to perform like action | 使用统计服务执行点赞操作
 	action, err := s.postStatsService.PerformAction(ctx, userID, req.ID, "Like")
 	if err != nil {
-		s.logger.Error("点赞帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("点赞帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -421,18 +421,18 @@ func (s *PostService) LikePost(ctx context.Context, userID int, req schema.UserP
 		ActionType:    "like",
 	}
 
-	s.logger.Info("帖子点赞成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("帖子点赞成功", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID))
 	return result, nil
 }
 
 // DislikePost Dislike a post | 点踩帖子
 func (s *PostService) DislikePost(ctx context.Context, userID int, req schema.UserPostActionRequest) (*schema.UserPostActionResponse, error) {
-	s.logger.Info("点踩帖子", zap.Int("user_id", userID), zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("点踩帖子", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("post_id", req.ID))
 
 	// Use stats service to perform dislike action | 使用统计服务执行点踩操作
 	action, err := s.postStatsService.PerformAction(ctx, userID, req.ID, "Dislike")
 	if err != nil {
-		s.logger.Error("点踩帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("点踩帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -445,18 +445,18 @@ func (s *PostService) DislikePost(ctx context.Context, userID int, req schema.Us
 		ActionType:    "dislike",
 	}
 
-	s.logger.Info("帖子点踩成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("帖子点踩成功", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID))
 	return result, nil
 }
 
 // FavoritePost Favorite a post | 收藏帖子
 func (s *PostService) FavoritePost(ctx context.Context, userID int, req schema.UserPostActionRequest) (*schema.UserPostActionResponse, error) {
-	s.logger.Info("收藏帖子", zap.Int("user_id", userID), zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("收藏帖子", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("post_id", req.ID))
 
 	// First check if user has already favorited | 先检查用户是否已经收藏
 	userActionStatus, err := s.postStatsService.GetUserActionStatus(ctx, userID, req.ID)
 	if err != nil {
-		s.logger.Error("获取用户操作状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户操作状态失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -467,20 +467,20 @@ func (s *PostService) FavoritePost(ctx context.Context, userID int, req schema.U
 		// Already favorited, cancel favorite | 已经收藏,执行取消收藏
 		postStats, err = s.postStatsService.CancelAction(ctx, userID, req.ID, "Favorite")
 		if err != nil {
-			s.logger.Error("取消收藏失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("取消收藏失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return nil, err
 		}
 		actionType = "unfavorite"
-		s.logger.Info("取消收藏帖子成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+		s.logger.Info("取消收藏帖子成功", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID))
 	} else {
 		// Not favorited, perform favorite | 未收藏,执行收藏
 		postStats, err = s.postStatsService.PerformAction(ctx, userID, req.ID, "Favorite")
 		if err != nil {
-			s.logger.Error("收藏帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("收藏帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return nil, err
 		}
 		actionType = "favorite"
-		s.logger.Info("收藏帖子成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+		s.logger.Info("收藏帖子成功", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID))
 	}
 
 	// Build response data | 构建响应数据
@@ -497,7 +497,7 @@ func (s *PostService) FavoritePost(ctx context.Context, userID int, req schema.U
 
 // GetPostList Get post list | 获取帖子列表
 func (s *PostService) GetPostList(ctx context.Context, currentUserID int, req schema.UserPostListRequest) (*schema.UserPostListResponse, error) {
-	s.logger.Info("获取帖子列表", zap.Int("category_id", req.CategoryID), zap.String("slug", req.Slug), zap.String("keyword", req.Keyword), zap.Int("page", req.Page), zap.Int("page_size", req.PageSize), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取帖子列表", tracing.WithTraceIDField(ctx), zap.Int("category_id", req.CategoryID), zap.String("slug", req.Slug), zap.String("keyword", req.Keyword), zap.Int("page", req.Page), zap.Int("page_size", req.PageSize))
 
 	s.validateAndSetDefaults(&req) // Validate and set default values | 验证并设置默认值
 
@@ -514,7 +514,7 @@ func (s *PostService) GetPostList(ctx context.Context, currentUserID int, req sc
 
 	posts, total, err := s.queryNormalPosts(ctx, categoryID, req, excludeLoginRequiredCatIDs) // Query normal posts | 查询普通帖子
 	if err != nil {
-		s.logger.Error("获取帖子列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取帖子列表失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -563,7 +563,7 @@ func (s *PostService) getLoginRequiredCategoryIDs(ctx context.Context, isLoggedI
 	}
 	catIDs, err := s.categoryRepo.GetLoginRequiredCategoryIDs(ctx)
 	if err != nil {
-		s.logger.Warn("获取登录可见版块ID列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("获取登录可见版块ID列表失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil
 	}
 	return catIDs
@@ -574,13 +574,13 @@ func (s *PostService) resolveCategoryID(ctx context.Context, slug string, catego
 	if slug != "" && categoryID == 0 {
 		categoryData, err := s.categoryRepo.GetBySlug(ctx, slug) // Get category by slug | 通过slug获取版块
 		if err != nil {
-			s.logger.Warn("通过slug获取版块失败", zap.String("slug", slug), zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Warn("通过slug获取版块失败", tracing.WithTraceIDField(ctx), zap.String("slug", slug), zap.Error(err))
 			return 0, err
 		}
 		categoryID = categoryData.ID
 
 		if !isLoggedIn && categoryData.Status == category.StatusLoginRequired {
-			s.logger.Warn("未登录用户尝试访问登录可见版块", zap.String("slug", slug), tracing.WithTraceIDField(ctx))
+			s.logger.Warn("未登录用户尝试访问登录可见版块", tracing.WithTraceIDField(ctx), zap.String("slug", slug))
 			return 0, errors.New("login required") // Return error if not logged in | 未登录返回错误
 		}
 	}
@@ -588,7 +588,7 @@ func (s *PostService) resolveCategoryID(ctx context.Context, slug string, catego
 	if categoryID > 0 && !isLoggedIn {
 		categoryData, err := s.categoryRepo.GetByID(ctx, categoryID) // Get category by ID | 通过ID获取版块
 		if err == nil && categoryData.Status == category.StatusLoginRequired {
-			s.logger.Warn("未登录用户尝试访问登录可见版块", zap.Int("category_id", categoryID), tracing.WithTraceIDField(ctx))
+			s.logger.Warn("未登录用户尝试访问登录可见版块", tracing.WithTraceIDField(ctx), zap.Int("category_id", categoryID))
 			return 0, errors.New("login required") // Return error if not logged in | 未登录返回错误
 		}
 	}
@@ -618,7 +618,7 @@ func (s *PostService) queryPinnedPosts(ctx context.Context, categoryID int, page
 		ExcludeLoginRequiredCatIDs: excludeLoginRequiredCatIDs,
 	})
 	if err != nil {
-		s.logger.Error("获取置顶帖子列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取置顶帖子列表失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil
 	}
 
@@ -657,7 +657,7 @@ func (s *PostService) batchGetUserInfo(ctx context.Context, posts []*ent.Post) m
 
 	users, err := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername, user.FieldAvatar}) // Batch query users | 批量查询用户
 	if err != nil {
-		s.logger.Warn("批量查询用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("批量查询用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return make(map[int]struct {
 			ID       int
 			Username string
@@ -699,7 +699,7 @@ func (s *PostService) batchGetCategoryInfo(ctx context.Context, posts []*ent.Pos
 
 	categories, err := s.categoryRepo.GetByIDsWithFields(ctx, categoryIDList, []string{category.FieldID, category.FieldName}) // Batch query categories | 批量查询版块
 	if err != nil {
-		s.logger.Warn("批量查询版块信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("批量查询版块信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return make(map[int]string)
 	}
 
@@ -728,7 +728,7 @@ func (s *PostService) getUserLikeStatus(ctx context.Context, currentUserID int, 
 
 	actions, err := s.postActionRepo.GetUserActionsForPosts(ctx, currentUserID, postIDs) // Get user actions | 获取用户操作记录
 	if err != nil {
-		s.logger.Warn("查询用户点赞状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("查询用户点赞状态失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return make(map[int]map[string]bool)
 	}
 
@@ -752,7 +752,7 @@ func (s *PostService) getUserLikeStatus(ctx context.Context, currentUserID int, 
 func (s *PostService) batchGetStats(ctx context.Context, postIDs []int) map[int]*stats.Stats {
 	statsMap, err := s.postStatsService.GetStatsMap(ctx, postIDs) // Get real-time stats | 获取实时统计数据
 	if err != nil {
-		s.logger.Warn("获取实时统计数据失败，将使用数据库中的旧数据", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("获取实时统计数据失败，将使用数据库中的旧数据", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return make(map[int]*stats.Stats)
 	}
 	return statsMap
@@ -845,11 +845,11 @@ func (s *PostService) buildEmptyPostListResponse(req schema.UserPostListRequest)
 
 // GetPostDetail Get post detail | 获取帖子详情
 func (s *PostService) GetPostDetail(ctx context.Context, currentUserID int, req schema.UserPostDetailRequest) (*schema.UserPostDetailResponse, error) {
-	s.logger.Info("获取帖子详情", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取帖子详情", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID))
 
 	postData, err := s.postRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		s.logger.Error("获取帖子详情失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取帖子详情失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -858,7 +858,7 @@ func (s *PostService) GetPostDetail(ctx context.Context, currentUserID int, req 
 
 	// Check post status (only allow Normal and Locked for non-authors) | 检查帖子状态（非作者只允许Normal和Locked）
 	if !isAuthor && postData.Status != post.StatusNormal && postData.Status != post.StatusLocked {
-		s.logger.Warn("帖子状态不允许访问", zap.Int("post_id", req.ID), zap.String("status", string(postData.Status)), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("帖子状态不允许访问", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID), zap.String("status", string(postData.Status)))
 		return nil, errors.New("帖子不存在或已删除")
 	}
 
@@ -866,14 +866,14 @@ func (s *PostService) GetPostDetail(ctx context.Context, currentUserID int, req 
 	if !isAuthor {
 		hasPermission, reason := s.checkReadPermission(ctx, postData.ReadPermission, postData.ReadPermissionPoints, currentUserID)
 		if !hasPermission {
-			s.logger.Warn("用户无阅读权限", zap.Int("post_id", req.ID), zap.Int("user_id", currentUserID), zap.String("reason", reason), tracing.WithTraceIDField(ctx))
+			s.logger.Warn("用户无阅读权限", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID), zap.Int("user_id", currentUserID), zap.String("reason", reason))
 			return nil, &NoPermissionError{Reason: reason}
 		}
 	}
 
 	// Update view count (use stats service to reduce database pressure) | 更新浏览数(使用统计服务,减少数据库压力)
 	if err = s.postStatsService.IncrViewCount(ctx, req.ID); err != nil {
-		s.logger.Warn("增加帖子浏览数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("增加帖子浏览数失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		// Don't affect main process | 不影响主要流程
 	}
 
@@ -884,7 +884,7 @@ func (s *PostService) GetPostDetail(ctx context.Context, currentUserID int, req 
 	favoriteCount := postData.FavoriteCount
 	viewCount := postData.ViewCount
 	if err != nil {
-		s.logger.Warn("获取实时统计数据失败，将使用数据库中的旧数据", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("获取实时统计数据失败，将使用数据库中的旧数据", tracing.WithTraceIDField(ctx), zap.Error(err))
 	} else {
 		likeCount = statsData.LikeCount
 		dislikeCount = statsData.DislikeCount
@@ -910,7 +910,7 @@ func (s *PostService) GetPostDetail(ctx context.Context, currentUserID int, req 
 	if currentUserID != 0 {
 		actions, err := s.postActionRepo.GetUserActionsForPosts(ctx, currentUserID, []int{req.ID})
 		if err != nil {
-			s.logger.Debug("查询用户操作状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Debug("查询用户操作状态失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		} else {
 			for _, action := range actions {
 				switch action.ActionType {
@@ -950,13 +950,13 @@ func (s *PostService) GetPostDetail(ctx context.Context, currentUserID int, req 
 		UpdatedAt:            postData.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
-	s.logger.Info("获取帖子详情成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取帖子详情成功", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID))
 	return result, nil
 }
 
 // GetDraftList Get draft list | 获取草稿列表
 func (s *PostService) GetDraftList(ctx context.Context, userID int, req schema.UserDraftListRequest) (*schema.UserPostListResponse, error) {
-	s.logger.Info("获取草稿列表", zap.Int("user_id", userID), zap.Int("page", req.Page), zap.Int("page_size", req.PageSize), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取草稿列表", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("page", req.Page), zap.Int("page_size", req.PageSize))
 
 	// Set default values | 设置默认值
 	if req.Page <= 0 {
@@ -973,7 +973,7 @@ func (s *PostService) GetDraftList(ctx context.Context, userID int, req schema.U
 		PageSize: req.PageSize,
 	})
 	if err != nil {
-		s.logger.Error("获取草稿列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取草稿列表失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -989,7 +989,7 @@ func (s *PostService) GetDraftList(ctx context.Context, userID int, req schema.U
 	}
 	categories, err := s.categoryRepo.GetByIDsWithFields(ctx, categoryIDList, []string{category.FieldID, category.FieldName})
 	if err != nil {
-		s.logger.Warn("批量查询版块信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("批量查询版块信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 	}
 	categoryMap := make(map[int]string)
 	for _, c := range categories {
@@ -999,7 +999,7 @@ func (s *PostService) GetDraftList(ctx context.Context, userID int, req schema.U
 	// Get user info | 获取用户信息
 	userData, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
-		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -1031,7 +1031,7 @@ func (s *PostService) GetDraftList(ctx context.Context, userID int, req schema.U
 
 	totalPages := (total + req.PageSize - 1) / req.PageSize
 
-	s.logger.Info("草稿列表获取成功", zap.Int("total", total), tracing.WithTraceIDField(ctx))
+	s.logger.Info("草稿列表获取成功", tracing.WithTraceIDField(ctx), zap.Int("total", total))
 	return &schema.UserPostListResponse{
 		Posts:      result,
 		Total:      total,
@@ -1043,12 +1043,12 @@ func (s *PostService) GetDraftList(ctx context.Context, userID int, req schema.U
 
 // DeleteDraft Delete draft | 删除草稿
 func (s *PostService) DeleteDraft(ctx context.Context, userID int, req schema.UserDraftDeleteRequest) error {
-	s.logger.Info("删除草稿", zap.Int("user_id", userID), zap.Int("draft_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("删除草稿", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("draft_id", req.ID))
 
 	// Get draft post | 获取草稿帖子
 	draftPost, err := s.postRepo.GetByIDWithStatus(ctx, req.ID, post.StatusDraft)
 	if err != nil {
-		s.logger.Error("获取草稿失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取草稿失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
@@ -1060,11 +1060,11 @@ func (s *PostService) DeleteDraft(ctx context.Context, userID int, req schema.Us
 	// Delete draft | 删除草稿
 	err = s.db.Post.DeleteOneID(req.ID).Exec(ctx)
 	if err != nil {
-		s.logger.Error("删除草稿失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("删除草稿失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
-	s.logger.Info("草稿删除成功", zap.Int("draft_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("草稿删除成功", tracing.WithTraceIDField(ctx), zap.Int("draft_id", req.ID))
 	return nil
 }
 
@@ -1076,7 +1076,7 @@ func (s *PostService) CheckEditPermission(ctx context.Context, userID, postID in
 	// Check if within limit period | 检查是否在限制期内
 	lastEditTime, err := s.cache.Get(ctx, redisKey)
 	if err != nil {
-		s.logger.Error("获取编辑限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取编辑限制失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return false, fmt.Errorf("获取编辑限制失败: %w", err)
 	}
 
@@ -1084,14 +1084,14 @@ func (s *PostService) CheckEditPermission(ctx context.Context, userID, postID in
 		// Parse last edit time | 解析最后编辑时间
 		lastTime, err := time.Parse(time.RFC3339, lastEditTime)
 		if err != nil {
-			s.logger.Error("解析最后编辑时间失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("解析最后编辑时间失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			// Parse failed, allow operation | 解析失败，允许操作
 			return true, nil
 		}
 
 		// Check if within three minutes | 检查是否在三分钟内
 		if time.Since(lastTime) < 3*time.Minute {
-			s.logger.Warn("编辑操作过于频繁", zap.Int("user_id", userID), zap.Int("post_id", postID), tracing.WithTraceIDField(ctx))
+			s.logger.Warn("编辑操作过于频繁", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("post_id", postID))
 			return false, nil
 		}
 	}
@@ -1100,7 +1100,7 @@ func (s *PostService) CheckEditPermission(ctx context.Context, userID, postID in
 	currentTime := time.Now().Format(time.RFC3339)
 	err = s.cache.SetEx(ctx, redisKey, currentTime, 180) // 180 seconds = 3 minutes | 180秒 = 3分钟
 	if err != nil {
-		s.logger.Error("设置编辑限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("设置编辑限制失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		// Set failed, but allow operation | 设置失败，但允许操作
 		return true, nil
 	}
@@ -1116,7 +1116,7 @@ func (s *PostService) CheckPrivatePermission(ctx context.Context, userID, postID
 	// Check if within limit period | 检查是否在限制期内
 	lastPrivateTime, err := s.cache.Get(ctx, redisKey)
 	if err != nil {
-		s.logger.Error("获取私有设置限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取私有设置限制失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return false, fmt.Errorf("获取私有设置限制失败: %w", err)
 	}
 
@@ -1124,14 +1124,14 @@ func (s *PostService) CheckPrivatePermission(ctx context.Context, userID, postID
 		// Parse last private setting time | 解析最后私有设置时间
 		lastTime, err := time.Parse(time.RFC3339, lastPrivateTime)
 		if err != nil {
-			s.logger.Error("解析最后私有设置时间失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("解析最后私有设置时间失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			// Parse failed, allow operation | 解析失败，允许操作
 			return true, nil
 		}
 
 		// Check if within three days | 检查是否在三日内
 		if time.Since(lastTime) < 3*24*time.Hour {
-			s.logger.Warn("私有设置操作过于频繁", zap.Int("user_id", userID), zap.Int("post_id", postID), tracing.WithTraceIDField(ctx))
+			s.logger.Warn("私有设置操作过于频繁", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("post_id", postID))
 			return false, nil
 		}
 	}
@@ -1140,7 +1140,7 @@ func (s *PostService) CheckPrivatePermission(ctx context.Context, userID, postID
 	currentTime := time.Now().Format(time.RFC3339)
 	err = s.cache.SetEx(ctx, redisKey, currentTime, 259200) // 259200 seconds = 3 days | 259200秒 = 3天
 	if err != nil {
-		s.logger.Error("设置私有限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("设置私有限制失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		// Set failed, but allow operation | 设置失败，但允许操作
 		return true, nil
 	}
@@ -1152,7 +1152,7 @@ func (s *PostService) CheckPrivatePermission(ctx context.Context, userID, postID
 func (s *PostService) checkUserStatus(ctx context.Context, userID int) error {
 	userData, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
-		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
@@ -1161,7 +1161,7 @@ func (s *PostService) checkUserStatus(ctx context.Context, userID int) error {
 		// Check if email verification is required | 检查是否需要验证邮箱
 		verifyEmail, err := s.settingsService.GetSettingByKey(ctx, _const.SafeVerifyEmail, "false")
 		if err != nil {
-			s.logger.Warn("获取邮箱验证配置失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Warn("获取邮箱验证配置失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			verifyEmail = "false"
 		}
 		if verifyEmail == _const.SettingBoolTrue.String() && !userData.EmailVerified {
@@ -1202,7 +1202,7 @@ func (s *PostService) checkReadPermission(ctx context.Context, readPermission po
 		// Get user points | 获取用户积分
 		userData, err := s.userRepo.GetByID(ctx, currentUserID)
 		if err != nil {
-			s.logger.Error("获取用户信息失败，拒绝访问", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("获取用户信息失败，拒绝访问", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return false, "获取用户信息失败，无法验证阅读权限"
 		}
 
@@ -1213,7 +1213,7 @@ func (s *PostService) checkReadPermission(ctx context.Context, readPermission po
 	}
 
 	// Unknown permission type, deny access and log error | 未知权限类型，拒绝访问并记录错误
-	s.logger.Error("未知的阅读权限类型，拒绝访问", zap.String("read_permission", string(readPermission)), tracing.WithTraceIDField(ctx))
+	s.logger.Error("未知的阅读权限类型，拒绝访问", tracing.WithTraceIDField(ctx), zap.String("read_permission", string(readPermission)))
 	return false, "阅读权限配置异常，暂时无法访问"
 }
 

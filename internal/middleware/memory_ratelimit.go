@@ -21,16 +21,8 @@ func newSlidingWindow(windowSize time.Duration) *slidingWindow {
 	}
 }
 
-// add Add a request timestamp | 添加请求时间戳
-func (sw *slidingWindow) add(timestamp int64) {
-	sw.mu.Lock()
-	defer sw.mu.Unlock()
-
-	sw.requests = append(sw.requests, timestamp) // Add timestamp to list | 添加时间戳到列表
-}
-
-// cleanup Remove expired requests | 清理过期请求
-func (sw *slidingWindow) cleanup(now int64) {
+// checkAndAdd Check limit and add current request atomically | 原子检查限流并添加当前请求
+func (sw *slidingWindow) checkAndAdd(now int64, maxCount int) (bool, int) {
 	sw.mu.Lock()
 	defer sw.mu.Unlock()
 
@@ -43,43 +35,34 @@ func (sw *slidingWindow) cleanup(now int64) {
 		}
 	}
 	sw.requests = validRequests // Update request list | 更新请求列表
-}
 
-// count Count requests within the window | 统计窗口内请求数
-func (sw *slidingWindow) count(now int64) int {
-	sw.mu.Lock()
-	defer sw.mu.Unlock()
-
-	windowStart := now - int64(sw.windowSize) // Calculate window start time | 计算窗口开始时间
-	count := 0
-	for _, req := range sw.requests {
-		if req > windowStart {
-			count++ // Count valid requests | 统计有效请求数
-		}
+	currentCount := len(sw.requests)
+	if currentCount >= maxCount {
+		return false, currentCount
 	}
-	return count
+	sw.requests = append(sw.requests, now) // Add current request | 添加当前请求
+	return true, currentCount
 }
 
 // memoryRateLimiter Memory-based rate limiter | 基于内存的限流器
 type memoryRateLimiter struct {
-	mu       sync.RWMutex              // Read-write mutex | 读写互斥锁
-	windows  map[string]*slidingWindow // Sliding windows for each key | 每个键的滑动窗口
-	maxCount int                       // Maximum requests per window | 每个窗口最大请求数
+	mu      sync.RWMutex              // Read-write mutex | 读写互斥锁
+	windows map[string]*slidingWindow // Sliding windows for each key | 每个键的滑动窗口
 }
 
 // newMemoryRateLimiter Create a new memory rate limiter | 创建新的内存限流器
-func newMemoryRateLimiter(maxCount int) *memoryRateLimiter {
+func newMemoryRateLimiter() *memoryRateLimiter {
 	return &memoryRateLimiter{
-		windows:  make(map[string]*slidingWindow), // Initialize windows map | 初始化窗口映射
-		maxCount: maxCount,
+		windows: make(map[string]*slidingWindow), // Initialize windows map | 初始化窗口映射
 	}
 }
 
 // check Check if request is allowed | 检查请求是否允许
 func (mrl *memoryRateLimiter) check(key string, config RateLimitConfig) (bool, int, int64, error) {
-	now := time.Now().UnixNano()
+	nowTime := time.Now()
+	now := nowTime.UnixNano()
 	windowSize := time.Duration(config.WindowSize) * time.Second
-	resetTime := now + int64(windowSize)
+	resetTime := nowTime.Add(windowSize).Unix()
 
 	mrl.mu.RLock()
 	window, exists := mrl.windows[key] // Get existing window | 获取已存在的窗口
@@ -95,24 +78,20 @@ func (mrl *memoryRateLimiter) check(key string, config RateLimitConfig) (bool, i
 		mrl.mu.Unlock()
 	}
 
-	window.cleanup(now) // Clean up expired requests | 清理过期请求
-
-	currentCount := window.count(now)
-	remaining := mrl.maxCount - currentCount - 1
+	allowed, currentCount := window.checkAndAdd(now, config.MaxRequests)
+	remaining := config.MaxRequests - currentCount - 1
 	if remaining < 0 {
 		remaining = 0 // Ensure remaining is not negative | 确保剩余数不为负
 	}
 
-	if currentCount >= mrl.maxCount {
+	if !allowed {
 		return false, 0, resetTime, nil // Rate limit exceeded | 超过限流
 	}
-
-	window.add(now) // Add current request | 添加当前请求
 
 	return true, remaining, resetTime, nil
 }
 
-var globalMemoryRateLimiter = newMemoryRateLimiter(100) // Global memory rate limiter | 全局内存限流器
+var globalMemoryRateLimiter = newMemoryRateLimiter() // Global memory rate limiter | 全局内存限流器
 
 // checkMemoryRateLimit Check rate limit using memory limiter | 使用内存限流器检查限流
 func checkMemoryRateLimit(_ context.Context, key string, config RateLimitConfig) (bool, int, int64, error) {

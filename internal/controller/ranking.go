@@ -44,13 +44,13 @@ func (ctrl *RankingController) RankingRouter(router *gin.RouterGroup) {
 func (ctrl *RankingController) GetReadingRanking(c *gin.Context) {
 	var req schema.RankingRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "请求参数错误", err.Error())
 		return
 	}
 
 	result, err := ctrl.rankingService.GetReadingRanking(c.Request.Context(), req)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "获取阅读排行榜失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "获取阅读排行榜失败", err.Error())
 		return
 	}
 
@@ -71,13 +71,13 @@ func (ctrl *RankingController) GetReadingRanking(c *gin.Context) {
 func (ctrl *RankingController) GetPostCountRanking(c *gin.Context) {
 	var req schema.RankingRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "请求参数错误", err.Error())
 		return
 	}
 
 	result, err := ctrl.rankingService.GetPostCountRanking(c.Request.Context(), req)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "获取帖子数排行榜失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "获取帖子数排行榜失败", err.Error())
 		return
 	}
 
@@ -98,13 +98,13 @@ func (ctrl *RankingController) GetPostCountRanking(c *gin.Context) {
 func (ctrl *RankingController) GetCommentCountRanking(c *gin.Context) {
 	var req schema.RankingRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "请求参数错误", err.Error())
 		return
 	}
 
 	result, err := ctrl.rankingService.GetCommentCountRanking(c.Request.Context(), req)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "获取评论数排行榜失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "获取评论数排行榜失败", err.Error())
 		return
 	}
 
@@ -125,13 +125,13 @@ func (ctrl *RankingController) GetCommentCountRanking(c *gin.Context) {
 func (ctrl *RankingController) GetFollowerRanking(c *gin.Context) {
 	var req schema.RankingRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "请求参数错误", err.Error())
 		return
 	}
 
 	result, err := ctrl.rankingService.GetFollowerRanking(c.Request.Context(), req)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "获取名人榜失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "获取名人榜失败", err.Error())
 		return
 	}
 
@@ -152,13 +152,13 @@ func (ctrl *RankingController) GetFollowerRanking(c *gin.Context) {
 func (ctrl *RankingController) GetPointsRanking(c *gin.Context) {
 	var req schema.RankingRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "请求参数错误", err.Error())
 		return
 	}
 
 	result, err := ctrl.rankingService.GetPointsRanking(c.Request.Context(), req)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "获取积分榜失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "获取积分榜失败", err.Error())
 		return
 	}
 
@@ -179,13 +179,13 @@ func (ctrl *RankingController) GetPointsRanking(c *gin.Context) {
 func (ctrl *RankingController) GetCurrencyRanking(c *gin.Context) {
 	var req schema.RankingRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "请求参数错误", err.Error())
 		return
 	}
 
 	result, err := ctrl.rankingService.GetCurrencyRanking(c.Request.Context(), req)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "获取财富榜失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "获取财富榜失败", err.Error())
 		return
 	}
 

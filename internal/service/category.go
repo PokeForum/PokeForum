@@ -44,7 +44,7 @@ func NewCategoryService(categoryRepo repository.ICategoryRepository, cacheServic
 // Locked: 所有人可见，但不允许发帖
 // Hidden: 不在列表返回，但可通过URL直接访问
 func (s *CategoryService) GetUserCategories(ctx context.Context, isLoggedIn bool) (*schema.UserCategoryResponse, error) {
-	s.logger.Info("获取用户版块列表", zap.Bool("is_logged_in", isLoggedIn), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取用户版块列表", tracing.WithTraceIDField(ctx), zap.Bool("is_logged_in", isLoggedIn))
 
 	// 根据登录状态选择缓存key
 	cacheKey := _const.UserCategoryListCacheKey
@@ -65,7 +65,7 @@ func (s *CategoryService) GetUserCategories(ctx context.Context, isLoggedIn bool
 	// 缓存未命中，从数据库查询
 	categories, err := s.categoryRepo.GetVisibleCategories(ctx, isLoggedIn)
 	if err != nil {
-		s.logger.Error("获取用户版块列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户版块列表失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取版块列表失败: %w", err)
 	}
 
@@ -89,10 +89,10 @@ func (s *CategoryService) GetUserCategories(ctx context.Context, isLoggedIn bool
 	// 写入缓存，30天过期
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		s.logger.Warn("序列化用户版块列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("序列化用户版块列表失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 	} else {
 		if err := s.cache.SetEx(ctx, cacheKey, resultJSON, 30*24*60*60); err != nil {
-			s.logger.Warn("写入用户版块列表缓存失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Warn("写入用户版块列表缓存失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		}
 	}
 

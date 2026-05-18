@@ -104,33 +104,37 @@ func (s *SigninAsyncTask) HandleSigninTask(ctx context.Context, t *asynq.Task) e
 
 	startTime := time.Now()
 	s.logger.Info("Start processing sign-in task | 开始处理签到任务",
-		zap.Int64("user_id", payload.UserID),
+
+		tracing.WithTraceIDField(ctx), zap.Int64("user_id", payload.UserID),
 		zap.String("trace_id", payload.TraceID),
-		tracing.WithTraceIDField(ctx))
+	)
 
 	// Handle sign-in status table | 处理签到状态表
 	if err := s.updateSigninStatus(ctx, &payload); err != nil {
 		s.logger.Error("Failed to update sign-in status | 更新签到状态失败",
-			zap.Int64("user_id", payload.UserID),
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", payload.UserID),
 			zap.Error(err),
-			tracing.WithTraceIDField(ctx))
+		)
 		return err
 	}
 
 	// Handle sign-in log table | 处理签到日志表
 	if err := s.insertSigninLog(ctx, &payload); err != nil {
 		s.logger.Error("Failed to insert sign-in log | 插入签到日志失败",
-			zap.Int64("user_id", payload.UserID),
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", payload.UserID),
 			zap.Error(err),
-			tracing.WithTraceIDField(ctx))
+		)
 		return err
 	}
 
 	duration := time.Since(startTime)
 	s.logger.Info("Sign-in task processing completed | 签到任务处理完成",
-		zap.Int64("user_id", payload.UserID),
+
+		tracing.WithTraceIDField(ctx), zap.Int64("user_id", payload.UserID),
 		zap.Duration("duration", duration),
-		tracing.WithTraceIDField(ctx))
+	)
 
 	return nil
 }
@@ -156,11 +160,12 @@ func (s *SigninAsyncTask) updateSigninStatus(ctx context.Context, payload *Signi
 	}
 
 	s.logger.Debug("Sign-in status updated successfully | 签到状态更新成功",
-		zap.Int64("user_id", payload.UserID),
+
+		tracing.WithTraceIDField(ctx), zap.Int64("user_id", payload.UserID),
 		zap.Time("sign_date", payload.SignDate),
 		zap.Int("continuous_days", payload.ContinuousDays),
 		zap.Int("total_days", payload.TotalDays),
-		tracing.WithTraceIDField(ctx))
+	)
 
 	return nil
 }
@@ -176,9 +181,10 @@ func (s *SigninAsyncTask) insertSigninLog(ctx context.Context, payload *SigninTa
 
 	if exists {
 		s.logger.Debug("Sign-in log already exists, skip insertion | 签到日志已存在，跳过插入",
-			zap.Int64("user_id", payload.UserID),
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", payload.UserID),
 			zap.Time("sign_date", payload.SignDate),
-			tracing.WithTraceIDField(ctx))
+		)
 		return nil
 	}
 
@@ -190,9 +196,10 @@ func (s *SigninAsyncTask) insertSigninLog(ctx context.Context, payload *SigninTa
 	}
 
 	s.logger.Debug("Sign-in log inserted successfully | 签到日志插入成功",
-		zap.Int64("user_id", payload.UserID),
+
+		tracing.WithTraceIDField(ctx), zap.Int64("user_id", payload.UserID),
 		zap.Time("sign_date", payload.SignDate),
-		tracing.WithTraceIDField(ctx))
+	)
 
 	return nil
 }

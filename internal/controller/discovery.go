@@ -38,7 +38,7 @@ func (ctrl *DiscoveryController) DiscoveryRouter(router *gin.RouterGroup) {
 func (ctrl *DiscoveryController) GetFreshPosts(c *gin.Context) {
 	result, err := ctrl.discoveryService.GetFreshPosts(c.Request.Context())
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "获取新鲜发布帖子失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "获取新鲜发布帖子失败", err.Error())
 		return
 	}
 
@@ -57,7 +57,7 @@ func (ctrl *DiscoveryController) GetFreshPosts(c *gin.Context) {
 func (ctrl *DiscoveryController) GetLatestDiscussions(c *gin.Context) {
 	result, err := ctrl.discoveryService.GetLatestDiscussions(c.Request.Context())
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "获取最新讨论失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "获取最新讨论失败", err.Error())
 		return
 	}
 
@@ -76,7 +76,7 @@ func (ctrl *DiscoveryController) GetLatestDiscussions(c *gin.Context) {
 func (ctrl *DiscoveryController) GetInteractiveComments(c *gin.Context) {
 	result, err := ctrl.discoveryService.GetInteractiveComments(c.Request.Context())
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "获取互动评论失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "获取互动评论失败", err.Error())
 		return
 	}
 

@@ -53,14 +53,14 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 	// Get user ID | 获取用户ID
 	userID, err := ctrl.GetUserID(c)
 	if err != nil {
-		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeNeedLogin, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
 	}
 
 	// Parse request parameters | 解析请求参数
 	var req schema.UserCommentCreateRequest
 	if err = c.ShouldBindJSON(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "Invalid request parameters | 请求参数错误", err.Error())
 		return
 	}
 
@@ -74,7 +74,7 @@ func (ctrl *CommentController) CreateComment(c *gin.Context) {
 	// Call service to create comment | 调用服务创建评论
 	result, err := ctrl.commentService.CreateComment(c.Request.Context(), userID, clientIP, deviceInfo, req)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "Failed to create comment | 创建评论失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "Failed to create comment | 创建评论失败", err.Error())
 		return
 	}
 
@@ -99,21 +99,21 @@ func (ctrl *CommentController) UpdateComment(c *gin.Context) {
 	// Get user ID | 获取用户ID
 	userID, err := ctrl.GetUserID(c)
 	if err != nil {
-		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeNeedLogin, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
 	}
 
 	// Parse request parameters | 解析请求参数
 	var req schema.UserCommentUpdateRequest
 	if err = c.ShouldBindJSON(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "Invalid request parameters | 请求参数错误", err.Error())
 		return
 	}
 
 	// Call service to update comment | 调用服务更新评论
 	result, err := ctrl.commentService.UpdateComment(c.Request.Context(), userID, req)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "Failed to update comment | 更新评论失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "Failed to update comment | 更新评论失败", err.Error())
 		return
 	}
 
@@ -137,21 +137,21 @@ func (ctrl *CommentController) LikeComment(c *gin.Context) {
 	// Get user ID | 获取用户ID
 	userID, err := ctrl.GetUserID(c)
 	if err != nil {
-		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeNeedLogin, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
 	}
 
 	// Parse request parameters | 解析请求参数
 	var req schema.UserCommentActionRequest
 	if err = c.ShouldBindJSON(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "Invalid request parameters | 请求参数错误", err.Error())
 		return
 	}
 
 	// Call service to like comment | 调用服务点赞评论
 	result, err := ctrl.commentService.LikeComment(c.Request.Context(), userID, req)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "Failed to like comment | 点赞评论失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "Failed to like comment | 点赞评论失败", err.Error())
 		return
 	}
 
@@ -175,21 +175,21 @@ func (ctrl *CommentController) DislikeComment(c *gin.Context) {
 	// Get user ID | 获取用户ID
 	userID, err := ctrl.GetUserID(c)
 	if err != nil {
-		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeNeedLogin, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
 	}
 
 	// Parse request parameters | 解析请求参数
 	var req schema.UserCommentActionRequest
 	if err = c.ShouldBindJSON(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "Invalid request parameters | 请求参数错误", err.Error())
 		return
 	}
 
 	// Call service to dislike comment | 调用服务点踩评论
 	result, err := ctrl.commentService.DislikeComment(c.Request.Context(), userID, req)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "Failed to dislike comment | 点踩评论失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "Failed to dislike comment | 点踩评论失败", err.Error())
 		return
 	}
 
@@ -216,7 +216,7 @@ func (ctrl *CommentController) GetCommentList(c *gin.Context) {
 	// Parse request parameters | 解析请求参数
 	var req schema.UserCommentListRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "Invalid request parameters | 请求参数错误", err.Error())
 		return
 	}
 
@@ -234,7 +234,7 @@ func (ctrl *CommentController) GetCommentList(c *gin.Context) {
 	// Call service to get comment list | 调用服务获取评论列表
 	result, err := ctrl.commentService.GetCommentList(c.Request.Context(), currentUserID, req)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "Failed to get comment list | 获取评论列表失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "Failed to get comment list | 获取评论列表失败", err.Error())
 		return
 	}
 

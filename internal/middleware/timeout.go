@@ -2,12 +2,9 @@ package middleware
 
 import (
 	"context"
-	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
-
-	"github.com/PokeForum/PokeForum/internal/pkg/response"
 )
 
 // Timeout 请求超时控制中间件
@@ -24,24 +21,6 @@ func Timeout(timeout time.Duration) gin.HandlerFunc {
 
 		// 替换请求的 context
 		c.Request = c.Request.WithContext(ctx)
-
-		// 创建完成通道
-		done := make(chan struct{})
-
-		go func() {
-			c.Next()
-			close(done)
-		}()
-
-		select {
-		case <-done:
-			// 请求正常完成
-			return
-		case <-ctx.Done():
-			// 请求超时
-			c.Abort()
-			response.ResErrorWithHTTPStatus(c, http.StatusGatewayTimeout, response.CodeServerBusy, "Request timeout | 请求超时")
-			return
-		}
+		c.Next()
 	}
 }

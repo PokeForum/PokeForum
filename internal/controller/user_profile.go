@@ -67,7 +67,7 @@ func (ctrl *UserProfileController) GetProfileOverview(c *gin.Context) {
 	// Parse user ID from query parameters | 解析查询参数中的用户ID
 	var req schema.UserProfileOverviewRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "Invalid request parameters | 请求参数错误", err.Error())
 		return
 	}
 
@@ -78,7 +78,7 @@ func (ctrl *UserProfileController) GetProfileOverview(c *gin.Context) {
 	if currentUserID == 0 {
 		// Guest mode, must provide user_id | 游客模式，必须提供user_id
 		if req.UserID <= 0 {
-			response.ResErrorWithMsg(c, 400, "user_id is required for guest access | 游客访问时必须提供user_id参数", "")
+			response.ResErrorWithMsg(c, response.CodeInvalidParam, "user_id is required for guest access | 游客访问时必须提供user_id参数", "")
 			return
 		}
 		targetUserID = req.UserID
@@ -95,7 +95,7 @@ func (ctrl *UserProfileController) GetProfileOverview(c *gin.Context) {
 	// Call service to get profile overview | 调用服务获取个人中心概览
 	result, err := ctrl.userProfileService.GetProfileOverview(c.Request.Context(), targetUserID, isOwner)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "获取个人中心概览失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "获取个人中心概览失败", err.Error())
 		return
 	}
 
@@ -125,7 +125,7 @@ func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
 	// Parse request parameters | 解析请求参数
 	var req schema.UserProfilePostsRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "Invalid request parameters | 请求参数错误", err.Error())
 		return
 	}
 
@@ -144,7 +144,7 @@ func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
 	if currentUserID == 0 {
 		// Guest mode, must provide user_id | 游客模式，必须提供user_id
 		if req.UserID <= 0 {
-			response.ResErrorWithMsg(c, 400, "user_id is required for guest access | 游客访问时必须提供user_id参数", "")
+			response.ResErrorWithMsg(c, response.CodeInvalidParam, "user_id is required for guest access | 游客访问时必须提供user_id参数", "")
 			return
 		}
 		targetUserID = req.UserID
@@ -161,7 +161,7 @@ func (ctrl *UserProfileController) GetUserPosts(c *gin.Context) {
 	// Call service to get user posts list | 调用服务获取用户主题帖列表
 	result, err := ctrl.userProfileService.GetUserPosts(c.Request.Context(), targetUserID, req, isOwner)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "获取用户主题帖列表失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "获取用户主题帖列表失败", err.Error())
 		return
 	}
 
@@ -190,7 +190,7 @@ func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
 	// Parse request parameters | 解析请求参数
 	var req schema.UserProfileCommentsRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "Invalid request parameters | 请求参数错误", err.Error())
 		return
 	}
 
@@ -209,7 +209,7 @@ func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
 	if currentUserID == 0 {
 		// Guest mode, must provide user_id | 游客模式，必须提供user_id
 		if req.UserID <= 0 {
-			response.ResErrorWithMsg(c, 400, "user_id is required for guest access | 游客访问时必须提供user_id参数", "")
+			response.ResErrorWithMsg(c, response.CodeInvalidParam, "user_id is required for guest access | 游客访问时必须提供user_id参数", "")
 			return
 		}
 		targetUserID = req.UserID
@@ -226,7 +226,7 @@ func (ctrl *UserProfileController) GetUserComments(c *gin.Context) {
 	// Call service to get user comments list | 调用服务获取用户评论列表
 	result, err := ctrl.userProfileService.GetUserComments(c.Request.Context(), targetUserID, req, isOwner)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "获取用户评论列表失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "获取用户评论列表失败", err.Error())
 		return
 	}
 
@@ -255,7 +255,7 @@ func (ctrl *UserProfileController) GetUserFavorites(c *gin.Context) {
 	// Parse request parameters | 解析请求参数
 	var req schema.UserProfileFavoritesRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "Invalid request parameters | 请求参数错误", err.Error())
 		return
 	}
 
@@ -274,7 +274,7 @@ func (ctrl *UserProfileController) GetUserFavorites(c *gin.Context) {
 	if currentUserID == 0 {
 		// Guest mode, must provide user_id | 游客模式，必须提供user_id
 		if req.UserID <= 0 {
-			response.ResErrorWithMsg(c, 400, "user_id is required for guest access | 游客访问时必须提供user_id参数", "")
+			response.ResErrorWithMsg(c, response.CodeInvalidParam, "user_id is required for guest access | 游客访问时必须提供user_id参数", "")
 			return
 		}
 		targetUserID = req.UserID
@@ -291,7 +291,7 @@ func (ctrl *UserProfileController) GetUserFavorites(c *gin.Context) {
 	// Call service to get user favorites list | 调用服务获取用户收藏列表
 	result, err := ctrl.userProfileService.GetUserFavorites(c.Request.Context(), targetUserID, req, isOwner)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "获取用户收藏列表失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "获取用户收藏列表失败", err.Error())
 		return
 	}
 
@@ -315,21 +315,21 @@ func (ctrl *UserProfileController) UpdatePassword(c *gin.Context) {
 	// Get user ID | 获取用户ID
 	userID := ctrl.GetUserIDOrZero(c)
 	if userID == 0 {
-		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", "")
+		response.ResErrorWithMsg(c, response.CodeNeedLogin, "Failed to get user information | 获取用户信息失败", "")
 		return
 	}
 
 	// Parse request parameters | 解析请求参数
 	var req schema.UserUpdatePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "Invalid request parameters | 请求参数错误", err.Error())
 		return
 	}
 
 	// Call service to update password | 调用服务修改密码
 	result, err := ctrl.userProfileService.UpdatePassword(c.Request.Context(), userID, req)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "修改密码失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "修改密码失败", err.Error())
 		return
 	}
 
@@ -353,21 +353,21 @@ func (ctrl *UserProfileController) UpdateAvatar(c *gin.Context) {
 	// Get user ID | 获取用户ID
 	userID := ctrl.GetUserIDOrZero(c)
 	if userID == 0 {
-		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", "")
+		response.ResErrorWithMsg(c, response.CodeNeedLogin, "Failed to get user information | 获取用户信息失败", "")
 		return
 	}
 
 	// Parse request parameters | 解析请求参数
 	var req schema.UserUpdateAvatarRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "Invalid request parameters | 请求参数错误", err.Error())
 		return
 	}
 
 	// Call service to update avatar | 调用服务修改头像
 	result, err := ctrl.userProfileService.UpdateAvatar(c.Request.Context(), userID, req)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "修改头像失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "修改头像失败", err.Error())
 		return
 	}
 
@@ -392,21 +392,21 @@ func (ctrl *UserProfileController) UpdateUsername(c *gin.Context) {
 	// Get user ID | 获取用户ID
 	userID := ctrl.GetUserIDOrZero(c)
 	if userID == 0 {
-		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", "")
+		response.ResErrorWithMsg(c, response.CodeNeedLogin, "Failed to get user information | 获取用户信息失败", "")
 		return
 	}
 
 	// Parse request parameters | 解析请求参数
 	var req schema.UserUpdateUsernameRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.ResErrorWithMsg(c, 400, "Invalid request parameters | 请求参数错误", err.Error())
+		response.ResErrorWithMsg(c, response.CodeInvalidParam, "Invalid request parameters | 请求参数错误", err.Error())
 		return
 	}
 
 	// Call service to update username | 调用服务修改用户名
 	result, err := ctrl.userProfileService.UpdateUsername(c.Request.Context(), userID, req)
 	if err != nil {
-		response.ResErrorWithMsg(c, 500, "Failed to update username | 修改用户名失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeGenericError, "Failed to update username | 修改用户名失败", err.Error())
 		return
 	}
 

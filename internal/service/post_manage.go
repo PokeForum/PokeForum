@@ -106,7 +106,7 @@ func (s *PostManageService) GetPostList(ctx context.Context, req schema.PostList
 	// Get total count | 获取总数
 	total, err := s.postRepo.CountWithCondition(ctx, conditionFunc)
 	if err != nil {
-		s.logger.Error("获取帖子总数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取帖子总数失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取帖子总数失败: %w", err)
 	}
 
@@ -117,7 +117,7 @@ func (s *PostManageService) GetPostList(ctx context.Context, req schema.PostList
 			Offset((req.Page - 1) * req.PageSize)
 	}, req.PageSize)
 	if err != nil {
-		s.logger.Error("获取帖子列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取帖子列表失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取帖子列表失败: %w", err)
 	}
 
@@ -136,7 +136,7 @@ func (s *PostManageService) GetPostList(ctx context.Context, req schema.PostList
 	}
 	users, err := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername, user.FieldAvatar})
 	if err != nil {
-		s.logger.Warn("批量查询用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("批量查询用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 	}
 	userMap := make(map[int]string)
 	avatarMap := make(map[int]string)
@@ -152,7 +152,7 @@ func (s *PostManageService) GetPostList(ctx context.Context, req schema.PostList
 	}
 	categories, err := s.categoryRepo.GetByIDsWithFields(ctx, categoryIDList, []string{category.FieldID, category.FieldName})
 	if err != nil {
-		s.logger.Warn("批量查询版块信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("批量查询版块信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 	}
 	categoryMap := make(map[int]string)
 	for _, c := range categories {
@@ -206,7 +206,7 @@ func (s *PostManageService) GetPostList(ctx context.Context, req schema.PostList
 
 // UpdatePost Update post information | 更新帖子信息
 func (s *PostManageService) UpdatePost(ctx context.Context, req schema.UserPostCreateRequest) (*schema.UserPostUpdateResponse, error) {
-	s.logger.Info("更新帖子信息", zap.Int("id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("更新帖子信息", tracing.WithTraceIDField(ctx), zap.Int("id", req.ID))
 
 	// Check if post ID is provided | 检查是否提供了帖子ID
 	if req.ID == 0 {
@@ -225,7 +225,7 @@ func (s *PostManageService) UpdatePost(ctx context.Context, req schema.UserPostC
 			SetReadPermissionPoints(req.ReadPermissionPoints)
 	})
 	if err != nil {
-		s.logger.Error("更新帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("更新帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -271,33 +271,33 @@ func (s *PostManageService) UpdatePost(ctx context.Context, req schema.UserPostC
 		UpdatedAt:            updatedPost.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
-	s.logger.Info("帖子更新成功", zap.Int("id", updatedPost.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("帖子更新成功", tracing.WithTraceIDField(ctx), zap.Int("id", updatedPost.ID))
 	return result, nil
 }
 
 // UpdatePostStatus Update post status | 更新帖子状态
 func (s *PostManageService) UpdatePostStatus(ctx context.Context, req schema.PostStatusUpdateRequest) error {
-	s.logger.Info("更新帖子状态", zap.Int("id", req.ID), zap.String("status", req.Status), tracing.WithTraceIDField(ctx))
+	s.logger.Info("更新帖子状态", tracing.WithTraceIDField(ctx), zap.Int("id", req.ID), zap.String("status", req.Status))
 
 	// Update status | 更新状态
 	err := s.postRepo.UpdateStatus(ctx, req.ID, post.Status(req.Status))
 	if err != nil {
-		s.logger.Error("更新帖子状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("更新帖子状态失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
-	s.logger.Info("帖子状态更新成功", zap.Int("id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("帖子状态更新成功", tracing.WithTraceIDField(ctx), zap.Int("id", req.ID))
 	return nil
 }
 
 // GetPostDetail Get post detail | 获取帖子详情
 func (s *PostManageService) GetPostDetail(ctx context.Context, id int) (*schema.PostDetailResponse, error) {
-	s.logger.Info("获取帖子详情", zap.Int("id", id), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取帖子详情", tracing.WithTraceIDField(ctx), zap.Int("id", id))
 
 	// Get post information | 获取帖子信息
 	p, err := s.postRepo.GetByID(ctx, id)
 	if err != nil {
-		s.logger.Error("获取帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -344,24 +344,24 @@ func (s *PostManageService) GetPostDetail(ctx context.Context, id int) (*schema.
 
 // SetPostEssence Set post as essence | 设置帖子精华
 func (s *PostManageService) SetPostEssence(ctx context.Context, req schema.PostEssenceUpdateRequest) error {
-	s.logger.Info("设置帖子精华", zap.Int("id", req.ID), zap.Bool("is_essence", req.IsEssence), tracing.WithTraceIDField(ctx))
+	s.logger.Info("设置帖子精华", tracing.WithTraceIDField(ctx), zap.Int("id", req.ID), zap.Bool("is_essence", req.IsEssence))
 
 	// Set essence status | 设置精华状态
 	_, err := s.postRepo.Update(ctx, req.ID, func(u *ent.PostUpdateOne) *ent.PostUpdateOne {
 		return u.SetIsEssence(req.IsEssence)
 	})
 	if err != nil {
-		s.logger.Error("设置帖子精华失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("设置帖子精华失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
-	s.logger.Info("帖子精华设置成功", zap.Int("id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("帖子精华设置成功", tracing.WithTraceIDField(ctx), zap.Int("id", req.ID))
 	return nil
 }
 
 // SetPostPin Set post as pinned | 设置帖子置顶
 func (s *PostManageService) SetPostPin(ctx context.Context, req schema.PostPinUpdateRequest) error {
-	s.logger.Info("设置帖子置顶", zap.Int("id", req.ID), zap.Bool("is_pinned", req.IsPinned), zap.String("pin_scope", req.PinScope), tracing.WithTraceIDField(ctx))
+	s.logger.Info("设置帖子置顶", tracing.WithTraceIDField(ctx), zap.Int("id", req.ID), zap.Bool("is_pinned", req.IsPinned), zap.String("pin_scope", req.PinScope))
 
 	// Set pinned status and pin scope | 设置置顶状态和置顶范围
 	_, err := s.postRepo.Update(ctx, req.ID, func(u *ent.PostUpdateOne) *ent.PostUpdateOne {
@@ -376,22 +376,22 @@ func (s *PostManageService) SetPostPin(ctx context.Context, req schema.PostPinUp
 		return u
 	})
 	if err != nil {
-		s.logger.Error("设置帖子置顶失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("设置帖子置顶失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
-	s.logger.Info("帖子置顶设置成功", zap.Int("id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("帖子置顶设置成功", tracing.WithTraceIDField(ctx), zap.Int("id", req.ID))
 	return nil
 }
 
 // MovePost Move post to another category | 移动帖子到其他版块
 func (s *PostManageService) MovePost(ctx context.Context, req schema.PostMoveRequest) error {
-	s.logger.Info("移动帖子", zap.Int("id", req.ID), zap.Int("category_id", req.CategoryID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("移动帖子", tracing.WithTraceIDField(ctx), zap.Int("id", req.ID), zap.Int("category_id", req.CategoryID))
 
 	// Check if post exists | 检查帖子是否存在
 	postExists, err := s.postRepo.ExistsByID(ctx, req.ID)
 	if err != nil {
-		s.logger.Error("检查帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("检查帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("检查帖子失败: %w", err)
 	}
 	if !postExists {
@@ -401,7 +401,7 @@ func (s *PostManageService) MovePost(ctx context.Context, req schema.PostMoveReq
 	// Check if target category exists | 检查目标版块是否存在
 	categoryExists, err := s.categoryRepo.ExistsByID(ctx, req.CategoryID)
 	if err != nil {
-		s.logger.Error("检查目标版块失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("检查目标版块失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("检查目标版块失败: %w", err)
 	}
 	if !categoryExists {
@@ -413,26 +413,26 @@ func (s *PostManageService) MovePost(ctx context.Context, req schema.PostMoveReq
 		return u.SetCategoryID(req.CategoryID)
 	})
 	if err != nil {
-		s.logger.Error("移动帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("移动帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
-	s.logger.Info("帖子移动成功", zap.Int("id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("帖子移动成功", tracing.WithTraceIDField(ctx), zap.Int("id", req.ID))
 	return nil
 }
 
 // DeletePost Delete post (soft delete, set status to Ban) | 删除帖子（软删除，状态设为Ban）
 func (s *PostManageService) DeletePost(ctx context.Context, id int) error {
-	s.logger.Info("删除帖子", zap.Int("id", id), tracing.WithTraceIDField(ctx))
+	s.logger.Info("删除帖子", tracing.WithTraceIDField(ctx), zap.Int("id", id))
 
 	// Soft delete: set status to Ban | 软删除：将状态设为Ban
 	err := s.postRepo.UpdateStatus(ctx, id, post.StatusBan)
 	if err != nil {
-		s.logger.Error("删除帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("删除帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
-	s.logger.Info("帖子删除成功", zap.Int("id", id), tracing.WithTraceIDField(ctx))
+	s.logger.Info("帖子删除成功", tracing.WithTraceIDField(ctx), zap.Int("id", id))
 	return nil
 }
 

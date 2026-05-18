@@ -81,15 +81,16 @@ func NewPostStatsService(db *ent.Client, repos *repository.Repositories, cacheSe
 // PerformAction Perform post action (like/dislike/favorite) | 执行帖子操作(点赞/点踩/收藏)
 func (s *PostStatsService) PerformAction(ctx context.Context, userID, postID int, actionType stats.ActionType) (*stats.Stats, error) {
 	s.logger.Info("执行帖子操作",
-		zap.Int("user_id", userID),
+
+		tracing.WithTraceIDField(ctx), zap.Int("user_id", userID),
 		zap.Int("post_id", postID),
 		zap.String("action_type", string(actionType)),
-		tracing.WithTraceIDField(ctx))
+	)
 
 	// Check if post exists | 检查帖子是否存在
 	exists, err := s.postRepo.ExistsByID(ctx, postID)
 	if err != nil {
-		s.logger.Error("检查帖子是否存在失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("检查帖子是否存在失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("检查帖子是否存在失败: %w", err)
 	}
 	if !exists {
@@ -99,7 +100,7 @@ func (s *PostStatsService) PerformAction(ctx context.Context, userID, postID int
 	// Start database transaction | 开启数据库事务
 	tx, err := s.db.Tx(ctx)
 	if err != nil {
-		s.logger.Error("开启事务失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("开启事务失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("开启事务失败: %w", err)
 	}
 	defer func() {
@@ -119,7 +120,7 @@ func (s *PostStatsService) PerformAction(ctx context.Context, userID, postID int
 		Only(ctx)
 	if err != nil && !ent.IsNotFound(err) {
 		_ = tx.Rollback() //nolint:errcheck // No need to handle rollback failure during error handling | 错误处理时回滚失败无需处理
-		s.logger.Error("查询操作记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("查询操作记录失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("查询操作记录失败: %w", err)
 	}
 
@@ -146,7 +147,7 @@ func (s *PostStatsService) PerformAction(ctx context.Context, userID, postID int
 			Exec(ctx)
 		if err != nil {
 			_ = tx.Rollback() //nolint:errcheck // No need to handle rollback failure during error handling | 错误处理时回滚失败无需处理
-			s.logger.Error("删除相反操作失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("删除相反操作失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return nil, fmt.Errorf("删除相反操作失败: %w", err)
 		}
 
@@ -170,13 +171,13 @@ func (s *PostStatsService) PerformAction(ctx context.Context, userID, postID int
 		Save(ctx)
 	if err != nil {
 		_ = tx.Rollback() //nolint:errcheck // No need to handle rollback failure during error handling | 错误处理时回滚失败无需处理
-		s.logger.Error("创建操作记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("创建操作记录失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("创建操作记录失败: %w", err)
 	}
 
 	// Commit transaction | 提交事务
 	if err = tx.Commit(); err != nil {
-		s.logger.Error("提交事务失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("提交事务失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("提交事务失败: %w", err)
 	}
 
@@ -192,17 +193,18 @@ func (s *PostStatsService) PerformAction(ctx context.Context, userID, postID int
 	// Mark post as dirty data | 标记帖子为脏数据
 	_ = s.statsHelper.MarkDirty(ctx, stats.PostDirtySetKey, postID) //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 
-	s.logger.Info("执行帖子操作成功", zap.Int("post_id", postID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("执行帖子操作成功", tracing.WithTraceIDField(ctx), zap.Int("post_id", postID))
 	return s.GetStats(ctx, postID)
 }
 
 // CancelAction Cancel post action | 取消帖子操作
 func (s *PostStatsService) CancelAction(ctx context.Context, userID, postID int, actionType stats.ActionType) (*stats.Stats, error) {
 	s.logger.Info("取消帖子操作",
-		zap.Int("user_id", userID),
+
+		tracing.WithTraceIDField(ctx), zap.Int("user_id", userID),
 		zap.Int("post_id", postID),
 		zap.String("action_type", string(actionType)),
-		tracing.WithTraceIDField(ctx))
+	)
 
 	// Delete action record | 删除操作记录
 	deletedCount, err := s.db.PostAction.Delete().
@@ -213,7 +215,7 @@ func (s *PostStatsService) CancelAction(ctx context.Context, userID, postID int,
 		).
 		Exec(ctx)
 	if err != nil {
-		s.logger.Error("删除操作记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("删除操作记录失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("删除操作记录失败: %w", err)
 	}
 
@@ -234,7 +236,7 @@ func (s *PostStatsService) CancelAction(ctx context.Context, userID, postID int,
 	// Mark post as dirty data | 标记帖子为脏数据
 	_ = s.statsHelper.MarkDirty(ctx, stats.PostDirtySetKey, postID) //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 
-	s.logger.Info("取消帖子操作成功", zap.Int("post_id", postID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("取消帖子操作成功", tracing.WithTraceIDField(ctx), zap.Int("post_id", postID))
 	return s.GetStats(ctx, postID)
 }
 
@@ -268,7 +270,7 @@ func (s *PostStatsService) GetStats(ctx context.Context, postID int) (*stats.Sta
 	// Redis cache miss, read from database | Redis未命中,从数据库读取
 	postData, err := s.postRepo.GetByID(ctx, postID)
 	if err != nil {
-		s.logger.Error("从数据库获取帖子统计失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("从数据库获取帖子统计失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -312,7 +314,7 @@ func (s *PostStatsService) GetUserActionStatus(ctx context.Context, userID, post
 		).
 		All(ctx)
 	if err != nil {
-		s.logger.Error("从数据库获取用户操作状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("从数据库获取用户操作状态失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("从数据库获取用户操作状态失败: %w", err)
 	}
 
@@ -370,7 +372,7 @@ func (s *PostStatsService) SyncStatsToDatabase(ctx context.Context) (int, error)
 	// Get all dirty data IDs | 获取所有脏数据ID
 	dirtyIDs, err := s.statsHelper.GetDirtyIDs(ctx, stats.PostDirtySetKey)
 	if err != nil {
-		s.logger.Error("获取脏数据ID失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取脏数据ID失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return 0, err
 	}
 
@@ -378,7 +380,7 @@ func (s *PostStatsService) SyncStatsToDatabase(ctx context.Context) (int, error)
 		return 0, nil
 	}
 
-	s.logger.Info("需要同步的帖子数量", zap.Int("count", len(dirtyIDs)), tracing.WithTraceIDField(ctx))
+	s.logger.Info("需要同步的帖子数量", tracing.WithTraceIDField(ctx), zap.Int("count", len(dirtyIDs)))
 
 	syncCount := 0
 	// Batch processing, 100 items at a time | 批量处理,每次处理100个
@@ -396,9 +398,10 @@ func (s *PostStatsService) SyncStatsToDatabase(ctx context.Context) (int, error)
 	}
 
 	s.logger.Info("同步帖子统计数据完成",
-		zap.Int("total", len(dirtyIDs)),
+
+		tracing.WithTraceIDField(ctx), zap.Int("total", len(dirtyIDs)),
 		zap.Int("success", syncCount),
-		tracing.WithTraceIDField(ctx))
+	)
 
 	return syncCount, nil
 }
@@ -419,7 +422,7 @@ func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) int {
 			).
 			Count(ctx)
 		if err != nil {
-			s.logger.Error("统计点赞数失败", zap.Int("post_id", postID), zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("统计点赞数失败", tracing.WithTraceIDField(ctx), zap.Int("post_id", postID), zap.Error(err))
 			continue
 		}
 
@@ -431,7 +434,7 @@ func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) int {
 			).
 			Count(ctx)
 		if err != nil {
-			s.logger.Error("统计点踩数失败", zap.Int("post_id", postID), zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("统计点踩数失败", tracing.WithTraceIDField(ctx), zap.Int("post_id", postID), zap.Error(err))
 			continue
 		}
 
@@ -443,7 +446,7 @@ func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) int {
 			).
 			Count(ctx)
 		if err != nil {
-			s.logger.Error("统计收藏数失败", zap.Int("post_id", postID), zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("统计收藏数失败", tracing.WithTraceIDField(ctx), zap.Int("post_id", postID), zap.Error(err))
 			continue
 		}
 
@@ -467,10 +470,10 @@ func (s *PostStatsService) syncBatch(ctx context.Context, postIDs []int) int {
 				// Post has been deleted, clean dirty mark and cache | 帖子已被删除,清理脏标记和缓存
 				_ = s.statsHelper.RemoveDirtyIDs(ctx, stats.PostDirtySetKey, []int{postID}) //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
 				_ = s.statsHelper.DeleteStatsCache(ctx, statsKey)                           //nolint:errcheck // Redis operation failure doesn't affect main flow | Redis操作失败不影响主流程
-				s.logger.Warn("帖子不存在,已清理缓存", zap.Int("post_id", postID), tracing.WithTraceIDField(ctx))
+				s.logger.Warn("帖子不存在,已清理缓存", tracing.WithTraceIDField(ctx), zap.Int("post_id", postID))
 				continue
 			}
-			s.logger.Error("更新帖子统计失败", zap.Int("post_id", postID), zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("更新帖子统计失败", tracing.WithTraceIDField(ctx), zap.Int("post_id", postID), zap.Error(err))
 			continue
 		}
 

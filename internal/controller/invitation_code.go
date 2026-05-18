@@ -54,7 +54,7 @@ func (ctrl *InvitationCodeController) GenerateInvitationCode(c *gin.Context) {
 	// Get user ID | 获取用户ID
 	userID, err := ctrl.GetUserID(c)
 	if err != nil {
-		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeNeedLogin, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
 	}
 
@@ -102,7 +102,7 @@ func (ctrl *InvitationCodeController) GetMyInvitationCodes(c *gin.Context) {
 	// Get user ID | 获取用户ID
 	userID, err := ctrl.GetUserID(c)
 	if err != nil {
-		response.ResErrorWithMsg(c, 401, "Failed to get user information | 获取用户信息失败", err.Error())
+		response.ResErrorWithMsg(c, response.CodeNeedLogin, "Failed to get user information | 获取用户信息失败", err.Error())
 		return
 	}
 

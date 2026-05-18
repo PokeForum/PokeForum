@@ -77,23 +77,26 @@ func NewSigninService(
 func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.SigninResult, error) {
 	traceID := tracing.GetTraceID(ctx)
 	s.logger.Info("开始处理签到请求",
-		zap.Int64("user_id", userID),
-		tracing.WithTraceIDField(ctx))
+
+		tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
+	)
 
 	// 检查签到功能是否启用
 	enabled, err := s.isSigninEnabled(ctx)
 	if err != nil {
 		s.logger.Error("检查签到功能状态失败",
-			zap.Int64("user_id", userID),
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
 			zap.Error(err),
-			tracing.WithTraceIDField(ctx))
+		)
 		return nil, err
 	}
 
 	if !enabled {
 		s.logger.Warn("签到功能未启用",
-			zap.Int64("user_id", userID),
-			tracing.WithTraceIDField(ctx))
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
+		)
 		return nil, errors.New("签到功能未启用")
 	}
 
@@ -101,16 +104,18 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 	userExists, err := s.userRepo.ExistsByID(ctx, int(userID))
 	if err != nil {
 		s.logger.Error("检查用户存在性失败",
-			zap.Int64("user_id", userID),
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
 			zap.Error(err),
-			tracing.WithTraceIDField(ctx))
+		)
 		return nil, errors.New("检查用户失败")
 	}
 
 	if !userExists {
 		s.logger.Warn("用户不存在",
-			zap.Int64("user_id", userID),
-			tracing.WithTraceIDField(ctx))
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
+		)
 		return nil, errors.New("用户不存在")
 	}
 
@@ -125,16 +130,18 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 
 	if err != nil {
 		s.logger.Error("获取签到锁失败",
-			zap.Int64("user_id", userID),
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
 			zap.Error(err),
-			tracing.WithTraceIDField(ctx))
+		)
 		return nil, errors.New("获取资源失败")
 	}
 
 	if !lockAcquired {
 		s.logger.Warn("获取签到锁超时，可能有重复签到请求",
-			zap.Int64("user_id", userID),
-			tracing.WithTraceIDField(ctx))
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
+		)
 		return nil, errors.New("获取资源失败")
 	}
 
@@ -143,9 +150,10 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 		err = s.redisLock.Unlock(ctx, lockKey, lockValue)
 		if err != nil {
 			s.logger.Error("释放签到锁失败",
-				zap.Int64("user_id", userID),
+
+				tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
 				zap.Error(err),
-				tracing.WithTraceIDField(ctx))
+			)
 		}
 	}()
 
@@ -154,16 +162,18 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 	todaySigned, err := s.isTodaySigned(ctx, userID, today)
 	if err != nil {
 		s.logger.Error("检查今日签到状态失败",
-			zap.Int64("user_id", userID),
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
 			zap.Error(err),
-			tracing.WithTraceIDField(ctx))
+		)
 		return nil, errors.New("操作失败")
 	}
 
 	if todaySigned {
 		s.logger.Info("用户今日已签到",
-			zap.Int64("user_id", userID),
-			tracing.WithTraceIDField(ctx))
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
+		)
 		return nil, errors.New("今日已签到")
 	}
 
@@ -171,9 +181,10 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 	status, err := s.getUserSigninStatus(ctx, userID)
 	if err != nil {
 		s.logger.Error("获取用户签到状态失败",
-			zap.Int64("user_id", userID),
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
 			zap.Error(err),
-			tracing.WithTraceIDField(ctx))
+		)
 		return nil, err
 	}
 
@@ -182,9 +193,10 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 	rewardPoints, rewardExperience, err := s.calculateReward(ctx, continuousDays)
 	if err != nil {
 		s.logger.Error("计算签到奖励失败",
-			zap.Int64("user_id", userID),
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
 			zap.Error(err),
-			tracing.WithTraceIDField(ctx))
+		)
 		return nil, err
 	}
 
@@ -192,9 +204,10 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 	err = s.updateRedisSigninStatus(ctx, userID, today, continuousDays, totalDays)
 	if err != nil {
 		s.logger.Error("更新Redis签到状态失败",
-			zap.Int64("user_id", userID),
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
 			zap.Error(err),
-			tracing.WithTraceIDField(ctx))
+		)
 		return nil, errors.New("操作失败")
 	}
 
@@ -202,9 +215,10 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 	err = s.updateRanking(ctx, userID, today, rewardPoints, continuousDays)
 	if err != nil {
 		s.logger.Error("更新排行榜失败",
-			zap.Int64("user_id", userID),
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
 			zap.Error(err),
-			tracing.WithTraceIDField(ctx))
+		)
 		// 排行榜更新失败不影响签到流程
 	}
 
@@ -224,9 +238,10 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 	err = s.asyncTask.SubmitTask(ctx, payload)
 	if err != nil {
 		s.logger.Error("提交异步任务失败",
-			zap.Int64("user_id", userID),
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
 			zap.Error(err),
-			tracing.WithTraceIDField(ctx))
+		)
 		// 异步任务提交失败，返回用户友好的提示
 		return nil, errors.New("系统繁忙，请稍后重试")
 	}
@@ -235,9 +250,10 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 	err = s.updateUserBalance(ctx, userID, rewardPoints, rewardExperience)
 	if err != nil {
 		s.logger.Error("更新用户积分失败",
-			zap.Int64("user_id", userID),
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
 			zap.Error(err),
-			tracing.WithTraceIDField(ctx))
+		)
 		return nil, errors.New("操作失败")
 	}
 
@@ -253,10 +269,11 @@ func (s *SigninService) Signin(ctx context.Context, userID int64) (*schema.Signi
 	}
 
 	s.logger.Info("签到处理完成",
-		zap.Int64("user_id", userID),
+
+		tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
 		zap.Int("reward_points", rewardPoints),
 		zap.Int("continuous_days", continuousDays),
-		tracing.WithTraceIDField(ctx))
+	)
 
 	return result, nil
 }
@@ -288,9 +305,10 @@ func (s *SigninService) getUserSigninStatus(ctx context.Context, userID int64) (
 	statusMap, err := s.cache.HGetAll(ctx, statusKey)
 	if err != nil {
 		s.logger.Error("从Redis获取签到状态失败",
-			zap.Int64("user_id", userID),
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
 			zap.Error(err),
-			tracing.WithTraceIDField(ctx))
+		)
 		// Redis失败时从数据库获取
 		return s.getSigninStatusFromDB(ctx, userID)
 	}
@@ -594,9 +612,10 @@ func (s *SigninService) updateUserBalance(ctx context.Context, userID int64, poi
 	err = s.createBalanceLog(ctx, userID, balanceLogTypePoints, points, "签到奖励")
 	if err != nil {
 		s.logger.Error("记录积分变动日志失败",
-			zap.Int64("user_id", userID),
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
 			zap.Error(err),
-			tracing.WithTraceIDField(ctx))
+		)
 		// 日志记录失败不影响主流程
 	}
 
@@ -604,9 +623,10 @@ func (s *SigninService) updateUserBalance(ctx context.Context, userID int64, poi
 	err = s.createBalanceLog(ctx, userID, balanceLogTypeExperience, experience, "签到奖励")
 	if err != nil {
 		s.logger.Error("记录经验变动日志失败",
-			zap.Int64("user_id", userID),
+
+			tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
 			zap.Error(err),
-			tracing.WithTraceIDField(ctx))
+		)
 		// 日志记录失败不影响主流程
 	}
 
@@ -666,8 +686,9 @@ func (s *SigninService) buildSigninMessage(continuousDays, rewardPoints int) str
 // GetSigninStatus 获取用户签到状态
 func (s *SigninService) GetSigninStatus(ctx context.Context, userID int64) (*schema.SigninStatus, error) {
 	s.logger.Info("开始获取签到状态",
-		zap.Int64("user_id", userID),
-		tracing.WithTraceIDField(ctx))
+
+		tracing.WithTraceIDField(ctx), zap.Int64("user_id", userID),
+	)
 
 	return s.getUserSigninStatus(ctx, userID)
 }
@@ -675,10 +696,11 @@ func (s *SigninService) GetSigninStatus(ctx context.Context, userID int64) (*sch
 // GetDailyRanking 获取每日签到排行榜（按奖励积分排序）
 func (s *SigninService) GetDailyRanking(ctx context.Context, date string, limit int, userID int64) (*schema.SigninRankingResponse, error) {
 	s.logger.Info("获取每日签到排行榜",
-		zap.String("date", date),
+
+		tracing.WithTraceIDField(ctx), zap.String("date", date),
 		zap.Int("limit", limit),
 		zap.Int64("user_id", userID),
-		tracing.WithTraceIDField(ctx))
+	)
 
 	// 如果没有指定日期，使用今天
 	if date == "" {
@@ -696,9 +718,10 @@ func (s *SigninService) GetDailyRanking(ctx context.Context, date string, limit 
 	members, err := s.cache.ZRevRangeWithScores(ctx, dailyRankingKey, 0, int64(limit-1))
 	if err != nil {
 		s.logger.Error("获取排行榜数据失败",
-			zap.String("date", date),
+
+			tracing.WithTraceIDField(ctx), zap.String("date", date),
 			zap.Error(err),
-			tracing.WithTraceIDField(ctx))
+		)
 		return nil, errors.New("获取排行榜失败")
 	}
 
@@ -715,8 +738,9 @@ func (s *SigninService) GetDailyRanking(ctx context.Context, date string, limit 
 		users, err := s.userRepo.GetByIDs(ctx, userIDs)
 		if err != nil {
 			s.logger.Error("查询用户信息失败",
-				zap.Error(err),
-				tracing.WithTraceIDField(ctx))
+
+				tracing.WithTraceIDField(ctx), zap.Error(err),
+			)
 		} else {
 			for _, u := range users {
 				userMap[u.ID] = u
@@ -760,9 +784,10 @@ func (s *SigninService) GetDailyRanking(ctx context.Context, date string, limit 
 // GetContinuousRanking Get continuous sign-in ranking | 获取连续签到排行榜（按连续天数排序）
 func (s *SigninService) GetContinuousRanking(ctx context.Context, limit int, userID int64) (*schema.SigninRankingResponse, error) {
 	s.logger.Info("获取连续签到排行榜",
-		zap.Int("limit", limit),
+
+		tracing.WithTraceIDField(ctx), zap.Int("limit", limit),
 		zap.Int64("user_id", userID),
-		tracing.WithTraceIDField(ctx))
+	)
 
 	// 限制最多100名
 	if limit > 100 {
@@ -775,8 +800,9 @@ func (s *SigninService) GetContinuousRanking(ctx context.Context, limit int, use
 	members, err := s.cache.ZRevRangeWithScores(ctx, continuousRankingKey, 0, int64(limit-1))
 	if err != nil {
 		s.logger.Error("获取连续签到排行榜数据失败",
-			zap.Error(err),
-			tracing.WithTraceIDField(ctx))
+
+			tracing.WithTraceIDField(ctx), zap.Error(err),
+		)
 		return nil, errors.New("获取排行榜失败")
 	}
 
@@ -793,8 +819,9 @@ func (s *SigninService) GetContinuousRanking(ctx context.Context, limit int, use
 		users, err := s.userRepo.GetByIDs(ctx, userIDs)
 		if err != nil {
 			s.logger.Error("查询用户信息失败",
-				zap.Error(err),
-				tracing.WithTraceIDField(ctx))
+
+				tracing.WithTraceIDField(ctx), zap.Error(err),
+			)
 		} else {
 			for _, u := range users {
 				userMap[u.ID] = u

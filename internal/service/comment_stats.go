@@ -75,15 +75,16 @@ func NewCommentStatsService(db *ent.Client, repos *repository.Repositories, cach
 // PerformAction Perform comment action (like/dislike) | 执行评论操作(点赞/点踩)
 func (s *CommentStatsService) PerformAction(ctx context.Context, userID, commentID int, actionType stats.ActionType) (*stats.Stats, error) {
 	s.logger.Info("执行评论操作",
-		zap.Int("user_id", userID),
+
+		tracing.WithTraceIDField(ctx), zap.Int("user_id", userID),
 		zap.Int("comment_id", commentID),
 		zap.String("action_type", string(actionType)),
-		tracing.WithTraceIDField(ctx))
+	)
 
 	// Check if comment exists | 检查评论是否存在
 	exists, err := s.commentRepo.ExistsByID(ctx, commentID)
 	if err != nil {
-		s.logger.Error("检查评论是否存在失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("检查评论是否存在失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("检查评论是否存在失败: %w", err)
 	}
 	if !exists {
@@ -93,7 +94,7 @@ func (s *CommentStatsService) PerformAction(ctx context.Context, userID, comment
 	// Start database transaction | 开启数据库事务
 	tx, err := s.db.Tx(ctx)
 	if err != nil {
-		s.logger.Error("开启事务失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("开启事务失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("开启事务失败: %w", err)
 	}
 	defer func() {
@@ -113,7 +114,7 @@ func (s *CommentStatsService) PerformAction(ctx context.Context, userID, comment
 		Only(ctx)
 	if err != nil && !ent.IsNotFound(err) {
 		_ = tx.Rollback()
-		s.logger.Error("查询操作记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("查询操作记录失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("查询操作记录失败: %w", err)
 	}
 
@@ -139,7 +140,7 @@ func (s *CommentStatsService) PerformAction(ctx context.Context, userID, comment
 		Exec(ctx)
 	if err != nil {
 		_ = tx.Rollback()
-		s.logger.Error("删除相反操作失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("删除相反操作失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("删除相反操作失败: %w", err)
 	}
 
@@ -162,13 +163,13 @@ func (s *CommentStatsService) PerformAction(ctx context.Context, userID, comment
 		Save(ctx)
 	if err != nil {
 		_ = tx.Rollback()
-		s.logger.Error("创建操作记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("创建操作记录失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("创建操作记录失败: %w", err)
 	}
 
 	// Commit transaction | 提交事务
 	if err = tx.Commit(); err != nil {
-		s.logger.Error("提交事务失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("提交事务失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("提交事务失败: %w", err)
 	}
 
@@ -184,17 +185,18 @@ func (s *CommentStatsService) PerformAction(ctx context.Context, userID, comment
 	// Mark comment as dirty data | 标记评论为脏数据
 	_ = s.statsHelper.MarkDirty(ctx, stats.CommentDirtySetKey, commentID)
 
-	s.logger.Info("执行评论操作成功", zap.Int("comment_id", commentID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("执行评论操作成功", tracing.WithTraceIDField(ctx), zap.Int("comment_id", commentID))
 	return s.GetStats(ctx, commentID)
 }
 
 // CancelAction Cancel comment action | 取消评论操作
 func (s *CommentStatsService) CancelAction(ctx context.Context, userID, commentID int, actionType stats.ActionType) (*stats.Stats, error) {
 	s.logger.Info("取消评论操作",
-		zap.Int("user_id", userID),
+
+		tracing.WithTraceIDField(ctx), zap.Int("user_id", userID),
 		zap.Int("comment_id", commentID),
 		zap.String("action_type", string(actionType)),
-		tracing.WithTraceIDField(ctx))
+	)
 
 	// Delete action record | 删除操作记录
 	deletedCount, err := s.db.CommentAction.Delete().
@@ -205,7 +207,7 @@ func (s *CommentStatsService) CancelAction(ctx context.Context, userID, commentI
 		).
 		Exec(ctx)
 	if err != nil {
-		s.logger.Error("删除操作记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("删除操作记录失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("删除操作记录失败: %w", err)
 	}
 
@@ -226,7 +228,7 @@ func (s *CommentStatsService) CancelAction(ctx context.Context, userID, commentI
 	// Mark comment as dirty data | 标记评论为脏数据
 	_ = s.statsHelper.MarkDirty(ctx, stats.CommentDirtySetKey, commentID)
 
-	s.logger.Info("取消评论操作成功", zap.Int("comment_id", commentID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("取消评论操作成功", tracing.WithTraceIDField(ctx), zap.Int("comment_id", commentID))
 	return s.GetStats(ctx, commentID)
 }
 
@@ -258,7 +260,7 @@ func (s *CommentStatsService) GetStats(ctx context.Context, commentID int) (*sta
 	// Redis cache miss, read from database | Redis未命中,从数据库读取
 	commentData, err := s.commentRepo.GetByID(ctx, commentID)
 	if err != nil {
-		s.logger.Error("从数据库获取评论统计失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("从数据库获取评论统计失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -297,7 +299,7 @@ func (s *CommentStatsService) GetUserActionStatus(ctx context.Context, userID, c
 		).
 		All(ctx)
 	if err != nil {
-		s.logger.Error("从数据库获取用户操作状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("从数据库获取用户操作状态失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("从数据库获取用户操作状态失败: %w", err)
 	}
 
@@ -339,7 +341,7 @@ func (s *CommentStatsService) SyncStatsToDatabase(ctx context.Context) (int, err
 	// Get all dirty data IDs | 获取所有脏数据ID
 	dirtyIDs, err := s.statsHelper.GetDirtyIDs(ctx, stats.CommentDirtySetKey)
 	if err != nil {
-		s.logger.Error("获取脏数据ID失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取脏数据ID失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return 0, err
 	}
 
@@ -347,7 +349,7 @@ func (s *CommentStatsService) SyncStatsToDatabase(ctx context.Context) (int, err
 		return 0, nil
 	}
 
-	s.logger.Info("需要同步的评论数量", zap.Int("count", len(dirtyIDs)), tracing.WithTraceIDField(ctx))
+	s.logger.Info("需要同步的评论数量", tracing.WithTraceIDField(ctx), zap.Int("count", len(dirtyIDs)))
 
 	syncCount := 0
 	// Batch processing, 100 items per batch | 批量处理,每次处理100个
@@ -362,16 +364,17 @@ func (s *CommentStatsService) SyncStatsToDatabase(ctx context.Context) (int, err
 		// Process this batch | 处理这一批数据
 		count, err := s.syncBatch(ctx, batch)
 		if err != nil {
-			s.logger.Error("批量同步失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("批量同步失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			continue
 		}
 		syncCount += count
 	}
 
 	s.logger.Info("同步评论统计数据完成",
-		zap.Int("total", len(dirtyIDs)),
+
+		tracing.WithTraceIDField(ctx), zap.Int("total", len(dirtyIDs)),
 		zap.Int("success", syncCount),
-		tracing.WithTraceIDField(ctx))
+	)
 
 	return syncCount, nil
 }
@@ -392,7 +395,7 @@ func (s *CommentStatsService) syncBatch(ctx context.Context, commentIDs []int) (
 			).
 			Count(ctx)
 		if err != nil {
-			s.logger.Error("统计点赞数失败", zap.Int("comment_id", commentID), zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("统计点赞数失败", tracing.WithTraceIDField(ctx), zap.Int("comment_id", commentID), zap.Error(err))
 			continue
 		}
 
@@ -404,7 +407,7 @@ func (s *CommentStatsService) syncBatch(ctx context.Context, commentIDs []int) (
 			).
 			Count(ctx)
 		if err != nil {
-			s.logger.Error("统计点踩数失败", zap.Int("comment_id", commentID), zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("统计点踩数失败", tracing.WithTraceIDField(ctx), zap.Int("comment_id", commentID), zap.Error(err))
 			continue
 		}
 
@@ -419,10 +422,10 @@ func (s *CommentStatsService) syncBatch(ctx context.Context, commentIDs []int) (
 				statsKey := stats.GetCommentStatsKey(commentID)
 				_ = s.statsHelper.RemoveDirtyIDs(ctx, stats.CommentDirtySetKey, []int{commentID})
 				_ = s.statsHelper.DeleteStatsCache(ctx, statsKey)
-				s.logger.Warn("评论不存在,已清理缓存", zap.Int("comment_id", commentID), tracing.WithTraceIDField(ctx))
+				s.logger.Warn("评论不存在,已清理缓存", tracing.WithTraceIDField(ctx), zap.Int("comment_id", commentID))
 				continue
 			}
-			s.logger.Error("更新评论统计失败", zap.Int("comment_id", commentID), zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("更新评论统计失败", tracing.WithTraceIDField(ctx), zap.Int("comment_id", commentID), zap.Error(err))
 			continue
 		}
 

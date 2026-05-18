@@ -56,7 +56,7 @@ func (s *OAuthProviderService) GetProviderList(ctx context.Context, req schema.O
 	// Query OAuth providers with filters | 查询OAuth提供商（带筛选）
 	providers, err := s.oauthRepo.List(ctx, req.Provider, req.Enabled)
 	if err != nil {
-		s.logger.Error("Failed to get OAuth provider list | 获取OAuth提供商列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to get OAuth provider list | 获取OAuth提供商列表失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取OAuth提供商列表失败: %w", err)
 	}
 
@@ -85,12 +85,12 @@ func (s *OAuthProviderService) GetProviderList(ctx context.Context, req schema.O
 
 // CreateProvider Create OAuth provider | 创建OAuth提供商
 func (s *OAuthProviderService) CreateProvider(ctx context.Context, req schema.OAuthProviderCreateRequest) (*ent.OAuthProvider, error) {
-	s.logger.Info("Create OAuth provider | 创建OAuth提供商", zap.String("provider", req.Provider), tracing.WithTraceIDField(ctx))
+	s.logger.Info("Create OAuth provider | 创建OAuth提供商", tracing.WithTraceIDField(ctx), zap.String("provider", req.Provider))
 
 	// Check if provider already exists | 检查提供商是否已存在
 	exists, err := s.oauthRepo.ExistsByProvider(ctx, req.Provider)
 	if err != nil {
-		s.logger.Error("Failed to check OAuth provider | 检查OAuth提供商失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to check OAuth provider | 检查OAuth提供商失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("检查OAuth提供商失败: %w", err)
 	}
 	if exists {
@@ -100,22 +100,22 @@ func (s *OAuthProviderService) CreateProvider(ctx context.Context, req schema.OA
 	// Create OAuth provider | 创建OAuth提供商
 	provider, err := s.oauthRepo.Create(ctx, req.Provider, req.ClientID, req.ClientSecret, req.AuthURL, req.TokenURL, req.UserInfoURL, req.Scopes, req.ExtraConfig, req.Enabled, req.SortOrder)
 	if err != nil {
-		s.logger.Error("Failed to create OAuth provider | 创建OAuth提供商失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to create OAuth provider | 创建OAuth提供商失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("创建OAuth提供商失败: %w", err)
 	}
 
-	s.logger.Info("OAuth provider created successfully | OAuth提供商创建成功", zap.Int("id", provider.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("OAuth provider created successfully | OAuth提供商创建成功", tracing.WithTraceIDField(ctx), zap.Int("id", provider.ID))
 	return provider, nil
 }
 
 // UpdateProvider Update OAuth provider information | 更新OAuth提供商信息
 func (s *OAuthProviderService) UpdateProvider(ctx context.Context, req schema.OAuthProviderUpdateRequest) (*ent.OAuthProvider, error) {
-	s.logger.Info("Update OAuth provider information | 更新OAuth提供商信息", zap.Int("id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("Update OAuth provider information | 更新OAuth提供商信息", tracing.WithTraceIDField(ctx), zap.Int("id", req.ID))
 
 	// Check if provider exists | 检查提供商是否存在
 	_, err := s.oauthRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		s.logger.Error("Failed to get OAuth provider | 获取OAuth提供商失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to get OAuth provider | 获取OAuth提供商失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -139,25 +139,26 @@ func (s *OAuthProviderService) UpdateProvider(ctx context.Context, req schema.OA
 		return u
 	})
 	if err != nil {
-		s.logger.Error("Failed to update OAuth provider | 更新OAuth提供商失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to update OAuth provider | 更新OAuth提供商失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("更新OAuth提供商失败: %w", err)
 	}
 
-	s.logger.Info("OAuth provider updated successfully | OAuth提供商更新成功", zap.Int("id", provider.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("OAuth provider updated successfully | OAuth提供商更新成功", tracing.WithTraceIDField(ctx), zap.Int("id", provider.ID))
 	return provider, nil
 }
 
 // UpdateProviderStatus Update OAuth provider status | 更新OAuth提供商状态
 func (s *OAuthProviderService) UpdateProviderStatus(ctx context.Context, req schema.OAuthProviderStatusUpdateRequest) error {
 	s.logger.Info("Update OAuth provider status | 更新OAuth提供商状态",
-		zap.Int("id", req.ID),
+
+		tracing.WithTraceIDField(ctx), zap.Int("id", req.ID),
 		zap.Bool("enabled", req.Enabled),
-		tracing.WithTraceIDField(ctx))
+	)
 
 	// Check if provider exists | 检查提供商是否存在
 	exists, err := s.oauthRepo.ExistsByID(ctx, req.ID)
 	if err != nil {
-		s.logger.Error("Failed to check OAuth provider | 检查OAuth提供商失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to check OAuth provider | 检查OAuth提供商失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("检查OAuth提供商失败: %w", err)
 	}
 	if !exists {
@@ -167,21 +168,21 @@ func (s *OAuthProviderService) UpdateProviderStatus(ctx context.Context, req sch
 	// Update status | 更新状态
 	err = s.oauthRepo.UpdateStatus(ctx, req.ID, req.Enabled)
 	if err != nil {
-		s.logger.Error("Failed to update OAuth provider status | 更新OAuth提供商状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to update OAuth provider status | 更新OAuth提供商状态失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("更新OAuth提供商状态失败: %w", err)
 	}
 
-	s.logger.Info("OAuth provider status updated successfully | OAuth提供商状态更新成功", zap.Int("id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("OAuth provider status updated successfully | OAuth提供商状态更新成功", tracing.WithTraceIDField(ctx), zap.Int("id", req.ID))
 	return nil
 }
 
 // GetProviderDetail Get OAuth provider details | 获取OAuth提供商详情
 func (s *OAuthProviderService) GetProviderDetail(ctx context.Context, id int) (*schema.OAuthProviderDetailResponse, error) {
-	s.logger.Info("Get OAuth provider details | 获取OAuth提供商详情", zap.Int("id", id), tracing.WithTraceIDField(ctx))
+	s.logger.Info("Get OAuth provider details | 获取OAuth提供商详情", tracing.WithTraceIDField(ctx), zap.Int("id", id))
 
 	provider, err := s.oauthRepo.GetByID(ctx, id)
 	if err != nil {
-		s.logger.Error("Failed to get OAuth provider details | 获取OAuth提供商详情失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to get OAuth provider details | 获取OAuth提供商详情失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -210,12 +211,12 @@ func (s *OAuthProviderService) GetProviderDetail(ctx context.Context, id int) (*
 
 // DeleteProvider Delete OAuth provider | 删除OAuth提供商
 func (s *OAuthProviderService) DeleteProvider(ctx context.Context, id int) error {
-	s.logger.Info("Delete OAuth provider | 删除OAuth提供商", zap.Int("id", id), tracing.WithTraceIDField(ctx))
+	s.logger.Info("Delete OAuth provider | 删除OAuth提供商", tracing.WithTraceIDField(ctx), zap.Int("id", id))
 
 	// Check if provider exists | 检查提供商是否存在
 	exists, err := s.oauthRepo.ExistsByID(ctx, id)
 	if err != nil {
-		s.logger.Error("Failed to check OAuth provider | 检查OAuth提供商失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to check OAuth provider | 检查OAuth提供商失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("检查OAuth提供商失败: %w", err)
 	}
 	if !exists {
@@ -225,10 +226,10 @@ func (s *OAuthProviderService) DeleteProvider(ctx context.Context, id int) error
 	// Delete provider | 删除提供商
 	err = s.oauthRepo.Delete(ctx, id)
 	if err != nil {
-		s.logger.Error("Failed to delete OAuth provider | 删除OAuth提供商失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to delete OAuth provider | 删除OAuth提供商失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("删除OAuth提供商失败: %w", err)
 	}
 
-	s.logger.Info("OAuth provider deleted successfully | OAuth提供商删除成功", zap.Int("id", id), tracing.WithTraceIDField(ctx))
+	s.logger.Info("OAuth provider deleted successfully | OAuth提供商删除成功", tracing.WithTraceIDField(ctx), zap.Int("id", id))
 	return nil
 }

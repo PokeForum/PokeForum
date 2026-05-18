@@ -68,12 +68,12 @@ func NewModeratorService(db *ent.Client, repos *repository.Repositories, cacheSe
 
 // GetModeratorCategories Get list of categories managed by moderator | 获取版主管理的版块列表
 func (s *ModeratorService) GetModeratorCategories(ctx context.Context, userID int) (*schema.ModeratorCategoriesResponse, error) {
-	s.logger.Info("获取版主管理的版块列表", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取版主管理的版块列表", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID))
 
 	// Query categories managed by moderator through junction table | 通过中间表查询版主管理的版块
 	moderatorRecords, err := s.categoryModeratorRepo.GetByUserID(ctx, userID)
 	if err != nil {
-		s.logger.Error("查询版主关联记录失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("查询版主关联记录失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("查询版主关联记录失败: %w", err)
 	}
 
@@ -86,7 +86,7 @@ func (s *ModeratorService) GetModeratorCategories(ctx context.Context, userID in
 	// Batch query category information | 批量查询版块信息
 	categories, err := s.categoryRepo.GetByIDs(ctx, categoryIDs)
 	if err != nil {
-		s.logger.Error("获取版块信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取版块信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取版块信息失败: %w", err)
 	}
 
@@ -118,12 +118,12 @@ func (s *ModeratorService) GetModeratorCategories(ctx context.Context, userID in
 
 // BanPost Ban post | 封禁帖子
 func (s *ModeratorService) BanPost(ctx context.Context, userID int, req schema.PostBanRequest) error {
-	s.logger.Info("封禁帖子", zap.Int("post_id", req.ID), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("封禁帖子", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID), zap.Int("user_id", userID))
 
 	// Check if post exists | 检查帖子是否存在
 	postData, err := s.postRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		s.logger.Error("获取帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
@@ -139,22 +139,22 @@ func (s *ModeratorService) BanPost(ctx context.Context, userID int, req schema.P
 	// Ban post | 封禁帖子
 	err = s.postRepo.UpdateStatus(ctx, req.ID, post.StatusBan)
 	if err != nil {
-		s.logger.Error("封禁帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("封禁帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
-	s.logger.Info("帖子封禁成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("帖子封禁成功", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID))
 	return nil
 }
 
 // EditPost Edit post | 编辑帖子
 func (s *ModeratorService) EditPost(ctx context.Context, userID int, req schema.PostEditRequest) (*schema.ModeratorPostResponse, error) {
-	s.logger.Info("编辑帖子", zap.Int("post_id", req.ID), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("编辑帖子", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID), zap.Int("user_id", userID))
 
 	// Check if post exists | 检查帖子是否存在
 	postData, err := s.postRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		s.logger.Error("获取帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -172,7 +172,7 @@ func (s *ModeratorService) EditPost(ctx context.Context, userID int, req schema.
 		return u.SetTitle(req.Title).SetContent(req.Content)
 	})
 	if err != nil {
-		s.logger.Error("更新帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("更新帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -210,18 +210,18 @@ func (s *ModeratorService) EditPost(ctx context.Context, userID int, req schema.
 		UpdatedAt:    updatedPost.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
-	s.logger.Info("帖子编辑成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("帖子编辑成功", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID))
 	return result, nil
 }
 
 // MovePost Move post (only for categories with permission) | 移动帖子（仅限有权限的版块）
 func (s *ModeratorService) MovePost(ctx context.Context, userID int, req schema.PostMoveRequest) error {
-	s.logger.Info("移动帖子", zap.Int("post_id", req.ID), zap.Int("target_category_id", req.CategoryID), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("移动帖子", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID), zap.Int("target_category_id", req.CategoryID), zap.Int("user_id", userID))
 
 	// Check if post exists | 检查帖子是否存在
 	postData, err := s.postRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		s.logger.Error("获取帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
@@ -248,22 +248,22 @@ func (s *ModeratorService) MovePost(ctx context.Context, userID int, req schema.
 		return u.SetCategoryID(req.CategoryID)
 	})
 	if err != nil {
-		s.logger.Error("移动帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("移动帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
-	s.logger.Info("帖子移动成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("帖子移动成功", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID))
 	return nil
 }
 
 // SetPostEssence Set post as essence | 设置帖子精华
 func (s *ModeratorService) SetPostEssence(ctx context.Context, userID int, req schema.PostEssenceRequest) error {
-	s.logger.Info("设置帖子精华", zap.Int("post_id", req.ID), zap.Bool("is_essence", req.IsEssence), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("设置帖子精华", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID), zap.Bool("is_essence", req.IsEssence), zap.Int("user_id", userID))
 
 	// Check if post exists | 检查帖子是否存在
 	postData, err := s.postRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		s.logger.Error("获取帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
@@ -281,22 +281,22 @@ func (s *ModeratorService) SetPostEssence(ctx context.Context, userID int, req s
 		return u.SetIsEssence(req.IsEssence)
 	})
 	if err != nil {
-		s.logger.Error("设置帖子精华失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("设置帖子精华失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
-	s.logger.Info("帖子精华设置成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("帖子精华设置成功", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID))
 	return nil
 }
 
 // LockPost Lock post | 锁定帖子
 func (s *ModeratorService) LockPost(ctx context.Context, userID int, req schema.PostLockRequest) error {
-	s.logger.Info("锁定帖子", zap.Int("post_id", req.ID), zap.Bool("is_lock", req.IsLock), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("锁定帖子", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID), zap.Bool("is_lock", req.IsLock), zap.Int("user_id", userID))
 
 	// Check if post exists | 检查帖子是否存在
 	postData, err := s.postRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		s.logger.Error("获取帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
@@ -317,22 +317,22 @@ func (s *ModeratorService) LockPost(ctx context.Context, userID int, req schema.
 
 	err = s.postRepo.UpdateStatus(ctx, req.ID, targetStatus)
 	if err != nil {
-		s.logger.Error("锁定帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("锁定帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
-	s.logger.Info("帖子锁定设置成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("帖子锁定设置成功", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID))
 	return nil
 }
 
 // PinPost Pin post | 置顶帖子
 func (s *ModeratorService) PinPost(ctx context.Context, userID int, req schema.PostPinRequest) error {
-	s.logger.Info("置顶帖子", zap.Int("post_id", req.ID), zap.Bool("is_pin", req.IsPin), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("置顶帖子", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID), zap.Bool("is_pin", req.IsPin), zap.Int("user_id", userID))
 
 	// Check if post exists | 检查帖子是否存在
 	postData, err := s.postRepo.GetByID(ctx, req.ID)
 	if err != nil {
-		s.logger.Error("获取帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
@@ -350,17 +350,17 @@ func (s *ModeratorService) PinPost(ctx context.Context, userID int, req schema.P
 		return u.SetIsPinned(req.IsPin)
 	})
 	if err != nil {
-		s.logger.Error("置顶帖子失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("置顶帖子失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
-	s.logger.Info("帖子置顶设置成功", zap.Int("post_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("帖子置顶设置成功", tracing.WithTraceIDField(ctx), zap.Int("post_id", req.ID))
 	return nil
 }
 
 // EditCategory Edit category | 编辑版块
 func (s *ModeratorService) EditCategory(ctx context.Context, userID int, req schema.CategoryEditRequest) error {
-	s.logger.Info("编辑版块", zap.Int("category_id", req.ID), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("编辑版块", tracing.WithTraceIDField(ctx), zap.Int("category_id", req.ID), zap.Int("user_id", userID))
 
 	// Check if moderator has permission to manage this category | 检查版主是否有该版块的管理权限
 	hasPermission, err := s.checkModeratorPermission(ctx, userID, req.ID)
@@ -376,17 +376,17 @@ func (s *ModeratorService) EditCategory(ctx context.Context, userID int, req sch
 		return u.SetName(req.Name).SetNillableDescription(&req.Description).SetNillableIcon(&req.Icon)
 	})
 	if err != nil {
-		s.logger.Error("编辑版块失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("编辑版块失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return err
 	}
 
-	s.logger.Info("版块编辑成功", zap.Int("category_id", req.ID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("版块编辑成功", tracing.WithTraceIDField(ctx), zap.Int("category_id", req.ID))
 	return nil
 }
 
 // CreateCategoryAnnouncement Create category announcement | 创建版块公告
 func (s *ModeratorService) CreateCategoryAnnouncement(ctx context.Context, userID int, req schema.CategoryAnnouncementRequest) (*schema.CategoryAnnouncementResponse, error) {
-	s.logger.Info("创建版块公告", zap.Int("category_id", req.CategoryID), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("创建版块公告", tracing.WithTraceIDField(ctx), zap.Int("category_id", req.CategoryID), zap.Int("user_id", userID))
 
 	// Check if moderator has permission to manage this category | 检查版主是否有该版块的管理权限
 	hasPermission, err := s.checkModeratorPermission(ctx, userID, req.CategoryID)
@@ -400,7 +400,7 @@ func (s *ModeratorService) CreateCategoryAnnouncement(ctx context.Context, userI
 	// Get moderator username | 获取版主用户名
 	moderatorData, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
-		s.logger.Error("获取版主信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取版主信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -409,7 +409,7 @@ func (s *ModeratorService) CreateCategoryAnnouncement(ctx context.Context, userI
 		return u.SetAnnouncement(req.Content)
 	})
 	if err != nil {
-		s.logger.Error("创建版块公告失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("创建版块公告失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -425,13 +425,13 @@ func (s *ModeratorService) CreateCategoryAnnouncement(ctx context.Context, userI
 		UpdatedAt:  updatedCategory.UpdatedAt.Format(time_tools.DateTimeFormat),
 	}
 
-	s.logger.Info("版块公告创建成功", zap.Int("category_id", req.CategoryID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("版块公告创建成功", tracing.WithTraceIDField(ctx), zap.Int("category_id", req.CategoryID))
 	return result, nil
 }
 
 // GetCategoryAnnouncements Get category announcements list | 获取版块公告列表
 func (s *ModeratorService) GetCategoryAnnouncements(ctx context.Context, userID int, categoryID int) ([]schema.CategoryAnnouncementResponse, error) {
-	s.logger.Info("获取版块公告列表", zap.Int("category_id", categoryID), zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取版块公告列表", tracing.WithTraceIDField(ctx), zap.Int("category_id", categoryID), zap.Int("user_id", userID))
 
 	// Check if moderator has permission to manage this category | 检查版主是否有该版块的管理权限
 	hasPermission, err := s.checkModeratorPermission(ctx, userID, categoryID)
@@ -445,7 +445,7 @@ func (s *ModeratorService) GetCategoryAnnouncements(ctx context.Context, userID 
 	// Get category information | 获取版块信息
 	categoryData, err := s.categoryRepo.GetByID(ctx, categoryID)
 	if err != nil {
-		s.logger.Error("获取版块信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取版块信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -457,7 +457,7 @@ func (s *ModeratorService) GetCategoryAnnouncements(ctx context.Context, userID 
 	// Get moderator username | 获取版主用户名
 	moderatorData, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
-		s.logger.Error("获取版主信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取版主信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -475,7 +475,7 @@ func (s *ModeratorService) GetCategoryAnnouncements(ctx context.Context, userID 
 		},
 	}
 
-	s.logger.Info("获取版块公告列表成功", zap.Int("category_id", categoryID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取版块公告列表成功", tracing.WithTraceIDField(ctx), zap.Int("category_id", categoryID))
 	return result, nil
 }
 

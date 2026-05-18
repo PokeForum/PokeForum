@@ -62,35 +62,35 @@ func (s *DashboardService) GetDashboardStats(ctx context.Context) (*schema.Dashb
 	// Get user statistics | 获取用户统计
 	userStats, err := s.getUserStats(ctx)
 	if err != nil {
-		s.logger.Error("获取用户统计失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户统计失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取用户统计失败: %w", err)
 	}
 
 	// Get post statistics | 获取帖子统计
 	postStats, err := s.getPostStats(ctx)
 	if err != nil {
-		s.logger.Error("获取帖子统计失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取帖子统计失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取帖子统计失败: %w", err)
 	}
 
 	// Get comment statistics | 获取评论统计
 	commentStats, err := s.getCommentStats(ctx)
 	if err != nil {
-		s.logger.Error("获取评论统计失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取评论统计失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取评论统计失败: %w", err)
 	}
 
 	// Get category statistics | 获取版块统计
 	categoryStats, err := s.getCategoryStats(ctx)
 	if err != nil {
-		s.logger.Error("获取版块统计失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取版块统计失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取版块统计失败: %w", err)
 	}
 
 	// Get system statistics | 获取系统统计
 	systemStats, err := s.getSystemStats(ctx)
 	if err != nil {
-		s.logger.Error("获取系统统计失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取系统统计失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取系统统计失败: %w", err)
 	}
 
@@ -405,7 +405,7 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 	}
 	users, err := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername, user.FieldAvatar})
 	if err != nil {
-		s.logger.Warn("批量查询用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("批量查询用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 	}
 	type userInfo struct {
 		Username string
@@ -423,7 +423,7 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 	}
 	categories, err := s.categoryRepo.GetByIDsWithFields(ctx, categoryIDList, []string{category.FieldID, category.FieldName})
 	if err != nil {
-		s.logger.Warn("批量查询版块信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("批量查询版块信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 	}
 	categoryMap := make(map[int]string)
 	for _, c := range categories {
@@ -437,7 +437,7 @@ func (s *DashboardService) GetRecentActivity(ctx context.Context) (*schema.Recen
 	}
 	postsData, err := s.postRepo.GetByIDsWithFields(ctx, postIDList, []string{post.FieldID, post.FieldTitle})
 	if err != nil {
-		s.logger.Warn("批量查询帖子信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("批量查询帖子信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 	}
 	postMap := make(map[int]string)
 	for _, p := range postsData {
@@ -524,7 +524,7 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 	}
 	users, err := s.userRepo.GetByIDsWithFields(ctx, userIDList, []string{user.FieldID, user.FieldUsername, user.FieldAvatar})
 	if err != nil {
-		s.logger.Warn("批量查询用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("批量查询用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 	}
 	type userInfo struct {
 		Username string
@@ -542,7 +542,7 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 	}
 	categories, err := s.categoryRepo.GetByIDsWithFields(ctx, categoryIDList, []string{category.FieldID, category.FieldName})
 	if err != nil {
-		s.logger.Warn("批量查询版块信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("批量查询版块信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 	}
 	categoryMap := make(map[int]string)
 	for _, c := range categories {
@@ -555,7 +555,7 @@ func (s *DashboardService) GetPopularPosts(ctx context.Context) (*schema.Popular
 	for _, postID := range postIDs {
 		count, err := s.commentRepo.CountByPostID(ctx, postID)
 		if err != nil {
-			s.logger.Warn("查询评论数失败", zap.Error(err), tracing.WithTraceIDField(ctx), zap.Int("postID", postID))
+			s.logger.Warn("查询评论数失败", tracing.WithTraceIDField(ctx), zap.Error(err), zap.Int("postID", postID))
 		}
 		commentCountMap[postID] = count
 	}

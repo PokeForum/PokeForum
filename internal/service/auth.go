@@ -241,11 +241,11 @@ func isEmailDomainInWhitelist(emailDomain, whitelist string) bool {
 
 // SendForgotPasswordCode Send password recovery verification code | 发送找回密码验证码
 func (s *AuthService) SendForgotPasswordCode(ctx context.Context, req schema.ForgotPasswordRequest) (*schema.ForgotPasswordResponse, error) {
-	s.logger.Info("Sending password recovery verification code | 发送找回密码验证码", zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
+	s.logger.Info("Sending password recovery verification code | 发送找回密码验证码", tracing.WithTraceIDField(ctx), zap.String("email", req.Email))
 
 	userData, err := s.userRepo.GetByEmail(ctx, req.Email)
 	if err != nil {
-		s.logger.Error("Failed to query user | 查询用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to query user | 查询用户失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 	if userData == nil {
@@ -275,37 +275,37 @@ func (s *AuthService) SendForgotPasswordCode(ctx context.Context, req schema.For
 
 	result, err := s.cache.Eval(ctx, luaScript, []string{limitKey}, 3, 3600)
 	if err != nil {
-		s.logger.Error("Failed to check frequency limit | 检查频率限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to check frequency limit | 检查频率限制失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("检查频率限制失败: %w", err)
 	}
 
 	resultSlice, ok := result.([]interface{})
 	if !ok || len(resultSlice) < 2 {
-		s.logger.Error("Invalid result from Lua script | Lua 脚本返回结果无效", zap.Any("result", result), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Invalid result from Lua script | Lua 脚本返回结果无效", tracing.WithTraceIDField(ctx), zap.Any("result", result))
 		return nil, errors.New("系统错误，请稍后重试")
 	}
 
 	allowed, ok := resultSlice[0].(int64)
 	if !ok {
-		s.logger.Error("Invalid allowed value from Lua script | Lua 脚本返回的 allowed 值无效", zap.Any("result", result), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Invalid allowed value from Lua script | Lua 脚本返回的 allowed 值无效", tracing.WithTraceIDField(ctx), zap.Any("result", result))
 		return nil, errors.New("系统错误，请稍后重试")
 	}
 
 	if allowed == 0 {
-		s.logger.Warn("Password reset request exceeds frequency limit | 找回密码请求超过频率限制", zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("Password reset request exceeds frequency limit | 找回密码请求超过频率限制", tracing.WithTraceIDField(ctx), zap.String("email", req.Email))
 		return nil, errors.New("发送次数过多，请1小时后再试")
 	}
 
 	sendCount, ok := resultSlice[1].(int64)
 	if !ok {
-		s.logger.Error("Invalid sendCount value from Lua script | Lua 脚本返回的 sendCount 值无效", zap.Any("result", result), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Invalid sendCount value from Lua script | Lua 脚本返回的 sendCount 值无效", tracing.WithTraceIDField(ctx), zap.Any("result", result))
 		return nil, errors.New("系统错误，请稍后重试")
 	}
 
 	// Generate 6-digit random verification code | 生成6位随机验证码
 	code, err := generateVerifyCode()
 	if err != nil {
-		s.logger.Error("Failed to generate verification code | 生成验证码失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to generate verification code | 生成验证码失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("生成验证码失败: %w", err)
 	}
 
@@ -313,20 +313,20 @@ func (s *AuthService) SendForgotPasswordCode(ctx context.Context, req schema.For
 	codeKey := fmt.Sprintf("password:reset:code:%s", req.Email)
 	err = s.cache.SetEx(ctx, codeKey, code, 600)
 	if err != nil {
-		s.logger.Error("Failed to store verification code | 存储验证码失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to store verification code | 存储验证码失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("存储验证码失败: %w", err)
 	}
 
-	s.logger.Info("Password reset frequency limit updated | 找回密码频率限制已更新", zap.String("email", req.Email), zap.Int64("count", sendCount), tracing.WithTraceIDField(ctx))
+	s.logger.Info("Password reset frequency limit updated | 找回密码频率限制已更新", tracing.WithTraceIDField(ctx), zap.String("email", req.Email), zap.Int64("count", sendCount))
 
 	// Send password reset email | 发送重置密码邮件
 	err = s.sendPasswordResetEmail(ctx, userData.Email, code)
 	if err != nil {
-		s.logger.Error("Failed to send password reset email | 发送重置密码邮件失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to send password reset email | 发送重置密码邮件失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("发送重置密码邮件失败: %w", err)
 	}
 
-	s.logger.Info("Password recovery verification code sent successfully | 找回密码验证码发送成功", zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
+	s.logger.Info("Password recovery verification code sent successfully | 找回密码验证码发送成功", tracing.WithTraceIDField(ctx), zap.String("email", req.Email))
 
 	return &schema.ForgotPasswordResponse{
 		Sent:      true,
@@ -337,7 +337,7 @@ func (s *AuthService) SendForgotPasswordCode(ctx context.Context, req schema.For
 
 // ResetPassword Reset password | 重置密码
 func (s *AuthService) ResetPassword(ctx context.Context, req schema.ResetPasswordRequest) (*schema.ResetPasswordResponse, error) {
-	s.logger.Info("Resetting password | 重置密码", zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
+	s.logger.Info("Resetting password | 重置密码", tracing.WithTraceIDField(ctx), zap.String("email", req.Email))
 
 	// Get stored verification code | 获取存储的验证码
 	codeKey := fmt.Sprintf("password:reset:code:%s", req.Email)
@@ -353,7 +353,7 @@ func (s *AuthService) ResetPassword(ctx context.Context, req schema.ResetPasswor
 
 	userData, err := s.userRepo.GetByEmail(ctx, req.Email)
 	if err != nil {
-		s.logger.Error("Failed to query user | 查询用户失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to query user | 查询用户失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 	if userData == nil {
@@ -363,22 +363,22 @@ func (s *AuthService) ResetPassword(ctx context.Context, req schema.ResetPasswor
 	// Hash password | 密码加密
 	hashedPassword, err := utils.HashPassword(req.NewPassword)
 	if err != nil {
-		s.logger.Error("Failed to hash password | 密码加密失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to hash password | 密码加密失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("密码加密失败: %w", err)
 	}
 
 	err = s.userRepo.UpdatePassword(ctx, userData.ID, hashedPassword)
 	if err != nil {
-		s.logger.Error("Failed to update password | 更新密码失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to update password | 更新密码失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
 	// Delete verification code cache | 删除验证码缓存
 	if _, err := s.cache.Del(ctx, codeKey); err != nil {
-		s.logger.Warn("Failed to delete verification code cache | 删除验证码缓存失败", zap.String("key", codeKey), zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("Failed to delete verification code cache | 删除验证码缓存失败", tracing.WithTraceIDField(ctx), zap.String("key", codeKey), zap.Error(err))
 	}
 
-	s.logger.Info("Password reset successfully | 密码重置成功", zap.String("email", req.Email), tracing.WithTraceIDField(ctx))
+	s.logger.Info("Password reset successfully | 密码重置成功", tracing.WithTraceIDField(ctx), zap.String("email", req.Email))
 
 	return &schema.ResetPasswordResponse{
 		Success: true,
@@ -404,14 +404,14 @@ func (s *AuthService) sendPasswordResetEmail(ctx context.Context, email, code st
 	// Get website settings | 获取网站设置
 	siteConfig, err := s.settings.GetSeoSettings(ctx)
 	if err != nil {
-		s.logger.Error("Failed to get website configuration | 获取网站配置失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to get website configuration | 获取网站配置失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("获取网站配置失败: %w", err)
 	}
 
 	// Get SMTP configuration | 获取SMTP配置
 	smtpConfig, err := s.settings.GetSMTPConfig(ctx)
 	if err != nil {
-		s.logger.Error("Failed to get SMTP configuration | 获取SMTP配置失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to get SMTP configuration | 获取SMTP配置失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("获取SMTP配置失败: %w", err)
 	}
 
@@ -421,7 +421,7 @@ func (s *AuthService) sendPasswordResetEmail(ctx context.Context, email, code st
 	// Render email template | 渲染邮件模板
 	htmlBody, err := emailTemplate.RenderPasswordResetTemplate(ctx, code, siteConfig.WebSiteName)
 	if err != nil {
-		s.logger.Error("Failed to render email template | 渲染邮件模板失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("Failed to render email template | 渲染邮件模板失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("渲染邮件模板失败: %w", err)
 	}
 
@@ -456,9 +456,10 @@ func (s *AuthService) RecordLoginLog(ctx context.Context, userID int, ip, ua str
 	task, err := NewLoginLogTask(payload)
 	if err != nil {
 		s.logger.Error("创建登录日志任务失败",
-			zap.Int("user_id", userID),
+
+			tracing.WithTraceIDField(ctx), zap.Int("user_id", userID),
 			zap.String("ip_address", ip),
-			tracing.WithTraceIDField(ctx),
+
 			zap.Error(err))
 		return
 	}
@@ -466,9 +467,10 @@ func (s *AuthService) RecordLoginLog(ctx context.Context, userID int, ip, ua str
 	_, err = s.taskManager.EnqueueContext(ctx, task)
 	if err != nil {
 		s.logger.Error("提交登录日志任务失败",
-			zap.Int("user_id", userID),
+
+			tracing.WithTraceIDField(ctx), zap.Int("user_id", userID),
 			zap.String("ip_address", ip),
-			tracing.WithTraceIDField(ctx),
+
 			zap.Error(err))
 	}
 }

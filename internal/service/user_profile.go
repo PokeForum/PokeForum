@@ -87,7 +87,7 @@ func NewUserProfileService(db *ent.Client, repos *repository.Repositories, cache
 
 // GetProfileOverview Get user profile overview | 获取用户个人中心概览
 func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int, isOwner bool) (*schema.UserProfileOverviewResponse, error) {
-	s.logger.Info("获取用户个人中心概览", zap.Int("user_id", userID), zap.Bool("is_owner", isOwner), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取用户个人中心概览", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Bool("is_owner", isOwner))
 
 	// Cache key | 缓存键
 	cacheKey := fmt.Sprintf("user:profile:overview:%d", userID)
@@ -104,7 +104,7 @@ func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int,
 					result.FollowersCount = followersCount
 					result.FollowingCount = followingCount
 				}
-				s.logger.Debug("从缓存获取用户个人中心概览成功", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+				s.logger.Debug("从缓存获取用户个人中心概览成功", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID))
 				return &result, nil
 			}
 		}
@@ -113,27 +113,27 @@ func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int,
 	// 查询用户信息
 	userData, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
-		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
 	// 实时查询用户的发帖数和评论数
 	postCount, err := s.userManageService.GetUserPostCount(ctx, userData.ID)
 	if err != nil {
-		s.logger.Error("查询用户发帖数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("查询用户发帖数失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		postCount = 0
 	}
 
 	commentCount, err := s.userManageService.GetUserCommentCount(ctx, userData.ID)
 	if err != nil {
-		s.logger.Error("查询用户评论数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("查询用户评论数失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		commentCount = 0
 	}
 
 	// 实时查询用户的粉丝数和关注数
 	followersCount, followingCount, err := s.followService.GetFollowCounts(ctx, userData.ID)
 	if err != nil {
-		s.logger.Error("查询用户关注数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("查询用户关注数失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		followersCount = 0
 		followingCount = 0
 	}
@@ -172,18 +172,18 @@ func (s *UserProfileService) GetProfileOverview(ctx context.Context, userID int,
 	if !isOwner {
 		if data, err := json.Marshal(result); err == nil {
 			if cacheErr := s.cache.SetEx(ctx, cacheKey, data, 86400); cacheErr != nil {
-				s.logger.Warn("缓存用户个人中心概览失败", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx), zap.Error(cacheErr))
+				s.logger.Warn("缓存用户个人中心概览失败", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Error(cacheErr))
 			}
 		}
 	}
 
-	s.logger.Info("获取用户个人中心概览成功", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取用户个人中心概览成功", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID))
 	return result, nil
 }
 
 // GetUserPosts Get user posts list | 获取用户主题帖列表
 func (s *UserProfileService) GetUserPosts(ctx context.Context, userID int, req schema.UserProfilePostsRequest, isOwner bool) (*schema.UserProfilePostsResponse, error) {
-	s.logger.Info("获取用户主题帖列表", zap.Int("user_id", userID), zap.Int("page", req.Page), zap.Bool("is_owner", isOwner), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取用户主题帖列表", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("page", req.Page), zap.Bool("is_owner", isOwner))
 
 	// 构建查询条件
 	query := s.db.Post.Query().
@@ -203,7 +203,7 @@ func (s *UserProfileService) GetUserPosts(ctx context.Context, userID int, req s
 	// 获取总数
 	total, err := query.Count(ctx)
 	if err != nil {
-		s.logger.Error("获取用户主题帖总数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户主题帖总数失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取用户主题帖总数失败: %w", err)
 	}
 
@@ -213,7 +213,7 @@ func (s *UserProfileService) GetUserPosts(ctx context.Context, userID int, req s
 		Limit(req.PageSize).
 		All(ctx)
 	if err != nil {
-		s.logger.Error("获取用户主题帖列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户主题帖列表失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取用户主题帖列表失败: %w", err)
 	}
 
@@ -265,13 +265,13 @@ func (s *UserProfileService) GetUserPosts(ctx context.Context, userID int, req s
 		PageSize: req.PageSize,
 	}
 
-	s.logger.Info("获取用户主题帖列表成功", zap.Int("user_id", userID), zap.Int("total", total), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取用户主题帖列表成功", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("total", total))
 	return result, nil
 }
 
 // GetUserComments Get user comments list | 获取用户评论列表
 func (s *UserProfileService) GetUserComments(ctx context.Context, userID int, req schema.UserProfileCommentsRequest, isOwner bool) (*schema.UserProfileCommentsResponse, error) {
-	s.logger.Info("获取用户评论列表", zap.Int("user_id", userID), zap.Int("page", req.Page), zap.Bool("is_owner", isOwner), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取用户评论列表", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("page", req.Page), zap.Bool("is_owner", isOwner))
 
 	// 构建基础查询条件
 	baseQuery := s.db.Comment.Query().
@@ -284,7 +284,7 @@ func (s *UserProfileService) GetUserComments(ctx context.Context, userID int, re
 		// 先获取该用户所有评论关联的帖子ID
 		allCommentPostIDs, err := baseQuery.Select(comment.FieldPostID).Strings(ctx)
 		if err != nil {
-			s.logger.Error("获取用户评论帖子ID失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("获取用户评论帖子ID失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return nil, fmt.Errorf("获取用户评论帖子ID失败: %w", err)
 		}
 
@@ -303,7 +303,7 @@ func (s *UserProfileService) GetUserComments(ctx context.Context, userID int, re
 				Select(post.FieldID, post.FieldStatus).
 				All(ctx)
 			if err != nil {
-				s.logger.Error("获取帖子状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+				s.logger.Error("获取帖子状态失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 				return nil, fmt.Errorf("获取帖子状态失败: %w", err)
 			}
 
@@ -329,7 +329,7 @@ func (s *UserProfileService) GetUserComments(ctx context.Context, userID int, re
 	}
 	total, err := totalQuery.Count(ctx)
 	if err != nil {
-		s.logger.Error("获取用户评论总数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户评论总数失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取用户评论总数失败: %w", err)
 	}
 
@@ -340,7 +340,7 @@ func (s *UserProfileService) GetUserComments(ctx context.Context, userID int, re
 		Limit(req.PageSize).
 		All(ctx)
 	if err != nil {
-		s.logger.Error("获取用户评论列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户评论列表失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取用户评论列表失败: %w", err)
 	}
 
@@ -355,7 +355,7 @@ func (s *UserProfileService) GetUserComments(ctx context.Context, userID int, re
 		Where(post.IDIn(postIDs...)).
 		All(ctx)
 	if err != nil {
-		s.logger.Error("获取帖子信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取帖子信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取帖子信息失败: %w", err)
 	}
 
@@ -397,13 +397,13 @@ func (s *UserProfileService) GetUserComments(ctx context.Context, userID int, re
 		PageSize: req.PageSize,
 	}
 
-	s.logger.Info("获取用户评论列表成功", zap.Int("user_id", userID), zap.Int("total", total), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取用户评论列表成功", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("total", total))
 	return result, nil
 }
 
 // GetUserFavorites Get user favorites list | 获取用户收藏列表
 func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, req schema.UserProfileFavoritesRequest, isOwner bool) (*schema.UserProfileFavoritesResponse, error) {
-	s.logger.Info("获取用户收藏列表", zap.Int("user_id", userID), zap.Int("page", req.Page), zap.Bool("is_owner", isOwner), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取用户收藏列表", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("page", req.Page), zap.Bool("is_owner", isOwner))
 
 	// 构建基础查询条件
 	baseQuery := s.db.PostAction.Query().
@@ -423,7 +423,7 @@ func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, r
 		// 先获取该用户所有收藏关联的帖子ID
 		allFavoritePostIDs, err := baseQuery.Select(postaction.FieldPostID).Strings(ctx)
 		if err != nil {
-			s.logger.Error("获取用户收藏帖子ID失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("获取用户收藏帖子ID失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			return nil, fmt.Errorf("获取用户收藏帖子ID失败: %w", err)
 		}
 
@@ -442,7 +442,7 @@ func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, r
 				Select(post.FieldID, post.FieldStatus).
 				All(ctx)
 			if err != nil {
-				s.logger.Error("获取帖子状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+				s.logger.Error("获取帖子状态失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 				return nil, fmt.Errorf("获取帖子状态失败: %w", err)
 			}
 
@@ -468,7 +468,7 @@ func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, r
 	}
 	total, err := totalQuery.Count(ctx)
 	if err != nil {
-		s.logger.Error("获取用户收藏总数失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户收藏总数失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取用户收藏总数失败: %w", err)
 	}
 
@@ -479,7 +479,7 @@ func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, r
 		Limit(req.PageSize).
 		All(ctx)
 	if err != nil {
-		s.logger.Error("获取用户收藏列表失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户收藏列表失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("获取用户收藏列表失败: %w", err)
 	}
 
@@ -573,18 +573,18 @@ func (s *UserProfileService) GetUserFavorites(ctx context.Context, userID int, r
 		PageSize: req.PageSize,
 	}
 
-	s.logger.Info("获取用户收藏列表成功", zap.Int("user_id", userID), zap.Int("total", total), tracing.WithTraceIDField(ctx))
+	s.logger.Info("获取用户收藏列表成功", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Int("total", total))
 	return result, nil
 }
 
 // UpdatePassword Update password | 修改密码
 func (s *UserProfileService) UpdatePassword(ctx context.Context, userID int, req schema.UserUpdatePasswordRequest) (*schema.UserUpdatePasswordResponse, error) {
-	s.logger.Info("修改密码", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("修改密码", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID))
 
 	// 查询用户信息
 	userData, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
-		s.logger.Error("获取用户信息失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户信息失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -607,7 +607,7 @@ func (s *UserProfileService) UpdatePassword(ctx context.Context, userID int, req
 	// 更新密码
 	err = s.userRepo.UpdatePassword(ctx, userID, newPasswordHash)
 	if err != nil {
-		s.logger.Error("更新密码失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("更新密码失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -619,18 +619,18 @@ func (s *UserProfileService) UpdatePassword(ctx context.Context, userID int, req
 		Message: "密码修改成功，请重新登录",
 	}
 
-	s.logger.Info("密码修改成功", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("密码修改成功", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID))
 	return result, nil
 }
 
 // UpdateAvatar Update avatar | 修改头像
 func (s *UserProfileService) UpdateAvatar(ctx context.Context, userID int, req schema.UserUpdateAvatarRequest) (*schema.UserUpdateAvatarResponse, error) {
-	s.logger.Info("修改头像", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("修改头像", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID))
 
 	// 更新头像
 	err := s.userRepo.UpdateAvatar(ctx, userID, req.AvatarURL)
 	if err != nil {
-		s.logger.Error("更新头像失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("更新头像失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -642,13 +642,13 @@ func (s *UserProfileService) UpdateAvatar(ctx context.Context, userID int, req s
 		AvatarURL: req.AvatarURL,
 	}
 
-	s.logger.Info("头像修改成功", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("头像修改成功", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID))
 	return result, nil
 }
 
 // UpdateUsername Update username (can be done once every 7 days) | 修改用户名(每七日可操作一次)
 func (s *UserProfileService) UpdateUsername(ctx context.Context, userID int, req schema.UserUpdateUsernameRequest) (*schema.UserUpdateUsernameResponse, error) {
-	s.logger.Info("修改用户名", zap.Int("user_id", userID), zap.String("new_username", req.Username), tracing.WithTraceIDField(ctx))
+	s.logger.Info("修改用户名", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.String("new_username", req.Username))
 
 	// 检查修改权限（每七日可操作一次）
 	canUpdate, err := s.CheckUsernameUpdatePermission(ctx, userID)
@@ -662,7 +662,7 @@ func (s *UserProfileService) UpdateUsername(ctx context.Context, userID int, req
 	// 检查用户名是否已存在
 	existingUser, err := s.userRepo.GetByUsername(ctx, req.Username)
 	if err != nil {
-		s.logger.Error("检查用户名失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("检查用户名失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 	if existingUser != nil && existingUser.ID != userID {
@@ -672,7 +672,7 @@ func (s *UserProfileService) UpdateUsername(ctx context.Context, userID int, req
 	// 更新用户名
 	err = s.userRepo.UpdateUsername(ctx, userID, req.Username)
 	if err != nil {
-		s.logger.Error("更新用户名失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("更新用户名失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
@@ -684,7 +684,7 @@ func (s *UserProfileService) UpdateUsername(ctx context.Context, userID int, req
 		Username: req.Username,
 	}
 
-	s.logger.Info("用户名修改成功", zap.Int("user_id", userID), zap.String("new_username", req.Username), tracing.WithTraceIDField(ctx))
+	s.logger.Info("用户名修改成功", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.String("new_username", req.Username))
 	return result, nil
 }
 
@@ -696,7 +696,7 @@ func (s *UserProfileService) CheckUsernameUpdatePermission(ctx context.Context, 
 	// 检查是否在限制期内
 	lastUpdateTime, err := s.cache.Get(ctx, redisKey)
 	if err != nil {
-		s.logger.Error("获取用户名修改限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取用户名修改限制失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return false, fmt.Errorf("获取用户名修改限制失败: %w", err)
 	}
 
@@ -704,14 +704,14 @@ func (s *UserProfileService) CheckUsernameUpdatePermission(ctx context.Context, 
 		// 解析最后修改时间
 		lastTime, err := time.Parse(time.RFC3339, lastUpdateTime)
 		if err != nil {
-			s.logger.Error("解析最后修改时间失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+			s.logger.Error("解析最后修改时间失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 			// 解析失败，允许操作
 			return true, nil
 		}
 
 		// 检查是否在七日内
 		if time.Since(lastTime) < 7*24*time.Hour {
-			s.logger.Warn("用户名修改操作过于频繁", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+			s.logger.Warn("用户名修改操作过于频繁", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID))
 			return false, nil
 		}
 	}
@@ -720,7 +720,7 @@ func (s *UserProfileService) CheckUsernameUpdatePermission(ctx context.Context, 
 	currentTime := time.Now().Format(time.RFC3339)
 	err = s.cache.SetEx(ctx, redisKey, currentTime, 604800) // 604800秒 = 7天
 	if err != nil {
-		s.logger.Error("设置用户名修改限制失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("设置用户名修改限制失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		// 设置失败，但允许操作
 		return true, nil
 	}
@@ -730,12 +730,12 @@ func (s *UserProfileService) CheckUsernameUpdatePermission(ctx context.Context, 
 
 // SendEmailVerifyCode Send email verification code (sent directly to user's registered email) | 发送邮箱验证码（直接发送到用户注册邮箱）
 func (s *UserProfileService) SendEmailVerifyCode(ctx context.Context, userID int) (*schema.EmailVerifyCodeResponse, error) {
-	s.logger.Info("发送邮箱验证码", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("发送邮箱验证码", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID))
 
 	// 查询用户信息
 	userData, err := s.userRepo.GetByIDWithFields(ctx, userID, []string{user.FieldEmail, user.FieldEmailVerified})
 	if err != nil {
-		s.logger.Error("查询用户失败", zap.Int("user_id", userID), zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("查询用户失败", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Error(err))
 		return nil, err
 	}
 
@@ -757,7 +757,7 @@ func (s *UserProfileService) SendEmailVerifyCode(ctx context.Context, userID int
 	// 生成6位随机验证码
 	code, err := s.generateVerifyCode()
 	if err != nil {
-		s.logger.Error("生成验证码失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("生成验证码失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("生成验证码失败: %w", err)
 	}
 
@@ -765,7 +765,7 @@ func (s *UserProfileService) SendEmailVerifyCode(ctx context.Context, userID int
 	codeKey := fmt.Sprintf("email:verify:code:%d", userID)
 	err = s.cache.SetEx(ctx, codeKey, code, 600)
 	if err != nil {
-		s.logger.Error("存储验证码失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("存储验证码失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("存储验证码失败: %w", err)
 	}
 
@@ -777,17 +777,17 @@ func (s *UserProfileService) SendEmailVerifyCode(ctx context.Context, userID int
 		}
 	}
 	if err := s.cache.SetEx(ctx, limitKey, fmt.Sprintf("%d", newCount), 3600); err != nil {
-		s.logger.Warn("更新发送频率限制失败", zap.String("key", limitKey), zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Warn("更新发送频率限制失败", tracing.WithTraceIDField(ctx), zap.String("key", limitKey), zap.Error(err))
 	}
 
 	// 发送验证邮件
 	err = s.sendVerificationEmail(ctx, userData.Email, code)
 	if err != nil {
-		s.logger.Error("发送验证邮件失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("发送验证邮件失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, fmt.Errorf("发送验证邮件失败: %w", err)
 	}
 
-	s.logger.Info("邮箱验证码发送成功", zap.Int("user_id", userID), zap.String("email", userData.Email), tracing.WithTraceIDField(ctx))
+	s.logger.Info("邮箱验证码发送成功", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.String("email", userData.Email))
 
 	return &schema.EmailVerifyCodeResponse{
 		Sent:      true,
@@ -798,7 +798,7 @@ func (s *UserProfileService) SendEmailVerifyCode(ctx context.Context, userID int
 
 // VerifyEmail Verify email | 验证邮箱
 func (s *UserProfileService) VerifyEmail(ctx context.Context, userID int, req schema.EmailVerifyRequest) (*schema.EmailVerifyResponse, error) {
-	s.logger.Info("验证邮箱", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("验证邮箱", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID))
 
 	// 获取存储的验证码数据
 	codeKey := fmt.Sprintf("email:verify:code:%d", userID)
@@ -815,15 +815,15 @@ func (s *UserProfileService) VerifyEmail(ctx context.Context, userID int, req sc
 	// 更新用户邮箱验证状态
 	err = s.userRepo.UpdateEmailVerified(ctx, userID, true)
 	if err != nil {
-		s.logger.Error("更新邮箱验证状态失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("更新邮箱验证状态失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return nil, err
 	}
 
 	// 清除验证码缓存
 	count, _ := s.cache.Del(ctx, codeKey) //nolint:errcheck // 缓存清除失败不影响主流程
-	s.logger.Debug("清除验证码缓存", zap.Int("count", count), tracing.WithTraceIDField(ctx))
+	s.logger.Debug("清除验证码缓存", tracing.WithTraceIDField(ctx), zap.Int("count", count))
 
-	s.logger.Info("邮箱验证成功", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx))
+	s.logger.Info("邮箱验证成功", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID))
 
 	return &schema.EmailVerifyResponse{
 		Verified: true,
@@ -849,7 +849,7 @@ func (s *UserProfileService) sendVerificationEmail(ctx context.Context, email, c
 	// 检查是否启用了邮箱验证
 	isVerifyEmail, err := s.settings.GetSettingByKey(ctx, _const.SafeVerifyEmail, _const.SettingBoolTrue.String())
 	if err != nil {
-		s.logger.Error("查询邮箱验证设置失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("查询邮箱验证设置失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("查询邮箱验证设置失败: %w", err)
 	}
 
@@ -860,14 +860,14 @@ func (s *UserProfileService) sendVerificationEmail(ctx context.Context, email, c
 	// 获取网站设置
 	siteConfig, err := s.settings.GetSeoSettings(ctx)
 	if err != nil {
-		s.logger.Error("获取网站配置失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取网站配置失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("获取网站配置失败: %w", err)
 	}
 
 	// 获取SMTP配置
 	smtpConfig, err := s.settings.GetSMTPConfig(ctx)
 	if err != nil {
-		s.logger.Error("获取SMTP配置失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("获取SMTP配置失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("获取SMTP配置失败: %w", err)
 	}
 
@@ -877,7 +877,7 @@ func (s *UserProfileService) sendVerificationEmail(ctx context.Context, email, c
 	// 渲染邮件模板
 	htmlBody, err := emailTemplate.RenderEmailVerificationTemplate(ctx, code, siteConfig.WebSiteName)
 	if err != nil {
-		s.logger.Error("渲染邮件模板失败", zap.Error(err), tracing.WithTraceIDField(ctx))
+		s.logger.Error("渲染邮件模板失败", tracing.WithTraceIDField(ctx), zap.Error(err))
 		return fmt.Errorf("渲染邮件模板失败: %w", err)
 	}
 
@@ -905,6 +905,6 @@ func (s *UserProfileService) sendVerificationEmail(ctx context.Context, email, c
 func (s *UserProfileService) clearProfileOverviewCache(ctx context.Context, userID int) {
 	cacheKey := fmt.Sprintf("user:profile:overview:%d", userID)
 	if _, err := s.cache.Del(ctx, cacheKey); err != nil {
-		s.logger.Warn("清除用户个人中心概览缓存失败", zap.Int("user_id", userID), tracing.WithTraceIDField(ctx), zap.Error(err))
+		s.logger.Warn("清除用户个人中心概览缓存失败", tracing.WithTraceIDField(ctx), zap.Int("user_id", userID), zap.Error(err))
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/wneessen/go-mail"
@@ -24,11 +25,14 @@ type message struct {
 
 // SMTPPool Send emails using SMTP protocol (based on channel queue) | SMTP协议发送邮件（基于channel队列）
 type SMTPPool struct {
-	config SMTPConfig
-	ch     chan *message
-	chOpen bool
-	ready  chan struct{} // Initialization completion signal | 初始化完成信号
-	logger *zap.Logger
+	config    SMTPConfig
+	ch        chan *message
+	chOpen    bool
+	closed    bool
+	ready     chan struct{} // Initialization completion signal | 初始化完成信号
+	readyOnce sync.Once
+	mu        sync.RWMutex
+	logger    *zap.Logger
 }
 
 // SMTPConfig SMTP sending configuration | SMTP发送配置
@@ -67,10 +71,6 @@ func NewSMTPPool(config SMTPConfig, logger *zap.Logger) *SMTPPool {
 
 // Send Send email (submit to channel queue) | 发送邮件（提交到channel队列）
 func (client *SMTPPool) Send(ctx context.Context, to, title, body string) error {
-	if !client.chOpen {
-		return fmt.Errorf("SMTP pool is closed")
-	}
-
 	// Ignore emails from QQ login | 忽略通过QQ登录的邮箱
 	if strings.HasSuffix(to, "@login.qq.com") {
 		return nil
@@ -88,20 +88,38 @@ func (client *SMTPPool) Send(ctx context.Context, to, title, body string) error 
 	m.SetMessageID()
 	m.SetBodyString(mail.TypeTextHTML, body)
 
-	// Submit to queue | 提交到队列
-	client.ch <- &message{
+	msg := &message{
 		msg:     m,
 		subject: title,
 		to:      to,
 		traceID: tracing.GetTraceID(ctx),
 		userID:  tracing.GetUserID(ctx),
 	}
+
+	client.mu.RLock()
+	defer client.mu.RUnlock()
+
+	if client.closed || !client.chOpen || client.ch == nil {
+		return fmt.Errorf("SMTP pool is closed")
+	}
+
+	// Submit to queue | 提交到队列
+	select {
+	case client.ch <- msg:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 	return nil
 }
 
 // Close Close sending queue | 关闭发送队列
 func (client *SMTPPool) Close() {
-	if client.ch != nil {
+	client.mu.Lock()
+	defer client.mu.Unlock()
+
+	if client.ch != nil && !client.closed {
+		client.closed = true
+		client.chOpen = false
 		close(client.ch)
 	}
 }
@@ -112,7 +130,13 @@ func (client *SMTPPool) Init() {
 		client.logger.Info("初始化并启动SMTP邮件队列...")
 		defer func() {
 			if err := recover(); err != nil {
+				client.mu.Lock()
 				client.chOpen = false
+				closed := client.closed
+				client.mu.Unlock()
+				if closed {
+					return
+				}
 				client.logger.Error("邮件发送异常，队列将在10秒后重置", zap.Any("error", err))
 				time.Sleep(10 * time.Second)
 				client.Init()
@@ -139,8 +163,16 @@ func (client *SMTPPool) Init() {
 			return
 		}
 
+		client.mu.Lock()
+		if client.closed {
+			client.mu.Unlock()
+			return
+		}
 		client.chOpen = true
-		close(client.ready) // Notify initialization completed | 通知初始化完成
+		client.mu.Unlock()
+		client.readyOnce.Do(func() {
+			close(client.ready) // Notify initialization completed | 通知初始化完成
+		})
 
 		var err error
 		open := false
@@ -149,7 +181,9 @@ func (client *SMTPPool) Init() {
 			case m, ok := <-client.ch:
 				if !ok {
 					client.logger.Info("邮件队列关闭中...")
+					client.mu.Lock()
 					client.chOpen = false
+					client.mu.Unlock()
 					return
 				}
 

@@ -83,7 +83,7 @@ func (t *StatsSyncTask) HandleStatsSyncTask(ctx context.Context, task *asynq.Tas
 		return fmt.Errorf("反序列化失败: %v: %w", err, asynq.SkipRetry)
 	}
 
-	startTime = time.Now()
+	startTime := time.Now()
 
 	// Synchronize post statistics data | 同步帖子统计数据
 	postCount, err := t.postStatsService.SyncStatsToDatabase(ctx)
